@@ -11,6 +11,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         private partial void Validate()
         {
             Debug.Assert(Left.InputType.Equals(InputType, TypeCompareKind.AllIgnoreOptions));
+            Debug.Assert(Left is not BoundPatternWithUnionMatching);
+            Debug.Assert(Right is not BoundPatternWithUnionMatching);
 
             if (Disjunction)
             {

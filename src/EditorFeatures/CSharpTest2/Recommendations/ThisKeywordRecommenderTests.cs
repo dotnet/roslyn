@@ -840,6 +840,87 @@ public sealed class ThisKeywordRecommenderTests : KeywordRecommenderTests
             }
             """);
 
+    [Fact]
+    public Task TestExtensionBlockIndexer_01()
+        => VerifyAbsenceAsync(
+            // Equivalent to TestAfterType for extension blocks.
+            """
+            static class E
+            {
+                extension(int i)
+                {
+                    public int $$
+                }
+            }
+            """);
+
+    [Fact]
+    public Task TestExtensionBlockIndexer_02()
+        => VerifyAbsenceAsync(
+            """
+            static class E
+            {
+                extension(int i)
+                {
+                    public int $$[int value]
+                }
+            }
+            """);
+
+    [Fact]
+    public Task TestExtensionBlockIndexer_03()
+        => VerifyAbsenceAsync(
+            """
+            static class E
+            {
+                extension(int i)
+                {
+                    public int th$$
+                }
+            }
+            """);
+
+    [Fact]
+    public Task TestExtensionBlockIndexer_04()
+        => VerifyAbsenceAsync(
+            """
+            static class E
+            {
+                extension(int i)
+                {
+                    public int th$$[int value]
+                }
+            }
+            """);
+
+    [Fact]
+    public Task TestNotInExtensionBlockParameterType()
+        => VerifyAbsenceAsync(
+            """
+            static class E
+            {
+                extension(int $$)
+                {
+                }
+            }
+            """);
+
+    [Fact]
+    public Task TestNotAfterLocalVariableTypeInExtensionBlockMember()
+        => VerifyAbsenceAsync(
+            """
+            static class E
+            {
+                extension(int i)
+                {
+                    public void M()
+                    {
+                        int $$
+                    }
+                }
+            }
+            """);
+
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538264")]
     public Task TestNotInEnumMemberInitializer1()
         => VerifyAbsenceAsync(
@@ -1217,9 +1298,11 @@ public sealed class ThisKeywordRecommenderTests : KeywordRecommenderTests
         => VerifyKeywordAsync(AddInsideMethod(
             @"ref int x = ref $$"));
 
-    [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/78979")]
+    [Theory, CombinatorialData]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/78979")]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/82251")]
     public Task TestInsideNameofInAttribute(bool isStatic)
-        => VerifyKeywordAsync($$"""
+        => VerifyAbsenceAsync($$"""
             public class Example
             {
                 private string _field;

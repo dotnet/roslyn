@@ -1,0 +1,10 @@
+﻿Document - 
+    RazorCompiledItemAttribute - 
+    NamespaceDeclaration -  - Razor
+        RazorSourceChecksumAttribute - 
+        ClassDeclaration -  - public - Template - global::LegacyTemplateBase - 
+            MethodDeclaration -  - public async override - global::System.Threading.Tasks.Task - ExecuteAsync
+                HtmlContent - (38:1,0 [2] TestFiles\IntegrationTests\CSharp13LanguageFeaturesIntegrationTest_Legacy\TestView.cshtml)
+                    LazyIntermediateToken - (38:1,0 [2] TestFiles\IntegrationTests\CSharp13LanguageFeaturesIntegrationTest_Legacy\TestView.cshtml) - Html - \n
+                CSharpCode - (42:2,2 [101] TestFiles\IntegrationTests\CSharp13LanguageFeaturesIntegrationTest_Legacy\TestView.cshtml)
+                    LazyIntermediateToken - (42:2,2 [101] TestFiles\IntegrationTests\CSharp13LanguageFeaturesIntegrationTest_Legacy\TestView.cshtml) - CSharp - \n    int Increment(int value) => value + 1;\n    var increment = Increment;\n    _ = increment(1);\n

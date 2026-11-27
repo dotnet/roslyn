@@ -1,0 +1,18 @@
+﻿Document - 
+    NamespaceDeclaration -  - Test
+        UsingDirective - (3:1,1 [20] ) - global::System
+        UsingDirective - (26:2,1 [40] ) - global::System.Collections.Generic
+        UsingDirective - (69:3,1 [25] ) - global::System.Linq
+        UsingDirective - (97:4,1 [36] ) - global::System.Threading.Tasks
+        UsingDirective - (136:5,1 [45] ) - global::Microsoft.AspNetCore.Components
+        ClassDeclaration -  - public partial - TestComponent - global::Microsoft.AspNetCore.Components.ComponentBase - 
+            MethodDeclaration -  - protected override - void - BuildRenderTree
+                Component - (0:0,0 [96] x:\dir\subdir\Test\TestComponent.cshtml) - MyComponent
+                    ComponentChildContent -  - ChildContent - context
+                        HtmlContent - (45:0,45 [11] x:\dir\subdir\Test\TestComponent.cshtml)
+                            LazyIntermediateToken - (45:0,45 [11] x:\dir\subdir\Test\TestComponent.cshtml) - Html - \n    Some 
+                        MarkupBlock -  - <el>further</el> content\n
+                    SetKey - (19:0,19 [9] x:\dir\subdir\Test\TestComponent.cshtml) - 123 + 456
+                    ComponentAttribute -  - SomeProp -  - AttributeStructure.DoubleQuotes
+                        HtmlContent - (40:0,40 [3] x:\dir\subdir\Test\TestComponent.cshtml)
+                            LazyIntermediateToken - (40:0,40 [3] x:\dir\subdir\Test\TestComponent.cshtml) - Html - val

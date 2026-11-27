@@ -355,7 +355,7 @@ internal static partial class SyntaxTreeExtensions
         var leftToken = syntaxTree.FindTokenOnLeftOfPosition(position, cancellationToken);
         var token = leftToken.GetPreviousTokenIfTouchingWord(position);
 
-        // if we're after an attribute, restart the check at teh start of the attribute.
+        // if we're after an attribute, restart the check at the start of the attribute.
         if (token.Kind() == SyntaxKind.CloseBracketToken && token.Parent is AttributeListSyntax)
             return syntaxTree.IsLocalFunctionDeclarationContext(token.Parent.SpanStart, validModifiers, cancellationToken);
 
@@ -604,8 +604,15 @@ internal static partial class SyntaxTreeExtensions
             if (container is CompilationUnitSyntax or BaseNamespaceDeclarationSyntax or TypeDeclarationSyntax)
                 return true;
 
-            if (container is VariableDeclarationSyntax && modifierTokens.Contains(SyntaxKind.FileKeyword))
-                return true;
+            if (container is VariableDeclarationSyntax)
+            {
+                if (modifierTokens.Contains(SyntaxKind.FileKeyword))
+                    return true;
+#if !OLDER_ROSLYN
+                if (modifierTokens.Contains(SyntaxKind.ClosedKeyword))
+                    return true;
+#endif
+            }
         }
 
         return false;
@@ -1110,7 +1117,7 @@ internal static partial class SyntaxTreeExtensions
             parameter4 = token.Parent as ParameterSyntax;
             previousModifier = token.Kind();
         }
-        else if (token.IsKind(SyntaxKind.IdentifierToken) && token.Text == "scoped" && token.Parent is IdentifierNameSyntax scopedIdentifierName)
+        else if (token.IsKind(SyntaxKind.IdentifierToken) && token is { Text: "scoped", Parent: IdentifierNameSyntax scopedIdentifierName })
         {
             parameter4 = scopedIdentifierName.Parent as ParameterSyntax;
             previousModifier = SyntaxKind.ScopedKeyword;
@@ -1128,7 +1135,7 @@ internal static partial class SyntaxTreeExtensions
         static bool IsSuitableParameterList(ParameterListSyntax parameterList, bool includeOperators)
             => parameterList.Parent switch
             {
-                MethodDeclarationSyntax or LocalFunctionStatementSyntax or ConstructorDeclarationSyntax or DelegateDeclarationSyntax or TypeDeclarationSyntax => true,
+                MethodDeclarationSyntax or LocalFunctionStatementSyntax or ConstructorDeclarationSyntax or DelegateDeclarationSyntax or TypeDeclarationSyntax or ParenthesizedLambdaExpressionSyntax or AnonymousMethodExpressionSyntax => true,
                 OperatorDeclarationSyntax or ConversionOperatorDeclarationSyntax when includeOperators => true,
                 _ => false,
             };
@@ -1267,7 +1274,7 @@ internal static partial class SyntaxTreeExtensions
         {
             parent = token.Parent.Parent;
         }
-        else if (token.IsKind(SyntaxKind.IdentifierToken) && token.Text == "scoped" && token.Parent is IdentifierNameSyntax scopedIdentifierName && scopedIdentifierName.Parent.IsKind(SyntaxKind.Parameter))
+        else if (token.IsKind(SyntaxKind.IdentifierToken) && token is { Text: "scoped", Parent: IdentifierNameSyntax scopedIdentifierName } && scopedIdentifierName.Parent.IsKind(SyntaxKind.Parameter))
         {
             parent = scopedIdentifierName.Parent.Parent;
         }
@@ -2137,27 +2144,20 @@ internal static partial class SyntaxTreeExtensions
 
     public static bool IsLabelContext(this SyntaxTree syntaxTree, int position, CancellationToken cancellationToken)
     {
-        var token = syntaxTree.FindTokenOnLeftOfPosition(position, cancellationToken);
+        var token = syntaxTree
+            .FindTokenOnLeftOfPosition(position, cancellationToken)
+            .GetPreviousTokenIfTouchingWord(position);
 
-        var gotoStatement = token.GetAncestor<GotoStatementSyntax>();
-        if (gotoStatement != null)
-        {
-            if (gotoStatement.GotoKeyword == token)
-            {
-                return true;
-            }
-
-            if (gotoStatement.Expression != null &&
-                !gotoStatement.Expression.IsMissing &&
-                gotoStatement.Expression is IdentifierNameSyntax &&
-                ((IdentifierNameSyntax)gotoStatement.Expression).Identifier == token &&
-                token.IntersectsWith(position))
-            {
-                return true;
-            }
-        }
-
-        return false;
+        // goto |
+        // goto x|
+        //
+        // break |
+        // break x|
+        //
+        // continue |
+        // continue x|
+        return token.Kind() is SyntaxKind.GotoKeyword or SyntaxKind.BreakKeyword or SyntaxKind.ContinueKeyword &&
+               token.Parent is GotoStatementSyntax or BreakStatementSyntax or ContinueStatementSyntax;
     }
 
     public static bool IsExpressionContext(

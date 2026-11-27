@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.Remote.Host;
 /// Exposes a <see cref="IServiceBroker"/> to services that expect there to be a global singleton.
 /// The first remote service that gets called into will record its broker here.
 /// </summary>
-[Export(typeof(IServiceBrokerProvider)), Shared]
+[ExportWorkspaceService(typeof(IServiceBrokerProvider), ServiceLayer.Host), Shared]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
 internal sealed class RemoteServiceBrokerProvider() : IServiceBrokerProvider
@@ -31,8 +31,9 @@ internal sealed class RemoteServiceBrokerProvider() : IServiceBrokerProvider
     {
         get
         {
-            Contract.ThrowIfNull(s_instance, "Global service broker not registered");
-            return s_instance;
+            var broker = Volatile.Read(ref s_instance);
+            Contract.ThrowIfNull(broker, "Global service broker not registered");
+            return broker;
         }
     }
 }

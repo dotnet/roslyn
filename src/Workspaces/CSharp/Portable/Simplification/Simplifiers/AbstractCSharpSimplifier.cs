@@ -138,7 +138,7 @@ internal abstract class AbstractCSharpSimplifier<TSyntax, TSimplifiedSyntax>
 
         // an alias can only replace a type or namespace
         if (symbol == null ||
-            (symbol.Kind != SymbolKind.Namespace && symbol.Kind != SymbolKind.NamedType))
+            symbol is { Kind: not SymbolKind.Namespace and not SymbolKind.NamedType })
         {
             return false;
         }

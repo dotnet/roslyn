@@ -10,6 +10,5 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\SyntaxNodeExtensions.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Lightup\SyntaxKindEx.cs" />
   </ItemGroup>
 </Project>

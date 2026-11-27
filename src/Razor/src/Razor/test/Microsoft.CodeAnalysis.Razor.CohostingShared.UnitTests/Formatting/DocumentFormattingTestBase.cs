@@ -1,0 +1,203 @@
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
+using System;
+using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
+using System.Linq;
+using System.Threading.Tasks;
+using Microsoft.AspNetCore.Razor.Language;
+using Microsoft.AspNetCore.Razor.Test.Common;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp.Formatting;
+using Microsoft.CodeAnalysis.Razor;
+using Microsoft.CodeAnalysis.LanguageServer;
+using Microsoft.CodeAnalysis.Razor.Cohost;
+#if NETFRAMEWORK
+using Microsoft.CodeAnalysis.Razor.Formatting;
+#endif
+using Microsoft.CodeAnalysis.Razor.Protocol;
+using Microsoft.CodeAnalysis.Razor.Remote;
+using Microsoft.CodeAnalysis.Razor.Settings;
+using Microsoft.CodeAnalysis.Razor.Workspaces.Settings;
+using Microsoft.CodeAnalysis.Text;
+using Roslyn.Test.Utilities;
+using Xunit;
+using Xunit.Abstractions;
+using Microsoft.CodeAnalysis.Remote.Razor.Formatting;
+
+namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost.Formatting;
+
+public abstract class DocumentFormattingTestBase(ITestOutputHelper testOutputHelper) : CohostEndpointTestBase(testOutputHelper)
+{
+    [SuppressMessage("Style", "IDE0060:Remove unused parameter", Justification = "The shared tests also pass the CLI-only expected output.")]
+    private protected async Task RunFormattingTestAsync(
+        TestCode input,
+        string htmlFormatted,
+        string expected,
+        RazorFileKind? fileKind = null,
+        bool inGlobalNamespace = false,
+        bool codeBlockBraceOnNextLine = false,
+        AttributeIndentStyle attributeIndentStyle = AttributeIndentStyle.AlignWithFirst,
+        bool ignoreIndentationInScriptOrStyleBlocksWithComplexRazor = true,
+        bool insertSpaces = true,
+        int tabSize = 4,
+        bool allowDiagnostics = false,
+        bool debugAssertsEnabled = true,
+        bool validateHtmlFormattedMatchesWebTools = true,
+        (string fileName, string contents)[]? additionalFiles = null,
+        string? documentFilePath = null,
+        string? dotNetFormatExpected = null)
+    {
+        var document = CreateProjectAndRazorDocument(
+            input.Text,
+            fileKind,
+            documentFilePath,
+            inGlobalNamespace: inGlobalNamespace,
+            additionalFiles: additionalFiles);
+
+        if (!allowDiagnostics)
+        {
+            //TODO: Tests in LanguageServer have extra components that are not present in this project, like Counter, etc.
+            //      so we can't validate for diagnostics here until we make them the same. Since the test inputs are all
+            //      shared this doesn't really matter while the language server tests are present.
+            //var snapshotManager = OOPExportProvider.GetExportedValue<RemoteSnapshotManager>();
+            //var snapshot = snapshotManager.GetSnapshot(document);
+            //var codeDocument = await snapshot.GetGeneratedOutputAsync(DisposalToken);
+            //var csharpDocument = codeDocument.GetImplCSharpDocument();
+            //Assert.False(csharpDocument.Diagnostics.Any(), "Error creating document:" + Environment.NewLine + string.Join(Environment.NewLine, csharpDocument.Diagnostics));
+        }
+
+        var formattingService = (RazorFormattingService)OOPExportProvider.GetExportedValue<IRazorFormattingService>();
+        var accessor = formattingService.GetTestAccessor();
+        accessor.SetDebugAssertsEnabled(debugAssertsEnabled);
+        accessor.SetFormattingLoggerFactory(new TestFormattingLoggerFactory(TestOutputHelper));
+
+        var generatedHtml = await RemoteServiceInvoker.TryInvokeAsync<IRemoteHtmlDocumentService, string?>(document.Project.Solution,
+            (service, solutionInfo, ct) => service.GetHtmlDocumentTextAsync(solutionInfo, document.Id, ct),
+            DisposalToken).ConfigureAwait(false);
+        Assert.NotNull(generatedHtml);
+
+        var uri = new Uri(document.CreateSystemUri(), $"{document.FilePath}{LanguageServerConstants.HtmlVirtualDocumentSuffix}");
+        TextEdit[] htmlEdits = [];
+
+        var source = SourceText.From(input.Text);
+        var htmlChanges = SourceText.From(htmlFormatted).GetTextChanges(source);
+        htmlEdits = [.. htmlChanges.Select(source.GetTextEdit)];
+
+        if (validateHtmlFormattedMatchesWebTools)
+        {
+#if NETFRAMEWORK
+            using var htmlFormattingService = new HtmlFormattingService();
+            // The endpoint gives the Html formatter Razor's indent size, which can come from .editorconfig, as its tab size
+            var htmlTabSize = document.GetRazorFormattingOptions(
+                ClientSettingsManager.GetClientSettings(),
+                new FormattingOptions() { TabSize = tabSize, InsertSpaces = insertSpaces },
+                DisposalToken).IndentSize;
+            // Lets make sure everything is working as we expect in our tests
+            var htmlEditsResult = await htmlFormattingService.GetDocumentFormattingEditsAsync(LoggerFactory, uri, generatedHtml, insertSpaces, htmlTabSize);
+            var htmlChangesResult = htmlEditsResult.Select(source.GetTextChange);
+
+            var htmlEdited = source.WithChanges(htmlChanges);
+            var htmlEditedLegacy = source.WithChanges(htmlChangesResult ?? []);
+            AssertEx.EqualOrDiff(htmlEdited.ToString(), htmlEditedLegacy.ToString(), message: "htmlFormatted doesn't match WebTools");
+            AssertEx.EqualOrDiff(htmlFormatted, htmlEditedLegacy.ToString());
+            AssertEx.EqualOrDiff(htmlFormatted, htmlEdited.ToString());
+#endif
+        }
+
+        var span = input.TryGetNamedSpans(string.Empty, out var spans)
+            ? spans.First()
+            : default;
+
+        var edits = await GetFormattingEditsAsync(
+            document,
+            htmlEdits,
+            span,
+            codeBlockBraceOnNextLine,
+            attributeIndentStyle,
+            insertSpaces,
+            tabSize,
+            csharpSyntaxFormattingOptions: null,
+            ignoreIndentationInScriptOrStyleBlocksWithComplexRazor);
+
+        if (edits is null)
+        {
+            AssertEx.EqualOrDiff(expected, input.Text);
+            return;
+        }
+
+        var inputText = await document.GetTextAsync(DisposalToken);
+        var changes = edits.Select(inputText.GetTextChange);
+        var finalText = inputText.WithChanges(changes);
+
+        AssertEx.EqualOrDiff(expected, finalText.ToString());
+    }
+
+    private protected async Task<TextEdit[]?> GetFormattingEditsAsync(
+        TextDocument document,
+        TextEdit[]? htmlEdits,
+        TextSpan span,
+        bool codeBlockBraceOnNextLine,
+        AttributeIndentStyle attributeIndentStyle,
+        bool insertSpaces,
+        int tabSize,
+        CSharpSyntaxFormattingOptions? csharpSyntaxFormattingOptions,
+        bool ignoreIndentationInScriptOrStyleBlocksWithComplexRazor)
+    {
+        var requestInvoker = new TestHtmlRequestInvoker([(Methods.TextDocumentFormattingName, htmlEdits)]);
+
+        ClientSettingsManager.Update(ClientSettingsManager.GetClientSettings().AdvancedSettings with
+        {
+            CodeBlockBraceOnNextLine = codeBlockBraceOnNextLine,
+            AttributeIndentStyle = attributeIndentStyle,
+            IgnoreIndentationInScriptOrStyleBlocksWithComplexRazor = ignoreIndentationInScriptOrStyleBlocksWithComplexRazor,
+        });
+
+        var edits = await GetFormattingEditsInternalAsync(span, insertSpaces, tabSize, document, requestInvoker, ClientSettingsManager, csharpSyntaxFormattingOptions);
+        return edits;
+    }
+
+    private async Task<TextEdit[]?> GetFormattingEditsInternalAsync(
+       TextSpan span,
+       bool insertSpaces,
+       int tabSize,
+       TextDocument document,
+       IHtmlRequestInvoker requestInvoker,
+       IClientSettingsManager clientSettingsManager,
+       CSharpSyntaxFormattingOptions? csharpSyntaxFormattingOptions)
+    {
+        if (span.IsEmpty)
+        {
+            var endpoint = new CohostDocumentFormattingEndpoint(IncompatibleProjectService, RemoteServiceInvoker, requestInvoker, clientSettingsManager, LoggerFactory);
+            var request = new DocumentFormattingParams()
+            {
+                TextDocument = new TextDocumentIdentifier() { DocumentUri = document.GetURI() },
+                Options = new FormattingOptions()
+                {
+                    TabSize = tabSize,
+                    InsertSpaces = insertSpaces
+                }
+            };
+
+            return csharpSyntaxFormattingOptions is null
+                ? await endpoint.GetTestAccessor().HandleRequestAsync(request, document, DisposalToken)
+                : await endpoint.GetTestAccessor().HandleRequestAsync(request, document, csharpSyntaxFormattingOptions, DisposalToken);
+        }
+
+        var inputText = await document.GetTextAsync(DisposalToken);
+        var rangeEndpoint = new CohostRangeFormattingEndpoint(IncompatibleProjectService, RemoteServiceInvoker, requestInvoker, clientSettingsManager, LoggerFactory);
+        var rangeRequest = new DocumentRangeFormattingParams()
+        {
+            TextDocument = new TextDocumentIdentifier() { DocumentUri = document.GetURI() },
+            Options = new FormattingOptions()
+            {
+                TabSize = 4,
+                InsertSpaces = true
+            },
+            Range = inputText.GetRange(span)
+        };
+
+        return await rangeEndpoint.GetTestAccessor().HandleRequestAsync(rangeRequest, document, DisposalToken);
+    }
+}

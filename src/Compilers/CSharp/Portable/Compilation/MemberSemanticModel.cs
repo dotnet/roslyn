@@ -350,6 +350,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                         binder = rootBinder.GetBinder(current);
                     }
                 }
+                else if (current is UnsafeExpressionSyntax unsafeExpression)
+                {
+                    if (LookupPosition.IsBetweenTokens(position, unsafeExpression.OpenParenToken, unsafeExpression.CloseParenToken))
+                    {
+                        binder = rootBinder.GetBinder(current);
+                    }
+                }
                 else
                 {
                     // If this ever breaks, make sure that all callers of
@@ -1035,8 +1042,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override DeconstructionInfo GetDeconstructionInfo(AssignmentExpressionSyntax node)
         {
-            var boundDeconstruction = GetUpperBoundNode(node) as BoundDeconstructionAssignmentOperator;
-            if (boundDeconstruction is null)
+            var lowerNode = GetLowerBoundNode(node);
+            if (lowerNode is not BoundDeconstructionAssignmentOperator boundDeconstruction)
             {
                 return default;
             }
@@ -2231,6 +2238,10 @@ done:
                         node = n.Expression;
                         continue;
 
+                    case UnsafeExpressionSyntax n:
+                        node = n.Expression;
+                        continue;
+
                     // Simple mitigation to give a result for suppressions. Public API tracked by https://github.com/dotnet/roslyn/issues/26198
                     case PostfixUnaryExpressionSyntax { RawKind: (int)SyntaxKind.SuppressNullableWarningExpression } n:
                         node = n.Operand;
@@ -2291,6 +2302,7 @@ done:
                             !(node is JoinIntoClauseSyntax) &&
                             !(node is QueryContinuationSyntax) &&
                             !(node is ConstructorInitializerSyntax) &&
+                            !(node is WithElementSyntax) &&
                             !(node is PrimaryConstructorBaseTypeSyntax) &&
                             !(node is ArrowExpressionClauseSyntax) &&
                             !(node is PatternSyntax))

@@ -6,7 +6,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     internal enum ConversionKind : byte
     {
-        UnsetConversionKind = 0,
         NoConversion,
         Identity,
         ImplicitNumeric,
@@ -71,5 +70,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         ImplicitSpan, // A conversion from array to (ReadOnly)Span, or from string or (ReadOnly)Span to ReadOnlySpan
         ExplicitSpan, // A conversion from array to (ReadOnly)Span
+
+        Union, // An implicit conversion to a union type from its case type.
     }
 }

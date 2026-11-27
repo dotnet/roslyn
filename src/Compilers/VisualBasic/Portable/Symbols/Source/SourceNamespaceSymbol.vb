@@ -197,7 +197,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Function
 
         Public Overloads Overrides Function GetMembers() As ImmutableArray(Of Symbol)
-            If (_lazyState And StateFlags.AllMembersIsSorted) <> 0 Then
+            If (Volatile.Read(_lazyState) And StateFlags.AllMembersIsSorted) <> 0 Then
                 Return _lazyAllMembers
 
             Else
@@ -363,7 +363,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ' for example, it is called twice on Namespace X.Y, once with "X" and once with "X.Y".
         ' It will also be called with the CompilationUnit.
         Private Sub ValidateDeclaration(tree As SyntaxTree, cancellationToken As CancellationToken)
-            If (_lazyState And StateFlags.DeclarationValidated) <> 0 Then
+            If (Volatile.Read(_lazyState) And StateFlags.DeclarationValidated) <> 0 Then
                 Return
             End If
 
@@ -414,7 +414,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             ' VS can display errors and warnings separately in the IDE, so it may be ok to flood the users with
             ' these warnings.
             If Not reportedNamespaceMismatch AndAlso
-                String.Compare(node.Identifier.ValueText, Me.Name, StringComparison.Ordinal) <> 0 Then
+                Not String.Equals(node.Identifier.ValueText, Me.Name, StringComparison.Ordinal) Then
                 ' all namespace names from the declarations match following the VB identifier comparison rules,
                 ' so we just need to check when they are not matching using case sensitive comparison.
 
@@ -461,7 +461,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Dim path = Nothing
 
             For Each declaration In _declaration.Declarations
-                If String.Compare(Me.Name, declaration.Name, StringComparison.Ordinal) = 0 Then
+                If String.Equals(Me.Name, declaration.Name, StringComparison.Ordinal) Then
                     If declaration.IsPartOfRootNamespace Then
                         'path = StringConstants.ProjectSettingLocationName
                         path = New LocalizableErrorArgument(ERRID.IDS_ProjectSettingsLocationName)
@@ -503,7 +503,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' </summary>
         Friend ReadOnly Property HasMultipleSpellings As Boolean
             Get
-                Return (_lazyState And StateFlags.HasMultipleSpellings) <> 0
+                Return (Volatile.Read(_lazyState) And StateFlags.HasMultipleSpellings) <> 0
             End Get
         End Property
 

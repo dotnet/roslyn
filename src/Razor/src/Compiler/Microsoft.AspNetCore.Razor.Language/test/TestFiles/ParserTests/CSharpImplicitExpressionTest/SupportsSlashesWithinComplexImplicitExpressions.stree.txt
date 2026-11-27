@@ -1,0 +1,49 @@
+﻿RazorDocument - [0..103)::103 - [@DataGridColumn.Template("Years of Service", e => (int)Math.Round((DateTime.Now - dt).TotalDays / 365))]
+    MarkupBlock - [0..103)::103
+        MarkupTextLiteral - [0..0)::0 - [] - Gen<Markup>
+            Marker;[];
+        CSharpCodeBlock - [0..103)::103
+            CSharpImplicitExpression - [0..103)::103
+                CSharpTransition - [0..1)::1 - Gen<None>
+                    Transition;[@];
+                CSharpImplicitExpressionBody - [1..103)::102
+                    CSharpCodeBlock - [1..103)::102
+                        CSharpExpressionLiteral - [1..103)::102 - [DataGridColumn.Template("Years of Service", e => (int)Math.Round((DateTime.Now - dt).TotalDays / 365))] - Gen<Expr>
+                            Identifier;[DataGridColumn];
+                            Dot;[.];
+                            Identifier;[Template];
+                            LeftParenthesis;[(];
+                            StringLiteral;["Years of Service"];
+                            Comma;[,];
+                            Whitespace;[ ];
+                            Identifier;[e];
+                            Whitespace;[ ];
+                            CSharpOperator;[=>];
+                            Whitespace;[ ];
+                            LeftParenthesis;[(];
+                            Keyword;[int];
+                            RightParenthesis;[)];
+                            Identifier;[Math];
+                            Dot;[.];
+                            Identifier;[Round];
+                            LeftParenthesis;[(];
+                            LeftParenthesis;[(];
+                            Identifier;[DateTime];
+                            Dot;[.];
+                            Identifier;[Now];
+                            Whitespace;[ ];
+                            CSharpOperator;[-];
+                            Whitespace;[ ];
+                            Identifier;[dt];
+                            RightParenthesis;[)];
+                            Dot;[.];
+                            Identifier;[TotalDays];
+                            Whitespace;[ ];
+                            CSharpOperator;[/];
+                            Whitespace;[ ];
+                            NumericLiteral;[365];
+                            RightParenthesis;[)];
+                            RightParenthesis;[)];
+        MarkupTextLiteral - [103..103)::0 - [] - Gen<Markup>
+            Marker;[];
+    EndOfFile;[];

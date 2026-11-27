@@ -5,6 +5,7 @@
 using System.Composition;
 using System.Text.Json.Serialization;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CommonLanguageServerProtocol.Framework;
 
@@ -12,24 +13,35 @@ namespace Microsoft.CodeAnalysis.LanguageServer.BrokeredServices;
 
 [ExportCSharpVisualBasicStatelessLspService(typeof(ServiceBrokerConnectHandler)), Shared]
 [Method("serviceBroker/connect")]
-internal sealed class ServiceBrokerConnectHandler : ILspServiceNotificationHandler<ServiceBrokerConnectHandler.NotificationParams>
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal sealed class ServiceBrokerConnectHandler() : ILspServiceNotificationHandler<ServiceBrokerConnectHandler.NotificationParams>
 {
-    private readonly ServiceBrokerFactory _serviceBrokerFactory;
-
-    [ImportingConstructor]
-    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public ServiceBrokerConnectHandler(ServiceBrokerFactory serviceBrokerFactory)
-    {
-        _serviceBrokerFactory = serviceBrokerFactory;
-    }
-
     public bool MutatesSolutionState => false;
 
-    public bool RequiresLSPSolution => false;
+    public bool RequiresLSPSolution => true;
 
-    Task INotificationHandler<NotificationParams, RequestContext>.HandleNotificationAsync(NotificationParams request, RequestContext requestContext, CancellationToken cancellationToken)
+    async Task INotificationHandler<NotificationParams, RequestContext>.HandleNotificationAsync(NotificationParams request, RequestContext requestContext, CancellationToken cancellationToken)
     {
-        return _serviceBrokerFactory.CreateAndConnectAsync(request.PipeName);
+        var workspace = await requestContext.GetRequiredWorkspaceAsync(cancellationToken).ConfigureAwait(false);
+
+        var serviceBrokerFactory = requestContext.GetRequiredService<ServiceBrokerFactory>();
+        // Suppress logger async local context from flowing to the service broker connection.
+        // This prevents all service broker requests from inheriting the LSP 'serviceBroker/connect' logging scope.
+        // Suppression starts the work on a clean execution context, so re-establish the telemetry
+        // instance there; it then flows to everything the connection spawns.
+        var telemetry = RoslynTelemetry.Current;
+        Task connectTask;
+        using (ExecutionContext.SuppressFlow())
+        {
+            connectTask = Task.Run(async () =>
+            {
+                using var _ = RoslynTelemetry.SetCurrent(telemetry);
+                await serviceBrokerFactory.CreateAndConnectAsync(request.PipeName, workspace).ConfigureAwait(false);
+            }, CancellationToken.None);
+        }
+
+        await connectTask.ConfigureAwait(false);
     }
 
     private sealed class NotificationParams

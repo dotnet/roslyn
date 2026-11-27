@@ -1,0 +1,19 @@
+﻿Document - 
+    NamespaceDeclaration - (11:0,11 [16] x:\dir\subdir\Test\TestComponent.cshtml) - Custom.Namespace
+        UsingDirective - (3:1,1 [20] ) - global::System
+        UsingDirective - (26:2,1 [40] ) - global::System.Collections.Generic
+        UsingDirective - (69:3,1 [25] ) - global::System.Linq
+        UsingDirective - (97:4,1 [36] ) - global::System.Threading.Tasks
+        UsingDirective - (136:5,1 [45] ) - global::Microsoft.AspNetCore.Components
+        CSharpCode - 
+            IntermediateToken -  - CSharp - [global::Custom.Namespace.TestComponent.__PrivateComponentRenderModeAttribute]
+        ClassDeclaration -  - public partial - TestComponent - global::Microsoft.AspNetCore.Components.ComponentBase - 
+            MethodDeclaration -  - protected override - void - BuildRenderTree
+            ClassDeclaration -  - private sealed - __PrivateComponentRenderModeAttribute - global::Microsoft.AspNetCore.Components.RenderModeAttribute - 
+                CSharpCode - 
+                    IntermediateToken -  - CSharp - private static global::Microsoft.AspNetCore.Components.IComponentRenderMode ModeImpl => 
+                    CSharpCode - (43:2,12 [64] x:\dir\subdir\Test\TestComponent.cshtml)
+                        IntermediateToken - (43:2,12 [64] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - Microsoft.AspNetCore.Components.Web.RenderMode.InteractiveServer
+                    IntermediateToken -  - CSharp - ;
+                CSharpCode - 
+                    IntermediateToken -  - CSharp - public override global::Microsoft.AspNetCore.Components.IComponentRenderMode Mode => ModeImpl;

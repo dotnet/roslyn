@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.ComponentModel.Design;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices;
@@ -14,19 +13,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
 
 internal static class VisualStudioCommandHandlerHelpers
 {
-    public static OleMenuCommand AddCommand(
-        IMenuCommandService menuCommandService,
-        int commandId,
-        Guid commandGroup,
-        EventHandler invokeHandler,
-        EventHandler beforeQueryStatus)
-    {
-        var commandIdWithGroupId = new CommandID(commandGroup, commandId);
-        var command = new OleMenuCommand(invokeHandler, delegate { }, beforeQueryStatus, commandIdWithGroupId);
-        menuCommandService.AddCommand(command);
-        return command;
-    }
-
     public static bool TryGetSelectedProjectHierarchy(IServiceProvider? serviceProvider, [NotNullWhen(returnValue: true)] out IVsHierarchy? hierarchy)
     {
         hierarchy = null;

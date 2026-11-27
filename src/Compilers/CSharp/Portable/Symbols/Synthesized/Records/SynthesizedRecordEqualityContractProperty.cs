@@ -8,6 +8,7 @@ using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
@@ -48,6 +49,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         public override bool IsImplicitlyDeclared => true;
+
+        internal override RequiresUnsafeMode GetRequiresUnsafeMode(ConsList<FieldSymbol> fieldsBeingBound) => RequiresUnsafeMode.None;
 
         public override ImmutableArray<SyntaxReference> DeclaringSyntaxReferences => ImmutableArray<SyntaxReference>.Empty;
 

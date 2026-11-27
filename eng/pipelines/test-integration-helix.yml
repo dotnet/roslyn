@@ -3,12 +3,21 @@ parameters:
     type: string
   - name: queueName
     type: string
+  - name: buildQueueName
+    type: string
   - name: configuration
     type: string
     default: 'Debug'
     values: [ 'Debug', 'Release' ] 
   - name: timeout
     type: number
+  - name: warnAsError
+    type: boolean
+    default: false
+  - name: testPlatform
+    type: string
+    default: x64
+    values: [ x86, x64 ]
   - name: testRuns
     type: object
     default:
@@ -26,15 +35,19 @@ stages:
       jobName: Build_Windows_${{ parameters.configuration }}
       testArtifactName: Transport_Artifacts_Windows_${{ parameters.configuration }}
       configuration: ${{ parameters.configuration }}
+      warnAsError: ${{ parameters.warnAsError }}
       poolParameters: 
         name: ${{ parameters.poolName }}
-        demands: ImageOverride -equals ${{ parameters.queueName }}
+        demands: ImageOverride -equals ${{ parameters.buildQueueName }}
       restoreArguments: -msbuildEngine vs
       buildArguments: -msbuildEngine vs /p:Projects='"$(Build.Repository.LocalPath)\src\VisualStudio\IntegrationTest\IntegrationTestBuildProject.csproj"'
 
 - stage: ${{ parameters.configuration }}_Integration
   dependsOn: Windows_${{ parameters.configuration }}_Build
   variables:
+  # Use the producer's artifact name even when only the test job is retried.
+  - name: testArtifactName
+    value: $[stageDependencies.Windows_${{ parameters.configuration }}_Build.Build_Windows_${{ parameters.configuration }}.outputs['SetTestArtifactName.testArtifactName']]
   - name: XUNIT_LOGS
     value: $(Build.SourcesDirectory)\artifacts\log\${{ parameters.configuration }}
   jobs:
@@ -49,13 +62,13 @@ stages:
       - task: DownloadPipelineArtifact@2
         displayName: Download Test Payload
         inputs:
-          artifact: Transport_Artifacts_Windows_${{ parameters.configuration }}
+          artifact: $(testArtifactName)
           path: '$(Build.SourcesDirectory)'
 
       - task: BatchScript@1
         displayName: Rehydrate RunTests
         inputs:
-          filename: ./artifacts/bin/RunTests/${{ parameters.configuration }}/net9.0/rehydrate.cmd
+          filename: ./artifacts/bin/RunTests/${{ parameters.configuration }}/net10.0/rehydrate.cmd
         env:
           HELIX_CORRELATION_PAYLOAD: '$(Build.SourcesDirectory)\.duplicate'
       
@@ -67,11 +80,25 @@ stages:
         env:
           HELIX_CORRELATION_PAYLOAD: '$(Build.SourcesDirectory)\.duplicate'
 
+      - task: BatchScript@1
+        displayName: Rehydrate Microsoft.VisualStudio.Razor.IntegrationTests
+        inputs:
+          filename: ./artifacts/bin/Microsoft.VisualStudio.Razor.IntegrationTests/${{ parameters.configuration }}/net472/rehydrate.cmd
+        env:
+          HELIX_CORRELATION_PAYLOAD: '$(Build.SourcesDirectory)\.duplicate'
+
+      - task: BatchScript@1
+        displayName: Rehydrate Roslyn.SDK.IntegrationTests
+        inputs:
+          filename: ./artifacts/bin/Roslyn.SDK.IntegrationTests/${{ parameters.configuration }}/net472/rehydrate.cmd
+        env:
+          HELIX_CORRELATION_PAYLOAD: '$(Build.SourcesDirectory)\.duplicate'
+
       # This is a temporary step until the actual test run moves to helix (then we would need to rehydrate the tests there instead)
       - task: BatchScript@1
-        displayName: Rehydrate Microsoft.CodeAnalysis.Workspaces.MSBuild.UnitTests (net9.0)
+        displayName: Rehydrate Microsoft.CodeAnalysis.Workspaces.MSBuild.UnitTests (net10.0)
         inputs:
-          filename: ./artifacts\bin\Microsoft.CodeAnalysis.Workspaces.MSBuild.UnitTests/${{ parameters.configuration }}/net9.0/rehydrate.cmd
+          filename: ./artifacts\bin\Microsoft.CodeAnalysis.Workspaces.MSBuild.UnitTests/${{ parameters.configuration }}/net10.0/rehydrate.cmd
         env:
           HELIX_CORRELATION_PAYLOAD: '$(Build.SourcesDirectory)\.duplicate'
 
@@ -83,19 +110,18 @@ stages:
         env:
           HELIX_CORRELATION_PAYLOAD: '$(Build.SourcesDirectory)\.duplicate'
 
-      - task: UseDotNet@2
-        displayName: 'Install .NET 9 Runtime'
+      - task: BatchScript@1
+        displayName: Rehydrate Microsoft.VisualStudio.Extensibility.Testing.Xunit.IntegrationTests
         inputs:
-          packageType: runtime
-          version: '9.0.0'
-          includePreviewVersions: true
-          installationPath: '$(Build.SourcesDirectory)/.dotnet'
+          filename: ./artifacts\bin\Microsoft.VisualStudio.Extensibility.Testing.Xunit.IntegrationTests/${{ parameters.configuration }}/net472/rehydrate.cmd
+        env:
+          HELIX_CORRELATION_PAYLOAD: '$(Build.SourcesDirectory)\.duplicate'
 
       - task: PowerShell@2
         displayName: Run Integration Tests
         inputs:
-          filePath: eng/build.ps1
-          arguments: -ci -prepareMachine -testVsi -configuration ${{ parameters.configuration }} -oop64bit:$${{ testParameters.oop64bit }} -collectDumps -lspEditor:$${{ testParameters.lspEditor }}
+          filePath: eng/test-vsi.ps1
+          arguments: -ci -configuration ${{ parameters.configuration }} -testPlatform ${{ parameters.testPlatform }} -oop64bit:$${{ testParameters.oop64bit }} -collectDumps -lspEditor:$${{ testParameters.lspEditor }}
 
       # These are temporary publishing steps - once the tests run on helix, the artifacts will be attached to the helix payload.
       - task: PublishTestResults@2

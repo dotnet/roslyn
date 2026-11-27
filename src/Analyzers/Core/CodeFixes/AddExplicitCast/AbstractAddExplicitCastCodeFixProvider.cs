@@ -93,11 +93,11 @@ internal abstract partial class AbstractAddExplicitCastCodeFixProvider<TExpressi
 
                 actions.Add(CodeAction.Create(
                     title,
-                    cancellationToken =>
+                    async cancellationToken =>
                     {
                         var (finalTarget, replacement) = ApplyFix(document, semanticModel, targetNode, conversionType, cancellationToken);
 
-                        return Task.FromResult(document.WithSyntaxRoot(root.ReplaceNode(finalTarget, replacement)));
+                        return document.WithSyntaxRoot(root.ReplaceNode(finalTarget, replacement));
                     },
                     title));
 

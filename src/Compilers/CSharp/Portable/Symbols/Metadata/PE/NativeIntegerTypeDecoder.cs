@@ -135,6 +135,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 TypeWithAnnotations oldTypeArgument = allTypeArguments[i];
                 if (TransformTypeWithAnnotations(oldTypeArgument) is not { } newTypeArgument)
                 {
+                    allTypeArguments.Free();
                     return null;
                 }
 
@@ -187,6 +188,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 {
                     if (TransformTypeWithAnnotations(param.TypeWithAnnotations) is not { } transformedParam)
                     {
+                        builder.Free();
                         return null;
                     }
 

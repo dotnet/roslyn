@@ -1,0 +1,39 @@
+﻿Source Location: (1:0,1 [37] x:\dir\subdir\Test\TestComponent.cshtml)
+|using Microsoft.AspNetCore.Components|
+Generated Location: (320:11,0 [37] )
+|using Microsoft.AspNetCore.Components|
+
+Source Location: (43:2,1 [8] x:\dir\subdir\Test\TestComponent.cshtml)
+|Test.Col|
+Generated Location: (794:24,44 [8] )
+|Test.Col|
+
+Source Location: (76:3,2 [2] x:\dir\subdir\Test\TestComponent.cshtml)
+|
+|
+Generated Location: (1148:32,0 [2] )
+|
+|
+
+Source Location: (83:4,5 [8] x:\dir\subdir\Test\TestComponent.cshtml)
+|Test.Col|
+Generated Location: (1246:38,44 [8] )
+|Test.Col|
+
+Source Location: (118:5,0 [30] x:\dir\subdir\Test\TestComponent.cshtml)
+|    RenderFragment template = |
+Generated Location: (1605:46,0 [30] )
+|    RenderFragment template = |
+
+Source Location: (150:5,32 [8] x:\dir\subdir\Test\TestComponent.cshtml)
+|Test.Col|
+Generated Location: (1769:53,49 [8] )
+|Test.Col|
+
+Source Location: (181:5,63 [3] x:\dir\subdir\Test\TestComponent.cshtml)
+|;
+|
+Generated Location: (2163:62,0 [3] )
+|;
+|
+

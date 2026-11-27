@@ -2,6 +2,7 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
+Imports Microsoft.CodeAnalysis.Completion.Providers
 Imports Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.CompletionProviders
@@ -13,6 +14,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.Complet
 
         Public Sub New()
             ShowImportCompletionItemsOptionValue = True
+            ImportCompletionCommitBehaviorValue = ImportCompletionCommitBehavior.AlwaysAddImport
             ForceExpandedCompletionIndexCreation = True
         End Sub
 

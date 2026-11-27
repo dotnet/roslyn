@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.CodeLens;
 
 public sealed class CSharpCodeLensTests : AbstractCodeLensTests
 {
-    public CSharpCodeLensTests(ITestOutputHelper? testOutputHelper) : base(testOutputHelper)
+    public CSharpCodeLensTests(ITestOutputHelper testOutputHelper) : base(testOutputHelper)
     {
     }
 
@@ -436,7 +436,7 @@ public sealed class CSharpCodeLensTests : AbstractCodeLensTests
         var actualCodeLenses = await testLspServer.ExecuteRequestAsync<LSP.CodeLensParams, LSP.CodeLens[]?>(LSP.Methods.TextDocumentCodeLensName, codeLensParamsDoc1, CancellationToken.None);
         var firstCodeLens = actualCodeLenses!.First();
         var data = JsonSerializer.Deserialize<CodeLensResolveData>(firstCodeLens.Data!.ToString()!, ProtocolConversions.LspJsonSerializerOptions);
-        AssertEx.NotNull(data);
+        Assert.NotNull(data);
 
         // Update the document so the syntax version changes
         await testLspServer.OpenDocumentAsync(documentUri);
@@ -497,6 +497,79 @@ public sealed class CSharpCodeLensTests : AbstractCodeLensTests
             OptionUpdater = (globalOptions) => globalOptions.SetGlobalOption(LspOptionsStorage.LspUsingDevkitFeatures, false)
         });
         await VerifyTestCodeLensAsync(testLspServer, FeaturesResources.Run_Test, FeaturesResources.Debug_Test);
+    }
+
+    [Theory, CombinatorialData]
+    public async Task TestSemanticDiscoveryFindsDerivedTestAttributeAsync(bool mutatingLspWorkspace)
+    {
+        var markup =
+            """
+            using System;
+            namespace Xunit
+            {
+                [AttributeUsage(AttributeTargets.Method, AllowMultiple = false)]
+                public class FactAttribute : Attribute { }
+            }
+            namespace Test
+            {
+                using Xunit;
+
+                public class ConditionalFactAttribute : FactAttribute { }
+                public sealed class WindowsOnlyFactAttribute : ConditionalFactAttribute { }
+
+                class A
+                {
+                    [WindowsOnlyFact]
+                    public void {|codeLens:M|}()
+                    {
+                    }
+                }
+            }
+            """;
+        await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace, new InitializationOptions
+        {
+            ClientCapabilities = CapabilitiesWithVSExtensions,
+            OptionUpdater = (globalOptions) =>
+            {
+                globalOptions.SetGlobalOption(LspOptionsStorage.LspUsingDevkitFeatures, false);
+                globalOptions.SetGlobalOption(LspOptionsStorage.LspUseSemanticTestDiscovery, LanguageNames.CSharp, true);
+            }
+        });
+        await VerifyTestCodeLensAsync(testLspServer, FeaturesResources.Run_Test, FeaturesResources.Debug_Test);
+    }
+
+    [Theory, CombinatorialData]
+    public async Task TestSemanticDiscoveryDisabledByDefaultAsync(bool mutatingLspWorkspace)
+    {
+        var markup =
+            """
+            using System;
+            namespace Xunit
+            {
+                [AttributeUsage(AttributeTargets.Method, AllowMultiple = false)]
+                public class FactAttribute : Attribute { }
+            }
+            namespace Test
+            {
+                using Xunit;
+
+                public sealed class ConditionalFactAttribute : FactAttribute { }
+
+                class A
+                {
+                    [ConditionalFact]
+                    public void {|codeLens:M|}()
+                    {
+                    }
+                }
+            }
+            """;
+        await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace, new InitializationOptions
+        {
+            ClientCapabilities = CapabilitiesWithVSExtensions,
+            OptionUpdater = (globalOptions) => globalOptions.SetGlobalOption(LspOptionsStorage.LspUsingDevkitFeatures, false)
+        });
+        await VerifyTestCodeLensMissingAsync(testLspServer);
     }
 
     [Theory, CombinatorialData]

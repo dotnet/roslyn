@@ -1,0 +1,78 @@
+﻿RazorDocument - [0..169)::169 - [LF@switch (new int[0])LF{LF    case global::Test:LF        <strong>Property expressions are supported by the razor syntax in the year 2022.</strong>LF        break;LF}LF]
+    MarkupBlock - [0..169)::169
+        MarkupTextLiteral - [0..2)::2 - [LF] - Gen<Markup> - SpanEditHandler;Accepts:Any
+            NewLine;[LF];
+        CSharpCodeBlock - [2..169)::167
+            CSharpTransition - [2..3)::1 - Gen<None> - SpanEditHandler;Accepts:None
+                Transition;[@];
+            CSharpStatementLiteral - [3..51)::48 - [switch (new int[0])LF{LF    case global::Test:LF] - Gen<Stmt> - SpanEditHandler;Accepts:Any
+                Keyword;[switch];
+                Whitespace;[ ];
+                LeftParenthesis;[(];
+                Keyword;[new];
+                Whitespace;[ ];
+                Keyword;[int];
+                LeftBracket;[[];
+                IntegerLiteral;[0];
+                RightBracket;[]];
+                RightParenthesis;[)];
+                NewLine;[LF];
+                LeftBrace;[{];
+                NewLine;[LF];
+                Whitespace;[    ];
+                Keyword;[case];
+                Whitespace;[ ];
+                Identifier;[global];
+                DoubleColon;[::];
+                Identifier;[Test];
+                Colon;[:];
+                NewLine;[LF];
+            MarkupBlock - [51..150)::99
+                MarkupTextLiteral - [51..59)::8 - [        ] - Gen<Markup> - SpanEditHandler;Accepts:Any
+                    Whitespace;[        ];
+                MarkupElement - [59..148)::89
+                    MarkupStartTag - [59..67)::8 - [<strong>] - Gen<Markup> - SpanEditHandler;Accepts:None
+                        OpenAngle;[<];
+                        Text;[strong];
+                        CloseAngle;[>];
+                    MarkupTextLiteral - [67..139)::72 - [Property expressions are supported by the razor syntax in the year 2022.] - Gen<Markup> - SpanEditHandler;Accepts:Any
+                        Text;[Property];
+                        Whitespace;[ ];
+                        Text;[expressions];
+                        Whitespace;[ ];
+                        Text;[are];
+                        Whitespace;[ ];
+                        Text;[supported];
+                        Whitespace;[ ];
+                        Text;[by];
+                        Whitespace;[ ];
+                        Text;[the];
+                        Whitespace;[ ];
+                        Text;[razor];
+                        Whitespace;[ ];
+                        Text;[syntax];
+                        Whitespace;[ ];
+                        Text;[in];
+                        Whitespace;[ ];
+                        Text;[the];
+                        Whitespace;[ ];
+                        Text;[year];
+                        Whitespace;[ ];
+                        Text;[2022.];
+                    MarkupEndTag - [139..148)::9 - [</strong>] - Gen<Markup> - SpanEditHandler;Accepts:None
+                        OpenAngle;[<];
+                        ForwardSlash;[/];
+                        Text;[strong];
+                        CloseAngle;[>];
+                MarkupTextLiteral - [148..150)::2 - [LF] - Gen<Markup> - SpanEditHandler;Accepts:None
+                    NewLine;[LF];
+            CSharpStatementLiteral - [150..169)::19 - [        break;LF}LF] - Gen<Stmt> - SpanEditHandler;Accepts:None
+                Whitespace;[        ];
+                Keyword;[break];
+                Semicolon;[;];
+                NewLine;[LF];
+                RightBrace;[}];
+                NewLine;[LF];
+        MarkupTextLiteral - [169..169)::0 - [] - Gen<Markup> - SpanEditHandler;Accepts:Any
+            Marker;[];
+    EndOfFile;[];

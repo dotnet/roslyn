@@ -1,0 +1,73 @@
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
+using System;
+using System.Collections.Immutable;
+using System.ComponentModel.Composition;
+using System.Threading;
+using System.Threading.Tasks;
+using Microsoft.AspNetCore.Razor;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.LanguageServer;
+using Microsoft.CodeAnalysis.LanguageServer.Handler;
+using Microsoft.CodeAnalysis.Razor;
+using Microsoft.CodeAnalysis.Razor.Cohost;
+
+namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
+
+[Export(typeof(IIncompatibleProjectService))]
+[method: ImportingConstructor]
+internal sealed class IncompatibleProjectService(IIncompatibleProjectNotifier incompatibleProjectNotifier) : IIncompatibleProjectService
+{
+    private readonly IIncompatibleProjectNotifier _incompatibleProjectNotifier = incompatibleProjectNotifier;
+
+    private ImmutableHashSet<ProjectId> _incompatibleProjectIds = [];
+
+    public async Task HandleMissingDocumentAsync(TextDocumentIdentifier? textDocumentIdentifier, RequestContext context, CancellationToken cancellationToken)
+    {
+        var solution = await context.GetRequiredSolutionAsync(cancellationToken).ConfigureAwait(false);
+
+#pragma warning disable CS0618 // Type or member is obsolete - https://github.com/dotnet/roslyn/issues/84785
+        if (textDocumentIdentifier?.DocumentUri.ParsedUri is not Uri uri)
+        {
+            // Can't do anything without a uri
+            return;
+        }
+#pragma warning restore CS0618 // Type or member is obsolete
+
+        // We know that the textDocumentIdentifier doesn't map to a document in the solution, or we wouldn't be here,
+        // but we don't want to notify the user for each file, so we try to find the project that contains the file
+        // through other means.
+
+        var filePath = uri.GetDocumentFilePathFromUri();
+        var filePathSpan = filePath.AsSpan();
+        foreach (var project in solution.Projects)
+        {
+            if (project.FilePath is null)
+            {
+                continue;
+            }
+
+            if (filePathSpan.StartsWith(
+                PathUtilities.GetDirectoryName(project.FilePath.AsSpan()),
+                PathUtilities.OSSpecificPathComparison))
+            {
+                if (!project.State.HasAllInformation)
+                {
+                    // Additional documents may still be incomplete while the project is loading, so don't report or cache it yet.
+                    break;
+                }
+
+                if (ImmutableInterlocked.Update(ref _incompatibleProjectIds, static (set, id) => set.Add(id), project.Id))
+                {
+                    _incompatibleProjectNotifier.NotifyMissingDocument(project, filePath);
+                }
+
+                break;
+            }
+        }
+
+        // If we couldn't find a candidate project, then this could be a misc file or linked file from somewhere, but we'll err on the side of not reporting
+        // it. In future we could consider a separate hashset for these, so we report once per file.
+    }
+}

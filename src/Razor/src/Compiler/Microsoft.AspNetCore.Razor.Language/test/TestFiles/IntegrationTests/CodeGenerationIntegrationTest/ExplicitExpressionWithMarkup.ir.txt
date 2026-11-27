@@ -1,0 +1,28 @@
+﻿Document - 
+    RazorCompiledItemAttribute - 
+    NamespaceDeclaration -  - AspNetCoreGeneratedDocument
+        UsingDirective - (1:0,1 [20] ) - global::System
+        UsingDirective - (24:1,1 [40] ) - global::System.Collections.Generic
+        UsingDirective - (67:2,1 [25] ) - global::System.Linq
+        UsingDirective - (95:3,1 [36] ) - global::System.Threading.Tasks
+        UsingDirective - (134:4,1 [38] ) - global::Microsoft.AspNetCore.Mvc
+        UsingDirective - (175:5,1 [48] ) - global::Microsoft.AspNetCore.Mvc.Rendering
+        UsingDirective - (226:6,1 [51] ) - global::Microsoft.AspNetCore.Mvc.ViewFeatures
+        RazorSourceChecksumAttribute - 
+        RazorCompiledItemMetadataAttribute - 
+        CreateNewOnMetadataUpdateAttribute - 
+        ClassDeclaration -  - internal sealed - TestFiles_IntegrationTests_CodeGenerationIntegrationTest_ExplicitExpressionWithMarkup - global::Microsoft.AspNetCore.Mvc.Razor.RazorPage<dynamic> - 
+            MethodDeclaration -  - public async override - global::System.Threading.Tasks.Task - ExecuteAsync
+                HtmlContent - (0:0,0 [5] ExplicitExpressionWithMarkup.cshtml)
+                    LazyIntermediateToken - (0:0,0 [4] ExplicitExpressionWithMarkup.cshtml) - Html - <div
+                    LazyIntermediateToken - (4:0,4 [1] ExplicitExpressionWithMarkup.cshtml) - Html - >
+                CSharpExpression - (8:0,8 [6] ExplicitExpressionWithMarkup.cshtml)
+                    Template - (8:0,8 [6] ExplicitExpressionWithMarkup.cshtml)
+                        HtmlContent - (8:0,8 [6] ExplicitExpressionWithMarkup.cshtml)
+                            LazyIntermediateToken - (8:0,8 [6] ExplicitExpressionWithMarkup.cshtml) - Html - </div>
+                    LazyIntermediateToken - (14:0,14 [0] ExplicitExpressionWithMarkup.cshtml) - CSharp - 
+            Inject - 
+            Inject - 
+            Inject - 
+            Inject - 
+            Inject - 

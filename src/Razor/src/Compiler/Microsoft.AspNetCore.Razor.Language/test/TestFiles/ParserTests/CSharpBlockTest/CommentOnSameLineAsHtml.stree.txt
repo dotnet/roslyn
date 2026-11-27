@@ -1,0 +1,41 @@
+﻿RazorDocument - [0..35)::35 - [@{LF    @* comment *@<div></div>LF}]
+    MarkupBlock - [0..35)::35
+        MarkupTextLiteral - [0..0)::0 - [] - Gen<Markup>
+            Marker;[];
+        CSharpCodeBlock - [0..35)::35
+            CSharpStatement - [0..35)::35
+                CSharpTransition - [0..1)::1 - Gen<None>
+                    Transition;[@];
+                CSharpStatementBody - [1..35)::34
+                    RazorMetaCode - [1..2)::1 - Gen<None>
+                        LeftBrace;[{];
+                    CSharpCodeBlock - [2..34)::32
+                        CSharpStatementLiteral - [2..8)::6 - [LF    ] - Gen<Stmt>
+                            NewLine;[LF];
+                            Whitespace;[    ];
+                        RazorComment - [8..21)::13
+                            RazorCommentTransition;[@];
+                            RazorCommentStar;[*];
+                            RazorCommentLiteral;[ comment ];
+                            RazorCommentStar;[*];
+                            RazorCommentTransition;[@];
+                        MarkupBlock - [21..34)::13
+                            MarkupElement - [21..32)::11
+                                MarkupStartTag - [21..26)::5 - [<div>] - Gen<Markup>
+                                    OpenAngle;[<];
+                                    Text;[div];
+                                    CloseAngle;[>];
+                                MarkupEndTag - [26..32)::6 - [</div>] - Gen<Markup>
+                                    OpenAngle;[<];
+                                    ForwardSlash;[/];
+                                    Text;[div];
+                                    CloseAngle;[>];
+                            MarkupTextLiteral - [32..34)::2 - [LF] - Gen<Markup>
+                                NewLine;[LF];
+                        CSharpStatementLiteral - [34..34)::0 - [] - Gen<Stmt>
+                            Marker;[];
+                    RazorMetaCode - [34..35)::1 - Gen<None>
+                        RightBrace;[}];
+        MarkupTextLiteral - [35..35)::0 - [] - Gen<Markup>
+            Marker;[];
+    EndOfFile;[];

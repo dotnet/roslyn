@@ -20,7 +20,7 @@ internal sealed class TestErrorReportingService : IErrorReportingService
     {
     }
 
-    public Action<string> OnError { get; set; } = message => Assert.False(true, message);
+    public Action<string> OnError { get; set; } = message => Assert.Fail(message);
 
     public string HostDisplayName
         => "Test Host";

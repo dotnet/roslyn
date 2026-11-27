@@ -1,0 +1,21 @@
+﻿Document - 
+    NamespaceDeclaration -  - Test
+        UsingDirective - (3:1,1 [20] ) - global::System
+        UsingDirective - (26:2,1 [40] ) - global::System.Collections.Generic
+        UsingDirective - (69:3,1 [25] ) - global::System.Linq
+        UsingDirective - (97:4,1 [36] ) - global::System.Threading.Tasks
+        UsingDirective - (136:5,1 [45] ) - global::Microsoft.AspNetCore.Components
+        ClassDeclaration -  - public partial - TestComponent - global::Microsoft.AspNetCore.Components.ComponentBase - 
+            MethodDeclaration -  - protected override - void - BuildRenderTree
+                CSharpCode - (2:0,2 [2] x:\dir\subdir\Test\TestComponent.razor)
+                    LazyIntermediateToken - (2:0,2 [2] x:\dir\subdir\Test\TestComponent.razor) - CSharp - \n
+                MarkupElement - (8:1,4 [44] x:\dir\subdir\Test\TestComponent.razor) - div
+                    HtmlContent - (13:1,9 [16] x:\dir\subdir\Test\TestComponent.razor)
+                        LazyIntermediateToken - (13:1,9 [16] x:\dir\subdir\Test\TestComponent.razor) - Html - \n#if true\n    
+                    MarkupElement - (29:3,4 [23] x:\dir\subdir\Test\TestComponent.razor) - div
+                        HtmlContent - (34:3,9 [5] x:\dir\subdir\Test\TestComponent.razor)
+                            LazyIntermediateToken - (34:3,9 [5] x:\dir\subdir\Test\TestComponent.razor) - Html - \n}\n
+                        CSharpCode - (41:5,2 [10] x:\dir\subdir\Test\TestComponent.razor)
+                            LazyIntermediateToken - (41:5,2 [10] x:\dir\subdir\Test\TestComponent.razor) - CSharp - \n#endif\n
+                CSharpCode - (52:7,1 [0] x:\dir\subdir\Test\TestComponent.razor)
+                    LazyIntermediateToken - (52:7,1 [0] x:\dir\subdir\Test\TestComponent.razor) - CSharp - 

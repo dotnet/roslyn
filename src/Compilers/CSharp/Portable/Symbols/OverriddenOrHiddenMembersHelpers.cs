@@ -1016,10 +1016,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // be computed, then it is important for us to pass ignoreInterfaceImplementationChanges: true
             // (see MethodSymbol.IsMetadataVirtual for details).
             // Since we are only concerned with overrides (of class methods), interface implementations can be ignored.
-            const MethodSymbol.IsMetadataVirtualOption ignoreInterfaceImplementationChanges = MethodSymbol.IsMetadataVirtualOption.IgnoreInterfaceImplementationChanges;
-
             wasAmbiguous = false;
-            if (!method.IsMetadataVirtual(ignoreInterfaceImplementationChanges) || method.IsStatic)
+            if (!method.IsMetadataVirtual(context: null, ignoreInterfaceImplementationChanges: true) || method.IsStatic)
             {
                 return null;
             }
@@ -1038,7 +1036,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         MethodSymbol overridden = (MethodSymbol)otherMember;
 
                         // NOTE: The runtime doesn't consider non-virtual methods during override resolution.
-                        if (overridden.IsMetadataVirtual(ignoreInterfaceImplementationChanges))
+                        if (overridden.IsMetadataVirtual(context: null, ignoreInterfaceImplementationChanges: true))
                         {
                             if (candidate is { })
                             {

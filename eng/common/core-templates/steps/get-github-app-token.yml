@@ -1,0 +1,73 @@
+# Mints a short-lived GitHub App installation access token by signing a JWT
+# via Azure Key Vault's RSA signing operation (RS256), without reading the
+# private key. The JWT is exchanged for a single installation's token.
+#
+# Requirements (per GitHub App you want to authenticate as):
+#   - The GitHub App's private key imported as a Key Vault RSA key.
+#   - Read access to the configured App-ID secret projection.
+#   - The Azure service connection passed via `azureSubscription` must have
+#     the `Sign` action on that key.
+#   - The App must be installed on the target organization/account
+#     (`installationOwner`) with the permissions/repositories you need.
+#
+# Output: a secret pipeline variable named ${{ parameters.outputVariableName }}
+# containing the installation access token. Token lifetime is ~1 hour and is
+# automatically scrubbed from logs. Installation tokens are exempt from the
+# enterprise classic-PAT lifetime policy.
+
+parameters:
+# Federated service connection authorized to sign with the App's RSA key.
+- name: azureSubscription
+  type: string
+
+# Name of the Key Vault holding the App's RSA key.
+- name: keyVaultName
+  type: string
+
+- name: keyName
+  type: string
+
+- name: appIdSecretName
+  type: string
+
+# Login of the organization or user account whose installation we should
+# mint the token for (e.g. `dotnet`, `microsoft`).
+- name: installationOwner
+  type: string
+
+# Name of the pipeline variable that will receive the installation token.
+- name: outputVariableName
+  type: string
+
+- name: is1ESPipeline
+  type: boolean
+
+- name: stepName
+  type: string
+  default: getGitHubAppInstallationToken
+
+- name: condition
+  type: string
+  default: ''
+
+- name: displayName
+  type: string
+  default: Get GitHub App installation token
+
+steps:
+- task: AzureCLI@2
+  displayName: ${{ parameters.displayName }}
+  name: ${{ parameters.stepName }}
+  ${{ if ne(parameters.condition, '') }}:
+    condition: ${{ parameters.condition }}
+  inputs:
+    azureSubscription: ${{ parameters.azureSubscription }}
+    scriptType: pscore
+    scriptLocation: inlineScript
+    inlineScript: |
+      & "$(System.DefaultWorkingDirectory)/eng/common/Get-GitHubAppToken.ps1" `
+          -KeyVaultName '${{ parameters.keyVaultName }}' `
+          -KeyName '${{ parameters.keyName }}' `
+          -AppIdSecretName '${{ parameters.appIdSecretName }}' `
+          -InstallationOwner '${{ parameters.installationOwner }}' `
+          -OutputVariableName '${{ parameters.outputVariableName }}'

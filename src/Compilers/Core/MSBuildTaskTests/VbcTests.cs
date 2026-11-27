@@ -3,9 +3,13 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.IO;
+using Microsoft.Build.Framework;
 using Microsoft.CodeAnalysis.BuildTasks;
 using Microsoft.CodeAnalysis.BuildTasks.UnitTests.TestUtilities;
+using Microsoft.CodeAnalysis.CommandLine;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
@@ -441,8 +445,21 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
         [Theory, CombinatorialData, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/2615118")]
         public void BuiltInToolExe(bool useAppHost, bool setToolExe)
         {
-            var vbc = new Vbc();
-            vbc.UseAppHost_TestOnly = useAppHost;
+            using var temp = new TempRoot();
+            var projectDirectory = temp.CreateDirectory();
+            var taskEnvironment = TaskEnvironment.CreateWithProjectDirectoryAndEnvironment(
+                projectDirectory.Path,
+                new Dictionary<string, string>
+                {
+                    [RuntimeHostInfo.DotNetHostPathEnvironmentName] = TestHelpers.GetRootedPath(RuntimeHostInfo.DotNetHostExecutableName)
+                });
+
+            var vbc = new Vbc()
+            {
+                UseAppHost_TestOnly = useAppHost,
+                TaskEnvironment = taskEnvironment,
+            };
+
             if (setToolExe)
             {
                 vbc.ToolExe = $"vbc{PlatformInformation.ExeExtension}";
@@ -454,7 +471,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
             }
             else
             {
-                AssertEx.Equal(RuntimeHostInfo.GetDotNetPathOrDefault(), vbc.GeneratePathToTool());
+                AssertEx.Equal(RuntimeHostInfo.GetDotNetHostPath(taskEnvironment.BuildEnvironment), vbc.GeneratePathToTool());
                 AssertEx.Equal(RuntimeHostInfo.GetDotNetExecCommandLine(vbc.PathToBuiltInTool, ""), vbc.GenerateCommandLineContents());
             }
         }

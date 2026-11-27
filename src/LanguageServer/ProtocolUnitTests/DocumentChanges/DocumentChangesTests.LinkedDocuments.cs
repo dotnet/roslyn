@@ -6,6 +6,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Roslyn.LanguageServer.Protocol;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.DocumentChanges;
@@ -93,7 +94,7 @@ public sealed partial class DocumentChangesTests
                         // hi there
                     }
                 }
-                """, document.GetTextSynchronously(CancellationToken.None).ToString());
+                """.NormalizeLineEndings(), document.GetTextSynchronously(CancellationToken.None).ToString());
         }
 
         await DidClose(testLspServer, caretLocation.DocumentUri);
@@ -103,7 +104,7 @@ public sealed partial class DocumentChangesTests
 
     private static async Task<Solution> GetLSPSolutionAsync(TestLspServer testLspServer, DocumentUri uri)
     {
-        var (_, _, lspDocument) = await testLspServer.GetManager().GetLspDocumentInfoAsync(new TextDocumentIdentifier { DocumentUri = uri }, CancellationToken.None).ConfigureAwait(false);
+        var lspDocument = (await testLspServer.CaptureLspDocumentContextAsync(new TextDocumentIdentifier { DocumentUri = uri }).ConfigureAwait(false))?.Document;
         Contract.ThrowIfNull(lspDocument);
         return lspDocument.Project.Solution;
     }

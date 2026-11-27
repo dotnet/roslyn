@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
         private readonly GenericParameterAttributes _flags;
         private ThreeState _lazyHasIsUnmanagedConstraint;
-        private TypeParameterBounds _lazyBounds = TypeParameterBounds.Unset;
+        private volatile TypeParameterBounds _lazyBounds = TypeParameterBounds.Unset;
         private ImmutableArray<TypeWithAnnotations> _lazyDeclaredConstraintTypes;
         private ImmutableArray<CSharpAttributeData> _lazyCustomAttributes;
 
@@ -641,18 +641,29 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         {
             if (_lazyCustomAttributes.IsDefault)
             {
-                var containingPEModuleSymbol = (PEModuleSymbol)this.ContainingModule;
-
-                var loadedCustomAttributes = containingPEModuleSymbol.GetCustomAttributesForToken(
-                    Handle,
-                    out _,
-                    // Filter out [IsUnmanagedAttribute]
-                    HasUnmanagedTypeConstraint ? AttributeDescription.IsUnmanagedAttribute : default);
-
-                ImmutableInterlocked.InterlockedInitialize(ref _lazyCustomAttributes, loadedCustomAttributes);
+                ImmutableInterlocked.InterlockedInitialize(ref _lazyCustomAttributes, loadAndFilterAttributes());
             }
 
             return _lazyCustomAttributes;
+
+            ImmutableArray<CSharpAttributeData> loadAndFilterAttributes()
+            {
+                var containingModule = (PEModuleSymbol)this.ContainingModule;
+                if (!containingModule.TryGetNonEmptyCustomAttributes(Handle, out var customAttributeHandles))
+                    return [];
+
+                var filterIsUnmanagedAttribute = HasUnmanagedTypeConstraint;
+                using var builder = TemporaryArray<CSharpAttributeData>.Empty;
+                foreach (var handle in customAttributeHandles)
+                {
+                    if (filterIsUnmanagedAttribute && containingModule.AttributeMatchesFilter(handle, AttributeDescription.IsUnmanagedAttribute))
+                        continue;
+
+                    builder.Add(new PEAttributeData(containingModule, handle));
+                }
+
+                return builder.ToImmutableAndClear();
+            }
         }
 
         private TypeParameterBounds GetBounds(ConsList<TypeParameterSymbol> inProgress)
@@ -691,7 +702,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 diagnostics.Free();
 
                 _lazyCachedConstraintsUseSiteInfo.InterlockedInitializeFromSentinel(primaryDependency, useSiteInfo);
+#pragma warning disable CS0420 // A reference to a volatile field will not be treated as volatile
                 Interlocked.CompareExchange(ref _lazyBounds, bounds, TypeParameterBounds.Unset);
+#pragma warning restore CS0420 // A reference to a volatile field will not be treated as volatile
             }
 
             Debug.Assert(_lazyCachedConstraintsUseSiteInfo.IsInitialized);

@@ -1,0 +1,52 @@
+﻿RazorDocument - [0..59)::59 - [@typeparam TItemLF<ul>LF</ul>LF@code {LF    // somethingLF}]
+    MarkupBlock - [0..59)::59
+        MarkupTextLiteral - [0..0)::0 - [] - Gen<Markup> - SpanEditHandler;Accepts:Any
+            Marker;[];
+        CSharpCodeBlock - [0..18)::18
+            RazorDirective - [0..18)::18 - Directive:{typeparam;SingleLine;FileScopedMultipleOccurring}
+                CSharpTransition - [0..1)::1 - Gen<None> - SpanEditHandler;Accepts:None
+                    Transition;[@];
+                RazorDirectiveBody - [1..18)::17
+                    RazorMetaCode - [1..10)::9 - Gen<None> - SpanEditHandler;Accepts:None
+                        Identifier;[typeparam];
+                    CSharpCodeBlock - [10..18)::8
+                        CSharpStatementLiteral - [10..11)::1 - [ ] - Gen<None> - SpanEditHandler;Accepts:Whitespace
+                            Whitespace;[ ];
+                        CSharpStatementLiteral - [11..16)::5 - [TItem] - Gen<DirectiveToken {type parameter;Member;Opt:False}> - DirectiveTokenEditHandler;Accepts:NonWhitespace
+                            Identifier;[TItem];
+                        MarkupEphemeralTextLiteral - [16..18)::2 - [LF] - Gen<None> - SpanEditHandler;Accepts:Whitespace
+                            NewLine;[LF];
+        MarkupElement - [18..29)::11
+            MarkupStartTag - [18..22)::4 - [<ul>] - Gen<Markup> - SpanEditHandler;Accepts:Any
+                OpenAngle;[<];
+                Text;[ul];
+                CloseAngle;[>];
+            MarkupTextLiteral - [22..24)::2 - [LF] - Gen<Markup> - SpanEditHandler;Accepts:Any
+                NewLine;[LF];
+            MarkupEndTag - [24..29)::5 - [</ul>] - Gen<Markup> - SpanEditHandler;Accepts:Any
+                OpenAngle;[<];
+                ForwardSlash;[/];
+                Text;[ul];
+                CloseAngle;[>];
+        MarkupTextLiteral - [29..31)::2 - [LF] - Gen<Markup> - SpanEditHandler;Accepts:Any
+            NewLine;[LF];
+        CSharpCodeBlock - [31..36)::5
+            CSharpImplicitExpression - [31..36)::5
+                CSharpTransition - [31..32)::1 - Gen<None> - SpanEditHandler;Accepts:None
+                    Transition;[@];
+                CSharpImplicitExpressionBody - [32..36)::4
+                    CSharpCodeBlock - [32..36)::4
+                        CSharpExpressionLiteral - [32..36)::4 - [code] - Gen<Expr> - ImplicitExpressionEditHandler;Accepts:NonWhitespace;ImplicitExpression[RTD];K15
+                            Identifier;[code];
+        MarkupTextLiteral - [36..59)::23 - [ {LF    // somethingLF}] - Gen<Markup> - SpanEditHandler;Accepts:Any
+            Whitespace;[ ];
+            Text;[{];
+            NewLine;[LF];
+            Whitespace;[    ];
+            ForwardSlash;[/];
+            ForwardSlash;[/];
+            Whitespace;[ ];
+            Text;[something];
+            NewLine;[LF];
+            Text;[}];
+    EndOfFile;[];

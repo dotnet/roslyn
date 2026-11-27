@@ -1,0 +1,63 @@
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
+#nullable disable
+
+using System;
+using System.Linq;
+
+namespace Microsoft.AspNetCore.Razor.Language.Intermediate;
+
+public sealed class HtmlAttributeIntermediateNode : IntermediateNode
+{
+    public override IntermediateNodeCollection Children { get => field ??= []; }
+
+    public CSharpExpressionIntermediateNode AttributeNameExpression { get; set; }
+
+    public string AttributeName { get; set; }
+
+    public string Prefix { get; set; }
+
+    public string Suffix { get; set; }
+
+    public string EventUpdatesAttributeName { get; set; }
+
+    public string OriginalAttributeName { get; set; }
+
+    public override void Accept(IntermediateNodeVisitor visitor)
+    {
+        if (visitor == null)
+        {
+            throw new ArgumentNullException(nameof(visitor));
+        }
+
+        visitor.VisitHtmlAttribute(this);
+    }
+
+    protected override IntermediateNode CloneNode()
+    {
+        var clone = new HtmlAttributeIntermediateNode
+        {
+            AttributeName = AttributeName,
+            AttributeNameExpression = (CSharpExpressionIntermediateNode)AttributeNameExpression?.Clone(),
+            Prefix = Prefix,
+            Suffix = Suffix,
+            EventUpdatesAttributeName = EventUpdatesAttributeName,
+            OriginalAttributeName = OriginalAttributeName,
+            IsSynthesizedHelper = IsSynthesizedHelper,
+        };
+
+        return clone;
+    }
+
+    public override void FormatNode(IntermediateNodeFormatter formatter)
+    {
+        formatter.WriteContent(AttributeName);
+
+        formatter.WriteProperty(nameof(AttributeName), AttributeName);
+        formatter.WriteProperty(nameof(AttributeNameExpression), string.Join(string.Empty, AttributeNameExpression?.FindDescendantNodes<IntermediateToken>().Select(n => n.Content) ?? Array.Empty<string>()));
+        formatter.WriteProperty(nameof(Prefix), Prefix);
+        formatter.WriteProperty(nameof(Suffix), Suffix);
+        formatter.WriteProperty(nameof(EventUpdatesAttributeName), EventUpdatesAttributeName);
+    }
+}

@@ -10,7 +10,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
     ''' Helper class to generate synthesized names.
     ''' </summary>
     Friend NotInheritable Class GeneratedNames
-        Private Const GenerationSeparator As Char = CommonGeneratedNames.GenerationSeparator
+        Private Const GenerationSeparator As Char = WellKnownGeneratedNames.GenerationSeparator
 
         ''' <summary>
         ''' Generates the name of a state machine's type.

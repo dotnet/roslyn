@@ -2207,6 +2207,8 @@ ResolutionComplete:
                         Exit For
                     End If
                 Next
+
+                indexesOfApplicableCandidates.Free()
             End If
 
             ' Find the minimal InferenceLevel

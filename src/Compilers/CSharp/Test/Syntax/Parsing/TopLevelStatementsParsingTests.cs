@@ -969,6 +969,9 @@ class Test : Itest
 partial delegate E { }
 ";
             CreateCompilation(test).VerifyDiagnostics(
+                    // (2,1): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', 'event', an instance constructor name, or a method or property return type.
+                    // partial delegate E { }
+                    Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(2, 1),
                     // (2,18): error CS0246: The type or namespace name 'E' could not be found (are you missing a using directive or an assembly reference?)
                     // partial delegate E { }
                     Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "E").WithArguments("E").WithLocation(2, 18),
@@ -986,10 +989,7 @@ partial delegate E { }
                     Diagnostic(ErrorCode.ERR_SemicolonExpected, "{").WithLocation(2, 20),
                     // (2,20): error CS8803: Top-level statements must precede namespace and type declarations.
                     // partial delegate E { }
-                    Diagnostic(ErrorCode.ERR_TopLevelStatementAfterNamespaceOrType, "{ }").WithLocation(2, 20),
-                    // (2,20): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or a method return type.
-                    // partial delegate E { }
-                    Diagnostic(ErrorCode.ERR_PartialMisplaced, "").WithLocation(2, 20)
+                    Diagnostic(ErrorCode.ERR_TopLevelStatementAfterNamespaceOrType, "{ }").WithLocation(2, 20)
                 );
             UsingTree(test,
                 // (2,20): error CS1001: Identifier expected
@@ -3066,10 +3066,9 @@ scoped readonly ref struct C { }
                 // (3,12): error CS1031: Type expected
                 // scoped ref struct B { }
                 Diagnostic(ErrorCode.ERR_TypeExpected, "struct").WithLocation(3, 12),
-                // (4,8): error CS1585: Member modifier 'readonly' must precede the member type and name
+                // (4,1): error CS0116: A namespace cannot directly contain members such as fields, methods or statements
                 // scoped readonly ref struct C { }
-                Diagnostic(ErrorCode.ERR_BadModifierLocation, "readonly").WithArguments("readonly").WithLocation(4, 8)
-                );
+                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "scoped").WithLocation(4, 1));
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -3119,10 +3118,7 @@ scoped readonly ref struct C { }
                 }
                 N(SyntaxKind.IncompleteMember);
                 {
-                    N(SyntaxKind.IdentifierName);
-                    {
-                        N(SyntaxKind.IdentifierToken, "scoped");
-                    }
+                    N(SyntaxKind.ScopedKeyword);
                 }
                 N(SyntaxKind.StructDeclaration);
                 {

@@ -227,33 +227,34 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 Debug.Assert(TypeSymbol.Equals(transformedLHS.Type, node.Left.Type, TypeCompareKind.AllIgnoreOptions));
 
-                if (IsNewExtensionMemberAccessWithByValPossiblyStructReceiver(transformedLHS))
+                // Note: the receiver is known to be captured because of TransformCompoundAssignmentLHS
+                if (IsExtensionBlockMemberAccessWithByValPossiblyStructReceiver(transformedLHS))
                 {
                     // We need to create a tree that ensures that receiver of 'set' is evaluated after the binary operation
                     BoundLocal binaryResult = _factory.StoreToTemp(opFinal, out BoundAssignmentOperator assignmentToTemp, refKind: RefKind.None);
-                    BoundExpression assignment = MakeAssignmentOperator(syntax, transformedLHS, binaryResult, used: used, isChecked: isChecked, AssignmentKind.CompoundAssignment);
+                    BoundExpression assignment = MakeAssignmentOperator(syntax, transformedLHS, binaryResult, used: used, isChecked: isChecked, AssignmentKind.CompoundAssignment, receiverIsKnownToBeCaptured: true);
                     Debug.Assert(assignment.Type is { });
                     return new BoundSequence(syntax, [binaryResult.LocalSymbol], [assignmentToTemp], assignment, assignment.Type);
                 }
 
-                return MakeAssignmentOperator(syntax, transformedLHS, opFinal, used: used, isChecked: isChecked, AssignmentKind.CompoundAssignment);
+                return MakeAssignmentOperator(syntax, transformedLHS, opFinal, used: used, isChecked: isChecked, AssignmentKind.CompoundAssignment, receiverIsKnownToBeCaptured: true);
             }
         }
 
-        private static bool IsNewExtensionMemberAccessWithByValPossiblyStructReceiver(BoundExpression transformedLHS)
+        private static bool IsExtensionBlockMemberAccessWithByValPossiblyStructReceiver(BoundExpression transformedLHS)
         {
             switch (transformedLHS)
             {
                 case BoundPropertyAccess { PropertySymbol: { } property }:
-                    return IsNewExtensionMemberWithByValPossiblyStructReceiver(property);
+                    return IsExtensionBlockMemberWithByValPossiblyStructReceiver(property);
                 case BoundIndexerAccess { Indexer: { } indexer }:
-                    return IsNewExtensionMemberWithByValPossiblyStructReceiver(indexer);
+                    return IsExtensionBlockMemberWithByValPossiblyStructReceiver(indexer);
                 default:
                     return false;
             }
         }
 
-        static bool IsNewExtensionMemberWithByValPossiblyStructReceiver(Symbol symbol)
+        static bool IsExtensionBlockMemberWithByValPossiblyStructReceiver(Symbol symbol)
         {
             return symbol.IsExtensionBlockMember() && !symbol.IsStatic && symbol.ContainingType.ExtensionParameter is { RefKind: RefKind.None, Type.IsReferenceType: false };
         }
@@ -291,13 +292,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression rewrittenReceiver = VisitExpression(receiverOpt);
             Debug.Assert(rewrittenReceiver.Type is { });
 
-            BoundAssignmentOperator assignmentToTemp;
             RefKind refKind;
-            bool isKnownToReferToTempIfReferenceType = false;
 
             if (propertyOrEvent.IsExtensionBlockMember())
             {
-                refKind = GetNewExtensionMemberReceiverCaptureRefKind(rewrittenReceiver, propertyOrEvent);
+                refKind = GetExtensionBlockMemberReceiverCaptureRefKind(rewrittenReceiver, propertyOrEvent);
+                Debug.Assert(refKind != RefKind.Ref ||
+                                (rewrittenReceiver.Type.IsValueType &&
+                                    (rewrittenReceiver is not BoundArrayAccess { Expression.Type: var arrayType } || IsInvariantArray(arrayType))));
             }
             else
             {
@@ -310,42 +312,69 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // SPEC VIOLATION: as value types.
 
                 var variableRepresentsLocation = rewrittenReceiver.Type.IsValueType || rewrittenReceiver.Type.Kind == SymbolKind.TypeParameter;
-                refKind = variableRepresentsLocation ? RefKind.Ref : RefKind.None;
 
-                isKnownToReferToTempIfReferenceType = !variableRepresentsLocation || rewrittenReceiver.Type.IsValueType ||
-                                                      !CodeGenerator.HasHome(rewrittenReceiver,
-                                                                            CodeGenerator.AddressKind.Constrained,
-                                                                            _factory.CurrentFunction,
-                                                                            peVerifyCompatEnabled: false,
-                                                                            stackLocalsOpt: null);
-            }
-
-            var receiverTemp = _factory.StoreToTemp(
-                rewrittenReceiver,
-                out assignmentToTemp,
-                refKind: refKind is RefKind.RefReadOnlyParameter ? RefKind.In : refKind,
-                isKnownToReferToTempIfReferenceType: isKnownToReferToTempIfReferenceType);
-
-            temps.Add(receiverTemp.LocalSymbol);
-
-            if (receiverTemp.LocalSymbol.IsRef &&
-                (propertyOrEvent.IsExtensionBlockMember() ?
-                     !receiverTemp.Type.IsValueType :
-                     CodeGenerator.IsPossibleReferenceTypeReceiverOfConstrainedCall(receiverTemp)) &&
-                !CodeGenerator.ReceiverIsKnownToReferToTempIfReferenceType(receiverTemp))
-            {
-                BoundAssignmentOperator? extraRefInitialization;
-                ReferToTempIfReferenceTypeReceiver(receiverTemp, ref assignmentToTemp, out extraRefInitialization, temps);
-
-                if (extraRefInitialization is object)
+                if (variableRepresentsLocation &&
+                    rewrittenReceiver is BoundArrayAccess { Expression.Type: var arrayType } &&
+                    !IsInvariantArray(arrayType) &&
+                    rewrittenReceiver.Type.IsReferenceType)
                 {
-                    stores.Add(extraRefInitialization);
+                    refKind = RefKind.None;
+                }
+                else
+                {
+                    refKind = variableRepresentsLocation ? RefKind.Ref : RefKind.None;
+                    refKind = AdjustReadonlyReceiverCaptureRefKind(rewrittenReceiver, refKind);
                 }
             }
 
-            stores.Add(assignmentToTemp);
+            BoundExpression? capturedReceiver;
+            BoundAssignmentOperator? assignmentToTemp = null;
 
-            return receiverTemp;
+            if (refKind == RefKind.Ref &&
+                rewrittenReceiver is BoundArrayAccess arrayAccess &&
+                !IsInvariantArray(arrayAccess.Expression.Type))
+            {
+                Debug.Assert(!rewrittenReceiver.Type.IsReferenceType);
+                Debug.Assert(!rewrittenReceiver.Type.IsValueType);
+                Debug.Assert(rewrittenReceiver.Type.IsTypeParameter());
+                capturedReceiver = SpillArrayElementAccess(arrayAccess.Expression, arrayAccess.Indices, stores, temps);
+                Debug.Assert(IsPossibleReferenceTypeReceiverOfConstrainedOrExtensionCall(propertyOrEvent, capturedReceiver));
+                Debug.Assert(!CodeGenerator.ReceiverIsKnownToReferToTempIfReferenceType(capturedReceiver));
+            }
+            else
+            {
+                var receiverTemp = _factory.StoreToTemp(
+                    rewrittenReceiver,
+                    out assignmentToTemp,
+                    refKind: refKind is RefKind.RefReadOnlyParameter ? RefKind.In : refKind);
+
+                capturedReceiver = receiverTemp;
+            }
+
+            int insertTempHere = temps.Count;
+
+            if (capturedReceiver is not BoundLocal { LocalSymbol.IsRef: false } &&
+                IsPossibleReferenceTypeReceiverOfConstrainedOrExtensionCall(propertyOrEvent, capturedReceiver) &&
+                !CodeGenerator.ReceiverIsKnownToReferToTempIfReferenceType(capturedReceiver))
+            {
+                capturedReceiver = ReferToTempIfReferenceTypeReceiver(capturedReceiver, ref assignmentToTemp, stores, temps);
+            }
+
+            Debug.Assert(capturedReceiver is BoundLocal);
+            Debug.Assert(assignmentToTemp is object);
+
+            if (assignmentToTemp is not null)
+            {
+                // We want to keep this temp at this position in order to avoid too much churn in test baselines due to the order.
+                temps.Insert(insertTempHere, ((BoundLocal)capturedReceiver).LocalSymbol);
+                stores.Add(assignmentToTemp);
+            }
+            else
+            {
+                ExceptionUtilities.UnexpectedValue(capturedReceiver);
+            }
+
+            return capturedReceiver;
         }
 
         private BoundDynamicMemberAccess TransformDynamicMemberAccess(BoundDynamicMemberAccess memberAccess, ArrayBuilder<BoundExpression> stores, ArrayBuilder<LocalSymbol> temps)
@@ -513,7 +542,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // For a call, step four would be to optimize away some of the temps.  However, we need them all to prevent
             // duplicate side-effects, so we'll skip that step.
 
-            if (indexer.ContainingType.IsComImport)
+            if (HasComReceiver(indexer, invokedAsExtensionMethod: false))
             {
                 RewriteArgumentsForComCall(parameters, actualArguments, refKinds, temps);
             }
@@ -554,12 +583,15 @@ namespace Microsoft.CodeAnalysis.CSharp
         private BoundExpression TransformIndexPatternIndexerAccess(BoundImplicitIndexerAccess implicitIndexerAccess, ArrayBuilder<BoundExpression> stores, ArrayBuilder<LocalSymbol> temps, bool isDynamicAssignment)
         {
             Debug.Assert(implicitIndexerAccess.IndexerOrSliceAccess.GetRefKind() == RefKind.None);
-            var access = GetUnderlyingIndexerOrSliceAccess(
+            var access = VisitIndexPatternIndexerAccess(
                 implicitIndexerAccess,
                 isLeftOfAssignment: true,
                 isRegularAssignment: false,
                 cacheAllArgumentsOnly: false,
-                stores, temps);
+                stores, temps,
+                out bool receiverIsKnownToBeCaptured);
+
+            Debug.Assert(receiverIsKnownToBeCaptured);
 
             if (access is BoundIndexerAccess indexerAccess)
             {
@@ -750,8 +782,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.ImplicitIndexerAccess:
                     {
                         var implicitIndexerAccess = (BoundImplicitIndexerAccess)originalLHS;
-                        Debug.Assert(implicitIndexerAccess.Argument.Type!.Equals(_compilation.GetWellKnownType(WellKnownType.System_Index))
-                            || implicitIndexerAccess.Argument.Type!.Equals(_compilation.GetWellKnownType(WellKnownType.System_Range)));
+                        Debug.Assert(Binder.IsWellKnownSystemIndex(implicitIndexerAccess.Argument.Type, _compilation)
+                            || Binder.IsWellKnownSystemRange(implicitIndexerAccess.Argument.Type, _compilation));
 
                         if (implicitIndexerAccess.GetRefKind() == RefKind.None)
                         {
@@ -888,9 +920,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             return variableTemp;
         }
 
-        private static bool IsInvariantArray(TypeSymbol? type)
+        public static bool IsInvariantArray(TypeSymbol? type)
         {
-            return (type as ArrayTypeSymbol)?.ElementType.IsSealed == true;
+            return type is ArrayTypeSymbol { ElementType: { IsSealed: true } or { IsValueType: true } };
         }
 
         private BoundExpression BoxReceiver(BoundExpression rewrittenReceiver, NamedTypeSymbol memberContainingType)
@@ -929,6 +961,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else
                 {
+                    Debug.Assert(loweredIndices[i] is BoundLiteral);
                     boundTempIndices[i] = loweredIndices[i];
                 }
             }

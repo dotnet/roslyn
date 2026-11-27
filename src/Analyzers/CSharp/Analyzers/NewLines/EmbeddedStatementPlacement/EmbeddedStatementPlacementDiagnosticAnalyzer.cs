@@ -9,6 +9,7 @@ using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.CSharp.NewLines.EmbeddedStatementPlacement;
@@ -35,33 +36,37 @@ internal sealed class EmbeddedStatementPlacementDiagnosticAnalyzer()
         if (option.Value || ShouldSkipAnalysis(context, compilationOptions, option.Notification))
             return;
 
-        Recurse(context, option.Notification, context.GetAnalysisRoot(findInTrivia: false));
-    }
+        var cancellationToken = context.CancellationToken;
 
-    private void Recurse(SyntaxTreeAnalysisContext context, NotificationOption2 notificationOption, SyntaxNode node)
-    {
-        context.CancellationToken.ThrowIfCancellationRequested();
+        // Use an explicit stack to avoid stack overflows on deeply nested trees.
+        using var _ = ArrayBuilder<SyntaxNode>.GetInstance(out var stack);
+        stack.Push(context.GetAnalysisRoot(findInTrivia: false));
 
-        // Don't bother analyzing nodes that have syntax errors in them.
-        if (node.ContainsDiagnostics)
-            return;
-
-        // Report on the topmost statement that has an issue.  No need to recurse further at that point. Note: the
-        // fixer will fix up all statements, but we don't want to clutter things with lots of diagnostics on the
-        // same line.
-        if (node is StatementSyntax statement &&
-            CheckStatementSyntax(context, notificationOption, statement))
+        while (stack.TryPop(out var node))
         {
-            return;
-        }
+            cancellationToken.ThrowIfCancellationRequested();
 
-        foreach (var child in node.ChildNodesAndTokens())
-        {
-            if (!context.ShouldAnalyzeSpan(child.Span))
+            // Don't bother analyzing nodes that have syntax errors in them.
+            if (node.ContainsDiagnostics)
                 continue;
 
-            if (child.AsNode(out var childNode))
-                Recurse(context, notificationOption, childNode);
+            // Report on the topmost statement that has an issue.  No need to recurse further at that point. Note: the
+            // fixer will fix up all statements, but we don't want to clutter things with lots of diagnostics on the
+            // same line.
+            if (node is StatementSyntax statement &&
+                CheckStatementSyntax(context, option.Notification, statement))
+            {
+                continue;
+            }
+
+            foreach (var child in node.ChildNodesAndTokens())
+            {
+                if (!context.ShouldAnalyzeSpan(child.Span))
+                    continue;
+
+                if (child.AsNode(out var childNode))
+                    stack.Push(childNode);
+            }
         }
     }
 

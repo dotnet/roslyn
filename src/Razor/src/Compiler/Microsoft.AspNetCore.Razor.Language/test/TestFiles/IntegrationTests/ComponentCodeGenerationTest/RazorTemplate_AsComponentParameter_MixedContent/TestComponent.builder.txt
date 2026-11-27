@@ -1,0 +1,7 @@
+﻿[0000] OpenElement("li")
+[0001] AddContent("#")
+[0002] AddContent(context.Index)
+[0003] AddContent(" - ")
+[0004] AddContent(context.Item.ToLower())
+[0005] OpenComponent<global::Test.MyComponent>()
+[0006] AddComponentParameter(nameof(global::Test.MyComponent. Template ), (global::Microsoft.AspNetCore.Components.RenderFragment<global::Test.Context>)( template ))

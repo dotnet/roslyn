@@ -29,12 +29,12 @@
       </trans-unit>
       <trans-unit id="Sort_Usings">
         <source>Sort Usings</source>
-        <target state="new">Sort Usings</target>
+        <target state="translated">Classificar Usings</target>
         <note />
       </trans-unit>
       <trans-unit id="Sort_Usings_with_accelerator">
         <source>&amp;Sort Usings</source>
-        <target state="new">&amp;Sort Usings</target>
+        <target state="translated">&amp;Classificar Usings</target>
         <note />
       </trans-unit>
     </body>

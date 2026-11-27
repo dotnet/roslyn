@@ -4579,6 +4579,7 @@ public partial class C
     }
 
     [Fact]
+    [ValidatePooledObjects(LeakReason = "Tests pass invalid inputs to public API, causing expected ArgumentExceptions that leak pooled objects.")]
     public void SyntaxTreeAlreadyPresent()
     {
         var tree = SyntaxFactory.ParseSyntaxTree("""

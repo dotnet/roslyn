@@ -1,0 +1,34 @@
+﻿Source Location: (1:0,1 [48] x:\dir\subdir\Test\TestComponent.cshtml)
+|using Microsoft.AspNetCore.Components.Rendering;|
+Generated Location: (372:12,0 [48] )
+|using Microsoft.AspNetCore.Components.Rendering;|
+
+Source Location: (60:2,7 [213] x:\dir\subdir\Test\TestComponent.cshtml)
+|
+    void RenderChildComponent(RenderTreeBuilder __builder)
+    {
+        var output = string.Empty;
+        if (__builder == null) output = "Builder is null!";
+        else output = "Builder is not null!";
+|
+Generated Location: (935:28,0 [213] )
+|
+    void RenderChildComponent(RenderTreeBuilder __builder)
+    {
+        var output = string.Empty;
+        if (__builder == null) output = "Builder is null!";
+        else output = "Builder is not null!";
+|
+
+Source Location: (293:8,20 [6] x:\dir\subdir\Test\TestComponent.cshtml)
+|output|
+Generated Location: (1395:43,24 [6] )
+|output|
+
+Source Location: (305:9,0 [7] x:\dir\subdir\Test\TestComponent.cshtml)
+|    }
+|
+Generated Location: (1582:52,0 [7] )
+|    }
+|
+

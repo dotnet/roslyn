@@ -704,17 +704,18 @@ class Test
                 //         var q3 = from item in array let v = stackalloc    [ ] { 1, 2, 3 } select v;
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "stackalloc").WithArguments("stackalloc in nested expressions", "8.0").WithLocation(9, 45)
                 );
+
             CreateCompilationWithMscorlibAndSpan(source, TestOptions.ReleaseDll, parseOptions: TestOptions.Regular8)
                 .VerifyDiagnostics(
-                // (7,75): error CS9244: The type 'Span<int>' may not be a ref struct or a type parameter allowing ref structs in order to use it as parameter 'TResult' in the generic type or method 'Enumerable.Select<TSource, TResult>(IEnumerable<TSource>, Func<TSource, TResult>)'
+                // (7,37): error CS0828: Cannot assign 'Span<int>' to anonymous type property
                 //         var q1 = from item in array let v = stackalloc int[3] { 1, 2, 3 } select v;
-                Diagnostic(ErrorCode.ERR_NotRefStructConstraintNotSatisfied, "select v").WithArguments("System.Linq.Enumerable.Select<TSource, TResult>(System.Collections.Generic.IEnumerable<TSource>, System.Func<TSource, TResult>)", "TResult", "System.Span<int>").WithLocation(7, 75),
-                // (8,75): error CS9244: The type 'Span<int>' may not be a ref struct or a type parameter allowing ref structs in order to use it as parameter 'TResult' in the generic type or method 'Enumerable.Select<TSource, TResult>(IEnumerable<TSource>, Func<TSource, TResult>)'
+                Diagnostic(ErrorCode.ERR_AnonymousTypePropertyAssignedBadValue, "let v = stackalloc int[3] { 1, 2, 3 }").WithArguments("System.Span<int>").WithLocation(7, 37),
+                // (8,37): error CS0828: Cannot assign 'Span<int>' to anonymous type property
                 //         var q2 = from item in array let v = stackalloc int[ ] { 1, 2, 3 } select v;
-                Diagnostic(ErrorCode.ERR_NotRefStructConstraintNotSatisfied, "select v").WithArguments("System.Linq.Enumerable.Select<TSource, TResult>(System.Collections.Generic.IEnumerable<TSource>, System.Func<TSource, TResult>)", "TResult", "System.Span<int>").WithLocation(8, 75),
-                // (9,75): error CS9244: The type 'Span<int>' may not be a ref struct or a type parameter allowing ref structs in order to use it as parameter 'TResult' in the generic type or method 'Enumerable.Select<TSource, TResult>(IEnumerable<TSource>, Func<TSource, TResult>)'
+                Diagnostic(ErrorCode.ERR_AnonymousTypePropertyAssignedBadValue, "let v = stackalloc int[ ] { 1, 2, 3 }").WithArguments("System.Span<int>").WithLocation(8, 37),
+                // (9,37): error CS0828: Cannot assign 'Span<int>' to anonymous type property
                 //         var q3 = from item in array let v = stackalloc    [ ] { 1, 2, 3 } select v;
-                Diagnostic(ErrorCode.ERR_NotRefStructConstraintNotSatisfied, "select v").WithArguments("System.Linq.Enumerable.Select<TSource, TResult>(System.Collections.Generic.IEnumerable<TSource>, System.Func<TSource, TResult>)", "TResult", "System.Span<int>").WithLocation(9, 75)
+                Diagnostic(ErrorCode.ERR_AnonymousTypePropertyAssignedBadValue, "let v = stackalloc    [ ] { 1, 2, 3 }").WithArguments("System.Span<int>").WithLocation(9, 37)
                 );
         }
 
@@ -729,14 +730,14 @@ unsafe class Test
     {
         var p = stackalloc int[await Task.FromResult(1)] { await Task.FromResult(2) };
     }
-}", TestOptions.UnsafeReleaseDll);
+}", TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.Regular15);
             comp.VerifyDiagnostics(
-                // (7,32): error CS4004: Cannot await in an unsafe context
+                // (7,32): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //         var p = stackalloc int[await Task.FromResult(1)] { await Task.FromResult(2) };
-                Diagnostic(ErrorCode.ERR_AwaitInUnsafeContext, "await Task.FromResult(1)").WithLocation(7, 32),
-                // (7,60): error CS4004: Cannot await in an unsafe context
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "await").WithArguments("updated memory safety rules").WithLocation(7, 32),
+                // (7,60): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //         var p = stackalloc int[await Task.FromResult(1)] { await Task.FromResult(2) };
-                Diagnostic(ErrorCode.ERR_AwaitInUnsafeContext, "await Task.FromResult(2)").WithLocation(7, 60)
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "await").WithArguments("updated memory safety rules").WithLocation(7, 60)
                 );
         }
 
@@ -1494,7 +1495,7 @@ class Test
         [Fact]
         public void StackAllocSyntaxProducesUnsafeErrorInSafeCode()
         {
-            CreateCompilation(@"
+            var source = @"
 class Test
 {
     void M()
@@ -1503,7 +1504,8 @@ class Test
         var x2 = stackalloc int [ ] { 1, 2, 3 };
         var x3 = stackalloc     [ ] { 1, 2, 3 };
     }
-}", options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+}";
+            CreateCompilation(source, options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.Regular15).VerifyDiagnostics(
                 // (6,18): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
                 //         var x1 = stackalloc int [3] { 1, 2, 3 };
                 Diagnostic(ErrorCode.ERR_UnsafeNeeded, "stackalloc int [3] { 1, 2, 3 }").WithLocation(6, 18),
@@ -1514,6 +1516,9 @@ class Test
                 //         var x3 = stackalloc     [ ] { 1, 2, 3 };
                 Diagnostic(ErrorCode.ERR_UnsafeNeeded, "stackalloc     [ ] { 1, 2, 3 }").WithLocation(8, 18)
                 );
+
+            CreateCompilation(source, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
+            CreateCompilation(source, options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.RegularNext).VerifyDiagnostics();
         }
 
         [Fact]
@@ -1817,7 +1822,7 @@ unsafe public class Test
         [Fact]
         public void StackAllocWithDynamic()
         {
-            CreateCompilation(@"
+            var source = @"
 class Program
 {
     static void Main()
@@ -1827,7 +1832,8 @@ class Program
         var d2 = stackalloc dynamic [ ] { d };
         var d3 = stackalloc         [ ] { d };
     }
-}").VerifyDiagnostics(
+}";
+            CreateCompilation(source, parseOptions: TestOptions.Regular15).VerifyDiagnostics(
                 // (7,29): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('dynamic')
                 //         var d1 = stackalloc dynamic [3] { d };
                 Diagnostic(ErrorCode.ERR_ManagedAddr, "dynamic").WithArguments("dynamic").WithLocation(7, 29),
@@ -1844,6 +1850,25 @@ class Program
                 //         var d3 = stackalloc         [ ] { d };
                 Diagnostic(ErrorCode.ERR_UnsafeNeeded, "stackalloc         [ ] { d }").WithLocation(9, 18)
                 );
+
+            var expectedPreviewDiagnostics = new[]
+            {
+                // (7,29): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('dynamic')
+                //         var d1 = stackalloc dynamic [3] { d };
+                Diagnostic(ErrorCode.ERR_ManagedAddr, "dynamic").WithArguments("dynamic").WithLocation(7, 29),
+                // (7,18): error CS0847: An array initializer of length '3' is expected
+                //         var d1 = stackalloc dynamic [3] { d };
+                Diagnostic(ErrorCode.ERR_ArrayInitializerIncorrectLength, "stackalloc dynamic [3] { d }").WithArguments("3").WithLocation(7, 18),
+                // (8,29): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('dynamic')
+                //         var d2 = stackalloc dynamic [ ] { d };
+                Diagnostic(ErrorCode.ERR_ManagedAddr, "dynamic").WithArguments("dynamic").WithLocation(8, 29),
+                // (9,18): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('dynamic')
+                //         var d3 = stackalloc         [ ] { d };
+                Diagnostic(ErrorCode.ERR_ManagedAddr, "stackalloc         [ ] { d }").WithArguments("dynamic").WithLocation(9, 18)
+            };
+
+            CreateCompilation(source).VerifyDiagnostics(expectedPreviewDiagnostics);
+            CreateCompilation(source, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(expectedPreviewDiagnostics);
         }
 
         [Fact]
@@ -2571,7 +2596,7 @@ unsafe class Test
             Assert.Null(stackallocInfo.Symbol);
             Assert.Equal("System.Double*", stackallocInfo.Type.ToTestDisplayString());
             Assert.Equal("System.Int16*", stackallocInfo.ConvertedType.ToTestDisplayString());
-            Assert.Equal(Conversion.NoConversion, stackallocInfo.ImplicitConversion);
+            Assert.False(stackallocInfo.ImplicitConversion.Exists);
 
             var element0Info = model.GetSemanticInfoSummary(@stackalloc.Initializer.Expressions[0]);
             Assert.Null(element0Info.Symbol);
@@ -2599,7 +2624,7 @@ unsafe class Test
             Assert.Null(stackallocInfo.Symbol);
             Assert.Equal("System.Double*", stackallocInfo.Type.ToTestDisplayString());
             Assert.Equal("System.Span<System.Int16>", stackallocInfo.ConvertedType.ToTestDisplayString());
-            Assert.Equal(Conversion.NoConversion, stackallocInfo.ImplicitConversion);
+            Assert.False(stackallocInfo.ImplicitConversion.Exists);
 
             element0Info = model.GetSemanticInfoSummary(@stackalloc.Initializer.Expressions[0]);
             Assert.Equal("ref System.Int16 System.Span<System.Int16>.this[System.Int32 i] { get; }", element0Info.Symbol.ToTestDisplayString());

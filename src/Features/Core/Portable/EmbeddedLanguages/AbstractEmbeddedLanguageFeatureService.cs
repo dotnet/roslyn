@@ -105,7 +105,7 @@ internal abstract class AbstractEmbeddedLanguageFeatureService<TService>
         return new EmbeddedLanguageCommentDetector(languageIdentifiers);
     }
 
-    protected ImmutableArray<Lazy<TService, EmbeddedLanguageMetadata>> GetServices(
+    protected (ImmutableArray<Lazy<TService, EmbeddedLanguageMetadata>> services, string? identifier) GetServices(
         SemanticModel semanticModel,
         SyntaxToken token,
         CancellationToken cancellationToken)
@@ -116,10 +116,10 @@ internal abstract class AbstractEmbeddedLanguageFeatureService<TService>
             _identifierToServices.TryGetValue(identifier, out var services))
         {
             Contract.ThrowIfTrue(services.IsDefaultOrEmpty);
-            return services;
+            return (services, identifier);
         }
 
         // If not, see if any of our legacy services might be able to handle this.
-        return _legacyServices;
+        return (_legacyServices, identifier: null);
     }
 }

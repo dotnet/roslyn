@@ -1,0 +1,38 @@
+@{
+var title = "Formatting benchmark";
+var items = new[]
+{
+"alpha",
+"beta",
+"gamma"
+};
+}
+
+<div class="panel"
+     data-title="@title">
+    @if (items.Length > 0)
+    {
+    <ul class="items">
+        @foreach (var item in items)
+        {
+        <li>
+            <span>@Describe(item)</span>
+            @if (item.Length > 4)
+            {
+            <strong>@item.ToUpperInvariant()</strong>
+            }
+        </li>
+        }
+    </ul>
+    }
+    else
+    {
+    <p>No items</p>
+    }
+</div>
+
+@functions{
+private static string Describe(string item){
+return $"{item}: {item.Length}";
+}
+}

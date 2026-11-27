@@ -1,0 +1,68 @@
+﻿Document - 
+    RazorCompiledItemAttribute - 
+    NamespaceDeclaration -  - AspNetCoreGeneratedDocument
+        UsingDirective - (1:0,1 [20] ) - global::System
+        UsingDirective - (24:1,1 [40] ) - global::System.Collections.Generic
+        UsingDirective - (67:2,1 [25] ) - global::System.Linq
+        UsingDirective - (95:3,1 [36] ) - global::System.Threading.Tasks
+        UsingDirective - (134:4,1 [38] ) - global::Microsoft.AspNetCore.Mvc
+        UsingDirective - (175:5,1 [48] ) - global::Microsoft.AspNetCore.Mvc.Rendering
+        UsingDirective - (226:6,1 [51] ) - global::Microsoft.AspNetCore.Mvc.ViewFeatures
+        RazorSourceChecksumAttribute - 
+        RazorCompiledItemMetadataAttribute - 
+        CreateNewOnMetadataUpdateAttribute - 
+        ClassDeclaration -  - internal sealed - TestFiles_IntegrationTests_CodeGenerationIntegrationTest_TagHelpersWithDataDashAttributes - global::Microsoft.AspNetCore.Mvc.Razor.RazorPage<dynamic> - 
+            PreallocatedTagHelperPropertyValue -  - __tagHelperAttribute_0 - bound - hello - HtmlAttributeValueStyle.DoubleQuotes
+            PreallocatedTagHelperHtmlAttributeValue -  - __tagHelperAttribute_1 - data-one - 1 - HtmlAttributeValueStyle.DoubleQuotes
+            PreallocatedTagHelperHtmlAttributeValue -  - __tagHelperAttribute_2 - data-two - 2 - HtmlAttributeValueStyle.DoubleQuotes
+            PreallocatedTagHelperHtmlAttributeValue -  - __tagHelperAttribute_3 - data-three -  - HtmlAttributeValueStyle.DoubleQuotes
+            PreallocatedTagHelperHtmlAttributeValue -  - __tagHelperAttribute_4 - data-four -  - HtmlAttributeValueStyle.DoubleQuotes
+            DefaultTagHelperRuntime - 
+            FieldDeclaration -  - private - global::InputTagHelper - __InputTagHelper
+            FieldDeclaration -  - private - global::DivTagHelper - __DivTagHelper
+            MethodDeclaration -  - public async override - global::System.Threading.Tasks.Task - ExecuteAsync
+                HtmlContent - (31:1,0 [2] TagHelpersWithDataDashAttributes.cshtml)
+                    LazyIntermediateToken - (31:1,0 [2] TagHelpersWithDataDashAttributes.cshtml) - Html - \n
+                TagHelper - (33:2,0 [61] TagHelpersWithDataDashAttributes.cshtml) - input - TagMode.SelfClosing
+                    DefaultTagHelperBody - 
+                    DefaultTagHelperCreate -  - InputTagHelper
+                    PreallocatedTagHelperProperty - (47:2,14 [5] TagHelpersWithDataDashAttributes.cshtml) - __tagHelperAttribute_0 - bound - BoundProp
+                    PreallocatedTagHelperHtmlAttribute -  - __tagHelperAttribute_1
+                    PreallocatedTagHelperHtmlAttribute -  - __tagHelperAttribute_2
+                    PreallocatedTagHelperHtmlAttribute -  - __tagHelperAttribute_3
+                    DefaultTagHelperExecute - 
+                HtmlContent - (94:2,61 [2] TagHelpersWithDataDashAttributes.cshtml)
+                    LazyIntermediateToken - (94:2,61 [2] TagHelpersWithDataDashAttributes.cshtml) - Html - \n
+                TagHelper - (96:3,0 [66] TagHelpersWithDataDashAttributes.cshtml) - div - TagMode.StartTagAndEndTag
+                    DefaultTagHelperBody - 
+                    DefaultTagHelperCreate -  - DivTagHelper
+                    DefaultTagHelperHtmlAttribute -  - data-one - HtmlAttributeValueStyle.DoubleQuotes
+                        CSharpExpression - (111:3,15 [3] TagHelpersWithDataDashAttributes.cshtml)
+                            LazyIntermediateToken - (111:3,15 [3] TagHelpersWithDataDashAttributes.cshtml) - CSharp - foo
+                    DefaultTagHelperHtmlAttribute -  - data-two - HtmlAttributeValueStyle.DoubleQuotes
+                        CSharpExpression - (126:3,30 [3] TagHelpersWithDataDashAttributes.cshtml)
+                            LazyIntermediateToken - (126:3,30 [3] TagHelpersWithDataDashAttributes.cshtml) - CSharp - bar
+                    PreallocatedTagHelperHtmlAttribute -  - __tagHelperAttribute_3
+                    PreallocatedTagHelperHtmlAttribute -  - __tagHelperAttribute_4
+                    DefaultTagHelperExecute - 
+                HtmlContent - (162:3,66 [4] TagHelpersWithDataDashAttributes.cshtml)
+                    LazyIntermediateToken - (162:3,66 [2] TagHelpersWithDataDashAttributes.cshtml) - Html - \n
+                    LazyIntermediateToken - (164:4,0 [2] TagHelpersWithDataDashAttributes.cshtml) - Html - <p
+                HtmlAttribute - (166:4,2 [8] TagHelpersWithDataDashAttributes.cshtml) -  attr=" - "
+                HtmlContent - (174:4,10 [50] TagHelpersWithDataDashAttributes.cshtml)
+                    LazyIntermediateToken - (174:4,10 [11] TagHelpersWithDataDashAttributes.cshtml) - Html -  data-one="
+                    LazyIntermediateToken - (185:4,21 [1] TagHelpersWithDataDashAttributes.cshtml) - Html - "
+                    LazyIntermediateToken - (186:4,22 [10] TagHelpersWithDataDashAttributes.cshtml) - Html -  data-two=
+                    LazyIntermediateToken - (196:4,32 [12] TagHelpersWithDataDashAttributes.cshtml) - Html -  data-three=
+                    LazyIntermediateToken - (208:4,44 [5] TagHelpersWithDataDashAttributes.cshtml) - Html - hello
+                    LazyIntermediateToken - (213:4,49 [11] TagHelpersWithDataDashAttributes.cshtml) - Html -  data-four=
+                CSharpExpression - (225:4,61 [3] TagHelpersWithDataDashAttributes.cshtml)
+                    LazyIntermediateToken - (225:4,61 [3] TagHelpersWithDataDashAttributes.cshtml) - CSharp - foo
+                HtmlContent - (228:4,64 [3] TagHelpersWithDataDashAttributes.cshtml)
+                    LazyIntermediateToken - (228:4,64 [1] TagHelpersWithDataDashAttributes.cshtml) - Html - >
+                    LazyIntermediateToken - (229:4,65 [2] TagHelpersWithDataDashAttributes.cshtml) - Html - \n
+            Inject - 
+            Inject - 
+            Inject - 
+            Inject - 
+            Inject - 

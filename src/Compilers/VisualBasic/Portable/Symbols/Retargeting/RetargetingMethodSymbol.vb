@@ -315,8 +315,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Retargeting
             Return _underlyingMethod.GetDllImportData()
         End Function
 
-        Friend Overrides Function IsMetadataNewSlot(Optional ignoreInterfaceImplementationChanges As Boolean = False) As Boolean
-            Return _underlyingMethod.IsMetadataNewSlot(ignoreInterfaceImplementationChanges)
+        Friend Overrides Function IsMetadataNewSlot() As Boolean
+            Return _underlyingMethod.IsMetadataNewSlot()
         End Function
 
         Friend Overrides ReadOnly Property ReturnValueIsMarshalledExplicitly As Boolean

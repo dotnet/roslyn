@@ -56,6 +56,20 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 }
             }
         }
+
+        public static IEnumerable<object[]> RuntimeAsyncSuppressionAndOptimizationLevelTheoryData
+        {
+            get
+            {
+                foreach (bool suppressRuntimeAsync in new[] { false, true })
+                {
+                    foreach (var level in Enum.GetValues(typeof(OptimizationLevel)))
+                    {
+                        yield return new object[] { level, suppressRuntimeAsync };
+                    }
+                }
+            }
+        }
         #endregion
 
         #region Helpers
@@ -1949,16 +1963,17 @@ class Test
         }
 
         [Theory]
-        [MemberData(nameof(OptimizationLevelTheoryData))]
-        public void AsyncStateMachineAttribute_RuntimeAsync_ExtensionBlockMember(OptimizationLevel optimizationLevel)
+        [MemberData(nameof(RuntimeAsyncSuppressionAndOptimizationLevelTheoryData))]
+        public void AsyncStateMachineAttribute_RuntimeAsync_ExtensionBlockMember(OptimizationLevel optimizationLevel, bool suppressRuntimeAsync)
         {
-            string source = """
+            string source = $$"""
                 using System.Threading.Tasks;
 
                 public static class Ex
                 {
                     extension(object o)
                     {
+                        {{(suppressRuntimeAsync ? "[System.Runtime.CompilerServices.RuntimeAsyncMethodGeneration(false)]" : "")}}
                         public async Task F()
                         {
                             await Task.Delay(0);
@@ -1970,28 +1985,35 @@ class Test
             var options = TestOptions.CreateTestOptions(OutputKind.DynamicallyLinkedLibrary, optimizationLevel)
                 .WithMetadataImportOptions(MetadataImportOptions.All);
 
-            var compilation = CreateRuntimeAsyncCompilation(source, options);
-            var verifier = CompileAndVerify(compilation, verify: Verification.Skipped, symbolValidator: static module =>
+            var compilation = CreateRuntimeAsyncCompilation([source, RuntimeAsyncMethodGenerationAttributeDefinition], options);
+            var verifier = CompileAndVerify(compilation, verify: Verification.Skipped, symbolValidator: module =>
             {
                 var type = module.GlobalNamespace.GetMember<NamedTypeSymbol>("Ex");
                 var asyncImplMethod = type.GetMember<MethodSymbol>("F");
 
-                // When runtime async is enabled, no state machine is generated,
-                // so there should be no AsyncStateMachineAttribute and no DebuggerStepThroughAttribute
-                Assert.Empty(asyncImplMethod.GetAttributes());
+                if (suppressRuntimeAsync)
+                {
+                    Assert.Contains(asyncImplMethod.GetAttributes(), static a => a.AttributeClass?.Name == "AsyncStateMachineAttribute");
+                }
+                else
+                {
+                    // When runtime async is enabled, no state machine is generated,
+                    // so there should be no AsyncStateMachineAttribute and no DebuggerStepThroughAttribute
+                    Assert.Empty(asyncImplMethod.GetAttributes());
+                }
 
-                var extension = type.GetTypeMembers().Single();
+                var extension = type.GetTypeMembers().Single(static typeMember => typeMember.GetMembers("F").Any());
                 var asyncExtensionSignatureMethod = extension.GetMember<MethodSymbol>("F");
-                Assert.Empty(asyncExtensionSignatureMethod.GetAttributes());
+                Assert.DoesNotContain(asyncExtensionSignatureMethod.GetAttributes(), static a => a.AttributeClass?.Name == "AsyncStateMachineAttribute");
             });
             verifier.VerifyDiagnostics();
         }
 
         [Theory]
-        [MemberData(nameof(OptimizationLevelTheoryData))]
-        public void AsyncStateMachineAttribute_RuntimeAsync_ExtensionBlockMember_WithLambda(OptimizationLevel optimizationLevel)
+        [MemberData(nameof(RuntimeAsyncSuppressionAndOptimizationLevelTheoryData))]
+        public void AsyncStateMachineAttribute_RuntimeAsync_ExtensionBlockMember_WithLambda(OptimizationLevel optimizationLevel, bool suppressRuntimeAsync)
         {
-            string source = """
+            string source = $$"""
                 using System.Threading.Tasks;
 
                 public static class Ex
@@ -2000,7 +2022,7 @@ class Test
                     {
                         public async Task F()
                         {
-                            var f = async () => { await Task.Delay(0); };
+                            var f = {{(suppressRuntimeAsync ? "[System.Runtime.CompilerServices.RuntimeAsyncMethodGeneration(false)] " : "")}}async () => { await Task.Delay(0); };
                             await f();
                         }
                     }
@@ -2010,23 +2032,30 @@ class Test
             var options = TestOptions.CreateTestOptions(OutputKind.DynamicallyLinkedLibrary, optimizationLevel)
                 .WithMetadataImportOptions(MetadataImportOptions.All);
 
-            var compilation = CreateRuntimeAsyncCompilation(source, options);
-            var verifier = CompileAndVerify(compilation, verify: Verification.Skipped, symbolValidator: static module =>
+            var compilation = CreateRuntimeAsyncCompilation([source, RuntimeAsyncMethodGenerationAttributeDefinition], options);
+            var verifier = CompileAndVerify(compilation, verify: Verification.Skipped, symbolValidator: module =>
             {
                 var type = module.GlobalNamespace.GetMember<NamedTypeSymbol>("Ex");
                 var typeMembers = type.GetTypeMembers();
                 AssertEx.SequenceEqual(["Ex.<G>$C43E2675C7BBF9284AF22FB8A9BF0280.<M>$119AA281C143547563250CAF89B48A76", "Ex.<>c"], typeMembers.ToTestDisplayStrings());
                 var asyncLambda = typeMembers[1].GetMember<MethodSymbol>("<F>b__1_0");
-                Assert.Empty(asyncLambda.GetAttributes());
+                if (suppressRuntimeAsync)
+                {
+                    Assert.Contains(asyncLambda.GetAttributes(), static a => a.AttributeClass?.Name == "AsyncStateMachineAttribute");
+                }
+                else
+                {
+                    Assert.Empty(asyncLambda.GetAttributes());
+                }
             });
             verifier.VerifyDiagnostics();
         }
 
         [Theory]
-        [MemberData(nameof(OptimizationLevelTheoryData))]
-        public void AsyncStateMachineAttribute_RuntimeAsync_ExtensionBlockMember_WithLocalFunction(OptimizationLevel optimizationLevel)
+        [MemberData(nameof(RuntimeAsyncSuppressionAndOptimizationLevelTheoryData))]
+        public void AsyncStateMachineAttribute_RuntimeAsync_ExtensionBlockMember_WithLocalFunction(OptimizationLevel optimizationLevel, bool suppressRuntimeAsync)
         {
-            string source = """
+            string source = $$"""
                 using System.Threading.Tasks;
 
                 public static class Ex
@@ -2036,6 +2065,7 @@ class Test
                         public async Task F()
                         {
                             await LocalAsync();
+                            {{(suppressRuntimeAsync ? "[System.Runtime.CompilerServices.RuntimeAsyncMethodGeneration(false)]" : "")}}
                             async Task LocalAsync() { await Task.Delay(0); }
                         }
                     }
@@ -2045,15 +2075,139 @@ class Test
             var options = TestOptions.CreateTestOptions(OutputKind.DynamicallyLinkedLibrary, optimizationLevel)
                 .WithMetadataImportOptions(MetadataImportOptions.All);
 
-            var compilation = CreateRuntimeAsyncCompilation(source, options);
-            var verifier = CompileAndVerify(compilation, verify: Verification.Skipped, symbolValidator: static module =>
+            var compilation = suppressRuntimeAsync
+                ? CreateRuntimeAsyncCompilation([source, RuntimeAsyncMethodGenerationAttributeDefinition], options)
+                : CreateRuntimeAsyncCompilation(source, options);
+            var verifier = CompileAndVerify(compilation, verify: Verification.Skipped, symbolValidator: module =>
             {
                 var type = module.GlobalNamespace.GetMember<NamedTypeSymbol>("Ex");
-                Assert.Single(type.GetTypeMembers());
+                Assert.Equal(suppressRuntimeAsync ? 2 : 1, type.GetTypeMembers().Length);
                 var localFunction = type.GetMember<MethodSymbol>("<F>g__LocalAsync|1_0");
-                AssertEx.SequenceEqual(["System.Runtime.CompilerServices.CompilerGeneratedAttribute..ctor()"], localFunction.GetAttributes().SelectAsArray(a => a.AttributeConstructor.ToTestDisplayString()));
+                Assert.Contains(localFunction.GetAttributes(), static a => a.AttributeClass?.Name == "CompilerGeneratedAttribute");
+                if (suppressRuntimeAsync)
+                {
+                    Assert.Contains(localFunction.GetAttributes(), static a => a.AttributeClass?.Name == "AsyncStateMachineAttribute");
+                }
+                else
+                {
+                    Assert.DoesNotContain(localFunction.GetAttributes(), static a => a.AttributeClass?.Name == "AsyncStateMachineAttribute");
+                }
             });
             verifier.VerifyDiagnostics();
+        }
+
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/77529")]
+        [MemberData(nameof(OptimizationLevelTheoryData))]
+        public void AsyncStateMachineAttribute_PartialMethod(OptimizationLevel optimizationLevel)
+        {
+            string source = """
+                using System.Threading.Tasks;
+
+                partial class C
+                {
+                    public partial Task<int> M();
+
+                    public partial async Task<int> M()
+                    {
+                        await Task.Yield();
+                        return 0;
+                    }
+                }
+                """;
+
+            var options = TestOptions.CreateTestOptions(OutputKind.DynamicallyLinkedLibrary, optimizationLevel)
+                .WithMetadataImportOptions(MetadataImportOptions.All);
+
+            CompileAndVerify(CreateCompilationWithMscorlib461(source, options: options), symbolValidator: module =>
+            {
+                var type = module.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
+                var stateMachine = type.GetTypeMember("<M>d__0");
+                var asyncMethod = type.GetMember<MethodSymbol>("M");
+
+                var attributes = asyncMethod.GetAttributes();
+                var stateMachineAttribute = attributes.First();
+                Assert.Equal("AsyncStateMachineAttribute", stateMachineAttribute.AttributeClass.Name);
+                Assert.Equal(stateMachine, stateMachineAttribute.ConstructorArguments.Single().ValueInternal);
+
+                if (optimizationLevel == OptimizationLevel.Debug)
+                {
+                    Assert.Equal(2, attributes.Length);
+                    Assert.Equal("DebuggerStepThroughAttribute", attributes.Last().AttributeClass.Name);
+                }
+                else
+                {
+                    Assert.Equal(1, attributes.Length);
+                }
+            });
+        }
+
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/77529")]
+        [MemberData(nameof(OptimizationLevelTheoryData))]
+        public void IteratorStateMachineAttribute_PartialMethod(OptimizationLevel optimizationLevel)
+        {
+            string source = """
+                using System.Collections.Generic;
+
+                partial class C
+                {
+                    public partial IEnumerable<int> M();
+
+                    public partial IEnumerable<int> M()
+                    {
+                        yield return 1;
+                        yield return 2;
+                    }
+                }
+                """;
+
+            var options = TestOptions.CreateTestOptions(OutputKind.DynamicallyLinkedLibrary, optimizationLevel)
+                .WithMetadataImportOptions(MetadataImportOptions.All);
+
+            CompileAndVerify(CreateCompilationWithMscorlib461(source, options: options), symbolValidator: module =>
+            {
+                var type = module.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
+                var stateMachine = type.GetTypeMember("<M>d__0");
+                var iteratorMethod = type.GetMember<MethodSymbol>("M");
+
+                var iteratorAttribute = iteratorMethod.GetAttributes().Single();
+                Assert.Equal("IteratorStateMachineAttribute", iteratorAttribute.AttributeClass.Name);
+                Assert.Equal(stateMachine, iteratorAttribute.ConstructorArguments.Single().ValueInternal);
+            });
+        }
+
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/77529")]
+        [MemberData(nameof(OptimizationLevelTheoryData))]
+        public void AsyncIteratorStateMachineAttribute_PartialMethod(OptimizationLevel optimizationLevel)
+        {
+            string source = """
+                using System.Collections.Generic;
+                using System.Threading.Tasks;
+
+                partial class C
+                {
+                    public partial IAsyncEnumerable<int> M();
+
+                    public partial async IAsyncEnumerable<int> M()
+                    {
+                        await Task.Yield();
+                        yield return 1;
+                    }
+                }
+                """;
+
+            var options = TestOptions.CreateTestOptions(OutputKind.DynamicallyLinkedLibrary, optimizationLevel)
+                .WithMetadataImportOptions(MetadataImportOptions.All);
+
+            CompileAndVerify(CreateCompilationWithTasksExtensions(new[] { source, AsyncStreamsTypes }, options: options), symbolValidator: module =>
+            {
+                var type = module.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
+                var stateMachine = type.GetTypeMember("<M>d__0");
+                var asyncIteratorMethod = type.GetMember<MethodSymbol>("M");
+
+                var attribute = asyncIteratorMethod.GetAttributes().Single();
+                Assert.Equal("AsyncIteratorStateMachineAttribute", attribute.AttributeClass.Name);
+                Assert.Equal(stateMachine, attribute.ConstructorArguments.Single().ValueInternal);
+            });
         }
 
         #endregion

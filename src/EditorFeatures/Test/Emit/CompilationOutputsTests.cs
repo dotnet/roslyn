@@ -77,7 +77,7 @@ public sealed class CompilationOutputsTests
 
         using (var pdb = outputs.OpenPdb())
         {
-            var encReader = pdb!.CreateEditAndContinueMethodDebugInfoReader();
+            var encReader = pdb!.CreateEditAndContinueDebugInfoReader();
             Assert.Equal(format != DebugInformationFormat.Pdb, encReader.IsPortable);
             var localSig = encReader.GetLocalSignature(MetadataTokens.MethodDefinitionHandle(1));
             Assert.Equal(MetadataTokens.StandaloneSignatureHandle(1), localSig);

@@ -1,0 +1,13 @@
+﻿Source Location: (2:0,2 [75] x:\dir\subdir\Test\TestComponent.razor)
+|
+    int[] values = new int[1];
+    values?[0] = 1;
+    _ = values[0];
+|
+Generated Location: (733:21,0 [75] )
+|
+    int[] values = new int[1];
+    values?[0] = 1;
+    _ = values[0];
+|
+

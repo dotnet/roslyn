@@ -1,0 +1,10 @@
+﻿Source Location: (21:1,1 [10] x:\dir\subdir\Test\TestComponent.cshtml)
+|Component1|
+Generated Location: (751:19,44 [10] )
+|Component1|
+
+Source Location: (37:2,1 [17] x:\dir\subdir\Test\TestComponent.cshtml)
+|Shared.Component2|
+Generated Location: (905:22,44 [17] )
+|Shared.Component2|
+

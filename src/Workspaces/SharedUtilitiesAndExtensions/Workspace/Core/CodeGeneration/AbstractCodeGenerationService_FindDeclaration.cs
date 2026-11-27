@@ -23,9 +23,12 @@ internal abstract partial class AbstractCodeGenerationService<TCodeGenerationCon
         => GetAvailableInsertionIndices((SyntaxNode)destination, cancellationToken);
 
     public bool CanAddTo(ISymbol destination, Solution solution, CancellationToken cancellationToken)
+        => CanAddTo(destination, solution, CodeGenerationContext.Default, cancellationToken);
+
+    public bool CanAddTo(ISymbol destination, Solution solution, CodeGenerationContext context, CancellationToken cancellationToken)
     {
         var declarations = _symbolDeclarationService.GetDeclarations(destination);
-        return declarations.Any(static (r, arg) => arg.self.CanAddTo(r.GetSyntax(arg.cancellationToken), arg.solution, arg.cancellationToken), (self: this, solution, cancellationToken));
+        return declarations.Any(static (r, arg) => arg.self.CanAddTo(r.GetSyntax(arg.cancellationToken), arg.solution, arg.context, arg.cancellationToken), (self: this, solution, context, cancellationToken));
     }
 
     protected static SyntaxToken GetEndToken(SyntaxNode node)
@@ -53,11 +56,15 @@ internal abstract partial class AbstractCodeGenerationService<TCodeGenerationCon
     }
 
     public bool CanAddTo(SyntaxNode destination, Solution solution, CancellationToken cancellationToken)
-        => CanAddTo(destination, solution, cancellationToken, out _);
+        => CanAddTo(destination, solution, CodeGenerationContext.Default, cancellationToken);
+
+    public bool CanAddTo(SyntaxNode destination, Solution solution, CodeGenerationContext context, CancellationToken cancellationToken)
+        => CanAddTo(destination, solution, context, cancellationToken, out _);
 
     private bool CanAddTo(
         SyntaxNode? destination,
         Solution solution,
+        CodeGenerationContext context,
         CancellationToken cancellationToken,
         out IList<bool>? availableIndices,
         bool checkGeneratedCode = false)
@@ -76,7 +83,13 @@ internal abstract partial class AbstractCodeGenerationService<TCodeGenerationCon
             return false;
         }
 
-        // We can never generate into a document from a source generator, because those are immutable
+        // Razor maps edits to its source-generated documents back to the corresponding Razor document.
+        if (document.IsRazorSourceGeneratedDocument())
+        {
+            return true;
+        }
+
+        // Other source-generated documents are immutable and cannot be generation targets.
         if (document is SourceGeneratedDocument)
         {
             return false;
@@ -134,13 +147,14 @@ internal abstract partial class AbstractCodeGenerationService<TCodeGenerationCon
         Location? location,
         CancellationToken cancellationToken)
     {
-        var (declaration, _) = FindMostRelevantDeclaration(solution, namespaceOrType, location, cancellationToken);
+        var (declaration, _) = FindMostRelevantDeclaration(solution, namespaceOrType, CodeGenerationContext.Default, location, cancellationToken);
         return declaration;
     }
 
     private (SyntaxNode? declaration, IList<bool>? availableIndices) FindMostRelevantDeclaration(
         Solution solution,
         INamespaceOrTypeSymbol namespaceOrType,
+        CodeGenerationContext context,
         Location? location,
         CancellationToken cancellationToken)
     {
@@ -225,7 +239,7 @@ internal abstract partial class AbstractCodeGenerationService<TCodeGenerationCon
                 if (predicate(decl))
                 {
                     fallbackDeclaration ??= decl;
-                    if (CanAddTo(decl, solution, cancellationToken, out availableIndices, checkGeneratedCode))
+                    if (CanAddTo(decl, solution, context, cancellationToken, out availableIndices, checkGeneratedCode))
                     {
                         declaration = decl;
                         return true;

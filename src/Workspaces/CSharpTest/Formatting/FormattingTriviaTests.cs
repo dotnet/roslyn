@@ -5,10 +5,12 @@
 #nullable disable
 
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.Formatting;
+using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
@@ -52,6 +54,43 @@ public sealed class FormattingEngineTriviaTests : CSharpFormattingTestBase
                 #line 1000
             #error
             """);
+
+    [Fact]
+    public Task FileBasedAppDirective()
+    {
+        var parseOptions = CSharpParseOptions.Default.WithFeatures([new KeyValuePair<string, string>("FileBasedProgram", "true")]);
+        return AssertNoFormattingChangesAsync("""
+            #:package Newtonsoft.Json@13.0.3
+
+            Console.WriteLine("Hello");
+            """, parseOptions: parseOptions);
+    }
+
+    [Fact]
+    public Task FileBasedAppDirective_WithLeadingWhitespace()
+    {
+        var parseOptions = CSharpParseOptions.Default.WithFeatures([new KeyValuePair<string, string>("FileBasedProgram", "true")]);
+        return AssertFormatAsync("""
+            #:package Newtonsoft.Json@13.0.3
+
+            Console.WriteLine("Hello");
+            """, """
+             #:package Newtonsoft.Json@13.0.3
+
+            Console.WriteLine("Hello");
+            """, parseOptions: parseOptions);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/85890")]
+    public Task FileBasedAppShebang_UseTabs()
+    {
+        var parseOptions = CSharpParseOptions.Default.WithFeatures([new KeyValuePair<string, string>("FileBasedProgram", "true")]);
+        var optionSet = new OptionsCollection(LanguageNames.CSharp) { { FormattingOptions2.UseTabs, true } };
+        return AssertNoFormattingChangesAsync("""
+            #!/usr/bin/env dotnet
+            Console.WriteLine(1);
+            """, changedOptionSet: optionSet, parseOptions: parseOptions);
+    }
 
     [Fact]
     public Task Comment1()

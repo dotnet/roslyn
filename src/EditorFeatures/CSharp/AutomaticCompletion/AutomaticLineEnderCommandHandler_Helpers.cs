@@ -130,8 +130,8 @@ internal sealed partial class AutomaticLineEnderCommandHandler
 
         // There is an inner statement, it needs to be handled differently in addition to adding the block,
 
-        // For while, ForEach, Lock and Using statement,
-        // If there is an statement in the embeddedStatementOwner,
+        // For while, ForEach, Lock, Using and Fixed statement,
+        // If there is a statement in the embeddedStatementOwner,
         // move the old statement next to the statementOwner,
         // and insert a empty block into the statementOwner,
         // e.g.
@@ -148,7 +148,7 @@ internal sealed partial class AutomaticLineEnderCommandHandler
         // var i = 1;
         return embeddedStatementOwner switch
         {
-            WhileStatementSyntax or ForEachStatementSyntax or ForStatementSyntax or LockStatementSyntax or UsingStatementSyntax
+            WhileStatementSyntax or ForEachStatementSyntax or ForStatementSyntax or LockStatementSyntax or UsingStatementSyntax or FixedStatementSyntax
                 => ReplaceStatementOwnerAndInsertStatement(
                       services,
                       root,
@@ -243,7 +243,7 @@ internal sealed partial class AutomaticLineEnderCommandHandler
         //     $$
         // }
         // Print();
-        if (ifStatementNode.Else == null && ifStatementNode.Parent is BlockSyntax)
+        if (ifStatementNode is { Else: null, Parent: BlockSyntax })
         {
             return ReplaceStatementOwnerAndInsertStatement(
                 services,
@@ -368,7 +368,7 @@ internal sealed partial class AutomaticLineEnderCommandHandler
         // e.g.
         // case 1: 'var c = new Bar' becomes 'var c = new Bar()'
         // case 2: 'Bar b = new' becomes 'Bar b = new()'
-        var objectCreationNodeWithArgumentList = WithArgumentListIfNeeded(baseObjectCreationExpressionNode);
+        var objectCreationNodeWithArgumentList = WithArgumentListIfNeeded(baseObjectCreationExpressionNode, addOrRemoveInitializer);
 
         // 2. Add or remove initializer
         // e.g. var c = new Bar() => var c = new Bar() { }
@@ -412,7 +412,7 @@ internal sealed partial class AutomaticLineEnderCommandHandler
     /// Add argument list to the objectCreationExpression if needed.
     /// e.g. new Bar; => new Bar();
     /// </summary>
-    private static BaseObjectCreationExpressionSyntax WithArgumentListIfNeeded(BaseObjectCreationExpressionSyntax baseObjectCreationExpressionNode)
+    private static BaseObjectCreationExpressionSyntax WithArgumentListIfNeeded(BaseObjectCreationExpressionSyntax baseObjectCreationExpressionNode, bool addingInitializer)
     {
         var argumentList = baseObjectCreationExpressionNode.ArgumentList;
         if (argumentList is { IsMissing: false })
@@ -434,6 +434,15 @@ internal sealed partial class AutomaticLineEnderCommandHandler
             }
             else
             {
+                if (addingInitializer)
+                {
+                    // If we are adding an initializer and user didn't type constructor parenthesis,
+                    // in which case argument list might be missing due to incompletely typed statement,
+                    // replace it with null so we keep user's intent by not forcing parenthesis on one side
+                    // and produce expected tree shape on the other
+                    return baseObjectCreationExpressionNode.WithArgumentList(null);
+                }
+
                 // Make sure the trailing trivia is passed to the argument list
                 // like var l = new List\r\n =>
                 // var l = new List()\r\r
@@ -465,7 +474,7 @@ internal sealed partial class AutomaticLineEnderCommandHandler
             BaseTypeDeclarationSyntax baseTypeDeclarationNode => ShouldAddBraceForBaseTypeDeclaration(baseTypeDeclarationNode, caretPosition),
             BaseMethodDeclarationSyntax baseMethodDeclarationNode => ShouldAddBraceForBaseMethodDeclaration(baseMethodDeclarationNode, caretPosition),
             LocalFunctionStatementSyntax localFunctionStatementNode => ShouldAddBraceForLocalFunctionStatement(localFunctionStatementNode, caretPosition),
-            ObjectCreationExpressionSyntax objectCreationExpressionNode => ShouldAddBraceForObjectCreationExpression(objectCreationExpressionNode),
+            BaseObjectCreationExpressionSyntax baseObjectCreationExpressionNode => ShouldAddBraceForBaseObjectCreationExpression(baseObjectCreationExpressionNode),
             BaseFieldDeclarationSyntax baseFieldDeclarationNode => ShouldAddBraceForBaseFieldDeclaration(baseFieldDeclarationNode),
             AccessorDeclarationSyntax accessorDeclarationNode => ShouldAddBraceForAccessorDeclaration(accessorDeclarationNode),
             IndexerDeclarationSyntax indexerDeclarationNode => ShouldAddBraceForIndexerDeclaration(indexerDeclarationNode, caretPosition),
@@ -475,6 +484,7 @@ internal sealed partial class AutomaticLineEnderCommandHandler
             FinallyClauseSyntax finallyClauseNode => ShouldAddBraceForFinallyClause(finallyClauseNode, caretPosition),
             DoStatementSyntax doStatementNode => ShouldAddBraceForDoStatement(doStatementNode, caretPosition),
             CommonForEachStatementSyntax commonForEachStatementNode => ShouldAddBraceForCommonForEachStatement(commonForEachStatementNode, caretPosition),
+            FixedStatementSyntax fixedStatement => ShouldAddBraceForFixedStatement(fixedStatement, caretPosition),
             ForStatementSyntax forStatementNode => ShouldAddBraceForForStatement(forStatementNode, caretPosition),
             IfStatementSyntax ifStatementNode => ShouldAddBraceForIfStatement(ifStatementNode, caretPosition),
             ElseClauseSyntax elseClauseNode => ShouldAddBraceForElseClause(elseClauseNode, caretPosition),
@@ -527,10 +537,10 @@ internal sealed partial class AutomaticLineEnderCommandHandler
            && !WithinMethodBody(localFunctionStatementNode, caretPosition);
 
     /// <summary>
-    /// Add brace for ObjectCreationExpression if it doesn't have initializer
+    /// Add brace for BaseObjectCreationExpression if it doesn't have initializer
     /// </summary>
-    private static bool ShouldAddBraceForObjectCreationExpression(ObjectCreationExpressionSyntax objectCreationExpressionNode)
-        => objectCreationExpressionNode.Initializer == null;
+    private static bool ShouldAddBraceForBaseObjectCreationExpression(BaseObjectCreationExpressionSyntax baseObjectCreationExpressionNode)
+        => baseObjectCreationExpressionNode.Initializer is null;
 
     /// <summary>
     /// Add braces for field and event field if they only have one variable, semicolon is missing and don't have readonly keyword
@@ -669,6 +679,12 @@ internal sealed partial class AutomaticLineEnderCommandHandler
            && !commonForEachStatementNode.CloseParenToken.IsMissing
            && !WithinEmbeddedStatement(commonForEachStatementNode, caretPosition);
 
+    private static bool ShouldAddBraceForFixedStatement(FixedStatementSyntax fixedStatementNode, int caretPosition)
+        => fixedStatementNode.Statement is not BlockSyntax
+            && !fixedStatementNode.OpenParenToken.IsMissing
+            && !fixedStatementNode.CloseParenToken.IsMissing
+            && !WithinEmbeddedStatement(fixedStatementNode, caretPosition);
+
     private static bool ShouldAddBraceForForStatement(ForStatementSyntax forStatementNode, int caretPosition)
         => forStatementNode.Statement is not BlockSyntax
            && !forStatementNode.OpenParenToken.IsMissing
@@ -774,7 +790,7 @@ internal sealed partial class AutomaticLineEnderCommandHandler
     private static bool ShouldRemoveBraces(SyntaxNode node, int caretPosition)
         => node switch
         {
-            BaseObjectCreationExpressionSyntax baseObjectCreationExpressionNode => ShouldRemoveBraceForObjectCreationExpression(baseObjectCreationExpressionNode),
+            BaseObjectCreationExpressionSyntax baseObjectCreationExpressionNode => ShouldRemoveBraceForBaseObjectCreationExpression(baseObjectCreationExpressionNode),
             AccessorDeclarationSyntax accessorDeclarationNode => ShouldRemoveBraceForAccessorDeclaration(accessorDeclarationNode, caretPosition),
             PropertyDeclarationSyntax propertyDeclarationNode => ShouldRemoveBraceForPropertyDeclaration(propertyDeclarationNode, caretPosition),
             EventDeclarationSyntax eventDeclarationNode => ShouldRemoveBraceForEventDeclaration(eventDeclarationNode, caretPosition),
@@ -784,11 +800,8 @@ internal sealed partial class AutomaticLineEnderCommandHandler
     /// <summary>
     /// Remove the braces if the BaseObjectCreationExpression has an empty Initializer.
     /// </summary>
-    private static bool ShouldRemoveBraceForObjectCreationExpression(BaseObjectCreationExpressionSyntax baseObjectCreationExpressionNode)
-    {
-        var initializer = baseObjectCreationExpressionNode.Initializer;
-        return initializer != null && initializer.Expressions.IsEmpty();
-    }
+    private static bool ShouldRemoveBraceForBaseObjectCreationExpression(BaseObjectCreationExpressionSyntax baseObjectCreationExpressionNode)
+        => baseObjectCreationExpressionNode.Initializer is { Expressions.Count: 0 };
 
     // Only do this when it is an accessor in property
     // Since it is illegal to have something like
@@ -933,13 +946,14 @@ internal sealed partial class AutomaticLineEnderCommandHandler
         StatementSyntax? extraNodeInsertedBetweenBraces = null)
     {
         var block = extraNodeInsertedBetweenBraces != null
-            ? GetBlockNode(formattingOptions).WithStatements(new SyntaxList<StatementSyntax>(extraNodeInsertedBetweenBraces))
+            ? GetBlockNode(formattingOptions).WithStatements([extraNodeInsertedBetweenBraces])
             : GetBlockNode(formattingOptions);
 
         return embeddedStatementOwner switch
         {
             DoStatementSyntax doStatementNode => doStatementNode.WithStatement(block),
             CommonForEachStatementSyntax forEachStatementNode => forEachStatementNode.WithStatement(block),
+            FixedStatementSyntax fixedStatementNode => fixedStatementNode.WithStatement(block),
             ForStatementSyntax forStatementNode => forStatementNode.WithStatement(block),
             IfStatementSyntax ifStatementNode => ifStatementNode.WithStatement(block),
             ElseClauseSyntax elseClauseNode => elseClauseNode.WithStatement(block),

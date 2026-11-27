@@ -1,0 +1,16 @@
+﻿Source Location: (2:0,2 [45] x:\dir\subdir\Test\TestComponent.razor)
+|
+    var value = -8 >>> 1;
+    _ = value;
+|
+Generated Location: (733:21,0 [45] )
+|
+    var value = -8 >>> 1;
+    _ = value;
+|
+
+Source Location: (59:5,7 [8] x:\dir\subdir\Test\TestComponent.razor)
+|-7 >>> 1|
+Generated Location: (983:32,24 [8] )
+|-7 >>> 1|
+

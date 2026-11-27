@@ -26,15 +26,14 @@ public sealed class AdditionalPropertiesTests
     [WpfFact]
     public async Task SetProperty_RootNamespace_CPS()
     {
-        using (var environment = new TestEnvironment())
-        using (var project = await CSharpHelpers.CreateCSharpCPSProjectAsync(environment, "Test"))
-        {
-            Assert.Null(DefaultNamespaceOfSingleProject(environment));
+        using var environment = new TestEnvironment();
+        await using var project = await CSharpHelpers.CreateCSharpCPSProjectAsync(environment, "Test");
 
-            var rootNamespace = "Foo.Bar";
-            project.SetProperty(BuildPropertyNames.RootNamespace, rootNamespace);
-            Assert.Equal(rootNamespace, DefaultNamespaceOfSingleProject(environment));
-        }
+        Assert.Null(DefaultNamespaceOfSingleProject(environment));
+
+        var rootNamespace = "Foo.Bar";
+        project.SetProperty(BuildPropertyNames.RootNamespace, rootNamespace);
+        Assert.Equal(rootNamespace, DefaultNamespaceOfSingleProject(environment));
 
         static string DefaultNamespaceOfSingleProject(TestEnvironment environment)
             => environment.Workspace.CurrentSolution.Projects.Single().DefaultNamespace;
@@ -53,7 +52,7 @@ public sealed class AdditionalPropertiesTests
         const LanguageVersion attemptedVersion = LanguageVersion.CSharp8;
 
         using var environment = new TestEnvironment(typeof(CSharpParseOptionsChangingService));
-        using var cpsProject = await CSharpHelpers.CreateCSharpCPSProjectAsync(environment, "Test");
+        await using var cpsProject = await CSharpHelpers.CreateCSharpCPSProjectAsync(environment, "Test");
         var project = environment.Workspace.CurrentSolution.Projects.Single();
         var oldParseOptions = (CSharpParseOptions)project.ParseOptions;
 
@@ -80,7 +79,7 @@ public sealed class AdditionalPropertiesTests
         const LanguageVersion attemptedVersion = LanguageVersion.CSharp8;
 
         using var environment = new TestEnvironment(typeof(CSharpParseOptionsChangingService));
-        using var cpsProject = await CSharpHelpers.CreateCSharpCPSProjectAsync(environment, "Test");
+        await using var cpsProject = await CSharpHelpers.CreateCSharpCPSProjectAsync(environment, "Test");
         var project = environment.Workspace.CurrentSolution.Projects.Single();
         var oldParseOptions = (CSharpParseOptions)project.ParseOptions;
 
@@ -124,7 +123,7 @@ public sealed class AdditionalPropertiesTests
         async Task TestCPSProject()
         {
             using var environment = new TestEnvironment();
-            using var cpsProject = await CSharpHelpers.CreateCSharpCPSProjectAsync(environment, "Test");
+            await using var cpsProject = await CSharpHelpers.CreateCSharpCPSProjectAsync(environment, "Test");
 
             cpsProject.SetProperty(BuildPropertyNames.RunAnalyzers, runAnalyzers);
             cpsProject.SetProperty(BuildPropertyNames.RunAnalyzersDuringLiveAnalysis, runAnalyzersDuringLiveAnalysis);
@@ -156,24 +155,23 @@ public sealed class AdditionalPropertiesTests
     [WpfFact]
     public async Task SetProperty_CompilerGeneratedFilesOutputPath_CPS()
     {
-        using (var environment = new TestEnvironment())
-        using (var project = await CSharpHelpers.CreateCSharpCPSProjectAsync(environment, "Test"))
-        {
-            Assert.Null(environment.Workspace.CurrentSolution.Projects.Single().CompilationOutputInfo.GeneratedFilesOutputDirectory);
+        using var environment = new TestEnvironment();
+        await using var project = await CSharpHelpers.CreateCSharpCPSProjectAsync(environment, "Test");
 
-            // relative path is relative to the project dir:
-            project.SetProperty(BuildPropertyNames.CompilerGeneratedFilesOutputPath, "generated");
-            AssertEx.AreEqual(
-                Path.Combine(Path.GetDirectoryName(project.ProjectFilePath), "generated"),
-                environment.Workspace.CurrentSolution.Projects.Single().CompilationOutputInfo.GeneratedFilesOutputDirectory);
+        Assert.Null(environment.Workspace.CurrentSolution.Projects.Single().CompilationOutputInfo.GeneratedFilesOutputDirectory);
 
-            var path = Path.Combine(TempRoot.Root, "generated");
-            project.SetProperty(BuildPropertyNames.CompilerGeneratedFilesOutputPath, path);
-            AssertEx.AreEqual(path, environment.Workspace.CurrentSolution.Projects.Single().CompilationOutputInfo.GeneratedFilesOutputDirectory);
+        // relative path is relative to the project dir:
+        project.SetProperty(BuildPropertyNames.CompilerGeneratedFilesOutputPath, "generated");
+        AssertEx.AreEqual(
+            Path.Combine(Path.GetDirectoryName(project.ProjectFilePath), "generated"),
+            environment.Workspace.CurrentSolution.Projects.Single().CompilationOutputInfo.GeneratedFilesOutputDirectory);
 
-            // empty path:
-            project.SetProperty(BuildPropertyNames.CompilerGeneratedFilesOutputPath, "");
-            Assert.Null(environment.Workspace.CurrentSolution.Projects.Single().CompilationOutputInfo.GeneratedFilesOutputDirectory);
-        }
+        var path = Path.Combine(TempRoot.Root, "generated");
+        project.SetProperty(BuildPropertyNames.CompilerGeneratedFilesOutputPath, path);
+        AssertEx.AreEqual(path, environment.Workspace.CurrentSolution.Projects.Single().CompilationOutputInfo.GeneratedFilesOutputDirectory);
+
+        // empty path:
+        project.SetProperty(BuildPropertyNames.CompilerGeneratedFilesOutputPath, "");
+        Assert.Null(environment.Workspace.CurrentSolution.Projects.Single().CompilationOutputInfo.GeneratedFilesOutputDirectory);
     }
 }

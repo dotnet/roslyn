@@ -17,6 +17,8 @@ internal sealed partial class SymbolSearchUpdateEngine
 
         public bool Exists(FileSystemInfo info) => info.Exists;
 
+        public Stream OpenRead(string path) => File.OpenRead(path);
+
         public byte[] ReadAllBytes(string path) => File.ReadAllBytes(path);
 
         public void Replace(string sourceFileName, string destinationFileName, string? destinationBackupFileName, bool ignoreMetadataErrors)

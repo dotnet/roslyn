@@ -206,6 +206,9 @@ Module M
 End Module", references:={ilRef})
 
             vb.AssertTheseDiagnostics(<expected>
+BC37323: The required members list for 'Derived' is malformed and cannot be interpreted.
+Class VbDerivedDerived
+      ~~~~~~~~~~~~~~~~
 BC37322: Cannot inherit from 'Derived' because it has required members.
     Inherits Derived
     ~~~~~~~~~~~~~~~~

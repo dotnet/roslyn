@@ -19,3 +19,6 @@ RS0046 |  | Avoid the 'Opt' suffix |
 RS0049 |  | Instance of TemporaryArray\<T>.AsRef() must be a 'using' variable |
 RS0062 |  | Do not capture primary constructor parameters |
 RS0063 |  | Do not use interpolated strings with 'Debug.Assert' |
+RS0064 |  | Instance of PooledArrayBuilder\<T>.AsRef() must be a 'using' variable |
+RS0065 |  | Invalid parameter type in IRemoteJsonService method |
+RS0066 |  | ImmutableArray\<T> is being boxed to IReadOnlyList\<T> |

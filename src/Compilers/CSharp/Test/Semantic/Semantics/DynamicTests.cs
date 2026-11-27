@@ -1318,9 +1318,9 @@ IDynamicInvocationOperation (OperationKind.DynamicInvocation, Type: dynamic) (Sy
   ArgumentRefKinds(0)
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
-                // CS0227: Unsafe code may only appear if compiling with /unsafe
+                // (5,12): error CS9401: Unsafe or safe declaration modifiers may only appear if compiling with /unsafe.
                 //     static unsafe void M()
-                Diagnostic(ErrorCode.ERR_IllegalUnsafe, "M").WithLocation(5, 24),
+                Diagnostic(ErrorCode.ERR_IllegalUnsafeModifier, "unsafe").WithLocation(5, 12),
                 // CS0307: The property 'N' cannot be used with type arguments
                 //         object x = d1.N<int>;
                 Diagnostic(ErrorCode.ERR_TypeArgsNotAllowed, "N<int>").WithArguments("N", "property").WithLocation(8, 23),
@@ -12184,6 +12184,44 @@ static class Test1
                     ["Preserve1Attribute"],
                     m.GlobalNamespace.GetMember<NamedTypeSymbol>("Test1.<>o__1").TypeParameters.Single().GetAttributes().Select(a => a.ToString()));
             }
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/80419")]
+        public void TestOmittedTypeArgsOnDynamicMemberAccess1()
+        {
+            var code = """
+                public class C
+                {
+                    private static dynamic DynamicMethod(dynamic input)
+                    {
+                        return input.Something<>;
+                    }
+                }
+                """;
+
+            CreateCompilation(code).VerifyDiagnostics(
+                // (5,22): error CS0307: The property 'Something' cannot be used with type arguments
+                //         return input.Something<>;
+                Diagnostic(ErrorCode.ERR_TypeArgsNotAllowed, "Something<>").WithArguments("Something", "property").WithLocation(5, 22));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/80419")]
+        public void TestOmittedTypeArgsOnDynamicMemberAccess2()
+        {
+            var code = """
+                public class C
+                {
+                    private static dynamic DynamicMethod(dynamic input)
+                    {
+                        return input.Something<>();
+                    }
+                }
+                """;
+
+            CreateCompilation(code).VerifyDiagnostics(
+                // (5,16): error CS8389: Omitting the type argument is not allowed in the current context
+                //         return input.Something<>();
+                Diagnostic(ErrorCode.ERR_OmittedTypeArgument, "input.Something<>").WithLocation(5, 16));
         }
     }
 }

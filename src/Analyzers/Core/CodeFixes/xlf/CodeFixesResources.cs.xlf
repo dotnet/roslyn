@@ -232,11 +232,6 @@
         <target state="translated">Nastavit jako statickou</target>
         <note />
       </trans-unit>
-      <trans-unit id="Make_method_synchronous">
-        <source>Make method synchronous</source>
-        <target state="translated">Nastavit metodu jako synchronní</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Make_type_partial">
         <source>Make type partial</source>
         <target state="translated">Nastavit typ jako částečný</target>
@@ -244,7 +239,7 @@
       </trans-unit>
       <trans-unit id="May_be_neccessary_in_other_project_this_document_is_linked_in">
         <source>May be necessary in other project this document is linked in</source>
-        <target state="new">May be necessary in other project this document is linked in</target>
+        <target state="translated">Může být nutné v jiném projektu, ve který je tento dokument propojený.</target>
         <note />
       </trans-unit>
       <trans-unit id="Related_method_signatures_found_in_metadata_will_not_be_updated">

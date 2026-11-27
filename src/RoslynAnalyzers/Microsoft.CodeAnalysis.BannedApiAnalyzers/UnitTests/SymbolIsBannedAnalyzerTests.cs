@@ -63,6 +63,871 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers.UnitTests
             await test.RunAsync();
         }
 
+        [Fact]
+        [WorkItem(82114, "https://github.com/dotnet/roslyn/issues/82114")]
+        public async Task DiagnosticReportedInGeneratedFileByDefaultAsync()
+        {
+            const string bannedText = "T:N.Banned";
+
+            var csharpTest = new VerifyCS.Test
+            {
+                TestState =
+                {
+                    Sources =
+                    {
+                        ("Generated.g.cs", """
+                        namespace N
+                        {
+                            class Banned
+                            {
+                            }
+
+                            class C
+                            {
+                                void M()
+                                {
+                                    var c = {|#0:new Banned()|};
+                                }
+                            }
+                        }
+                        """),
+                    },
+                    AdditionalFiles = { (BannedSymbolsFileName, bannedText) },
+                },
+            };
+
+            csharpTest.ExpectedDiagnostics.Add(GetCSharpResultAt(0, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "Banned", ""));
+            await csharpTest.RunAsync();
+
+            var basicTest = new VerifyVB.Test
+            {
+                TestState =
+                {
+                    Sources =
+                    {
+                        ("Generated.g.vb", """
+                        Namespace N
+                            Class Banned
+                            End Class
+
+                            Class C
+                                Sub M()
+                                    Dim c = {|#0:New Banned()|}
+                                End Sub
+                            End Class
+                        End Namespace
+                        """),
+                    },
+                    AdditionalFiles = { (BannedSymbolsFileName, bannedText) },
+                },
+            };
+
+            basicTest.ExpectedDiagnostics.Add(GetBasicResultAt(0, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "Banned", ""));
+            await basicTest.RunAsync();
+        }
+
+        [Fact]
+        [WorkItem(82114, "https://github.com/dotnet/roslyn/issues/82114")]
+        public async Task GeneratedFileSkippedWhenConfiguredAsync()
+        {
+            const string bannedText = "T:N.Banned";
+
+            var csharpTest = new VerifyCS.Test
+            {
+                TestState =
+                {
+                    Sources =
+                    {
+                        ("/0/Shared.cs", """
+                        namespace N
+                        {
+                            class Banned
+                            {
+                            }
+                        }
+                        """),
+                        ("/0/Generated.g.cs", """
+                        namespace N
+                        {
+                            class GeneratedUsage
+                            {
+                                void M()
+                                {
+                                    var c = {|#0:new Banned()|};
+                                }
+                            }
+                        }
+                        """),
+                        ("/0/Test0.cs", """
+                        namespace N
+                        {
+                            class NongeneratedUsage
+                            {
+                                void M()
+                                {
+                                    var c = {|#1:new Banned()|};
+                                }
+                            }
+                        }
+                        """),
+                    },
+                    AdditionalFiles = { (BannedSymbolsFileName, bannedText) },
+                    AnalyzerConfigFiles =
+                    {
+                        ("/.globalconfig", """
+                        is_global = true
+
+                        dotnet_banned_api_analyzer.exclude_generated_code = true
+                        """),
+                    },
+                },
+            };
+
+            csharpTest.ExpectedDiagnostics.Add(GetCSharpResultAt(1, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "Banned", ""));
+            await csharpTest.RunAsync();
+
+            var basicTest = new VerifyVB.Test
+            {
+                TestState =
+                {
+                    Sources =
+                    {
+                        ("/0/Shared.vb", """
+                        Namespace N
+                            Class Banned
+                            End Class
+                        End Namespace
+                        """),
+                        ("/0/Generated.g.vb", """
+                        Namespace N
+                            Class GeneratedUsage
+                                Sub M()
+                                    Dim c = {|#0:New Banned()|}
+                                End Sub
+                            End Class
+                        End Namespace
+                        """),
+                        ("/0/Test0.vb", """
+                        Namespace N
+                            Class NongeneratedUsage
+                                Sub M()
+                                    Dim c = {|#1:New Banned()|}
+                                End Sub
+                            End Class
+                        End Namespace
+                        """),
+                    },
+                    AdditionalFiles = { (BannedSymbolsFileName, bannedText) },
+                    AnalyzerConfigFiles =
+                    {
+                        ("/.globalconfig", """
+                        is_global = true
+
+                        dotnet_banned_api_analyzer.exclude_generated_code = true
+                        """),
+                    },
+                },
+            };
+
+            basicTest.ExpectedDiagnostics.Add(GetBasicResultAt(1, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "Banned", ""));
+            await basicTest.RunAsync();
+        }
+
+        [Fact]
+        [WorkItem(82114, "https://github.com/dotnet/roslyn/issues/82114")]
+        public async Task GeneratedFileSkippedWhenConfiguredInEditorConfigAsync()
+        {
+            const string bannedText = "T:N.Banned";
+
+            var csharpTest = new VerifyCS.Test
+            {
+                TestState =
+                {
+                    Sources =
+                    {
+                        ("/0/Shared.cs", """
+                        namespace N
+                        {
+                            class Banned
+                            {
+                            }
+                        }
+                        """),
+                        ("/0/Generated.g.cs", """
+                        namespace N
+                        {
+                            class GeneratedUsage
+                            {
+                                void M()
+                                {
+                                    var c = {|#0:new Banned()|};
+                                }
+                            }
+                        }
+                        """),
+                        ("/0/Test0.cs", """
+                        namespace N
+                        {
+                            class NongeneratedUsage
+                            {
+                                void M()
+                                {
+                                    var c = {|#1:new Banned()|};
+                                }
+                            }
+                        }
+                        """),
+                    },
+                    AdditionalFiles = { (BannedSymbolsFileName, bannedText) },
+                    AnalyzerConfigFiles =
+                    {
+                        ("/.editorconfig", """
+                        root = true
+
+                        [*]
+                        dotnet_banned_api_analyzer.exclude_generated_code = true
+                        """),
+                    },
+                },
+            };
+
+            csharpTest.ExpectedDiagnostics.Add(GetCSharpResultAt(1, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "Banned", ""));
+            await csharpTest.RunAsync();
+
+            var basicTest = new VerifyVB.Test
+            {
+                TestState =
+                {
+                    Sources =
+                    {
+                        ("/0/Shared.vb", """
+                        Namespace N
+                            Class Banned
+                            End Class
+                        End Namespace
+                        """),
+                        ("/0/Generated.g.vb", """
+                        Namespace N
+                            Class GeneratedUsage
+                                Sub M()
+                                    Dim c = {|#0:New Banned()|}
+                                End Sub
+                            End Class
+                        End Namespace
+                        """),
+                        ("/0/Test0.vb", """
+                        Namespace N
+                            Class NongeneratedUsage
+                                Sub M()
+                                    Dim c = {|#1:New Banned()|}
+                                End Sub
+                            End Class
+                        End Namespace
+                        """),
+                    },
+                    AdditionalFiles = { (BannedSymbolsFileName, bannedText) },
+                    AnalyzerConfigFiles =
+                    {
+                        ("/.editorconfig", """
+                        root = true
+
+                        [*]
+                        dotnet_banned_api_analyzer.exclude_generated_code = true
+                        """),
+                    },
+                },
+            };
+
+            basicTest.ExpectedDiagnostics.Add(GetBasicResultAt(1, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "Banned", ""));
+            await basicTest.RunAsync();
+        }
+
+        [Fact]
+        [WorkItem(82114, "https://github.com/dotnet/roslyn/issues/82114")]
+        public async Task GeneratedFileSkippedWhenConfiguredInEditorConfigForSpecificPathAsync()
+        {
+            const string bannedText = "T:N.Banned";
+
+            var csharpTest = new VerifyCS.Test
+            {
+                TestState =
+                {
+                    Sources =
+                    {
+                        ("/0/Shared.cs", """
+                        namespace N
+                        {
+                            class Banned
+                            {
+                            }
+                        }
+                        """),
+                        ("/0/Generated/Matched.g.cs", """
+                        namespace N
+                        {
+                            class MatchedGeneratedUsage
+                            {
+                                void M()
+                                {
+                                    var c = {|#0:new Banned()|};
+                                }
+                            }
+                        }
+                        """),
+                        ("/0/Generated/Other.g.cs", """
+                        namespace N
+                        {
+                            class OtherGeneratedUsage
+                            {
+                                void M()
+                                {
+                                    var c = {|#1:new Banned()|};
+                                }
+                            }
+                        }
+                        """),
+                        ("/0/Generated/Test0.cs", """
+                        namespace N
+                        {
+                            class NongeneratedUsage
+                            {
+                                void M()
+                                {
+                                    var c = {|#2:new Banned()|};
+                                }
+                            }
+                        }
+                        """),
+                    },
+                    AdditionalFiles = { (BannedSymbolsFileName, bannedText) },
+                    AnalyzerConfigFiles =
+                    {
+                        ("/.editorconfig", """
+                        root = true
+
+                        [*]
+                        dotnet_banned_api_analyzer.exclude_generated_code = false
+
+                        [/0/Generated/Matched.g.cs]
+                        dotnet_banned_api_analyzer.exclude_generated_code = true
+                        """),
+                    },
+                },
+            };
+
+            csharpTest.ExpectedDiagnostics.Add(GetCSharpResultAt(1, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "Banned", ""));
+            csharpTest.ExpectedDiagnostics.Add(GetCSharpResultAt(2, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "Banned", ""));
+            await csharpTest.RunAsync();
+
+            var basicTest = new VerifyVB.Test
+            {
+                TestState =
+                {
+                    Sources =
+                    {
+                        ("/0/Shared.vb", """
+                        Namespace N
+                            Class Banned
+                            End Class
+                        End Namespace
+                        """),
+                        ("/0/Generated/Matched.g.vb", """
+                        Namespace N
+                            Class MatchedGeneratedUsage
+                                Sub M()
+                                    Dim c = {|#0:New Banned()|}
+                                End Sub
+                            End Class
+                        End Namespace
+                        """),
+                        ("/0/Generated/Other.g.vb", """
+                        Namespace N
+                            Class OtherGeneratedUsage
+                                Sub M()
+                                    Dim c = {|#1:New Banned()|}
+                                End Sub
+                            End Class
+                        End Namespace
+                        """),
+                        ("/0/Generated/Test0.vb", """
+                        Namespace N
+                            Class NongeneratedUsage
+                                Sub M()
+                                    Dim c = {|#2:New Banned()|}
+                                End Sub
+                            End Class
+                        End Namespace
+                        """),
+                    },
+                    AdditionalFiles = { (BannedSymbolsFileName, bannedText) },
+                    AnalyzerConfigFiles =
+                    {
+                        ("/.editorconfig", """
+                        root = true
+
+                        [*]
+                        dotnet_banned_api_analyzer.exclude_generated_code = false
+
+                        [/0/Generated/Matched.g.vb]
+                        dotnet_banned_api_analyzer.exclude_generated_code = true
+                        """),
+                    },
+                },
+            };
+
+            basicTest.ExpectedDiagnostics.Add(GetBasicResultAt(1, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "Banned", ""));
+            basicTest.ExpectedDiagnostics.Add(GetBasicResultAt(2, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "Banned", ""));
+            await basicTest.RunAsync();
+        }
+
+        [Fact]
+        [WorkItem(82114, "https://github.com/dotnet/roslyn/issues/82114")]
+        public async Task GeneratedAttributeSkippedWhenConfiguredAsync()
+        {
+            const string bannedText = "T:BannedAttribute";
+
+            var csharpTest = new VerifyCS.Test
+            {
+                TestState =
+                {
+                    Sources =
+                    {
+                        ("Generated.g.cs", """
+                        using System;
+
+                        [{|#0:Banned|}]
+                        class C
+                        {
+                        }
+                        """),
+                        ("Shared.cs", """
+                        using System;
+
+                        [AttributeUsage(AttributeTargets.All, Inherited = true)]
+                        class BannedAttribute : Attribute
+                        {
+                        }
+                        """),
+                    },
+                    AdditionalFiles = { (BannedSymbolsFileName, bannedText) },
+                    AnalyzerConfigFiles =
+                    {
+                        ("/.globalconfig", """
+                        is_global = true
+
+                        dotnet_banned_api_analyzer.exclude_generated_code = true
+                        """),
+                    },
+                },
+            };
+
+            await csharpTest.RunAsync();
+
+            var basicTest = new VerifyVB.Test
+            {
+                TestState =
+                {
+                    Sources =
+                    {
+                        ("Generated.g.vb", """
+                        Imports System
+
+                        <{|#0:Banned|}>
+                        Class C
+                        End Class
+                        """),
+                        ("Shared.vb", """
+                        Imports System
+
+                        <AttributeUsage(AttributeTargets.All, Inherited:=True)>
+                        Class BannedAttribute
+                            Inherits Attribute
+                        End Class
+                        """),
+                    },
+                    AdditionalFiles = { (BannedSymbolsFileName, bannedText) },
+                    AnalyzerConfigFiles =
+                    {
+                        ("/.globalconfig", """
+                        is_global = true
+
+                        dotnet_banned_api_analyzer.exclude_generated_code = true
+                        """),
+                    },
+                },
+            };
+
+            await basicTest.RunAsync();
+        }
+
+        [Fact]
+        [WorkItem(82114, "https://github.com/dotnet/roslyn/issues/82114")]
+        public async Task GeneratedDeclarationDoesNotSkipNonGeneratedPartialSymbolAttributeAnalysisAsync()
+        {
+            const string bannedText = "T:BannedAttribute";
+
+            var csharpTest = new VerifyCS.Test
+            {
+                TestState =
+                {
+                    Sources =
+                    {
+                        ("Generated.g.cs", """
+                        partial class C
+                        {
+                        }
+                        """),
+                        ("Shared.cs", """
+                        using System;
+
+                        [AttributeUsage(AttributeTargets.All, Inherited = true)]
+                        class BannedAttribute : Attribute
+                        {
+                        }
+                        """),
+                        ("Test0.cs", """
+                        [{|#0:Banned|}]
+                        partial class C
+                        {
+                        }
+                        """),
+                    },
+                    AdditionalFiles = { (BannedSymbolsFileName, bannedText) },
+                    AnalyzerConfigFiles =
+                    {
+                        ("/.globalconfig", """
+                        is_global = true
+
+                        dotnet_banned_api_analyzer.exclude_generated_code = true
+                        """),
+                    },
+                },
+            };
+
+            csharpTest.ExpectedDiagnostics.Add(GetCSharpResultAt(0, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "BannedAttribute", ""));
+            csharpTest.ExpectedDiagnostics.Add(GetCSharpResultAt(0, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "BannedAttribute", ""));
+            await csharpTest.RunAsync();
+
+            var basicTest = new VerifyVB.Test
+            {
+                TestState =
+                {
+                    Sources =
+                    {
+                        ("Generated.g.vb", """
+                        Partial Class C
+                        End Class
+                        """),
+                        ("Shared.vb", """
+                        Imports System
+
+                        <AttributeUsage(AttributeTargets.All, Inherited:=True)>
+                        Class BannedAttribute
+                            Inherits Attribute
+                        End Class
+                        """),
+                        ("Test0.vb", """
+                        <{|#0:Banned|}>
+                        Partial Class C
+                        End Class
+                        """),
+                    },
+                    AdditionalFiles = { (BannedSymbolsFileName, bannedText) },
+                    AnalyzerConfigFiles =
+                    {
+                        ("/.globalconfig", """
+                        is_global = true
+
+                        dotnet_banned_api_analyzer.exclude_generated_code = true
+                        """),
+                    },
+                },
+            };
+
+            basicTest.ExpectedDiagnostics.Add(GetBasicResultAt(0, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "BannedAttribute", ""));
+            basicTest.ExpectedDiagnostics.Add(GetBasicResultAt(0, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "BannedAttribute", ""));
+            await basicTest.RunAsync();
+        }
+
+        [Fact]
+        [WorkItem(82114, "https://github.com/dotnet/roslyn/issues/82114")]
+        public async Task GeneratedDeclarationDoesSkipsGeneratedPartialSymbolAttributeAnalysisAsync()
+        {
+            const string bannedText = "T:BannedAttribute";
+
+            var csharpTest = new VerifyCS.Test
+            {
+                TestState =
+                {
+                    Sources =
+                    {
+                        ("Generated.g.cs", """
+                        [Banned]
+                        partial class C
+                        {
+                        }
+                        """),
+                        ("Shared.cs", """
+                        using System;
+
+                        [AttributeUsage(AttributeTargets.All, Inherited = true)]
+                        class BannedAttribute : Attribute
+                        {
+                        }
+                        """),
+                        ("Test0.cs", """
+                        partial class C
+                        {
+                        }
+                        """),
+                    },
+                    AdditionalFiles = { (BannedSymbolsFileName, bannedText) },
+                    AnalyzerConfigFiles =
+                    {
+                        ("/.globalconfig", """
+                        is_global = true
+
+                        dotnet_banned_api_analyzer.exclude_generated_code = true
+                        """),
+                    },
+                },
+            };
+
+            await csharpTest.RunAsync();
+
+            var basicTest = new VerifyVB.Test
+            {
+                TestState =
+                {
+                    Sources =
+                    {
+                        ("Generated.g.vb", """
+                        <Banned>
+                        Partial Class C
+                        End Class
+                        """),
+                        ("Shared.vb", """
+                        Imports System
+
+                        <AttributeUsage(AttributeTargets.All, Inherited:=True)>
+                        Class BannedAttribute
+                            Inherits Attribute
+                        End Class
+                        """),
+                        ("Test0.vb", """
+                        Partial Class C
+                        End Class
+                        """),
+                    },
+                    AdditionalFiles = { (BannedSymbolsFileName, bannedText) },
+                    AnalyzerConfigFiles =
+                    {
+                        ("/.globalconfig", """
+                        is_global = true
+
+                        dotnet_banned_api_analyzer.exclude_generated_code = true
+                        """),
+                    },
+                },
+            };
+
+            await basicTest.RunAsync();
+        }
+
+        [Fact]
+        [WorkItem(82114, "https://github.com/dotnet/roslyn/issues/82114")]
+        public async Task GeneratedDeclarationDoesNotSkipNonGeneratedPartialSymbolUsageAnalysisAsync()
+        {
+            const string bannedText = "T:N.Banned";
+
+            var csharpTest = new VerifyCS.Test
+            {
+                TestState =
+                {
+                    Sources =
+                    {
+                        ("Generated.g.cs", """
+                        namespace N
+                        {
+                            partial class C
+                            {
+                            }
+                        }
+                        """),
+                        ("Shared.cs", """
+                        namespace N
+                        {
+                            class Banned
+                            {
+                            }
+                        }
+                        """),
+                        ("Test0.cs", """
+                        namespace N
+                        {
+                            partial class C
+                            {
+                                void M()
+                                {
+                                    var c = {|#0:new Banned()|};
+                                }
+                            }
+                        }
+                        """),
+                    },
+                    AdditionalFiles = { (BannedSymbolsFileName, bannedText) },
+                    AnalyzerConfigFiles =
+                    {
+                        ("/.globalconfig", """
+                        is_global = true
+
+                        dotnet_banned_api_analyzer.exclude_generated_code = true
+                        """),
+                    },
+                },
+            };
+
+            csharpTest.ExpectedDiagnostics.Add(GetCSharpResultAt(0, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "Banned", ""));
+            await csharpTest.RunAsync();
+
+            var basicTest = new VerifyVB.Test
+            {
+                TestState =
+                {
+                    Sources =
+                    {
+                        ("Generated.g.vb", """
+                        Namespace N
+                            Partial Class C
+                            End Class
+                        End Namespace
+                        """),
+                        ("Shared.vb", """
+                        Namespace N
+                            Class Banned
+                            End Class
+                        End Namespace
+                        """),
+                        ("Test0.vb", """
+                        Namespace N
+                            Partial Class C
+                                Sub M()
+                                    Dim c = {|#0:New Banned()|}
+                                End Sub
+                            End Class
+                        End Namespace
+                        """),
+                    },
+                    AdditionalFiles = { (BannedSymbolsFileName, bannedText) },
+                    AnalyzerConfigFiles =
+                    {
+                        ("/.globalconfig", """
+                        is_global = true
+
+                        dotnet_banned_api_analyzer.exclude_generated_code = true
+                        """),
+                    },
+                },
+            };
+
+            basicTest.ExpectedDiagnostics.Add(GetBasicResultAt(0, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "Banned", ""));
+            await basicTest.RunAsync();
+        }
+
+        [Fact]
+        [WorkItem(82114, "https://github.com/dotnet/roslyn/issues/82114")]
+        public async Task GeneratedDeclarationDoesNotSkipNonGeneratedPartialSymbolBaseTypeAnalysisAsync()
+        {
+            const string bannedText = "T:N.Banned";
+
+            var csharpTest = new VerifyCS.Test
+            {
+                TestState =
+                {
+                    Sources =
+                    {
+                        ("Generated.g.cs", """
+                        namespace N
+                        {
+                            partial class C
+                            {
+                            }
+                        }
+                        """),
+                        ("Shared.cs", """
+                        namespace N
+                        {
+                            class Banned
+                            {
+                            }
+                        }
+                        """),
+                        ("Test0.cs", """
+                        namespace N
+                        {
+                            partial class C : {|#0:Banned|}
+                            {
+                            }
+                        }
+                        """),
+                    },
+                    AdditionalFiles = { (BannedSymbolsFileName, bannedText) },
+                    AnalyzerConfigFiles =
+                    {
+                        ("/.globalconfig", """
+                        is_global = true
+
+                        dotnet_banned_api_analyzer.exclude_generated_code = true
+                        """),
+                    },
+                },
+            };
+
+            csharpTest.ExpectedDiagnostics.Add(GetCSharpResultAt(0, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "Banned", ""));
+            await csharpTest.RunAsync();
+
+            var basicTest = new VerifyVB.Test
+            {
+                TestState =
+                {
+                    Sources =
+                    {
+                        ("Generated.g.vb", """
+                        Namespace N
+                            Partial Class C
+                            End Class
+                        End Namespace
+                        """),
+                        ("Shared.vb", """
+                        Namespace N
+                            Class Banned
+                            End Class
+                        End Namespace
+                        """),
+                        ("Test0.vb", """
+                        Namespace N
+                            Partial Class C
+                                Inherits {|#0:Banned|}
+                            End Class
+                        End Namespace
+                        """),
+                    },
+                    AdditionalFiles = { (BannedSymbolsFileName, bannedText) },
+                    AnalyzerConfigFiles =
+                    {
+                        ("/.globalconfig", """
+                        is_global = true
+
+                        dotnet_banned_api_analyzer.exclude_generated_code = true
+                        """),
+                    },
+                },
+            };
+
+            basicTest.ExpectedDiagnostics.Add(GetBasicResultAt(0, SymbolIsBannedAnalyzer.SymbolIsBannedRule, "Banned", ""));
+            await basicTest.RunAsync();
+        }
+
         #region Diagnostic tests
 
         [Fact]

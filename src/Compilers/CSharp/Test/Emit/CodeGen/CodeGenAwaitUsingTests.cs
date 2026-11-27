@@ -287,11 +287,11 @@ class C : System.IAsyncDisposable
     }
 }
 ";
-            var comp = CreateCompilationWithTasksExtensions(new[] { source, IAsyncDisposableDefinition }, options: TestOptions.UnsafeDebugDll);
+            var comp = CreateCompilationWithTasksExtensions(new[] { source, IAsyncDisposableDefinition }, options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.Regular15);
             comp.VerifyDiagnostics(
-                // (8,13): error CS4004: Cannot await in an unsafe context
+                // (8,13): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //             await using (var x = new C())
-                Diagnostic(ErrorCode.ERR_AwaitInUnsafeContext, "await").WithLocation(8, 13)
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "await").WithArguments("updated memory safety rules").WithLocation(8, 13)
                 );
         }
 
@@ -1442,14 +1442,9 @@ class C : System.IAsyncDisposable
             var expectedOutput = "body DisposeAsync end";
             CompileAndVerify(comp, expectedOutput: expectedOutput);
 
-            // https://github.com/dotnet/roslyn/issues/79762: Test dynamic
-
-            comp = CreateRuntimeAsyncCompilation(source);
-            comp.VerifyEmitDiagnostics(
-                // (6,30): error CS9328: Method 'C.Main()' uses a feature that is not supported by runtime async currently. Opt the method out of runtime async by attributing it with 'System.Runtime.CompilerServices.RuntimeAsyncMethodGenerationAttribute(false)'.
-                //         await using (dynamic x = new C())
-                Diagnostic(ErrorCode.ERR_UnsupportedFeatureInRuntimeAsync, "x = new C()").WithArguments("C.Main()").WithLocation(6, 30)
-            );
+            comp = CreateRuntimeAsyncCompilation(source, TestOptions.ReleaseExe);
+            comp.VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput(expectedOutput), verify: Verification.Fails);
         }
 
         [Fact]
@@ -1479,13 +1474,9 @@ class C : System.IAsyncDisposable
             string expectedOutput = "body DisposeAsync end";
             CompileAndVerify(comp, expectedOutput: expectedOutput);
 
-            // https://github.com/dotnet/roslyn/issues/79762: Test dynamic
-            comp = CreateRuntimeAsyncCompilation(source);
-            comp.VerifyEmitDiagnostics(
-                // (6,30): error CS9328: Method 'C.Main()' uses a feature that is not supported by runtime async currently. Opt the method out of runtime async by attributing it with 'System.Runtime.CompilerServices.RuntimeAsyncMethodGenerationAttribute(false)'.
-                //         await using (dynamic x = new C())
-                Diagnostic(ErrorCode.ERR_UnsupportedFeatureInRuntimeAsync, "x = new C()").WithArguments("C.Main()").WithLocation(6, 30)
-            );
+            comp = CreateRuntimeAsyncCompilation(source, TestOptions.ReleaseExe);
+            comp.VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput(expectedOutput), verify: Verification.Fails);
         }
 
         [Fact]
@@ -4643,7 +4634,7 @@ public struct C
             {
                 ILVerifyMessage = """
                     [Main]: Unexpected type on the stack. { Offset = 0x48, Found = Int32, Expected = ref '[System.Runtime]System.Threading.Tasks.Task`1<int32>' }
-                    [DisposeAsync]: Return value missing on the stack. { Offset = 0x38 }
+                    [DisposeAsync]: Return value missing on the stack. { Offset = 0x3f }
                     """
             });
             verifier.VerifyIL("C.Main", """
@@ -4724,7 +4715,7 @@ public struct C
             comp.VerifyDiagnostics();
             var verifier = CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput(expectedOutput), verify: Verification.Fails with { ILVerifyMessage = """
                 [Main]: Unexpected type on the stack. { Offset = 0x49, Found = Int32, Expected = ref '[System.Runtime]System.Threading.Tasks.Task`1<int32>' }
-                [DisposeAsync]: Unexpected type on the stack. { Offset = 0x39, Found = Int32, Expected = ref '[System.Runtime]System.Threading.Tasks.Task`1<int32>' }
+                [DisposeAsync]: Unexpected type on the stack. { Offset = 0x40, Found = Int32, Expected = ref '[System.Runtime]System.Threading.Tasks.Task`1<int32>' }
                 """ });
             verifier.VerifyIL("C.Main", """
                 {
@@ -4767,6 +4758,62 @@ public struct C
                   IL_0049:  ret
                 }
                 """);
+        }
+
+        [Fact]
+        public void RuntimeAsync_TestPatternBasedDisposal_ReturnsNullableTask_Warns()
+        {
+            string source = @"#nullable enable
+using System.Threading.Tasks;
+class C
+{
+    static async Task M()
+    {
+        await using var x = new C();
+    }
+    public Task? DisposeAsync() => null;
+}";
+            var comp = CreateRuntimeAsyncCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (7,9): warning CS8604: Possible null reference argument for parameter 'task' in 'void AsyncHelpers.Await(Task task)'.
+                //         await using var x = new C();
+                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "await using var x = new C();").WithArguments("task", "void AsyncHelpers.Await(Task task)").WithLocation(7, 9)
+                );
+        }
+
+        [Fact]
+        public void RuntimeAsync_TestUserDefinedIAsyncDisposable_ReturnsNullableValueTask()
+        {
+            string source = @"#nullable enable
+using System.Threading.Tasks;
+namespace System
+{
+    public interface IAsyncDisposable
+    {
+        ValueTask? DisposeAsync();
+    }
+}
+class C : System.IAsyncDisposable
+{
+    static async Task M()
+    {
+        await using var x = new C();
+    }
+
+    ValueTask? System.IAsyncDisposable.DisposeAsync() => null;
+}";
+            var comp = CreateRuntimeAsyncCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (10,18): warning CS0436: The type 'IAsyncDisposable' in '' conflicts with the imported type 'IAsyncDisposable' in 'System.Runtime, Version=10.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a'. Using the type defined in ''.
+                // class C : System.IAsyncDisposable
+                Diagnostic(ErrorCode.WRN_SameFullNameThisAggAgg, "IAsyncDisposable").WithArguments("", "System.IAsyncDisposable", "System.Runtime, Version=10.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a", "System.IAsyncDisposable").WithLocation(10, 18),
+                // (14,9): error CS0656: Missing compiler required member 'System.IAsyncDisposable.DisposeAsync'
+                //         await using var x = new C();
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "await").WithArguments("System.IAsyncDisposable", "DisposeAsync").WithLocation(14, 9),
+                // (17,23): warning CS0436: The type 'IAsyncDisposable' in '' conflicts with the imported type 'IAsyncDisposable' in 'System.Runtime, Version=10.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a'. Using the type defined in ''.
+                //     ValueTask? System.IAsyncDisposable.DisposeAsync() => null;
+                Diagnostic(ErrorCode.WRN_SameFullNameThisAggAgg, "IAsyncDisposable").WithArguments("", "System.IAsyncDisposable", "System.Runtime, Version=10.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a", "System.IAsyncDisposable").WithLocation(17, 23)
+            );
         }
 
         [Fact]

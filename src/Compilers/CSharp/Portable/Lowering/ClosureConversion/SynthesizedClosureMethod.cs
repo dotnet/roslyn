@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                    originalMethod is { MethodKind: MethodKind.LocalFunction }
                     ? MakeName(topLevelMethod.Name, originalMethod.Name, topLevelMethodId, closureKind, lambdaId)
                     : MakeName(topLevelMethod.Name, topLevelMethodId, closureKind, lambdaId),
-                   MakeDeclarationModifiers(closureKind, originalMethod),
+                   MakeDeclarationModifiers(closureKind, originalMethod, containingType),
                    isIterator: originalMethod.IsIterator)
         {
             Debug.Assert(containingType.DeclaringCompilation is not null);
@@ -153,9 +153,19 @@ namespace Microsoft.CodeAnalysis.CSharp
             ParameterHelpers.EnsureNullableAttributeExists(moduleBuilder, this, Parameters);
         }
 
-        private static DeclarationModifiers MakeDeclarationModifiers(ClosureKind closureKind, MethodSymbol originalMethod)
+        private static DeclarationModifiers MakeDeclarationModifiers(ClosureKind closureKind,
+            MethodSymbol originalMethod, NamedTypeSymbol containingType)
         {
-            var mods = closureKind == ClosureKind.ThisOnly ? DeclarationModifiers.Private : DeclarationModifiers.Internal;
+            var mods = DeclarationModifiers.None;
+
+            if (ReferenceEquals(containingType, originalMethod.ContainingType))
+            {
+                mods |= DeclarationModifiers.Private;
+            }
+            else
+            {
+                mods |= DeclarationModifiers.Internal;
+            }
 
             if (closureKind == ClosureKind.Static)
             {
@@ -170,6 +180,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (originalMethod.IsExtern)
             {
                 mods |= DeclarationModifiers.Extern;
+            }
+
+            if (originalMethod is LocalFunctionOrSourceMemberMethodSymbol { HasUnsafeModifier: true })
+            {
+                mods |= DeclarationModifiers.Unsafe;
             }
 
             return mods;
@@ -217,7 +232,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal int ExtraSynthesizedParameterCount => this._structEnvironments.IsDefault ? 0 : this._structEnvironments.Length;
 
         internal override bool InheritsBaseMethodAttributes => true;
-        internal override bool GenerateDebugInfo => !this.IsAsync;
+        internal override bool GenerateDebugInfo => !this.IsAsync || DeclaringCompilation.IsRuntimeAsyncEnabledIn(this);
 
         internal override int CalculateLocalSyntaxOffset(int localPosition, SyntaxTree localTree)
         {

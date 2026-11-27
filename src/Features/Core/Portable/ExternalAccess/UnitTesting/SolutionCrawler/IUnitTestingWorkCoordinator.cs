@@ -6,5 +6,5 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler;
 
 internal interface IUnitTestingWorkCoordinator
 {
-    void OnWorkspaceChanged(WorkspaceChangeEventArgs args);
+    void OnWorkspaceChanged(WorkspaceChangeEventArgs args, bool processSourceGeneratedDocuments);
 }

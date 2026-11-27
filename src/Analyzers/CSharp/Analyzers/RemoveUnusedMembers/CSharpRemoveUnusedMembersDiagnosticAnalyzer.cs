@@ -30,8 +30,21 @@ internal sealed class CSharpRemoveUnusedMembersDiagnosticAnalyzer
             .OfType<TypeDeclarationSyntax>();
     }
 
-    protected override SyntaxList<MemberDeclarationSyntax> GetMembers(TypeDeclarationSyntax typeDeclaration)
-        => typeDeclaration.Members;
+    protected override IEnumerable<MemberDeclarationSyntax> GetMembersIncludingExtensionBlockMembers(TypeDeclarationSyntax typeDeclaration)
+    {
+        foreach (var member in typeDeclaration.Members)
+        {
+            if (member is ExtensionBlockDeclarationSyntax extensionBlock)
+            {
+                foreach (var extensionMember in extensionBlock.Members)
+                    yield return extensionMember;
+            }
+            else
+            {
+                yield return member;
+            }
+        }
+    }
 
     protected override SyntaxNode GetParentIfSoleDeclarator(SyntaxNode node)
     {

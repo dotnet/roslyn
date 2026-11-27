@@ -1,0 +1,1 @@
+﻿TestFiles/IntegrationTests/CodeGenerationIntegrationTest/InvalidNamespaceAtEOF.cshtml(1,12): Error RZ1014: The 'namespace' directive expects a namespace name.

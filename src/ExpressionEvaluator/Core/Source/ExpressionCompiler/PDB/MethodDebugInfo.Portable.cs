@@ -389,22 +389,22 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             out string defaultNamespace,
             out bool isPrimaryConstructor)
         {
-            hoistedLocalScopes = TryGetCustomDebugInformation(reader, methodHandle, PortableCustomDebugInfoKinds.StateMachineHoistedLocalScopes, out var info)
+            hoistedLocalScopes = reader.TryGetCustomDebugInformation(methodHandle, PortableCustomDebugInfoKinds.StateMachineHoistedLocalScopes, out var info)
                 ? DecodeHoistedLocalScopes(reader.GetBlobReader(info.Value))
                 : ImmutableArray<HoistedLocalScopeRecord>.Empty;
 
             // TODO: consider looking this up once per module (not for every method)
-            defaultNamespace = TryGetCustomDebugInformation(reader, EntityHandle.ModuleDefinition, PortableCustomDebugInfoKinds.DefaultNamespace, out info)
+            defaultNamespace = reader.TryGetCustomDebugInformation(EntityHandle.ModuleDefinition, PortableCustomDebugInfoKinds.DefaultNamespace, out info)
                 ? DecodeDefaultNamespace(reader.GetBlobReader(info.Value))
                 : "";
 
-            isPrimaryConstructor = TryGetCustomDebugInformation(reader, methodHandle, PortableCustomDebugInfoKinds.PrimaryConstructorInformationBlob, out _);
+            isPrimaryConstructor = reader.TryGetCustomDebugInformation(methodHandle, PortableCustomDebugInfoKinds.PrimaryConstructorInformationBlob, out _);
         }
 
         /// <exception cref="BadImageFormatException">Invalid data format.</exception>
         private static ImmutableArray<bool> ReadDynamicCustomDebugInformation(MetadataReader reader, EntityHandle variableOrConstantHandle)
         {
-            if (TryGetCustomDebugInformation(reader, variableOrConstantHandle, PortableCustomDebugInfoKinds.DynamicLocalVariables, out var info))
+            if (reader.TryGetCustomDebugInformation(variableOrConstantHandle, PortableCustomDebugInfoKinds.DynamicLocalVariables, out var info))
             {
                 return DecodeDynamicFlags(reader.GetBlobReader(info.Value));
             }
@@ -415,34 +415,12 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
         /// <exception cref="BadImageFormatException">Invalid data format.</exception>
         private static ImmutableArray<string?> ReadTupleCustomDebugInformation(MetadataReader reader, EntityHandle variableOrConstantHandle)
         {
-            if (TryGetCustomDebugInformation(reader, variableOrConstantHandle, PortableCustomDebugInfoKinds.TupleElementNames, out var info))
+            if (reader.TryGetCustomDebugInformation(variableOrConstantHandle, PortableCustomDebugInfoKinds.TupleElementNames, out var info))
             {
                 return DecodeTupleElementNames(reader.GetBlobReader(info.Value));
             }
 
             return default;
-        }
-
-        /// <exception cref="BadImageFormatException">Invalid data format.</exception>
-        private static bool TryGetCustomDebugInformation(MetadataReader reader, EntityHandle handle, Guid kind, out CustomDebugInformation customDebugInfo)
-        {
-            bool foundAny = false;
-            customDebugInfo = default;
-            foreach (var infoHandle in reader.GetCustomDebugInformation(handle))
-            {
-                var info = reader.GetCustomDebugInformation(infoHandle);
-                var id = reader.GetGuid(info.Kind);
-                if (id == kind)
-                {
-                    if (foundAny)
-                    {
-                        throw new BadImageFormatException();
-                    }
-                    customDebugInfo = info;
-                    foundAny = true;
-                }
-            }
-            return foundAny;
         }
 
         /// <exception cref="BadImageFormatException">Invalid data format.</exception>

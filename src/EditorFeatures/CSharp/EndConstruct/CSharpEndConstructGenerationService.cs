@@ -21,6 +21,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.EndConstructGeneration;
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
 internal sealed class CSharpEndConstructGenerationService() : IEndConstructGenerationService
 {
-    public Task<bool> TryDoAsync(ITextView textView, ITextBuffer subjectBuffer, char typedChar, CancellationToken cancellationToken)
-        => SpecializedTasks.False;
+    public async Task<bool> TryDoAsync(ITextView textView, ITextBuffer subjectBuffer, char typedChar, CancellationToken cancellationToken)
+        => false;
 }

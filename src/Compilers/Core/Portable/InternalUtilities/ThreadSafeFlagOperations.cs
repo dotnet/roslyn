@@ -24,6 +24,22 @@ namespace Roslyn.Utilities
             return true;
         }
 
+        public static bool Set(ref long flags, long toSet)
+        {
+            long oldState, newState;
+            do
+            {
+                oldState = flags;
+                newState = oldState | toSet;
+                if (newState == oldState)
+                {
+                    return false;
+                }
+            }
+            while (Interlocked.CompareExchange(ref flags, newState, oldState) != oldState);
+            return true;
+        }
+
         public static bool Clear(ref int flags, int toClear)
         {
             int oldState, newState;

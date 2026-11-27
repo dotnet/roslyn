@@ -216,6 +216,7 @@ End Class"
   IL_0001:  ret
 }")
                     locals.Free()
+                    diagnostics.Free()
 
                     ' Confirm that the Watch window is unaffected by the filtering in the Locals window.
                     Dim errorString As String = Nothing
@@ -937,6 +938,7 @@ End Class
   IL_0000:  ldarg.3
   IL_0001:  ret
 }")
+                    locals.Free()
                 End Sub)
         End Sub
 

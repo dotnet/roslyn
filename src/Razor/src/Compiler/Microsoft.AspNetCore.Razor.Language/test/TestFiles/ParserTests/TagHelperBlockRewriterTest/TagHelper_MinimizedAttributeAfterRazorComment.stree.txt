@@ -1,0 +1,38 @@
+﻿RazorDocument - [0..47)::47 - [<input type="checkbox" @* comment *@ checked />]
+    MarkupBlock - [0..47)::47
+        MarkupTagHelperElement - [0..47)::47 - input[SelfClosing] - InputTagHelper
+            MarkupTagHelperStartTag - [0..47)::47 - [<input type="checkbox" @* comment *@ checked />] - Gen<Markup>
+                OpenAngle;[<];
+                Text;[input];
+                MarkupTagHelperAttribute - [6..22)::16 - type - DoubleQuotes - Bound - [ type="checkbox"]
+                    MarkupTextLiteral - [6..7)::1 - [ ] - Gen<Markup>
+                        Whitespace;[ ];
+                    MarkupTextLiteral - [7..11)::4 - [type] - Gen<Markup>
+                        Text;[type];
+                    Equals;[=];
+                    MarkupTextLiteral - [12..13)::1 - ["] - Gen<Markup>
+                        DoubleQuote;["];
+                    MarkupTagHelperAttributeValue - [13..21)::8
+                        MarkupTextLiteral - [13..21)::8 - [checkbox] - Gen<Markup>
+                            Text;[checkbox];
+                    MarkupTextLiteral - [21..22)::1 - ["] - Gen<Markup>
+                        DoubleQuote;["];
+                MarkupTextLiteral - [22..23)::1 - [ ] - Gen<Markup>
+                    Whitespace;[ ];
+                RazorComment - [23..36)::13
+                    RazorCommentTransition;[@];
+                    RazorCommentStar;[*];
+                    RazorCommentLiteral;[ comment ];
+                    RazorCommentStar;[*];
+                    RazorCommentTransition;[@];
+                MarkupMinimizedTagHelperAttribute - [36..44)::8 - checked - Minimized - Bound - [ checked]
+                    MarkupTextLiteral - [36..37)::1 - [ ] - Gen<Markup>
+                        Whitespace;[ ];
+                    MarkupTextLiteral - [37..44)::7 - [checked] - Gen<Markup>
+                        Text;[checked];
+                MarkupMiscAttributeContent - [44..45)::1
+                    MarkupTextLiteral - [44..45)::1 - [ ] - Gen<Markup>
+                        Whitespace;[ ];
+                ForwardSlash;[/];
+                CloseAngle;[>];
+    EndOfFile;[];

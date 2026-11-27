@@ -1,11 +1,11 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <!-- Licensed to the .NET Foundation under one or more agreements. The .NET Foundation licenses this file to you under the MIT license. See the LICENSE file in the project root for more information. -->
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <OutputType>Library</OutputType>
     <RootNamespace>Microsoft.CodeAnalysis.UnitTests</RootNamespace>
     <!-- Test our primary scenarios: VS OOP, VS Code, devenv -->
-    <TargetFrameworks>$(NetVSShared);net472</TargetFrameworks>
+    <TargetFrameworks>$(NetRoslynAll);net472</TargetFrameworks>
     <IsShipping>false</IsShipping>
     <ExcludeFromSourceOnlyBuild>true</ExcludeFromSourceOnlyBuild>
     <IsTestUtilityProject>true</IsTestUtilityProject>
@@ -26,15 +26,17 @@
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" />
-    <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Analyzer.Testing.XUnit" />
-    <PackageReference Include="Microsoft.CodeAnalysis.CSharp.CodeFix.Testing.XUnit" />
-    <PackageReference Include="Microsoft.CodeAnalysis.CSharp.CodeRefactoring.Testing.XUnit" />
-    <PackageReference Include="Microsoft.CodeAnalysis.VisualBasic.Analyzer.Testing.XUnit" />
-    <PackageReference Include="Microsoft.CodeAnalysis.VisualBasic.CodeFix.Testing.XUnit" />
-    <PackageReference Include="Microsoft.CodeAnalysis.VisualBasic.CodeRefactoring.Testing.XUnit" />
     <PackageReference Include="xunit.extensibility.core" Version="$(xunitextensibilitycoreVersion)" />
     <PackageReference Include="xunit.extensibility.execution" Version="$(xunitextensibilityexecutionVersion)" />
     <PackageReference Include="Xunit.Combinatorial" Version="$(XunitCombinatorialVersion)" />
+  </ItemGroup>
+  <ItemGroup Label="Project References">
+    <ProjectReference Include="..\..\RoslynSdk\Microsoft.CodeAnalysis.Testing\Microsoft.CodeAnalysis.CSharp.Analyzer.Testing\Microsoft.CodeAnalysis.CSharp.Analyzer.Testing.csproj" />
+    <ProjectReference Include="..\..\RoslynSdk\Microsoft.CodeAnalysis.Testing\Microsoft.CodeAnalysis.CSharp.CodeFix.Testing\Microsoft.CodeAnalysis.CSharp.CodeFix.Testing.csproj" />
+    <ProjectReference Include="..\..\RoslynSdk\Microsoft.CodeAnalysis.Testing\Microsoft.CodeAnalysis.CSharp.CodeRefactoring.Testing\Microsoft.CodeAnalysis.CSharp.CodeRefactoring.Testing.csproj" />
+    <ProjectReference Include="..\..\RoslynSdk\Microsoft.CodeAnalysis.Testing\Microsoft.CodeAnalysis.VisualBasic.Analyzer.Testing\Microsoft.CodeAnalysis.VisualBasic.Analyzer.Testing.vbproj" />
+    <ProjectReference Include="..\..\RoslynSdk\Microsoft.CodeAnalysis.Testing\Microsoft.CodeAnalysis.VisualBasic.CodeFix.Testing\Microsoft.CodeAnalysis.VisualBasic.CodeFix.Testing.vbproj" />
+    <ProjectReference Include="..\..\RoslynSdk\Microsoft.CodeAnalysis.Testing\Microsoft.CodeAnalysis.VisualBasic.CodeRefactoring.Testing\Microsoft.CodeAnalysis.VisualBasic.CodeRefactoring.Testing.vbproj" />
   </ItemGroup>
   <ItemGroup Condition="'$(TargetFramework)' == 'net472'">
     <PackageReference Include="System.Diagnostics.DiagnosticSource" />
@@ -51,6 +53,7 @@
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.EditorFeatures.Test.Utilities2" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.LanguageServer.Protocol.UnitTests" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.LanguageServer.UnitTests" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.LanguageServer.ProcessHost.UnitTests" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.VisualBasic.Features.UnitTests" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.VisualBasic.EditorFeatures.UnitTests" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.EditorFeatures.Test.Utilities" />
@@ -64,7 +67,7 @@
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.New.IntegrationTests" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.LiveShare.UnitTests" />
     <InternalsVisibleTo Include="IdeBenchmarks" />
-    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.ExternalAccess.Razor.UnitTests" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.ExternalAccess.HotReload.UnitTests"/>
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.CodeStyle.LegacyTestFramework.UnitTestUtilities" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Features.DiagnosticsTests.Utilities" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Features.Test.Utilities" />

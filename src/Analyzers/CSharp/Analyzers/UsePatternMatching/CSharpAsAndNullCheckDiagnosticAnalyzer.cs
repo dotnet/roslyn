@@ -5,6 +5,7 @@
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using System.Threading;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
@@ -185,6 +186,16 @@ internal sealed partial class CSharpAsAndNullCheckDiagnosticAnalyzer()
                     return;
                 }
 
+                // Check if this calls a local function that writes to the asOperand.
+                if (asOperand != null &&
+                    identifierName.Parent is InvocationExpressionSyntax &&
+                    semanticModel.GetSymbolInfo(identifierName, cancellationToken).Symbol is IMethodSymbol { MethodKind: MethodKind.LocalFunction } localFunction &&
+                    localFunction.DeclaringSyntaxReferences is [var reference] &&
+                    IsWrittenTo(semanticModel, asOperand, reference.GetSyntax(cancellationToken), cancellationToken))
+                {
+                    return;
+                }
+
                 // Check is a reference of any sort (i.e. read/write/nameof) to the local.
                 if (identifierName.Identifier.ValueText == localSymbol.Name)
                     return;
@@ -243,6 +254,15 @@ internal sealed partial class CSharpAsAndNullCheckDiagnosticAnalyzer()
                     {
                         var rightType = semanticModel.GetTypeInfo(assignmentExpression.Right);
                         if (rightType.Type is null or { NullableAnnotation: NullableAnnotation.Annotated })
+                            return;
+                    }
+                    else if (identifierName.Parent is ArgumentSyntax argument &&
+                        argument.GetRefKind() is RefKind.Out or RefKind.Ref)
+                    {
+                        // Same issue if `s` is passed as an `out`/`ref` argument to a parameter of nullable type.
+                        // The callee can store null back into `s`, which would now give a nullable warning.
+                        var parameter = argument.DetermineParameter(semanticModel, allowUncertainCandidates: true, allowParams: true, cancellationToken);
+                        if (parameter?.Type.NullableAnnotation == NullableAnnotation.Annotated)
                             return;
                     }
                 }
@@ -322,6 +342,21 @@ internal sealed partial class CSharpAsAndNullCheckDiagnosticAnalyzer()
         localSymbol = semanticModel.GetSymbolInfo(identifier).Symbol as ILocalSymbol;
         declarator = localSymbol?.DeclaringSyntaxReferences.FirstOrDefault()?.GetSyntax() as VariableDeclaratorSyntax;
         return localSymbol != null && declarator != null;
+    }
+
+    private static bool IsWrittenTo(SemanticModel semanticModel, ISymbol symbol, SyntaxNode node, CancellationToken cancellationToken)
+    {
+        foreach (var identifierName in node.DescendantNodes().OfType<IdentifierNameSyntax>())
+        {
+            if (identifierName.Identifier.ValueText == symbol.Name &&
+                symbol.Equals(semanticModel.GetSymbolInfo(identifierName, cancellationToken).Symbol) &&
+                identifierName.IsWrittenTo(semanticModel, cancellationToken))
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     private static ExpressionSyntax? GetNullCheckOperand(ExpressionSyntax left, SyntaxKind comparisonKind, SyntaxNode right)

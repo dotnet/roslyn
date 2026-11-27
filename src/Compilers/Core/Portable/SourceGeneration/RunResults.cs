@@ -88,7 +88,7 @@ namespace Microsoft.CodeAnalysis
             Exception? exception,
             TimeSpan elapsedTime)
         {
-            Debug.Assert(exception is null || (generatedSources.IsEmpty && diagnostics.Length == 1));
+            Debug.Assert(exception is null || diagnostics.Length == 1);
 
             this.Generator = generator;
             this.GeneratedSources = generatedSources;
@@ -131,8 +131,11 @@ namespace Microsoft.CodeAnalysis
         /// An <see cref="System.Exception"/> instance that was thrown by the generator, or <c>null</c> if the generator completed without error.
         /// </summary>
         /// <remarks>
-        /// When this property has a value, <see cref="GeneratedSources"/> property is guaranteed to be empty, and the <see cref="Diagnostics"/>
-        /// collection will contain a single diagnostic indicating that the generator failed.
+        /// When this property has a value, the <see cref="Diagnostics"/> collection will contain a single
+        /// diagnostic indicating that the generator failed. Generally <see cref="GeneratedSources"/> will be empty
+        /// in this case, however, sources produced by a pre-compilation phase that completed successfully prior to
+        /// the failure are preserved (because they were already observed by other generators in the augmented
+        /// compilation, so dropping them would produce inconsistent results).
         /// </remarks>
         public Exception? Exception { get; }
 

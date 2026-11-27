@@ -14,7 +14,7 @@ internal partial struct SymbolKey
         {
             visitor.WriteString(symbol.MetadataName);
             visitor.WriteSymbolKey(symbol.ContainingType);
-#if !ROSLYN_4_12_OR_LOWER
+#if !OLDER_ROSLYN
             visitor.WriteBoolean(symbol.PartialDefinitionPart is not null);
 #endif
         }
@@ -24,7 +24,7 @@ internal partial struct SymbolKey
         {
             var metadataName = reader.ReadString();
             var containingTypeResolution = reader.ReadSymbolKey(contextualSymbol?.ContainingType, out var containingTypeFailureReason);
-#if !ROSLYN_4_12_OR_LOWER
+#if !OLDER_ROSLYN
             var isPartialImplementationPart = reader.ReadBoolean();
 #endif
 
@@ -36,7 +36,7 @@ internal partial struct SymbolKey
 
             using var events = GetMembersOfNamedType<IEventSymbol>(containingTypeResolution, metadataName);
 
-#if !ROSLYN_4_12_OR_LOWER
+#if !OLDER_ROSLYN
             if (isPartialImplementationPart)
             {
                 for (var i = 0; i < events.Builder.Count; i++)

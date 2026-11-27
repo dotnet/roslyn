@@ -22,11 +22,16 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\..\ExpressionEvaluator\Package\ExpressionEvaluatorPackage.csproj" Name="ExpressionEvaluatorPackage" Private="false" />
+    <ProjectReference Include="..\..\..\ExpressionEvaluator\Package\ExpressionEvaluatorPackage.csproj" Private="false" />
     <ProjectReference Include="..\..\..\Workspaces\Core\Portable\Microsoft.CodeAnalysis.Workspaces.csproj" Private="false" />
-    <ProjectReference Include="..\..\Setup\Roslyn.VisualStudio.Setup.csproj" Name="VisualStudioSetup" Private="false" />
+    <ProjectReference Include="..\..\Setup\Roslyn.VisualStudio.Setup.csproj" Private="false" />
   </ItemGroup>
   <ItemGroup>
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.New.IntegrationTests" />
+    <InternalsVisibleTo Include="Microsoft.VisualStudio.Extensibility.Testing.Xunit.IntegrationTests" />
+  </ItemGroup>
+  <ItemGroup>
+    <!-- Prevent downstream projects from trying to place the Sqlite assemblies from this package -->
+    <PackageReference Include="SQLitePCLRaw.lib.e_sqlite3" ExcludeAssets="all" PrivateAssets="all" />
   </ItemGroup>
 </Project>

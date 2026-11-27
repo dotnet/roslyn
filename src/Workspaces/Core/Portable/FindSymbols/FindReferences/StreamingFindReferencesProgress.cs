@@ -25,27 +25,23 @@ internal sealed class StreamingFindReferencesProgressAdapter : IStreamingFindRef
     public StreamingFindReferencesProgressAdapter(IFindReferencesProgress progress)
     {
         _progress = progress;
-        ProgressTracker = new StreamingProgressTracker((current, max, ct) =>
+        ProgressTracker = new StreamingProgressTracker(async (current, max, ct) =>
         {
             _progress.ReportProgress(current, max);
-            return default;
         });
     }
 
-    public ValueTask OnCompletedAsync(CancellationToken cancellationToken)
+    public async ValueTask OnCompletedAsync(CancellationToken cancellationToken)
     {
         _progress.OnCompleted();
-        return default;
     }
 
-    public ValueTask OnDefinitionFoundAsync(SymbolGroup group, CancellationToken cancellationToken)
+    public async ValueTask OnDefinitionFoundAsync(SymbolGroup group, CancellationToken cancellationToken)
     {
         try
         {
             foreach (var symbol in group.Symbols)
                 _progress.OnDefinitionFound(symbol);
-
-            return default;
         }
         catch (Exception ex) when (FatalError.ReportAndPropagateUnlessCanceled(ex, cancellationToken))
         {
@@ -53,17 +49,14 @@ internal sealed class StreamingFindReferencesProgressAdapter : IStreamingFindRef
         }
     }
 
-    public ValueTask OnReferencesFoundAsync(ImmutableArray<(SymbolGroup group, ISymbol symbol, ReferenceLocation location)> references, CancellationToken cancellationToken)
+    public async ValueTask OnReferencesFoundAsync(ImmutableArray<(SymbolGroup group, ISymbol symbol, ReferenceLocation location)> references, CancellationToken cancellationToken)
     {
         foreach (var (_, symbol, location) in references)
             _progress.OnReferenceFound(symbol, location);
-
-        return ValueTask.CompletedTask;
     }
 
-    public ValueTask OnStartedAsync(CancellationToken cancellationToken)
+    public async ValueTask OnStartedAsync(CancellationToken cancellationToken)
     {
         _progress.OnStarted();
-        return default;
     }
 }

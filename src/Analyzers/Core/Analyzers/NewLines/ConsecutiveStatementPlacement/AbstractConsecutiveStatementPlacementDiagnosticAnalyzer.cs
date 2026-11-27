@@ -3,10 +3,10 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Linq;
-using System.Threading;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.LanguageService;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.NewLines.ConsecutiveStatementPlacement;
@@ -43,24 +43,30 @@ internal abstract class AbstractConsecutiveStatementPlacementDiagnosticAnalyzer<
         if (option.Value || ShouldSkipAnalysis(context, compilationOptions, option.Notification))
             return;
 
-        Recurse(context, option.Notification, context.GetAnalysisRoot(findInTrivia: false), context.CancellationToken);
-    }
+        var cancellationToken = context.CancellationToken;
 
-    private void Recurse(SyntaxTreeAnalysisContext context, NotificationOption2 notificationOption, SyntaxNode node, CancellationToken cancellationToken)
-    {
-        if (node.ContainsDiagnostics && node.GetDiagnostics().Any(d => d.Severity == DiagnosticSeverity.Error))
-            return;
+        // Use an explicit stack to avoid stack overflows on deeply nested trees.
+        using var _ = ArrayBuilder<SyntaxNode>.GetInstance(out var stack);
+        stack.Push(context.GetAnalysisRoot(findInTrivia: false));
 
-        if (IsBlockLikeStatement(node))
-            ProcessBlockLikeStatement(context, notificationOption, node);
-
-        foreach (var child in node.ChildNodesAndTokens())
+        while (stack.TryPop(out var node))
         {
-            if (!context.ShouldAnalyzeSpan(child.FullSpan))
+            cancellationToken.ThrowIfCancellationRequested();
+
+            if (node.ContainsDiagnostics && node.GetDiagnostics().Any(d => d.Severity == DiagnosticSeverity.Error))
                 continue;
 
-            if (child.AsNode(out var childNode))
-                Recurse(context, notificationOption, childNode, cancellationToken);
+            if (IsBlockLikeStatement(node))
+                ProcessBlockLikeStatement(context, option.Notification, node);
+
+            foreach (var child in node.ChildNodesAndTokens())
+            {
+                if (!context.ShouldAnalyzeSpan(child.FullSpan))
+                    continue;
+
+                if (child.AsNode(out var childNode))
+                    stack.Push(childNode);
+            }
         }
     }
 

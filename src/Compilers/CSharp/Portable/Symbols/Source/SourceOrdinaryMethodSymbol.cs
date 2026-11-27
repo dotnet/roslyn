@@ -13,7 +13,6 @@ using System.Threading;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
@@ -62,7 +61,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             Debug.Assert(diagnostics.DiagnosticBag is object);
 
-            this.CheckUnsafeModifier(DeclarationModifiers, diagnostics);
+            this.CheckUnsafeOptionForModifiers(DeclarationModifiers, diagnostics, syntax.Modifiers);
 
             bool hasAnyBody = syntax.HasAnyBody();
 
@@ -389,6 +388,26 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        public sealed override bool IsAsync
+        {
+            get
+            {
+                return IsPartialDefinition
+                    ? this.OtherPartOfPartial?.IsAsync ?? false
+                    : HasAsyncModifier;
+            }
+        }
+
+        internal sealed override bool IsIterator
+        {
+            get
+            {
+                return IsPartialDefinition
+                    ? this.OtherPartOfPartial?.IsIterator ?? false
+                    : base.IsIterator;
+            }
+        }
+
         public sealed override string GetDocumentationCommentXml(CultureInfo preferredCulture = null, bool expandIncludes = false, CancellationToken cancellationToken = default(CancellationToken))
         {
             ref var lazyDocComment = ref expandIncludes ? ref this.lazyExpandedDocComment : ref this.lazyDocComment;
@@ -435,32 +454,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private static DeclarationModifiers MakeDeclarationModifiers(MethodDeclarationSyntax syntax, NamedTypeSymbol containingType, Location location, DeclarationModifiers allowedModifiers, BindingDiagnosticBag diagnostics)
         {
-            return ModifierUtils.MakeAndCheckNonTypeMemberModifiers(isOrdinaryMethod: true, isForInterfaceMember: containingType.IsInterface,
+            return ModifierUtils.MakeAndCheckNonTypeMemberModifiers(isForInterfaceMember: containingType.IsInterface,
                                                                     syntax.Modifiers, defaultAccess: DeclarationModifiers.None, allowedModifiers, location, diagnostics, out _, out _);
-        }
-
-        internal sealed override void ForceComplete(SourceLocation locationOpt, Predicate<Symbol> filter, CancellationToken cancellationToken)
-        {
-            var implementingPart = this.SourcePartialImplementation;
-            if ((object)implementingPart != null)
-            {
-                implementingPart.ForceComplete(locationOpt, filter, cancellationToken);
-            }
-
-            base.ForceComplete(locationOpt, filter, cancellationToken);
-        }
-
-        public sealed override bool IsDefinedInSourceTree(
-            SyntaxTree tree,
-            TextSpan? definedWithinSpan,
-            CancellationToken cancellationToken = default(CancellationToken))
-        {
-            // Since only the declaring (and not the implementing) part of a partial method appears in the member
-            // list, we need to ensure we complete the implementation part when needed.
-            Debug.Assert(this.DeclaringSyntaxReferences.Length == 1);
-            return
-                IsDefinedInSourceTree(this.SyntaxRef, tree, definedWithinSpan) ||
-                this.SourcePartialImplementation?.IsDefinedInSourceTree(tree, definedWithinSpan, cancellationToken) == true;
         }
 
         protected abstract override void CheckConstraintsForExplicitInterfaceType(ConversionsBase conversions, BindingDiagnosticBag diagnostics);
@@ -519,9 +514,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 diagnostics.Add(ErrorCode.ERR_PartialMethodExtensionDifference, implementation.GetFirstLocation());
             }
 
-            if (definition.IsUnsafe != implementation.IsUnsafe && definition.CompilationAllowsUnsafe()) // Don't cascade.
+            if (definition.HasUnsafeModifier != implementation.HasUnsafeModifier && definition.CompilationAllowsUnsafe()) // Don't cascade.
             {
                 diagnostics.Add(ErrorCode.ERR_PartialMemberUnsafeDifference, implementation.GetFirstLocation());
+            }
+
+            if (definition.HasSafeModifier != implementation.HasSafeModifier)
+            {
+                diagnostics.Add(ErrorCode.ERR_PartialMemberSafeDifference, implementation.GetFirstLocation());
             }
 
             if (definition.IsParams() != implementation.IsParams())
@@ -779,7 +779,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 allowedModifiers |= DeclarationModifiers.Static;
             }
 
-            allowedModifiers |= DeclarationModifiers.Async | DeclarationModifiers.Extern;
+            allowedModifiers |= DeclarationModifiers.Async | DeclarationModifiers.Extern | DeclarationModifiers.Safe;
 
             if (containingType.IsStructType())
             {
@@ -927,7 +927,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // '{0}' is a new virtual member in sealed type '{1}'
                 diagnostics.Add(ErrorCode.ERR_NewVirtualInSealed, location, this, ContainingType);
             }
-            else if (!HasAnyBody && IsAsync)
+            else if (!HasAnyBody && HasAsyncModifier)
             {
                 diagnostics.Add(ErrorCode.ERR_BadAsyncLacksBody, location);
             }

@@ -1,0 +1,218 @@
+﻿RazorDocument - [0..314)::314 - [@if(int i = 0; i < 10; new Foo { Bar = "baz" }) {LF    Debug.WriteLine(@"foo } bar");LF} else if(int i = 0; i < 10; new Foo { Bar = "baz" }) {LF    Debug.WriteLine(@"bar } baz");LF} else { Debug.WriteLine(@"bar } baz"); } else if(int i = 0; i < 10; new Foo { Bar = "baz" }) {LF    Debug.WriteLine(@"bar } baz");LF}]
+    MarkupBlock - [0..314)::314
+        MarkupTextLiteral - [0..0)::0 - [] - Gen<Markup>
+            Marker;[];
+        CSharpCodeBlock - [0..221)::221
+            CSharpTransition - [0..1)::1 - Gen<None>
+                Transition;[@];
+            CSharpStatementLiteral - [1..221)::220 - [if(int i = 0; i < 10; new Foo { Bar = "baz" }) {LF    Debug.WriteLine(@"foo } bar");LF} else if(int i = 0; i < 10; new Foo { Bar = "baz" }) {LF    Debug.WriteLine(@"bar } baz");LF} else { Debug.WriteLine(@"bar } baz"); }] - Gen<Stmt>
+                Keyword;[if];
+                LeftParenthesis;[(];
+                Keyword;[int];
+                Whitespace;[ ];
+                Identifier;[i];
+                Whitespace;[ ];
+                Assign;[=];
+                Whitespace;[ ];
+                NumericLiteral;[0];
+                Semicolon;[;];
+                Whitespace;[ ];
+                Identifier;[i];
+                Whitespace;[ ];
+                LessThan;[<];
+                Whitespace;[ ];
+                NumericLiteral;[10];
+                Semicolon;[;];
+                Whitespace;[ ];
+                Keyword;[new];
+                Whitespace;[ ];
+                Identifier;[Foo];
+                Whitespace;[ ];
+                LeftBrace;[{];
+                Whitespace;[ ];
+                Identifier;[Bar];
+                Whitespace;[ ];
+                Assign;[=];
+                Whitespace;[ ];
+                StringLiteral;["baz"];
+                Whitespace;[ ];
+                RightBrace;[}];
+                RightParenthesis;[)];
+                Whitespace;[ ];
+                LeftBrace;[{];
+                NewLine;[LF];
+                Whitespace;[    ];
+                Identifier;[Debug];
+                Dot;[.];
+                Identifier;[WriteLine];
+                LeftParenthesis;[(];
+                StringLiteral;[@"foo } bar"];
+                RightParenthesis;[)];
+                Semicolon;[;];
+                NewLine;[LF];
+                RightBrace;[}];
+                Whitespace;[ ];
+                Keyword;[else];
+                Whitespace;[ ];
+                Keyword;[if];
+                LeftParenthesis;[(];
+                Keyword;[int];
+                Whitespace;[ ];
+                Identifier;[i];
+                Whitespace;[ ];
+                Assign;[=];
+                Whitespace;[ ];
+                NumericLiteral;[0];
+                Semicolon;[;];
+                Whitespace;[ ];
+                Identifier;[i];
+                Whitespace;[ ];
+                LessThan;[<];
+                Whitespace;[ ];
+                NumericLiteral;[10];
+                Semicolon;[;];
+                Whitespace;[ ];
+                Keyword;[new];
+                Whitespace;[ ];
+                Identifier;[Foo];
+                Whitespace;[ ];
+                LeftBrace;[{];
+                Whitespace;[ ];
+                Identifier;[Bar];
+                Whitespace;[ ];
+                Assign;[=];
+                Whitespace;[ ];
+                StringLiteral;["baz"];
+                Whitespace;[ ];
+                RightBrace;[}];
+                RightParenthesis;[)];
+                Whitespace;[ ];
+                LeftBrace;[{];
+                NewLine;[LF];
+                Whitespace;[    ];
+                Identifier;[Debug];
+                Dot;[.];
+                Identifier;[WriteLine];
+                LeftParenthesis;[(];
+                StringLiteral;[@"bar } baz"];
+                RightParenthesis;[)];
+                Semicolon;[;];
+                NewLine;[LF];
+                RightBrace;[}];
+                Whitespace;[ ];
+                Keyword;[else];
+                Whitespace;[ ];
+                LeftBrace;[{];
+                Whitespace;[ ];
+                Identifier;[Debug];
+                Dot;[.];
+                Identifier;[WriteLine];
+                LeftParenthesis;[(];
+                StringLiteral;[@"bar } baz"];
+                RightParenthesis;[)];
+                Semicolon;[;];
+                Whitespace;[ ];
+                RightBrace;[}];
+        MarkupTextLiteral - [221..243)::22 - [ else if(int i = 0; i ] - Gen<Markup>
+            Whitespace;[ ];
+            Text;[else];
+            Whitespace;[ ];
+            Text;[if(int];
+            Whitespace;[ ];
+            Text;[i];
+            Whitespace;[ ];
+            Equals;[=];
+            Whitespace;[ ];
+            Text;[0;];
+            Whitespace;[ ];
+            Text;[i];
+            Whitespace;[ ];
+        MarkupElement - [243..314)::71
+            MarkupStartTag - [243..314)::71 - [< 10; new Foo { Bar = "baz" }) {LF    Debug.WriteLine(@"bar } baz");LF}] - Gen<Markup>
+                OpenAngle;[<];
+                Text;[<Missing>];
+                MarkupMinimizedAttributeBlock - [244..248)::4 - [ 10;]
+                    MarkupTextLiteral - [244..245)::1 - [ ] - Gen<Markup>
+                        Whitespace;[ ];
+                    MarkupTextLiteral - [245..248)::3 - [10;] - Gen<Markup>
+                        Text;[10;];
+                MarkupMinimizedAttributeBlock - [248..252)::4 - [ new]
+                    MarkupTextLiteral - [248..249)::1 - [ ] - Gen<Markup>
+                        Whitespace;[ ];
+                    MarkupTextLiteral - [249..252)::3 - [new] - Gen<Markup>
+                        Text;[new];
+                MarkupMinimizedAttributeBlock - [252..256)::4 - [ Foo]
+                    MarkupTextLiteral - [252..253)::1 - [ ] - Gen<Markup>
+                        Whitespace;[ ];
+                    MarkupTextLiteral - [253..256)::3 - [Foo] - Gen<Markup>
+                        Text;[Foo];
+                MarkupMinimizedAttributeBlock - [256..258)::2 - [ {]
+                    MarkupTextLiteral - [256..257)::1 - [ ] - Gen<Markup>
+                        Whitespace;[ ];
+                    MarkupTextLiteral - [257..258)::1 - [{] - Gen<Markup>
+                        Text;[{];
+                MarkupAttributeBlock - [258..270)::12 - [ Bar = "baz"]
+                    MarkupTextLiteral - [258..259)::1 - [ ] - Gen<Markup>
+                        Whitespace;[ ];
+                    MarkupTextLiteral - [259..262)::3 - [Bar] - Gen<Markup>
+                        Text;[Bar];
+                    MarkupTextLiteral - [262..263)::1 - [ ] - Gen<Markup>
+                        Whitespace;[ ];
+                    Equals;[=];
+                    MarkupTextLiteral - [264..266)::2 - [ "] - Gen<Markup>
+                        Whitespace;[ ];
+                        DoubleQuote;["];
+                    GenericBlock - [266..269)::3
+                        MarkupLiteralAttributeValue - [266..269)::3 - [baz]
+                            MarkupTextLiteral - [266..269)::3 - [baz] - Gen<Markup>
+                                Text;[baz];
+                    MarkupTextLiteral - [269..270)::1 - ["] - Gen<Markup>
+                        DoubleQuote;["];
+                MarkupMinimizedAttributeBlock - [270..273)::3 - [ })]
+                    MarkupTextLiteral - [270..271)::1 - [ ] - Gen<Markup>
+                        Whitespace;[ ];
+                    MarkupTextLiteral - [271..273)::2 - [})] - Gen<Markup>
+                        Text;[})];
+                MarkupMinimizedAttributeBlock - [273..275)::2 - [ {]
+                    MarkupTextLiteral - [273..274)::1 - [ ] - Gen<Markup>
+                        Whitespace;[ ];
+                    MarkupTextLiteral - [274..275)::1 - [{] - Gen<Markup>
+                        Text;[{];
+                MarkupMinimizedAttributeBlock - [275..297)::22 - [LF    Debug.WriteLine(]
+                    MarkupTextLiteral - [275..281)::6 - [LF    ] - Gen<Markup>
+                        NewLine;[LF];
+                        Whitespace;[    ];
+                    MarkupTextLiteral - [281..297)::16 - [Debug.WriteLine(] - Gen<Markup>
+                        Text;[Debug.WriteLine(];
+                MarkupMiscAttributeContent - [297..298)::1
+                    CSharpCodeBlock - [297..298)::1
+                        CSharpImplicitExpression - [297..298)::1
+                            CSharpTransition - [297..298)::1 - Gen<None>
+                                Transition;[@];
+                            CSharpImplicitExpressionBody - [298..298)::0
+                                CSharpCodeBlock - [298..298)::0
+                                    CSharpExpressionLiteral - [298..298)::0 - [] - Gen<Expr>
+                                        Marker;[];
+                MarkupMinimizedAttributeBlock - [298..302)::4 - ["bar]
+                    MarkupTextLiteral - [298..302)::4 - ["bar] - Gen<Markup>
+                        DoubleQuote;["];
+                        Text;[bar];
+                MarkupMinimizedAttributeBlock - [302..304)::2 - [ }]
+                    MarkupTextLiteral - [302..303)::1 - [ ] - Gen<Markup>
+                        Whitespace;[ ];
+                    MarkupTextLiteral - [303..304)::1 - [}] - Gen<Markup>
+                        Text;[}];
+                MarkupMinimizedAttributeBlock - [304..311)::7 - [ baz");]
+                    MarkupTextLiteral - [304..305)::1 - [ ] - Gen<Markup>
+                        Whitespace;[ ];
+                    MarkupTextLiteral - [305..311)::6 - [baz");] - Gen<Markup>
+                        Text;[baz];
+                        DoubleQuote;["];
+                        Text;[);];
+                MarkupMinimizedAttributeBlock - [311..314)::3 - [LF}]
+                    MarkupTextLiteral - [311..313)::2 - [LF] - Gen<Markup>
+                        NewLine;[LF];
+                    MarkupTextLiteral - [313..314)::1 - [}] - Gen<Markup>
+                        Text;[}];
+                CloseAngle;[<Missing>];
+    EndOfFile;[];

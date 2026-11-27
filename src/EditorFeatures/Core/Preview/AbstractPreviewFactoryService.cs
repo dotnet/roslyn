@@ -16,6 +16,7 @@ using Microsoft.CodeAnalysis.Editor.Implementation.TextDiffing;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Preview;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -415,7 +416,7 @@ internal abstract class AbstractPreviewFactoryService<TDifferenceViewer>(
 
         // Convert the diffs to be line based.  
         // Compute the diffs between the old text and the new.
-        var diffResult = ComputeEditDifferences(oldDocument, newDocument, cancellationToken);
+        var diffResult = ComputeEditDifferences(oldBuffer.CurrentSnapshot, newBuffer.CurrentSnapshot, oldDocument.Project.Services, cancellationToken);
 
         // Need to show the spans in the right that are different.
         // We also need to show the spans that are in conflict.
@@ -504,7 +505,7 @@ internal abstract class AbstractPreviewFactoryService<TDifferenceViewer>(
 
         // Convert the diffs to be line based.  
         // Compute the diffs between the old text and the new.
-        var diffResult = ComputeEditDifferences(oldDocument, newDocument, cancellationToken);
+        var diffResult = ComputeEditDifferences(oldBuffer.CurrentSnapshot, newBuffer.CurrentSnapshot, oldDocument.Project.Services, cancellationToken);
 
         // Need to show the spans in the right that are different.
         var originalSpans = GetOriginalSpans(diffResult, cancellationToken);
@@ -742,21 +743,17 @@ internal abstract class AbstractPreviewFactoryService<TDifferenceViewer>(
         lineSpans.Add(nextLineSpan);
     }
 
-    private IHierarchicalDifferenceCollection ComputeEditDifferences(TextDocument oldDocument, TextDocument newDocument, CancellationToken cancellationToken)
+    private IHierarchicalDifferenceCollection ComputeEditDifferences(ITextSnapshot oldSnapshot, ITextSnapshot newSnapshot, LanguageServices services, CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
 
-        // Get the text that's actually in the editor.
-        var oldText = oldDocument.GetTextSynchronously(cancellationToken);
-        var newText = newDocument.GetTextSynchronously(cancellationToken);
-
         // Defer to the editor to figure out what changes the client made.
         var diffService = _differenceSelectorService.GetTextDifferencingService(
-            oldDocument.Project.Services.GetRequiredService<IContentTypeLanguageService>().GetDefaultContentType());
+            services.GetRequiredService<IContentTypeLanguageService>().GetDefaultContentType());
 
         diffService ??= _differenceSelectorService.DefaultTextDifferencingService;
 
-        return diffService.DiffSourceTexts(oldText, newText, s_differenceOptions);
+        return diffService.DiffSnapshotSpans(oldSnapshot.GetFullSpan(), newSnapshot.GetFullSpan(), s_differenceOptions);
     }
 
     private static NormalizedSpanCollection GetOriginalSpans(IHierarchicalDifferenceCollection diffResult, CancellationToken cancellationToken)

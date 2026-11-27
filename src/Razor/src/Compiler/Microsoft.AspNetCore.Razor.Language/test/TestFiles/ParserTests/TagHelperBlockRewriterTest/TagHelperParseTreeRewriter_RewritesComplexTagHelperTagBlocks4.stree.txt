@@ -1,0 +1,67 @@
+﻿RazorDocument - [0..77)::77 - [<p>Hello World @do { var foo = bar; <p>Foo</p> foo++; } while (foo<bar>);</p>]
+    MarkupBlock - [0..77)::77
+        MarkupTagHelperElement - [0..77)::77 - p[StartTagAndEndTag] - ptaghelper
+            MarkupTagHelperStartTag - [0..3)::3 - [<p>] - Gen<Markup>
+                OpenAngle;[<];
+                Text;[p];
+                CloseAngle;[>];
+            MarkupTextLiteral - [3..15)::12 - [Hello World ] - Gen<Markup>
+                Text;[Hello];
+                Whitespace;[ ];
+                Text;[World];
+                Whitespace;[ ];
+            CSharpCodeBlock - [15..73)::58
+                CSharpTransition - [15..16)::1 - Gen<None>
+                    Transition;[@];
+                CSharpStatementLiteral - [16..35)::19 - [do { var foo = bar;] - Gen<Stmt>
+                    Keyword;[do];
+                    Whitespace;[ ];
+                    LeftBrace;[{];
+                    Whitespace;[ ];
+                    Keyword;[var];
+                    Whitespace;[ ];
+                    Identifier;[foo];
+                    Whitespace;[ ];
+                    Assign;[=];
+                    Whitespace;[ ];
+                    Identifier;[bar];
+                    Semicolon;[;];
+                MarkupBlock - [35..47)::12
+                    MarkupTextLiteral - [35..36)::1 - [ ] - Gen<Markup>
+                        Whitespace;[ ];
+                    MarkupTagHelperElement - [36..46)::10 - p[StartTagAndEndTag] - ptaghelper
+                        MarkupTagHelperStartTag - [36..39)::3 - [<p>] - Gen<Markup>
+                            OpenAngle;[<];
+                            Text;[p];
+                            CloseAngle;[>];
+                        MarkupTextLiteral - [39..42)::3 - [Foo] - Gen<Markup>
+                            Text;[Foo];
+                        MarkupTagHelperEndTag - [42..46)::4 - [</p>]
+                            OpenAngle;[<];
+                            ForwardSlash;[/];
+                            Text;[p];
+                            CloseAngle;[>];
+                    MarkupTextLiteral - [46..47)::1 - [ ] - Gen<Markup>
+                        Whitespace;[ ];
+                CSharpStatementLiteral - [47..73)::26 - [foo++; } while (foo<bar>);] - Gen<Stmt>
+                    Identifier;[foo];
+                    CSharpOperator;[++];
+                    Semicolon;[;];
+                    Whitespace;[ ];
+                    RightBrace;[}];
+                    Whitespace;[ ];
+                    Keyword;[while];
+                    Whitespace;[ ];
+                    LeftParenthesis;[(];
+                    Identifier;[foo];
+                    LessThan;[<];
+                    Identifier;[bar];
+                    GreaterThan;[>];
+                    RightParenthesis;[)];
+                    Semicolon;[;];
+            MarkupTagHelperEndTag - [73..77)::4 - [</p>]
+                OpenAngle;[<];
+                ForwardSlash;[/];
+                Text;[p];
+                CloseAngle;[>];
+    EndOfFile;[];

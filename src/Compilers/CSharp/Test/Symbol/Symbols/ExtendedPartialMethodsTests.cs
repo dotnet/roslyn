@@ -1154,8 +1154,6 @@ public partial class C
                 var type = module.ContainingAssembly.GetTypeByMetadataName("C");
                 var method = type.GetMember<MethodSymbol>("M1");
 
-                // note: we're opting to give the same answer for 'IsExtern' on both partial method declarations 
-                // because 'IsExtern' is true when the method is round tripped from metadata.
                 Assert.True(method.IsExtern);
                 if (method.PartialImplementationPart is MethodSymbol implementation)
                 {
@@ -1260,7 +1258,7 @@ partial class C
 
             var method = (MethodSymbol)comp.GetMembers("C.M1")[0];
             Assert.True(method.IsPartialDefinition());
-            Assert.False(method.IsAsync);
+            Assert.True(method.IsAsync);
             Assert.True(method.PartialImplementationPart.IsAsync);
         }
 
@@ -1281,7 +1279,7 @@ partial class C
 
             var method = (MethodSymbol)comp.GetMembers("C.M1")[0];
             Assert.True(method.IsPartialDefinition());
-            Assert.False(method.IsAsync);
+            Assert.True(method.IsAsync);
             Assert.True(method.PartialImplementationPart.IsAsync);
         }
 
@@ -1310,7 +1308,7 @@ partial class C
 
             var method = (MethodSymbol)verifier.Compilation.GetMembers("C.M1")[0];
             Assert.True(method.IsPartialDefinition());
-            Assert.False(method.IsAsync);
+            Assert.True(method.IsAsync);
             Assert.True(method.PartialImplementationPart.IsAsync);
         }
 
@@ -1412,6 +1410,82 @@ partial class C
                 // (7,24): error CS8794: Partial method 'C.M()' must have accessibility modifiers because it has a non-void return type.
                 //     async partial Task M()
                 Diagnostic(ErrorCode.ERR_PartialMethodWithNonVoidReturnMustHaveAccessMods, "M").WithArguments("C.M()").WithLocation(7, 24));
+        }
+
+        [Fact]
+        public void Iterator_01()
+        {
+            const string text = @"
+using System.Collections.Generic;
+
+partial class C
+{
+    internal partial IEnumerable<int> M();
+    internal partial IEnumerable<int> M()
+    {
+        yield return 1;
+        yield return 2;
+    }
+}
+";
+            var comp = CreateCompilation(text, parseOptions: TestOptions.RegularWithExtendedPartialMethods);
+            comp.VerifyDiagnostics();
+
+            var method = (MethodSymbol)comp.GetMembers("C.M")[0];
+            Assert.True(method.IsPartialDefinition());
+            Assert.True(method.IsIterator);
+            Assert.True(method.PartialImplementationPart.IsIterator);
+        }
+
+        [Fact]
+        public void Iterator_02()
+        {
+            const string text = @"
+using System.Collections.Generic;
+using System.Threading.Tasks;
+
+partial class C
+{
+    internal partial IAsyncEnumerable<int> M();
+    internal partial async IAsyncEnumerable<int> M()
+    {
+        await Task.Yield();
+        yield return 1;
+    }
+}
+";
+            var comp = CreateCompilationWithTasksExtensions(new[] { text, AsyncStreamsTypes }, parseOptions: TestOptions.RegularWithExtendedPartialMethods);
+            comp.VerifyDiagnostics();
+
+            var method = (MethodSymbol)comp.GetMembers("C.M")[0];
+            Assert.True(method.IsPartialDefinition());
+            Assert.True(method.IsAsync);
+            Assert.True(method.IsIterator);
+            Assert.True(method.PartialImplementationPart.IsAsync);
+            Assert.True(method.PartialImplementationPart.IsIterator);
+        }
+
+        [Fact]
+        public void Iterator_03()
+        {
+            // Definition-only partial method is not an iterator
+            const string text = @"
+using System.Collections.Generic;
+
+partial class C
+{
+    internal partial IEnumerable<int> M();
+}
+";
+            var comp = CreateCompilation(text, parseOptions: TestOptions.RegularWithExtendedPartialMethods);
+            comp.VerifyDiagnostics(
+                // (6,39): error CS8793: Partial method 'C.M()' must have an implementation part because it has accessibility modifiers.
+                //     internal partial IEnumerable<int> M();
+                Diagnostic(ErrorCode.ERR_PartialMethodWithAccessibilityModsMustHaveImplementation, "M").WithArguments("C.M()").WithLocation(6, 39));
+
+            var method = (MethodSymbol)comp.GetMembers("C.M")[0];
+            Assert.True(method.IsPartialDefinition());
+            Assert.False(method.IsIterator);
         }
 
         [Fact]
@@ -3829,6 +3903,54 @@ partial class C
                 Assert.Equal(implSymbol.PartialDefinitionPart, defSymbol);
                 Assert.Equal(implSymbol.ToTestDisplayString(includeNonNullable: false), defSymbol.ToTestDisplayString(includeNonNullable: false));
             }
+        }
+
+        [Fact]
+        public void PartialMethodImplementationDiagnostics()
+        {
+            var sources = new[]
+            {
+                """
+                public partial class C
+                {
+                    partial void M1();
+                    public partial int M2<T>(int x);
+                }
+                """,
+                """
+                public partial class C
+                {
+                    partial void M1() { Missing1(); }
+
+                    [MissingAttr]
+                    public partial int M2<T>(int x) => Missing2();
+                }
+                """,
+            };
+
+            DiagnosticDescription[] expected =
+            [
+                // (3,25): error CS0103: The name 'Missing1' does not exist in the current context
+                //     partial void M1() { Missing1(); }
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "Missing1").WithArguments("Missing1").WithLocation(3, 25),
+                // (5,6): error CS0246: The type or namespace name 'MissingAttrAttribute' could not be found (are you missing a using directive or an assembly reference?)
+                //     [MissingAttr]
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "MissingAttr").WithArguments("MissingAttrAttribute").WithLocation(5, 6),
+                // (5,6): error CS0246: The type or namespace name 'MissingAttr' could not be found (are you missing a using directive or an assembly reference?)
+                //     [MissingAttr]
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "MissingAttr").WithArguments("MissingAttr").WithLocation(5, 6),
+                // (6,40): error CS0103: The name 'Missing2' does not exist in the current context
+                //     public partial int M2<T>(int x) => Missing2();
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "Missing2").WithArguments("Missing2").WithLocation(6, 40),
+            ];
+
+            CreateCompilation(sources).VerifyDiagnostics(expected);
+
+            var compilation0 = CreateCompilation(sources);
+            compilation0.GetSemanticModel(compilation0.SyntaxTrees[0]).GetDiagnostics().Verify();
+
+            var compilation1 = CreateCompilation(sources);
+            compilation1.GetSemanticModel(compilation1.SyntaxTrees[1]).GetDiagnostics().Verify(expected);
         }
     }
 }

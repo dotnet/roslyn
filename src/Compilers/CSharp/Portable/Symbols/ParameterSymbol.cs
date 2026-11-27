@@ -8,6 +8,7 @@ using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis.Symbols;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
@@ -449,6 +450,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal abstract bool HasUnscopedRefAttribute { get; }
 
         internal abstract bool UseUpdatedEscapeRules { get; }
+
+        internal sealed override RequiresUnsafeMode GetRequiresUnsafeMode(ConsList<FieldSymbol> fieldsBeingBound) => RequiresUnsafeMode.None;
 
         protected sealed override bool IsHighestPriorityUseSiteErrorCode(int code) => code is (int)ErrorCode.ERR_UnsupportedCompilerFeature or (int)ErrorCode.ERR_BogusType;
 

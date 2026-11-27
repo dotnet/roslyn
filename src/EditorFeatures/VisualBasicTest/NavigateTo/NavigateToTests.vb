@@ -1,4 +1,4 @@
-﻿' Licensed to the .NET Foundation under one or more agreements.
+' Licensed to the .NET Foundation under one or more agreements.
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
@@ -49,8 +49,9 @@ End Class", Async Function(w)
                 Dim item As NavigateToItem = (Await _aggregator.GetItemsAsync("class")).Single()
                 VerifyNavigateToResultItem(item, "Class", "[|Class|]", PatternMatchKind.Exact, NavigateToItemKind.Class, Glyph.ClassInternal)
 
-                item = (Await _aggregator.GetItemsAsync("[class]")).Single()
-                VerifyNavigateToResultItem(item, "Class", "[|Class|]", PatternMatchKind.Exact, NavigateToItemKind.Class, Glyph.ClassInternal)
+                ' [class] is now treated as a regex character class (matching a single char from {c,l,a,s}).
+                ' It has no extractable 2+ char literals, so the regex search is skipped entirely.
+                Assert.Empty(Await _aggregator.GetItemsAsync("[class]"))
             End Function)
         End Function
 
@@ -219,8 +220,8 @@ End Class", Async Function(w)
                 Dim item As NavigateToItem = (Await _aggregator.GetItemsAsync("string")).Single()
                 VerifyNavigateToResultItem(item, "string", "[|string|]", PatternMatchKind.Exact, NavigateToItemKind.Field, Glyph.FieldPrivate, additionalInfo:=String.Format(FeaturesResources.in_0_project_1, "Goo", "Test"))
 
-                item = (Await _aggregator.GetItemsAsync("[string]")).Single()
-                VerifyNavigateToResultItem(item, "string", "[|string|]", PatternMatchKind.Exact, NavigateToItemKind.Field, Glyph.FieldPrivate, additionalInfo:=String.Format(FeaturesResources.in_0_project_1, "Goo", "Test"))
+                ' [string] is now treated as a regex character class.
+                Assert.Empty(Await _aggregator.GetItemsAsync("[string]"))
             End Function)
         End Function
 
@@ -315,8 +316,8 @@ End Class", Async Function(w)
                 Dim item As NavigateToItem = (Await _aggregator.GetItemsAsync("sub")).Single()
                 VerifyNavigateToResultItem(item, "Sub", "[|Sub|]()", PatternMatchKind.Exact, NavigateToItemKind.Method, Glyph.MethodPrivate, String.Format(FeaturesResources.in_0_project_1, "Goo", "Test"))
 
-                item = (Await _aggregator.GetItemsAsync("[sub]")).Single()
-                VerifyNavigateToResultItem(item, "Sub", "[|Sub|]()", PatternMatchKind.Exact, NavigateToItemKind.Method, Glyph.MethodPrivate, String.Format(FeaturesResources.in_0_project_1, "Goo", "Test"))
+                ' [sub] is now treated as a regex character class.
+                Assert.Empty(Await _aggregator.GetItemsAsync("[sub]"))
             End Function)
         End Function
 

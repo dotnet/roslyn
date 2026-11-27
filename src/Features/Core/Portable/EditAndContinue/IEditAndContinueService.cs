@@ -13,7 +13,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue;
 internal interface IEditAndContinueWorkspaceService : IWorkspaceService
 {
     IEditAndContinueService Service { get; }
-    IEditAndContinueSessionTracker SessionTracker { get; }
 }
 
 internal interface IEditAndContinueService
@@ -24,7 +23,7 @@ internal interface IEditAndContinueService
     void CommitSolutionUpdate(DebuggingSessionId sessionId);
     void DiscardSolutionUpdate(DebuggingSessionId sessionId);
 
-    DebuggingSessionId StartDebuggingSession(Solution solution, IManagedHotReloadService debuggerService, IPdbMatchingSourceTextProvider sourceTextProvider, bool reportDiagnostics);
+    DebuggingSessionId StartDebuggingSession(Solution solution, IManagedHotReloadState debuggerService, IPdbMatchingSourceTextProvider sourceTextProvider, bool reportDiagnostics);
     void BreakStateOrCapabilitiesChanged(DebuggingSessionId sessionId, bool? inBreakState);
     void EndDebuggingSession(DebuggingSessionId sessionId);
 

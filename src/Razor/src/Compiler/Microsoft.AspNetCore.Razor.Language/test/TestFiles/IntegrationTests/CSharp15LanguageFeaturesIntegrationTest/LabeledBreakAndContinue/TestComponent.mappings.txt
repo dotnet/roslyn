@@ -1,0 +1,43 @@
+﻿Source Location: (2:0,2 [73] x:\dir\subdir\Test\TestComponent.razor)
+|
+    var count = 0;
+outer:
+    while (true)
+    {
+        count++;
+|
+Generated Location: (733:21,0 [73] )
+|
+    var count = 0;
+outer:
+    while (true)
+    {
+        count++;
+|
+
+Source Location: (97:6,22 [5] x:\dir\subdir\Test\TestComponent.razor)
+|count|
+Generated Location: (1062:36,24 [5] )
+|count|
+
+Source Location: (108:7,0 [109] x:\dir\subdir\Test\TestComponent.razor)
+|
+        if (count == 1)
+        {
+            continue outer;
+        }
+
+        break outer;
+    }
+|
+Generated Location: (1254:45,0 [109] )
+|
+        if (count == 1)
+        {
+            continue outer;
+        }
+
+        break outer;
+    }
+|
+

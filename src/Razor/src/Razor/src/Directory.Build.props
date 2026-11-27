@@ -1,0 +1,12 @@
+﻿<Project>
+  <Import Project="$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildThisFileDirectory).., Directory.Build.props))\Directory.Build.props" Condition="'$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildThisFileDirectory), Directory.Build.props))'!= ''" />
+
+  <PropertyGroup>
+    <PackageTags>aspnetcore;cshtml;razor</PackageTags>
+    <IsPackable>true</IsPackable>
+    <IsShipping>true</IsShipping>
+    <IncludeSymbols>true</IncludeSymbols>
+    <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
+  </PropertyGroup>
+
+</Project>

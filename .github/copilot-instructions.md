@@ -1,94 +1,149 @@
-# Roslyn (.NET Compiler Platform) AI Coding Instructions
+# Roslyn (.NET Compiler Platform) — Copilot Instructions
 
-## Architecture Overview
+> This is the **canonical** repo-wide agent entry point. `AGENTS.md` at the repo root points here. Path-scoped rules in `.github/instructions/{Compiler,IDE,Razor}.instructions.md` apply automatically by area and supplement this file. This file establishes the memory-first orientation protocol and doc-maintenance obligation.
+>
+> Across AI-generated output (code, documentation, and user-facing prose), prefer terminology already used in this repository.
 
-**Core Components** (layered from bottom-up):
-- **Compilers** (`src/Compilers/`): C# and VB.NET compilers with syntax trees, semantic models, symbols, and emit APIs
-- **Workspaces** (`src/Workspaces/`): Solution/project model, document management, and host services
-- **Features** (`src/Features/`): Language-agnostic IDE features (refactoring, completion, diagnostics)
-- **EditorFeatures** (`src/EditorFeatures/`): Editor-specific implementations and text buffer integration
-- **VisualStudio** (`src/VisualStudio/`): VS-specific language services and UI integration
+## Project Overview
 
-## Development Workflow
+Roslyn is the open-source C# and Visual Basic compilers plus the language services and IDE features built on their APIs. Built around **immutable** syntax trees, semantic models, symbols, and workspace snapshots. Major components:
+- **Compilers** (`src/Compilers/`) — C#/VB compilers (syntax, semantics, emit).
+- **Workspaces** (`src/Workspaces/`) — Solution/Project/Document model + MEF host.
+- **Features / EditorFeatures** (`src/Features/`, `src/EditorFeatures/`) — IDE features.
+- **Analyzers / CodeStyle** (`src/Analyzers/`, `src/CodeStyle/`) — IDE0xxx diagnostics & fixes.
+- **LanguageServer** (`src/LanguageServer/`) — LSP server.
+- **VisualStudio** (`src/VisualStudio/`) — VS integration.
+- **Razor** (`src/Razor/src/`) — Razor compiler & tooling (merged sub-tree).
 
-**Building**:
-- `build.sh` - Full solution build
-- `dotnet build Compilers.slnf` - Compiler-only build  
-- `dotnet msbuild <path to csproj> /t:UpdateXlf` - Update .xlf files when their corresponding .resx file is modified
+## Project Structure
 
-**Testing**:
-- `test.sh` - Run all tests
-- `dotnet test` for specific test projects
-- Tests inherit from base classes like `AbstractLanguageServerProtocolTests`, `WorkspaceTestBase`
-- Use `[UseExportProvider]` for MEF-dependent tests
-
-**Formatting**:
-- Whitespace formatting preferences are stored in the `.editorconfig` file
-- When running `dotnet format whitespace` use the `--folder .` option followed by `--include <path to file>` to avoid a design-time build
-- Apply formatting preferences to any modified .cs or .vb file
-- **Important**: Blank lines must not contain any whitespace characters (spaces or tabs). This will cause linting errors that must be fixed.
-
-## Code Patterns
-
-**Service Architecture** (use MEF consistently):
-```csharp
-[ExportLanguageService(typeof(IMyService), LanguageNames.CSharp), Shared]
-[method: ImportingConstructor]
-[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal sealed class CSharpMyService : IMyService
+```
+src/
+  Compilers/      # C#/VB compilers (Core, CSharp, VisualBasic, Server)
+  Workspaces/     # Solution model, MSBuild loading, Remote (OOP)
+  Features/       # Language-agnostic IDE feature logic
+  EditorFeatures/ # Editor/text-buffer integration
+  Analyzers/      # IDE0xxx code-style analyzers & fixes
+  LanguageServer/ # LSP server
+  VisualStudio/   # VS language services & UI
+  Razor/src/      # Razor compiler + tooling (own layout)
+  ExpressionEvaluator/  Scripting/  Interactive/  RoslynAnalyzers/
+eng/              # Arcade build engineering (eng/common is DARC-synced)
+docs/             # Contributor & design docs
 ```
 
-**Roslyn API Usage**:
-```csharp
-// Always use immutable patterns
-var newTree = oldTree.WithChangedText(newText);
-var newDocument = oldDocument.WithSyntaxTree(newTree);
+## Build & Test
 
-// Semantic analysis
-var semanticModel = await document.GetSemanticModelAsync(cancellationToken);
-var symbolInfo = semanticModel.GetSymbolInfo(expression);
+### Build specific projects during development (preferred)
+```bash
+dotnet build Compilers.slnf      # compilers only
+dotnet build Ide.slnf            # IDE only
+dotnet build Razor.slnf          # Razor compiler & tooling only
+dotnet build <path/to/Project.csproj>
 ```
 
-**Testing Conventions**:
-- Inherit from `TestBase` or language-specific base classes
-- Use `UseExportProvider` for MEF services
-- Test utilities in `Microsoft.CodeAnalysis.Test.Utilities`
-- Language-specific test bases: `CSharpTestBase`, `VisualBasicTestBase`
-- Add `[WorkItem("https://github.com/dotnet/roslyn/issues/issueNumber")]` attribute to tests that fix specific GitHub issues
-- Prefer raw string literals (`"""..."""`) over verbatim strings (`@"..."`) when creating test source code
-- Avoid unnecessary intermediary assertions - tests should do the minimal amount of work to validate just the core issue being addressed
-  - In tests, use concise methods like `.Single()` instead of asserting count and extracting elements
-  - For compiler tests, validate diagnostics (e.g., `comp.VerifyEmitDiagnostics()`) so reviewers can easily see if the code is in error or represents something legal
+- In this repository, local `dotnet build` will not run analyzers by default. To include analyzers in the build, use the `-p:RunAnalyzersDuringBuild=true` flag to run them. Consider using this when searching for diagnostics you need to fix, or when you're doing a final build before creating a pull request.
 
-## Critical Integration Points
+### Run tests for modified code
+```bash
+dotnet test <path/to/Specific.UnitTests.csproj>
+dotnet test <proj> --filter "FullyQualifiedName~MyTestClass"
+```
 
-- **Language Server Protocol**: `src/LanguageServer/` contains LSP implementation used by VS Code extension
-- **ServiceHub**: Remote services (`src/Workspaces/Remote/`) run out-of-process for performance
-- **Analyzers**: `src/Analyzers/` for static analysis, separate from `src/RoslynAnalyzers/` (internal tooling)
-- **VSIX Packaging**: Multiple deployment targets - `src/VisualStudio/Setup/` for main VS integration
+Tests can take a while to build and run — monitor output and wait for completion unless you're confident a run is hung.
 
-## Key Conventions
+### Full build/test (final validation only)
+```bash
+./build.sh   # Build.cmd on Windows
+./test.sh    # Test.cmd on Windows
+```
 
-- **Namespace Strategy**: `Microsoft.CodeAnalysis.[Language].[Area]` (e.g., `Microsoft.CodeAnalysis.CSharp.Formatting`)
-- **File Organization**: Group by feature area, separate language-specific implementations
-- **Immutability**: All syntax trees, documents, and solutions are immutable - create new instances for changes
-- **Cancellation**: Always thread `CancellationToken` through async operations
-- **MEF Lifecycle**: Use `[ImportingConstructor]` with obsolete attribute for MEF v2 compatibility
-- **PROTOTYPE Comments**: Only used to track follow-up work in feature branches and are disallowed in main branch
-- **Code Formatting**: Avoid trailing spaces and blank lines (lines with only whitespace). Ensure all lines either have content or are completely empty.
+- If you need build.sh to run analyzers, pass `--runAnalyzers`. If you need build.cmd to run analyzers, pass `-runAnalyzers`.
 
-## Common Gotchas
+Other entry points: `dotnet run --file eng/generate-compiler-code.cs` (regenerate Syntax/BoundNodes code), `dotnet msbuild <proj> /t:UpdateXlf` (refresh `.xlf` after `.resx` edits).
 
-- Follow existing conventions in the file
-- Language services must be exported per-language, not shared across C#/VB
-- Test failures often indicate MEF composition issues - check export attributes
-- VSIX deployment targets multiple architectures - ensure platform-specific assets are handled
-- ServiceHub components require special deployment considerations for .NET Core vs Framework
+## Code Style
 
-## Essential Files for Context
+- 4-space indent for code; 2-space for project/XML/JSON. Never tabs. UTF-8-BOM, final newline for `*.cs`/`*.vb`.
+- **Blank lines must be completely empty** (no spaces/tabs); no trailing whitespace — both are hard lint failures.
+- Private fields `_camelCase`; namespaces `Microsoft.CodeAnalysis.[Language].[Area]`.
+- Always thread `CancellationToken` through async operations. (Null-checking style is layer-specific — see the area's instruction file: `Contract.ThrowIfNull` in IDE, `Debug.Assert` in the compiler.)
+- Language services are exported **per-language** (`[ExportLanguageService(..., LanguageNames.CSharp), Shared]`), never shared across C#/VB.
+- No `TODO`/`TODO2` comments — track follow-ups as linked GitHub issues in code; existing `TODO2`s are only a frozen enforcement baseline. No `PROTOTYPE` comments in PRs to `main`.
+- Update `PublicAPI.Unshipped.txt` for public API changes. Never hand-edit generated code or `eng/common`.
+- It is acceptable to have async methods with no awaits. CS1998 is not active for this repository.
 
-- `docs/wiki/Roslyn-Overview.md` - Architecture deep-dive
-- `docs/contributing/Building, Debugging, and Testing on Unix.md` - Development setup
-- `src/Compilers/Core/Portable/` - Core compiler APIs
-- `src/Workspaces/Core/Portable/` - Workspace object model
-- Solution filters: `Roslyn.slnx`, `Compilers.slnf`, `Ide.slnf` for focused builds
+Full conventions: `.github/memory/CONVENTIONS.md` and `.github/instructions/{Compiler,IDE,Razor}.instructions.md`.
+
+## Agent Orientation
+
+When starting any task or answering any question about this repo:
+1. **Read `.github/memory/INDEX.md` first** — it's the loading map for the knowledge base. Use it to find authoritative answers before searching the file system.
+2. **For any non-trivial task, also read `.github/memory/ARCHITECTURE.md` and `.github/memory/CONVENTIONS.md`** as your baseline.
+3. **Read the path-scoped instruction file for the area you're editing** — `.github/instructions/Compiler.instructions.md`, `IDE.instructions.md`, or `Razor.instructions.md` (these auto-apply to `.cs`/`.vb` under their glob and carry the layer's directory detail, conventions, and key files/APIs). For that layer's **test conventions**, load `.github/memory/testing/<area>.md` on demand (see the INDEX loading map).
+4. After completing work, run the `update-agent-docs` skill.
+
+### Memory
+
+`.github/memory/` is your persistent knowledge base. Keep changes focused on documentation needs relevant to the task, using the criteria below. Use descriptive filenames.
+
+**Memory freshness is your responsibility.** Files can drift from the code:
+- **Always cross-check memory claims against actual code** before relying on them.
+- Correct inaccuracies encountered in task-relevant memory files. Do not expand the task into a general freshness audit or record every discovery.
+
+### Doc Update Obligation
+
+**Assess documentation; do not require a documentation diff.** Edit docs only when the
+change makes existing guidance incorrect or leaves a necessary contributor-facing workflow,
+contract, or architectural decision undocumented. Before editing, identify the specific
+incorrect statement or missing information and who needs it. No documentation change is
+a valid outcome.
+
+Do not add guidance merely to record a fix, repeat an existing rule, describe an implementation
+detail, or remind contributors about requirements already enforced by configuration, analyzers,
+tests, or CI. Prefer links to authoritative configuration or tooling over duplicated rules.
+Document automated checks only when contributors need otherwise-undocumented instructions
+to run them or act on failures.
+
+For the documentation-assessment checklist and routing rules, see the
+[`update-agent-docs` skill](skills/update-agent-docs/SKILL.md).
+
+### Skills
+
+Skills live in `.github/skills/<skill-name>/SKILL.md` and are auto-discovered by their YAML `description`. Useful ones here include `code-review`, `ci-analysis`, `analyzer-codefix`, `merge-into-branch`, `snap`, and `update-agent-docs`.
+
+## Working Loop
+
+Implement directly; keep the diff **scoped and reviewable** — prefer the smallest change that fully addresses the task over a broad refactor. Ask the user only when a decision is genuinely ambiguous and materially affects the approach.
+
+### Keep changes reviewable
+
+- Keep each change focused on one coherent concern. Do not mix behavior changes with unrelated cleanup, broad renames, or opportunistic refactoring.
+- Split work when parts can be reviewed, validated, merged, or reverted independently; when they affect unrelated areas or owners; or when a preparatory refactoring can land before the behavior change.
+- Checkpoint after each independently valid slice rather than accumulating one large unreviewed diff. Each checkpoint must build on the previous one and leave the branch in a coherent state.
+- Do not optimize for an arbitrary line-count limit: generated files and mechanical updates can be large. Optimize for reviewer cognitive load, clear intent, and independent validation.
+- If a change cannot be split without making it less correct or harder to validate, explain that constraint and keep the commits logically separated.
+
+## Pull Request Descriptions
+
+Keep PR descriptions focused on what changed and why. Omit routine validation details
+that CI covers, such as builds, unit tests, formatting, and analyzers. Do not add a
+validation section just to list commands or passing results, or to say that
+documentation-only changes did not need tests.
+
+Include validation information only when it adds useful evidence beyond CI, such as
+manual scenario checks, benchmark results, or known validation limitations.
+
+## Definition of Done
+
+Work is done only when every applicable step below is complete:
+
+1. **Format:** Run the repository's existing formatter for changed files when applicable.
+2. **Lint/analyzers:** Run the smallest existing lint or analyzer command that covers the changed files when applicable.
+3. **Build:** Build the specific affected project or solution filter (`Compilers.slnf`, `Ide.slnf`, `Razor.slnf`, or the project). Documentation-only changes do not require a product build.
+4. **Targeted tests:** Run the affected test project or focused test filter. Add or update tests when behavior changes; explain when no relevant automated test exists.
+   **Regression-test efficacy:** For bug fixes, verify that the regression test fails against the unfixed implementation for the intended reason, then passes with the fix. If the fix was implemented first, use an isolated worktree or safely remove only the fix while retaining the test; preserve unrelated changes and restore the fix afterward. Rebuild the affected code for each run so stale binaries cannot invalidate the comparison. Report the test command and both results. Build failures, unrelated failures, and skipped tests do not establish reproduction. If the test passes without the fix, revise it to reproduce the issue before claiming regression coverage. If this check cannot be performed, explicitly state that regression-test efficacy remains unverified.
+5. **Generated/resource/API updates:** Regenerate Syntax/BoundNodes outputs when their XML changes, run `/t:UpdateXlf` after `.resx` edits, and update `PublicAPI.Unshipped.txt` for public API changes.
+6. **Diff review:** Review the final diff and confirm it matches the task, contains no unrelated edits, and follows nearby patterns.
+7. **Docs:** Run the `update-agent-docs` skill and apply the Doc Update Obligation above.
+8. **Final evidence:** Inspect repository status and the final diff, then report the exact validation performed in the session. Follow **Pull Request Descriptions** above when writing the PR body. Do not claim completion while required validation is failing or was silently skipped.

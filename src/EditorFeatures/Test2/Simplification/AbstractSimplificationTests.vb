@@ -47,7 +47,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Simplification
             If explicitSpanToSimplifyAnnotatedSpans.Count <> 1 OrElse explicitSpanToSimplifyAnnotatedSpans.Single().Key <> "SpanToSimplify" Then
                 For Each span In explicitSpanToSimplifyAnnotatedSpans
                     If span.Key <> "SpanToSimplify" Then
-                        Assert.True(False, "Encountered unexpected span annotation: " + span.Key)
+                        Assert.Fail("Encountered unexpected span annotation: " + span.Key)
                     End If
                 Next
             End If

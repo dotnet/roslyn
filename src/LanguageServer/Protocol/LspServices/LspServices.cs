@@ -8,7 +8,9 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ErrorReporting;
+using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CommonLanguageServerProtocol.Framework;
 using Roslyn.Utilities;
@@ -25,12 +27,14 @@ internal sealed class LspServices : ILspServices, IMethodHandlerProvider
     /// so these are manually created in <see cref="RoslynLanguageServer"/>.
     /// </summary>
     private readonly FrozenDictionary<string, ImmutableArray<BaseService>> _baseServices;
+    private readonly RoslynTelemetry _telemetry = RoslynTelemetry.Current;
 
     /// <summary>
-    /// Gates access to <see cref="_servicesToDispose"/>.
+    /// Gates access to <see cref="_servicesToDispose"/> and <see cref="_servicesToDisposeAsync"/>.
     /// </summary>
     private readonly object _gate = new();
     private readonly HashSet<IDisposable> _servicesToDispose = new(ReferenceEqualityComparer.Instance);
+    private readonly HashSet<IAsyncDisposable> _servicesToDisposeAsync = new(ReferenceEqualityComparer.Instance);
 
     public LspServices(
         ImmutableArray<Lazy<ILspService, LspServiceMetadataView>> mefLspServices,
@@ -93,8 +97,21 @@ internal sealed class LspServices : ILspServices, IMethodHandlerProvider
 
     public T? GetService<T>() where T : notnull
     {
-        return TryGetService(typeof(T), out var service)
-            ? (T)service
+        var type = typeof(T);
+        var typeName = type.FullName;
+        Contract.ThrowIfNull(typeName);
+
+        // Query for a service with an exact type match.
+        var service = GetService(typeName);
+        if (service is not null)
+        {
+            return (T)service;
+        }
+
+        // If given an interface, query for a service that implements that interface (this is how GetRequiredServices works)
+        // Only allow this if there is exactly one service that implements the interface.
+        return type.IsInterface
+            ? GetRequiredServices<T>().SingleOrDefault()
             : default;
     }
 
@@ -151,12 +168,19 @@ internal sealed class LspServices : ILspServices, IMethodHandlerProvider
             // Stateless LSP services will be disposed of on MEF container disposal.
             var checkDisposal = !lazyService.Metadata.IsStateless && !lazyService.IsValueCreated;
 
+            // A service can first be requested from a context that carries no ambient instance of its own (for
+            // example a file-watcher callback or work-queue batch), so re-establish this server's instance for
+            // factories that capture RoslynTelemetry.Current.
+            using var _ = RoslynTelemetry.SetCurrent(_telemetry);
             var lspService = lazyService.Value;
-            if (checkDisposal && lspService is IDisposable disposable)
+            if (checkDisposal)
             {
                 lock (_gate)
                 {
-                    _servicesToDispose.Add(disposable);
+                    if (lspService is IAsyncDisposable asyncDisposableService)
+                        _servicesToDisposeAsync.Add(asyncDisposableService);
+                    else if (lspService is IDisposable disposableService)
+                        _servicesToDispose.Add(disposableService);
                 }
             }
 
@@ -222,20 +246,34 @@ internal sealed class LspServices : ILspServices, IMethodHandlerProvider
         }
     }
 
-    public void Dispose()
+    public async ValueTask DisposeAsync()
     {
         ImmutableArray<IDisposable> disposableServices;
+        ImmutableArray<IAsyncDisposable> asyncDisposableServices;
         lock (_gate)
         {
             disposableServices = [.. _servicesToDispose];
             _servicesToDispose.Clear();
+            asyncDisposableServices = [.. _servicesToDisposeAsync];
+            _servicesToDisposeAsync.Clear();
         }
 
-        foreach (var disposableService in disposableServices)
+        foreach (var service in disposableServices)
         {
             try
             {
-                disposableService.Dispose();
+                service.Dispose();
+            }
+            catch (Exception ex) when (FatalError.ReportAndCatch(ex))
+            {
+            }
+        }
+
+        foreach (var service in asyncDisposableServices)
+        {
+            try
+            {
+                await service.DisposeAsync().ConfigureAwait(false);
             }
             catch (Exception ex) when (FatalError.ReportAndCatch(ex))
             {

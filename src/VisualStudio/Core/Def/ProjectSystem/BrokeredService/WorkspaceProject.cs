@@ -25,17 +25,12 @@ internal sealed class WorkspaceProject : IWorkspaceProject
 
     public void Dispose()
     {
+        // Because this implementation needs to implement the contract for RpcMarshalable
+        // we have to implement IDisposable, so we don't have an alternative to implement
+        // at this point.
+#pragma warning disable CS0618 // Type or member is obsolete
         _project.Dispose();
-    }
-
-    [Obsolete($"Call the {nameof(AddAdditionalFilesAsync)} overload that takes {nameof(SourceFileInfo)}.")]
-    public async Task AddAdditionalFilesAsync(IReadOnlyList<string> additionalFilePaths, CancellationToken cancellationToken)
-    {
-        var disposableBatchScope = await _project.CreateBatchScopeAsync(cancellationToken).ConfigureAwait(false);
-        await using var _ = disposableBatchScope.ConfigureAwait(false);
-
-        foreach (var additionalFilePath in additionalFilePaths)
-            _project.AddAdditionalFile(additionalFilePath);
+#pragma warning restore CS0618 // Type or member is obsolete
     }
 
     public async Task AddAdditionalFilesAsync(IReadOnlyList<SourceFileInfo> additionalFiles, CancellationToken cancellationToken)
@@ -136,22 +131,20 @@ internal sealed class WorkspaceProject : IWorkspaceProject
             _project.RemoveSourceFile(sourceFile);
     }
 
-    public async Task AddDynamicFilesAsync(IReadOnlyList<string> dynamicFilePaths, CancellationToken cancellationToken)
+    [Obsolete($"Dynamic files are ignored; callers can remove calls to this method.")]
+    public Task AddDynamicFilesAsync(IReadOnlyList<string> dynamicFilePaths, CancellationToken cancellationToken)
     {
-        var disposableBatchScope = await _project.CreateBatchScopeAsync(cancellationToken).ConfigureAwait(false);
-        await using var _ = disposableBatchScope.ConfigureAwait(false);
-
-        foreach (var dynamicFilePath in dynamicFilePaths)
-            _project.AddDynamicFile(dynamicFilePath);
+        // IDynamicFileInfoProvider is no longer implemented, so dynamic files are ignored.
+        // The contract is retained because the project system still calls this method.
+        return Task.CompletedTask;
     }
 
-    public async Task RemoveDynamicFilesAsync(IReadOnlyList<string> dynamicFilePaths, CancellationToken cancellationToken)
+    [Obsolete($"Dynamic files are ignored; callers can remove calls to this method.")]
+    public Task RemoveDynamicFilesAsync(IReadOnlyList<string> dynamicFilePaths, CancellationToken cancellationToken)
     {
-        var disposableBatchScope = await _project.CreateBatchScopeAsync(cancellationToken).ConfigureAwait(false);
-        await using var _ = disposableBatchScope.ConfigureAwait(false);
-
-        foreach (var dynamicFilePath in dynamicFilePaths)
-            _project.RemoveDynamicFile(dynamicFilePath);
+        // IDynamicFileInfoProvider is no longer implemented, so dynamic files are ignored.
+        // The contract is retained because the project system still calls this method.
+        return Task.CompletedTask;
     }
 
     public async Task SetBuildSystemPropertiesAsync(IReadOnlyDictionary<string, string> properties, CancellationToken cancellationToken)

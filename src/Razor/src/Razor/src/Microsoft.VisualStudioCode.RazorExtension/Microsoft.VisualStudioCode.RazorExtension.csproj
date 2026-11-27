@@ -1,0 +1,69 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <!-- needs to be compatible with NetVSCode as defined in Roslyn repo, eng/targets/TargetFrameworks.props -->
+    <TargetFramework>$(NetVSCode)</TargetFramework>
+    <Nullable>enable</Nullable>
+    <!-- This assembly ships inside roslyn-language-server, not as its own NuGet package. -->
+    <IsShippingAssembly>false</IsShippingAssembly>
+    <IsShippingPackage>false</IsShippingPackage>
+    <DefineConstants>$(DefineConstants);VSCODE</DefineConstants>
+
+    <!-- The extension now ships inside roslyn-language-server instead of as its own NuGet package. -->
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- Below package references are covered by the binaries shipped by roslyn and do not need to be packaged-->
+    <ProjectReference Include="..\..\..\..\..\Compilers\CSharp\Portable\Microsoft.CodeAnalysis.CSharp.csproj" />
+    <ProjectReference Include="..\..\..\..\..\Workspaces\Core\Portable\Microsoft.CodeAnalysis.Workspaces.csproj" />
+    <PackageReference Include="Microsoft.Extensions.Logging" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Since we're including these DLLs in the package, we mark them as private assets so they're not also dependencies -->
+    <ProjectReference Include="..\..\..\Compiler\Microsoft.CodeAnalysis.Razor.Compiler\src\Microsoft.CodeAnalysis.Razor.Compiler.csproj" PrivateAssets="all" />
+    <ProjectReference Include="..\..\..\Shared\Microsoft.AspNetCore.Razor.Utilities.Shared\Microsoft.AspNetCore.Razor.Utilities.Shared.csproj" />
+    <ProjectReference Include="..\Microsoft.CodeAnalysis.Razor.Workspaces\Microsoft.CodeAnalysis.Razor.Workspaces.csproj" />
+    <ProjectReference Include="..\Microsoft.CodeAnalysis.Remote.Razor\Microsoft.CodeAnalysis.Remote.Razor.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Include="..\Microsoft.CodeAnalysis.Razor.Workspaces\GlobalUsings.cs" Link="GlobalUsings.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.LanguageServer" Key="$(MicrosoftSharedPublicKey)" />
+    <InternalsVisibleTo Include="Microsoft.VisualStudioCode.RazorExtension.UnitTests" Key="$(RazorKey)" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include=".\Targets\**\*.*">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
+  <!-- Copy the Razor companion assemblies into the local build output for manual VS Code testing without affecting CI or source-build packaging. -->
+  <Target Name="PopulateLocalDevelopmentOutput" AfterTargets="Build" Condition="'$(ContinuousIntegrationBuild)' != 'true' and '$(DotNetBuildSourceOnly)' != 'true'">
+    <ItemGroup>
+      <_LocalRootOutput Include="
+          $(ArtifactsDir)bin\Microsoft.CodeAnalysis.Razor.Compiler\$(Configuration)\$(TargetFramework)\Microsoft.CodeAnalysis.Razor.Compiler.dll;
+          $(ArtifactsDir)bin\Microsoft.CodeAnalysis.Razor.Compiler\$(Configuration)\$(TargetFramework)\Microsoft.CodeAnalysis.Razor.Compiler.pdb;
+          $(ArtifactsDir)bin\Microsoft.CodeAnalysis.Razor.Workspaces\$(Configuration)\$(TargetFramework)\Microsoft.CodeAnalysis.Razor.Workspaces.dll;
+          $(ArtifactsDir)bin\Microsoft.CodeAnalysis.Razor.Workspaces\$(Configuration)\$(TargetFramework)\Microsoft.CodeAnalysis.Razor.Workspaces.xml;
+          $(ArtifactsDir)bin\Microsoft.CodeAnalysis.Remote.Razor\$(Configuration)\$(TargetFramework)\Microsoft.CodeAnalysis.Remote.Razor.dll;
+          $(ArtifactsDir)bin\Microsoft.CodeAnalysis.Remote.Razor\$(Configuration)\$(TargetFramework)\Microsoft.CodeAnalysis.Remote.Razor.xml" />
+
+    </ItemGroup>
+
+    <Copy
+      SourceFiles="@(_LocalRootOutput)"
+      DestinationFiles="@(_LocalRootOutput->'$(TargetDir)%(Filename)%(Extension)')"
+      SkipUnchangedFiles="true"
+      UseHardlinksIfPossible="$(CreateHardLinksForCopyFilesToOutputDirectoryIfPossible)" />
+
+    <RemoveDir Directories="$(TargetDir)win-arm64;$(TargetDir)win-x64" />
+  </Target>
+
+  <Import Project="..\Microsoft.CodeAnalysis.Razor.CohostingShared\Microsoft.CodeAnalysis.Razor.CohostingShared.projitems" Label="Shared" />
+</Project>

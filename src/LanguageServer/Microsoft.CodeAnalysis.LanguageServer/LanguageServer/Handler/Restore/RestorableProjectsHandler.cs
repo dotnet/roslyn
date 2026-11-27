@@ -5,7 +5,6 @@
 using System.Composition;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
-using Microsoft.CodeAnalysis.LanguageServer.Handler.DebugConfiguration;
 
 namespace Microsoft.CodeAnalysis.LanguageServer;
 
@@ -17,7 +16,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer;
 [Method(MethodName)]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal sealed class RestorableProjectsHandler(ProjectTargetFrameworkManager projectTargetFrameworkManager) : ILspServiceRequestHandler<string[]>
+internal sealed class RestorableProjectsHandler() : ILspServiceRequestHandler<string[]>
 {
     internal const string MethodName = "workspace/_roslyn_restorableProjects";
 
@@ -25,16 +24,18 @@ internal sealed class RestorableProjectsHandler(ProjectTargetFrameworkManager pr
 
     public bool RequiresLSPSolution => true;
 
-    public Task<string[]> HandleRequestAsync(RequestContext context, CancellationToken cancellationToken)
+    public async Task<string[]> HandleRequestAsync(RequestContext context, CancellationToken cancellationToken)
     {
-        Contract.ThrowIfNull(context.Solution);
+        var solution = await context.GetRequiredSolutionAsync(cancellationToken).ConfigureAwait(false);
+
+        var projectTargetFrameworkManager = context.GetRequiredService<ProjectTargetFrameworkManager>();
 
         // We use a sorted set here for the following reasons
         //   1.  Ensures the client gets a consistent ordering in the picker (especially useful for integration tests).
         //   2.  Removes projects with duplicate file paths (for example multi-targeted projects).  They all get restored
         //       together by file path.
         var projects = new SortedSet<string>();
-        foreach (var project in context.Solution.Projects)
+        foreach (var project in solution.Projects)
         {
             // To restore via the dotnet CLI, we must have a file path and it must be a .NET core project.
             if (project.FilePath != null && projectTargetFrameworkManager.IsDotnetCoreProject(project.Id))
@@ -43,6 +44,6 @@ internal sealed class RestorableProjectsHandler(ProjectTargetFrameworkManager pr
             }
         }
 
-        return Task.FromResult(projects.ToArray());
+        return projects.ToArray();
     }
 }

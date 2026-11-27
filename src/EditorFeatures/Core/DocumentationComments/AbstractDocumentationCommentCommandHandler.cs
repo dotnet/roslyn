@@ -117,15 +117,21 @@ internal abstract class AbstractDocumentationCommentCommandHandler :
 
     public void ExecuteCommand(TypeCharCommandArgs args, Action nextHandler, CommandExecutionContext context)
     {
-        // Ensure the character is actually typed in the editor
-        nextHandler();
-
         if (args.TypedChar != TriggerCharacter)
+        {
+            nextHandler();
             return;
+        }
 
         // Don't execute in cloud environment, as we let LSP handle that
         if (args.SubjectBuffer.IsInLspEditorContext())
+        {
+            nextHandler();
             return;
+        }
+
+        // Ensure the character is actually typed in the editor
+        nextHandler();
 
         CompleteComment(args.SubjectBuffer, args.TextView, InsertOnCharacterTyped, CancellationToken.None);
     }
@@ -362,6 +368,6 @@ internal abstract class AbstractDocumentationCommentCommandHandler :
             return false;
         }
 
-        return string.CompareOrdinal(lineText, lineOffset, ExteriorTriviaText, 0, ExteriorTriviaText.Length) == 0;
+        return lineText.AsSpan(lineOffset).StartsWith(ExteriorTriviaText.AsSpan(), StringComparison.Ordinal);
     }
 }

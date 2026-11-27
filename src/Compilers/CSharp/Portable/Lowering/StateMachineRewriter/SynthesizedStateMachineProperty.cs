@@ -7,6 +7,7 @@
 using System;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Symbols;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
@@ -154,6 +155,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal override bool IsRequired => false;
 
         internal sealed override bool HasUnscopedRefAttribute => false;
+
+        internal sealed override RequiresUnsafeMode GetRequiresUnsafeMode(ConsList<FieldSymbol> fieldsBeingBound) => RequiresUnsafeMode.None;
 
         internal override ObsoleteAttributeData ObsoleteAttributeData
         {

@@ -30,6 +30,14 @@ namespace Microsoft.CodeAnalysis
 
         public NodeStateTable<T> UpdateStateTable(DriverStateTable.Builder graphState, NodeStateTable<T>? previousTable, CancellationToken cancellationToken)
         {
+            if (!graphState.IsCompilationAvailable)
+            {
+                // Syntax-based providers cannot be used as inputs to a pre-compilation source output,
+                // because the compilation (and thus syntax tree analysis) has not yet been built.
+                // Wrap as a UserFunctionException so the driver reports a generator error instead of crashing.
+                throw new UserFunctionException(new InvalidOperationException(
+                    CodeAnalysisResources.SyntaxProvidersNotAvailableInPreCompilationPhase));
+            }
             return (NodeStateTable<T>)graphState.SyntaxStore.GetSyntaxInputTable(this, graphState.GetLatestStateTableForNode(SharedInputNodes.SyntaxTrees));
         }
 

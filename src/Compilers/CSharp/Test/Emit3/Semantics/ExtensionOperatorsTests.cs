@@ -1731,16 +1731,6 @@ class Program
 """;
 
             var comp = CreateCompilation(src, options: TestOptions.DebugExe);
-#if DEBUG
-            comp.VerifyEmitDiagnostics(
-                // (35,13): error CS9342: Operator resolution is ambiguous between the following members: 'Extensions2.extension(C1).operator -(C1)' and 'Extensions1.extension(C1).operator -(C1)'
-                //         _ = -c1;
-                Diagnostic(ErrorCode.ERR_AmbigOperator, "-").WithArguments("Extensions2.extension(C1).operator -(C1)", "Extensions1.extension(C1).operator -(C1)").WithLocation(35, 13),
-                // (39,17): error CS9342: Operator resolution is ambiguous between the following members: 'Extensions1.extension(C1).operator checked -(C1)' and 'Extensions2.extension(C1).operator -(C1)'
-                //             _ = -c1;
-                Diagnostic(ErrorCode.ERR_AmbigOperator, "-").WithArguments("Extensions1.extension(C1).operator checked -(C1)", "Extensions2.extension(C1).operator -(C1)").WithLocation(39, 17)
-                );
-#else
             comp.VerifyEmitDiagnostics(
                 // (35,13): error CS9342: Operator resolution is ambiguous between the following members: 'Extensions1.extension(C1).operator -(C1)' and 'Extensions2.extension(C1).operator -(C1)'
                 //         _ = -c1;
@@ -1749,7 +1739,6 @@ class Program
                 //             _ = -c1;
                 Diagnostic(ErrorCode.ERR_AmbigOperator, "-").WithArguments("Extensions1.extension(C1).operator checked -(C1)", "Extensions2.extension(C1).operator -(C1)").WithLocation(39, 17)
                 );
-#endif
 
             var tree = comp.SyntaxTrees.First();
             var model = comp.GetSemanticModel(tree);
@@ -1810,7 +1799,7 @@ class Program
         [Fact]
         public void Unary_028_Consumption_OverloadResolutionPlusRegularVsChecked()
         {
-            var src = $$$"""
+            var src1 = $$$"""
 public static class Extensions1
 {
     extension(C1)
@@ -1839,7 +1828,8 @@ public static class Extensions1
 public class C1;
 public class C2 : C1;
 public class C3 : C1;
-
+""";
+            var src2 = $$$"""
 class Program
 {
     static void Main()
@@ -1863,8 +1853,11 @@ class Program
 }
 """;
 
-            var comp = CreateCompilation(src, options: TestOptions.DebugExe);
-            CompileAndVerify(comp, expectedOutput: "C1checkedC1C2C2").VerifyDiagnostics();
+            var comp1 = CreateCompilation([src1, src2], options: TestOptions.DebugExe);
+            CompileAndVerify(comp1, expectedOutput: "C1checkedC1C2C2").VerifyDiagnostics();
+
+            var comp2 = CreateCompilation(src2, references: [comp1.EmitToImageReference()], options: TestOptions.DebugExe);
+            CompileAndVerify(comp2, expectedOutput: "C1checkedC1C2C2").VerifyDiagnostics();
         }
 
         [Fact]
@@ -3920,7 +3913,7 @@ public struct S1;
             AssertEx.Equal([
                 "(E.extension(S1).operator " + op + ", S1 E.<G>$78CFE6F93D970DBBE44B05C24FFEB91E." + opName + "(S1 x))",
                 "(E.extension(S1).operator " + op + "(S1), S1 E.<G>$78CFE6F93D970DBBE44B05C24FFEB91E." + opName + "(S1 x))"],
-                ExtensionTests.PrintXmlCrefSymbols(tree, model));
+                PrintXmlCrefSymbols(tree, model));
         }
 
         [Theory]
@@ -3959,7 +3952,7 @@ public struct S1;
             var tree = comp.SyntaxTrees.Single();
             var model = comp.GetSemanticModel(tree);
             AssertEx.Equal(["(E.extension(S1).operator " + op + "(S1), S1 E.<G>$78CFE6F93D970DBBE44B05C24FFEB91E." + opName + "(S1 x))"],
-                ExtensionTests.PrintXmlCrefSymbols(tree, model));
+                PrintXmlCrefSymbols(tree, model));
         }
 
         [Fact]
@@ -3999,7 +3992,7 @@ public struct S1;
             var tree = comp.SyntaxTrees.Single();
             var model = comp.GetSemanticModel(tree);
             AssertEx.Equal(["(E.extension(S1).operator checked -(S1), S1 E.<G>$78CFE6F93D970DBBE44B05C24FFEB91E." + opName + "(S1 x))"],
-                ExtensionTests.PrintXmlCrefSymbols(tree, model));
+                PrintXmlCrefSymbols(tree, model));
         }
 
         [Fact]
@@ -4050,7 +4043,7 @@ public struct S1;
                 "(E.extension(S1).operator true(S1), System.Boolean E.<G>$78CFE6F93D970DBBE44B05C24FFEB91E." + trueName + "(S1 x))",
                 "(E.extension(S1).operator false, System.Boolean E.<G>$78CFE6F93D970DBBE44B05C24FFEB91E." + falseName + "(S1 x))",
                 "(E.extension(S1).operator false(S1), System.Boolean E.<G>$78CFE6F93D970DBBE44B05C24FFEB91E." + falseName + "(S1 x))"],
-                ExtensionTests.PrintXmlCrefSymbols(tree, model));
+                PrintXmlCrefSymbols(tree, model));
         }
 
         [Theory]
@@ -4268,19 +4261,11 @@ class Program
 """ + CompilerFeatureRequiredAttribute;
 
             var comp = CreateCompilation(src, options: TestOptions.DebugExe);
-#if DEBUG
-            comp.VerifyDiagnostics(
-                // (26,13): error CS9339: Operator resolution is ambiguous between the following members: 'Extensions2.extension(S2).operator -(S2)' and 'Extensions1.extension(S2).operator -(S2)'
-                //         _ = -s2;
-                Diagnostic(ErrorCode.ERR_AmbigOperator, "-").WithArguments("Extensions2.extension(S2).operator -(S2)", "Extensions1.extension(S2).operator -(S2)").WithLocation(26, 13)
-                );
-#else
             comp.VerifyDiagnostics(
                 // (26,13): error CS9342: Operator resolution is ambiguous between the following members: 'Extensions1.extension(S2).operator -(S2)' and 'Extensions2.extension(S2).operator -(S2)'
                 //         _ = -s2;
                 Diagnostic(ErrorCode.ERR_AmbigOperator, "-").WithArguments("Extensions1.extension(S2).operator -(S2)", "Extensions2.extension(S2).operator -(S2)").WithLocation(26, 13)
                 );
-#endif
 
             var tree = comp.SyntaxTrees.First();
             var model = comp.GetSemanticModel(tree);
@@ -4290,13 +4275,50 @@ class Program
             Assert.Null(symbolInfo.Symbol);
             Assert.Equal(CandidateReason.Ambiguous, symbolInfo.CandidateReason);
 
-#if DEBUG // Collection of extension blocks depends on GetTypeMembersUnordered for namespace, which conditionally de-orders types for DEBUG only.
-            AssertEx.Equal("Extensions2.extension(S2).operator -(S2)", symbolInfo.CandidateSymbols[0].ToDisplayString());
-            AssertEx.Equal("Extensions1.extension(S2).operator -(S2)", symbolInfo.CandidateSymbols[1].ToDisplayString());
-#else
             AssertEx.Equal("Extensions1.extension(S2).operator -(S2)", symbolInfo.CandidateSymbols[0].ToDisplayString());
             AssertEx.Equal("Extensions2.extension(S2).operator -(S2)", symbolInfo.CandidateSymbols[1].ToDisplayString());
-#endif
+        }
+
+        [Theory]
+        [CombinatorialData]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/84538")]
+        public void Unary_075_Consumption_Checked([CombinatorialValues("struct", "class")] string typeKind)
+        {
+            var src1 = $$$"""
+public static class Extensions1
+{
+    extension(C1)
+    {
+        public static C1 operator -(C1 x)
+        {
+            System.Console.Write("regular");
+            return x;
+        }
+    }
+}
+
+public static class Extensions2
+{
+    extension(C1)
+    {
+        public static C1 operator checked -(C1 x)
+        {
+            System.Console.Write("checked");
+            return x;
+        }
+    }
+}
+
+public {{{typeKind}}} C1;
+""";
+
+            var comp1 = CreateCompilation(src1);
+            var op1 = (MethodSymbol)comp1.GetTypeByMetadataName("Extensions1").GetTypeMember("").GetMembers().Single();
+            var op2 = (MethodSymbol)comp1.GetTypeByMetadataName("Extensions2").GetTypeMember("").GetMembers().Single();
+
+            Assert.NotEqual(OverloadResolution.PairedExtensionOperatorSignatureComparer.Instance.GetHashCode(op1),
+                            OverloadResolution.PairedExtensionOperatorSignatureComparer.Instance.GetHashCode(op2));
+            Assert.False(OverloadResolution.PairedExtensionOperatorSignatureComparer.Instance.Equals(op1, op2));
         }
 
         [Theory]
@@ -7664,16 +7686,6 @@ class Program
 """;
 
             var comp = CreateCompilation(src, options: TestOptions.DebugExe);
-#if DEBUG
-            comp.VerifyEmitDiagnostics(
-                // (35,13): error CS9339: Operator resolution is ambiguous between the following members: 'Extensions2.extension(C1).operator --(C1)' and 'Extensions1.extension(C1).operator --(C1)'
-                //         _ = --c1;
-                Diagnostic(ErrorCode.ERR_AmbigOperator, "--").WithArguments("Extensions2.extension(C1).operator --(C1)", "Extensions1.extension(C1).operator --(C1)").WithLocation(35, 13),
-                // (39,17): error CS9339: Operator resolution is ambiguous between the following members: 'Extensions1.extension(C1).operator checked --(C1)' and 'Extensions2.extension(C1).operator --(C1)'
-                //             _ = --c1;
-                Diagnostic(ErrorCode.ERR_AmbigOperator, "--").WithArguments("Extensions1.extension(C1).operator checked --(C1)", "Extensions2.extension(C1).operator --(C1)").WithLocation(39, 17)
-                );
-#else
             comp.VerifyEmitDiagnostics(
                 // (35,13): error CS9342: Operator resolution is ambiguous between the following members: 'Extensions1.extension(C1).operator --(C1)' and 'Extensions2.extension(C1).operator --(C1)'
                 //         _ = --c1;
@@ -7682,7 +7694,6 @@ class Program
                 //             _ = --c1;
                 Diagnostic(ErrorCode.ERR_AmbigOperator, "--").WithArguments("Extensions1.extension(C1).operator checked --(C1)", "Extensions2.extension(C1).operator --(C1)").WithLocation(39, 17)
                 );
-#endif
 
             var tree = comp.SyntaxTrees.First();
             var model = comp.GetSemanticModel(tree);
@@ -7745,17 +7756,6 @@ class Program
 
             var comp = CreateCompilation(src, options: TestOptions.DebugExe);
 
-#if DEBUG // Collection of extension blocks depends on GetTypeMembersUnordered for namespace, which conditionally de-orders types for DEBUG only.
-            comp.VerifyEmitDiagnostics(
-                // (32,13): error CS0121: The call is ambiguous between the following methods or properties: 'Extensions2.extension(C1).operator --()' and 'Extensions1.extension(C1).operator --()'
-                //         _ = --c1;
-                Diagnostic(ErrorCode.ERR_AmbigCall, "--").WithArguments("Extensions2.extension(C1).operator --()", "Extensions1.extension(C1).operator --()").WithLocation(32, 13),
-                // (36,17): error CS0121: The call is ambiguous between the following methods or properties: 'Extensions1.extension(C1).operator checked --()' and 'Extensions2.extension(C1).operator --()'
-                //             _ = --c1;
-                Diagnostic(ErrorCode.ERR_AmbigCall, "--").WithArguments("Extensions1.extension(C1).operator checked --()", "Extensions2.extension(C1).operator --()").WithLocation(36, 17)
-                );
-#else
-            // Ordering difference is acceptable and doesn't affect determinism. It is caused by ConditionallyDeOrder
             comp.VerifyEmitDiagnostics(
                 // (32,13): error CS0121: The call is ambiguous between the following methods or properties: 'Extensions1.extension(C1).operator --()' and 'Extensions2.extension(C1).operator --()'
                 //         _ = --c1;
@@ -7764,7 +7764,6 @@ class Program
                 //             _ = --c1;
                 Diagnostic(ErrorCode.ERR_AmbigCall, "--").WithArguments("Extensions1.extension(C1).operator checked --()", "Extensions2.extension(C1).operator --()").WithLocation(36, 17)
                 );
-#endif
 
             var tree = comp.SyntaxTrees.First();
             var model = comp.GetSemanticModel(tree);
@@ -7869,7 +7868,7 @@ class Program
         [Fact]
         public void Increment_059_Consumption_OverloadResolutionPlusRegularVsChecked()
         {
-            var src = $$$"""
+            var src1 = $$$"""
 public static class Extensions1
 {
     extension(C1)
@@ -7898,7 +7897,8 @@ public static class Extensions1
 public class C1;
 public class C2 : C1;
 public class C3 : C1;
-
+""";
+            var src2 = """
 class Program
 {
     static void Main()
@@ -7922,14 +7922,17 @@ class Program
 }
 """;
 
-            var comp = CreateCompilation(src, options: TestOptions.DebugExe);
-            CompileAndVerify(comp, expectedOutput: "C1checkedC1C2C2").VerifyDiagnostics();
+            var comp1 = CreateCompilation([src1, src2], options: TestOptions.DebugExe);
+            CompileAndVerify(comp1, expectedOutput: "C1checkedC1C2C2").VerifyDiagnostics();
+
+            var comp2 = CreateCompilation(src2, references: [comp1.EmitToImageReference()], options: TestOptions.DebugExe);
+            CompileAndVerify(comp2, expectedOutput: "C1checkedC1C2C2").VerifyDiagnostics();
         }
 
         [Fact]
         public void Increment_060_Consumption_OverloadResolutionPlusRegularVsChecked()
         {
-            var src = $$$"""
+            var src1 = $$$"""
 public static class Extensions1
 {
     extension(C1 x)
@@ -7955,7 +7958,8 @@ public static class Extensions1
 public class C1;
 public class C2 : C1;
 public class C3 : C1;
-
+""";
+            var src2 = """
 class Program
 {
     static void Main()
@@ -7978,10 +7982,13 @@ class Program
     }
 }
 
-""" + CompilerFeatureRequiredAttribute;
+""";
 
-            var comp = CreateCompilation(src, options: TestOptions.DebugExe);
-            CompileAndVerify(comp, expectedOutput: "C1checkedC1C2C2").VerifyDiagnostics();
+            var comp1 = CreateCompilation([src1, src2, CompilerFeatureRequiredAttribute], options: TestOptions.DebugExe);
+            CompileAndVerify(comp1, expectedOutput: "C1checkedC1C2C2").VerifyDiagnostics();
+
+            var comp2 = CreateCompilation(src2, references: [comp1.EmitToImageReference()], options: TestOptions.DebugExe);
+            CompileAndVerify(comp2, expectedOutput: "C1checkedC1C2C2").VerifyDiagnostics();
         }
 
         [Fact]
@@ -10222,7 +10229,7 @@ public struct S1;
             AssertEx.Equal([
                 "(E.extension(S1).operator " + op + ", S1 E.<G>$78CFE6F93D970DBBE44B05C24FFEB91E." + opName + "(S1 x))",
                 "(E.extension(S1).operator " + op + "(S1), S1 E.<G>$78CFE6F93D970DBBE44B05C24FFEB91E." + opName + "(S1 x))"],
-                ExtensionTests.PrintXmlCrefSymbols(tree, model));
+                PrintXmlCrefSymbols(tree, model));
         }
 
         [Theory]
@@ -10261,7 +10268,7 @@ public struct S1;
             var tree = comp.SyntaxTrees.First();
             var model = comp.GetSemanticModel(tree);
             AssertEx.Equal(["(E.extension(ref S1).operator " + op + "(), void E.<G>$78CFE6F93D970DBBE44B05C24FFEB91E." + opName + "())"],
-                ExtensionTests.PrintXmlCrefSymbols(tree, model));
+                PrintXmlCrefSymbols(tree, model));
         }
 
         [Theory]
@@ -10306,7 +10313,7 @@ public struct S1;
             AssertEx.Equal([
                 "(E.extension(S1).operator checked " + op + ", S1 E.<G>$78CFE6F93D970DBBE44B05C24FFEB91E." + opName + "(S1 x))",
                 "(E.extension(S1).operator checked " + op + "(S1), S1 E.<G>$78CFE6F93D970DBBE44B05C24FFEB91E." + opName + "(S1 x))"],
-                ExtensionTests.PrintXmlCrefSymbols(tree, model));
+                PrintXmlCrefSymbols(tree, model));
         }
 
         [Theory]
@@ -10347,7 +10354,7 @@ public struct S1;
             var tree = comp.SyntaxTrees.First();
             var model = comp.GetSemanticModel(tree);
             AssertEx.Equal(["(E.extension(ref S1).operator checked " + op + "(), void E.<G>$78CFE6F93D970DBBE44B05C24FFEB91E." + opName + "())"],
-                ExtensionTests.PrintXmlCrefSymbols(tree, model));
+                PrintXmlCrefSymbols(tree, model));
         }
 
         [Theory]
@@ -10493,19 +10500,11 @@ class Program
 
             var comp = CreateCompilation(src, options: TestOptions.DebugExe);
 
-#if DEBUG // Collection of extension blocks depends on GetTypeMembersUnordered for namespace, which conditionally de-orders types for DEBUG only.
-            comp.VerifyDiagnostics(
-                // (26,9): error CS0121: The call is ambiguous between the following methods or properties: 'Extensions2.extension(ref S2).operator ++()' and 'Extensions1.extension(ref S2).operator ++()'
-                //         ++s2;
-                Diagnostic(ErrorCode.ERR_AmbigCall, "++").WithArguments("Extensions2.extension(ref S2).operator ++()", "Extensions1.extension(ref S2).operator ++()").WithLocation(26, 9)
-                );
-#else
             comp.VerifyDiagnostics(
                 // (26,9): error CS0121: The call is ambiguous between the following methods or properties: 'Extensions1.extension(ref S2).operator ++()' and 'Extensions2.extension(ref S2).operator ++()'
                 //         ++s2;
                 Diagnostic(ErrorCode.ERR_AmbigCall, "++").WithArguments("Extensions1.extension(ref S2).operator ++()", "Extensions2.extension(ref S2).operator ++()").WithLocation(26, 9)
                 );
-#endif
 
             var tree = comp.SyntaxTrees.First();
             var model = comp.GetSemanticModel(tree);
@@ -10515,13 +10514,8 @@ class Program
             Assert.Null(symbolInfo.Symbol);
             Assert.Equal(CandidateReason.OverloadResolutionFailure, symbolInfo.CandidateReason);
 
-#if DEBUG // Collection of extension blocks depends on GetTypeMembersUnordered for namespace, which conditionally de-orders types for DEBUG only.
-            AssertEx.Equal("Extensions2.extension(ref S2).operator ++()", symbolInfo.CandidateSymbols[0].ToDisplayString());
-            AssertEx.Equal("Extensions1.extension(ref S2).operator ++()", symbolInfo.CandidateSymbols[1].ToDisplayString());
-#else
             AssertEx.Equal("Extensions1.extension(ref S2).operator ++()", symbolInfo.CandidateSymbols[0].ToDisplayString());
             AssertEx.Equal("Extensions2.extension(ref S2).operator ++()", symbolInfo.CandidateSymbols[1].ToDisplayString());
-#endif
         }
 
         [Fact]
@@ -10560,19 +10554,11 @@ class Program
 """ + CompilerFeatureRequiredAttribute;
 
             var comp = CreateCompilation(src, options: TestOptions.DebugExe);
-#if DEBUG
-            comp.VerifyDiagnostics(
-                // (26,9): error CS9339: Operator resolution is ambiguous between the following members: 'Extensions2.extension(S2).operator ++(S2)' and 'Extensions1.extension(S2).operator ++(S2)'
-                //         ++s2;
-                Diagnostic(ErrorCode.ERR_AmbigOperator, "++").WithArguments("Extensions2.extension(S2).operator ++(S2)", "Extensions1.extension(S2).operator ++(S2)").WithLocation(26, 9)
-                );
-#else
             comp.VerifyDiagnostics(
                 // (26,9): error CS9342: Operator resolution is ambiguous between the following members: 'Extensions1.extension(S2).operator ++(S2)' and 'Extensions2.extension(S2).operator ++(S2)'
                 //         ++s2;
                 Diagnostic(ErrorCode.ERR_AmbigOperator, "++").WithArguments("Extensions1.extension(S2).operator ++(S2)", "Extensions2.extension(S2).operator ++(S2)").WithLocation(26, 9)
                 );
-#endif
 
             var tree = comp.SyntaxTrees.First();
             var model = comp.GetSemanticModel(tree);
@@ -10582,13 +10568,8 @@ class Program
             Assert.Null(symbolInfo.Symbol);
             Assert.Equal(CandidateReason.Ambiguous, symbolInfo.CandidateReason);
 
-#if DEBUG // Collection of extension blocks depends on GetTypeMembersUnordered for namespace, which conditionally de-orders types for DEBUG only.
-            AssertEx.Equal("Extensions2.extension(S2).operator ++(S2)", symbolInfo.CandidateSymbols[0].ToDisplayString());
-            AssertEx.Equal("Extensions1.extension(S2).operator ++(S2)", symbolInfo.CandidateSymbols[1].ToDisplayString());
-#else
             AssertEx.Equal("Extensions1.extension(S2).operator ++(S2)", symbolInfo.CandidateSymbols[0].ToDisplayString());
             AssertEx.Equal("Extensions2.extension(S2).operator ++(S2)", symbolInfo.CandidateSymbols[1].ToDisplayString());
-#endif
         }
 
         [Theory]
@@ -13284,16 +13265,6 @@ class Program
 """;
 
             var comp = CreateCompilation(src, options: TestOptions.DebugExe);
-#if DEBUG
-            comp.VerifyEmitDiagnostics(
-                // (35,16): error CS9339: Operator resolution is ambiguous between the following members:'Extensions2.extension(C1).operator -(C1, C1)' and 'Extensions1.extension(C1).operator -(C1, C1)'
-                //         _ = c1 - c1;
-                Diagnostic(ErrorCode.ERR_AmbigOperator, "-").WithArguments("Extensions2.extension(C1).operator -(C1, C1)", "Extensions1.extension(C1).operator -(C1, C1)").WithLocation(35, 16),
-                // (39,20): error CS9339: Operator resolution is ambiguous between the following members:'Extensions1.extension(C1).operator checked -(C1, C1)' and 'Extensions2.extension(C1).operator -(C1, C1)'
-                //             _ = c1 - c1;
-                Diagnostic(ErrorCode.ERR_AmbigOperator, "-").WithArguments("Extensions1.extension(C1).operator checked -(C1, C1)", "Extensions2.extension(C1).operator -(C1, C1)").WithLocation(39, 20)
-                );
-#else
             comp.VerifyEmitDiagnostics(
                 // (35,16): error CS9342: Operator resolution is ambiguous between the following members: 'Extensions1.extension(C1).operator -(C1, C1)' and 'Extensions2.extension(C1).operator -(C1, C1)'
                 //         _ = c1 - c1;
@@ -13301,8 +13272,8 @@ class Program
                 // (39,20): error CS9342: Operator resolution is ambiguous between the following members: 'Extensions1.extension(C1).operator checked -(C1, C1)' and 'Extensions2.extension(C1).operator -(C1, C1)'
                 //             _ = c1 - c1;
                 Diagnostic(ErrorCode.ERR_AmbigOperator, "-").WithArguments("Extensions1.extension(C1).operator checked -(C1, C1)", "Extensions2.extension(C1).operator -(C1, C1)").WithLocation(39, 20)
-              );
-#endif
+                );
+
             var tree = comp.SyntaxTrees.First();
             var model = comp.GetSemanticModel(tree);
             var opNode = tree.GetRoot().DescendantNodes().OfType<Syntax.BinaryExpressionSyntax>().Last();
@@ -13362,7 +13333,7 @@ class Program
         [Fact]
         public void Binary_036_Consumption_OverloadResolutionPlusRegularVsChecked()
         {
-            var src = $$$"""
+            var src1 = $$$"""
 public static class Extensions1
 {
     extension(C1)
@@ -13391,7 +13362,8 @@ public static class Extensions1
 public class C1;
 public class C2 : C1;
 public class C3 : C1;
-
+""";
+            var src2 = $$$"""
 class Program
 {
     static void Main()
@@ -13415,8 +13387,11 @@ class Program
 }
 """;
 
-            var comp = CreateCompilation(src, options: TestOptions.DebugExe);
-            CompileAndVerify(comp, expectedOutput: "C1checkedC1C2C2").VerifyDiagnostics();
+            var comp1 = CreateCompilation([src1, src2], options: TestOptions.DebugExe);
+            CompileAndVerify(comp1, expectedOutput: "C1checkedC1C2C2").VerifyDiagnostics();
+
+            var comp2 = CreateCompilation(src2, references: [comp1.EmitToImageReference()], options: TestOptions.DebugExe);
+            CompileAndVerify(comp2, expectedOutput: "C1checkedC1C2C2").VerifyDiagnostics();
         }
 
         [Fact]
@@ -19436,7 +19411,7 @@ public struct S1;
             AssertEx.Equal([
                 "(E.extension(S1).operator " + ToCRefOp(op) + ", S1 E.<G>$78CFE6F93D970DBBE44B05C24FFEB91E." + opName + "(S1 x, S1 y))",
                 "(E.extension(S1).operator " + ToCRefOp(op) + "(S1, S1), S1 E.<G>$78CFE6F93D970DBBE44B05C24FFEB91E." + opName + "(S1 x, S1 y))"],
-                ExtensionTests.PrintXmlCrefSymbols(tree, model));
+                PrintXmlCrefSymbols(tree, model));
         }
 
         [Theory]
@@ -19481,7 +19456,7 @@ public struct S1;
             AssertEx.Equal([
                 "(E.extension(S1).operator checked " + ToCRefOp(op) + ", S1 E.<G>$78CFE6F93D970DBBE44B05C24FFEB91E." + opName + "(S1 x, S1 y))",
                 "(E.extension(S1).operator checked " + ToCRefOp(op) + "(S1, S1), S1 E.<G>$78CFE6F93D970DBBE44B05C24FFEB91E." + opName + "(S1 x, S1 y))"],
-                ExtensionTests.PrintXmlCrefSymbols(tree, model));
+                PrintXmlCrefSymbols(tree, model));
         }
 
         [Theory]
@@ -23839,16 +23814,6 @@ class Program
 """;
 
             var comp = CreateCompilation(src, options: TestOptions.DebugExe);
-#if DEBUG
-            comp.VerifyEmitDiagnostics(
-                // (35,16): error CS9339: Operator resolution is ambiguous between the following members: 'Extensions2.extension(C1).operator -(C1, C1)' and 'Extensions1.extension(C1).operator -(C1, C1)'
-                //         _ = c1 -= c1;
-                Diagnostic(ErrorCode.ERR_AmbigOperator, "-=").WithArguments("Extensions2.extension(C1).operator -(C1, C1)", "Extensions1.extension(C1).operator -(C1, C1)").WithLocation(35, 16),
-                // (39,20): error CS9339: Operator resolution is ambiguous between the following members: 'Extensions1.extension(C1).operator checked -(C1, C1)' and 'Extensions2.extension(C1).operator -(C1, C1)'
-                //             _ = c1 -= c1;
-                Diagnostic(ErrorCode.ERR_AmbigOperator, "-=").WithArguments("Extensions1.extension(C1).operator checked -(C1, C1)", "Extensions2.extension(C1).operator -(C1, C1)").WithLocation(39, 20)
-                );
-#else
             comp.VerifyEmitDiagnostics(
                 // (35,16): error CS9342: Operator resolution is ambiguous between the following members: 'Extensions1.extension(C1).operator -(C1, C1)' and 'Extensions2.extension(C1).operator -(C1, C1)'
                 //         _ = c1 -= c1;
@@ -23857,7 +23822,6 @@ class Program
                 //             _ = c1 -= c1;
                 Diagnostic(ErrorCode.ERR_AmbigOperator, "-=").WithArguments("Extensions1.extension(C1).operator checked -(C1, C1)", "Extensions2.extension(C1).operator -(C1, C1)").WithLocation(39, 20)
                 );
-#endif
 
             var tree = comp.SyntaxTrees.First();
             var model = comp.GetSemanticModel(tree);
@@ -23920,17 +23884,6 @@ class Program
 
             var comp = CreateCompilation([src, CompilerFeatureRequiredAttribute], options: TestOptions.DebugExe);
 
-#if DEBUG // Collection of extension blocks depends on GetTypeMembersUnordered for namespace, which conditionally de-orders types for DEBUG only.
-            comp.VerifyEmitDiagnostics(
-                // (35,16): error CS0121: The call is ambiguous between the following methods or properties: 'Extensions2.extension(C1).operator -=(C1)' and 'Extensions1.extension(C1).operator -=(C1)'
-                //         _ = c1 -= c1;
-                Diagnostic(ErrorCode.ERR_AmbigCall, "-=").WithArguments("Extensions2.extension(C1).operator -=(C1)", "Extensions1.extension(C1).operator -=(C1)").WithLocation(35, 16),
-                // (39,20): error CS0121: The call is ambiguous between the following methods or properties: 'Extensions1.extension(C1).operator checked -=(C1)' and 'Extensions2.extension(C1).operator -=(C1)'
-                //             _ = c1 -= c1;
-                Diagnostic(ErrorCode.ERR_AmbigCall, "-=").WithArguments("Extensions1.extension(C1).operator checked -=(C1)", "Extensions2.extension(C1).operator -=(C1)").WithLocation(39, 20)
-                );
-#else
-            // Ordering difference is acceptable and doesn't affect determinism. It is caused by ConditionallyDeOrder
             comp.VerifyEmitDiagnostics(
                 // (35,16): error CS0121: The call is ambiguous between the following methods or properties: 'Extensions1.extension(C1).operator -=(C1)' and 'Extensions2.extension(C1).operator -=(C1)'
                 //         _ = c1 -= c1;
@@ -23939,7 +23892,6 @@ class Program
                 //             _ = c1 -= c1;
                 Diagnostic(ErrorCode.ERR_AmbigCall, "-=").WithArguments("Extensions1.extension(C1).operator checked -=(C1)", "Extensions2.extension(C1).operator -=(C1)").WithLocation(39, 20)
                 );
-#endif
 
             var tree = comp.SyntaxTrees.First();
             var model = comp.GetSemanticModel(tree);
@@ -24044,7 +23996,7 @@ class Program
         [Fact]
         public void CompoundAssignment_067_Consumption_OverloadResolutionPlusRegularVsChecked()
         {
-            var src = $$$"""
+            var src1 = $$$"""
 public static class Extensions1
 {
     extension(C1)
@@ -24072,7 +24024,8 @@ public static class Extensions1
 
 public class C1;
 public class C2 : C1;
-
+""";
+            var src2 = $$$"""
 class Program
 {
     static void Main()
@@ -24096,14 +24049,17 @@ class Program
 }
 """;
 
-            var comp = CreateCompilation(src, options: TestOptions.DebugExe);
-            CompileAndVerify(comp, expectedOutput: "C1checkedC1C2C2").VerifyDiagnostics();
+            var comp1 = CreateCompilation([src1, src2], options: TestOptions.DebugExe);
+            CompileAndVerify(comp1, expectedOutput: "C1checkedC1C2C2").VerifyDiagnostics();
+
+            var comp2 = CreateCompilation(src2, references: [comp1.EmitToImageReference()], options: TestOptions.DebugExe);
+            CompileAndVerify(comp2, expectedOutput: "C1checkedC1C2C2").VerifyDiagnostics();
         }
 
         [Fact]
         public void CompoundAssignment_068_Consumption_OverloadResolutionPlusRegularVsChecked()
         {
-            var src = $$$"""
+            var src1 = $$$"""
 public static class Extensions1
 {
     extension(C1 x)
@@ -24129,7 +24085,8 @@ public static class Extensions1
 public class C1;
 public class C2 : C1;
 public class C3 : C1;
-
+""";
+            var src2 = $$$"""
 class Program
 {
     static void Main()
@@ -24152,10 +24109,13 @@ class Program
     }
 }
 
-""" + CompilerFeatureRequiredAttribute;
+""";
 
-            var comp = CreateCompilation(src, options: TestOptions.DebugExe);
-            CompileAndVerify(comp, expectedOutput: "C1checkedC1C2C2").VerifyDiagnostics();
+            var comp1 = CreateCompilation([src1, src2, CompilerFeatureRequiredAttribute], options: TestOptions.DebugExe);
+            CompileAndVerify(comp1, expectedOutput: "C1checkedC1C2C2").VerifyDiagnostics();
+
+            var comp2 = CreateCompilation(src2, references: [comp1.EmitToImageReference()], options: TestOptions.DebugExe);
+            CompileAndVerify(comp2, expectedOutput: "C1checkedC1C2C2").VerifyDiagnostics();
         }
 
         [Fact]
@@ -27016,7 +26976,7 @@ public class S1;
             AssertEx.Equal([
                 "(E.extension(S1).operator " + ToCRefOp(op) + ", void E.<G>$78CFE6F93D970DBBE44B05C24FFEB91E." + opName + "(S1 y))",
                 "(E.extension(S1).operator " + ToCRefOp(op) + "(S1), void E.<G>$78CFE6F93D970DBBE44B05C24FFEB91E." + opName + "(S1 y))"],
-                ExtensionTests.PrintXmlCrefSymbols(tree, model));
+                PrintXmlCrefSymbols(tree, model));
         }
 
         [Theory]
@@ -27061,7 +27021,7 @@ public class S1;
             AssertEx.Equal([
                 "(E.extension(S1).operator checked " + ToCRefOp(op) + ", void E.<G>$78CFE6F93D970DBBE44B05C24FFEB91E." + opName + "(S1 y))",
                 "(E.extension(S1).operator checked " + ToCRefOp(op) + "(S1), void E.<G>$78CFE6F93D970DBBE44B05C24FFEB91E." + opName + "(S1 y))"],
-                ExtensionTests.PrintXmlCrefSymbols(tree, model));
+                PrintXmlCrefSymbols(tree, model));
         }
 
         [Theory]
@@ -30218,6 +30178,55 @@ public class C1 { }
                 // (2,5): error CS0121: The call is ambiguous between the following methods or properties: 'E1.extension(C1).operator ++()' and 'E2.extension(C1).operator ++()'
                 // _ = ++c1;
                 Diagnostic(ErrorCode.ERR_AmbigCall, "++").WithArguments("E1.extension(C1).operator ++()", "E2.extension(C1).operator ++()").WithLocation(2, 5));
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/82977")]
+        public void Issue82977()
+        {
+            var src1 = $$$"""
+public struct V<T> 
+{
+    public T Value;
+    public V(T value) => this.Value = value;
+}
+
+public static class Extensions
+{
+    extension(V<float>)
+    {
+        public static V<float> operator /(V<float> a, V<float> b)
+        {
+            throw null;
+        }
+        
+        public static V<float> operator checked /(V<float> a, V<float> b)
+        {
+            System.Console.WriteLine("checked");
+            return new V<float>(checked(a.Value / b.Value));
+        }
+    }
+}
+""";
+            var src2 = $$$"""
+public static class Program
+{
+    public static void Main()
+    {
+        var x = new V<float>(1f);
+        checked
+        {
+            x = x / x;
+        }
+    }
+}
+""";
+
+            var comp1 = CreateCompilation([src1, src2], options: TestOptions.DebugExe);
+            CompileAndVerify(comp1, expectedOutput: "checked").VerifyDiagnostics();
+
+            var comp2 = CreateCompilation(src2, references: [comp1.EmitToImageReference()], options: TestOptions.DebugExe);
+            CompileAndVerify(comp2, expectedOutput: "checked").VerifyDiagnostics();
         }
     }
 }

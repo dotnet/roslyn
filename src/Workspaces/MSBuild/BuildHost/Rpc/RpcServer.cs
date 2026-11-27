@@ -8,10 +8,9 @@ using System.Collections.Generic;
 using System.IO;
 using System.IO.Pipes;
 using System.Reflection;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.MSBuild;
@@ -25,31 +24,62 @@ namespace Microsoft.CodeAnalysis.MSBuild;
 /// are out. If at some point there is a standard RPC mechanism exposed in .NET or Source Build, we should delete this and use that instead.
 /// </remarks>
 internal sealed class RpcServer
+#if NETFRAMEWORK
+    : MarshalByRefObject
+#endif
 {
     private readonly TextWriter _streamWriter;
     private readonly SemaphoreSlim _sendingStreamSemaphore = new(initialCount: 1);
     private readonly TextReader _streamReader;
+    private readonly RpcMethodInvoker _rpcMethodInvoker;
 
-    private readonly ConcurrentDictionary<int, object> _rpcTargets = [];
-    private volatile int _nextRpcTargetIndex = -1; // We'll start at -1 so the first value becomes zero
+    /// <summary>
+    /// A lock to guard <see cref="_rpcTargets"/>, <see cref="_rpcTargetToIndex"/> and <see cref="_nextRpcTargetIndex"/>.
+    /// </summary>
+    private readonly ReaderWriterLockSlim _rpcTargetsLock = new();
+    private readonly Dictionary<int, object> _rpcTargets = [];
+    private readonly Dictionary<object, int> _rpcTargetToIndex = [];
+    private int _nextRpcTargetIndex = 0;
 
     private readonly CancellationTokenSource _shutdownTokenSource = new();
 
-    public RpcServer(PipeStream stream)
+    public RpcServer(PipeStream stream) : this(stream, new RpcMethodInvoker())
+    {
+    }
+
+    public RpcServer(PipeStream stream, RpcMethodInvoker methodInvoker)
     {
         _streamWriter = new StreamWriter(stream, JsonSettings.StreamEncoding);
         _streamReader = new StreamReader(stream, JsonSettings.StreamEncoding);
+        _rpcMethodInvoker = methodInvoker;
     }
 
     public int AddTarget(object rpcTarget)
     {
         // Loop until we successfully have a new index for this; practically we don't expect this to ever collide, since that'd mean we'd have
         // billions of long lived projects, but...
-        while (true)
+        using (_rpcTargetsLock.DisposableWrite())
         {
-            var nextIndex = Interlocked.Increment(ref _nextRpcTargetIndex);
-            if (_rpcTargets.TryAdd(nextIndex, rpcTarget))
-                return nextIndex;
+            while (true)
+            {
+                var nextIndex = _nextRpcTargetIndex++;
+                if (!_rpcTargets.ContainsKey(nextIndex))
+                {
+                    _rpcTargets.Add(nextIndex, rpcTarget);
+                    _rpcTargetToIndex.Add(rpcTarget, nextIndex);
+                    return nextIndex;
+                }
+            }
+        }
+    }
+
+    public void RemoveTarget(object rpcTarget)
+    {
+        using (_rpcTargetsLock.DisposableWrite())
+        {
+            Contract.ThrowIfFalse(_rpcTargetToIndex.TryGetValue(rpcTarget, out var targetIndex));
+            _rpcTargetToIndex.Remove(rpcTarget);
+            _rpcTargets.Remove(targetIndex);
         }
     }
 
@@ -68,7 +98,7 @@ internal sealed class RpcServer
 
             try
             {
-                request = JsonConvert.DeserializeObject<Request>(line);
+                request = JsonSerializer.Deserialize<Request>(line, JsonSettings.SingleLineSerializerOptions);
                 Contract.ThrowIfNull(request);
             }
             catch (Exception e)
@@ -107,9 +137,14 @@ internal sealed class RpcServer
 
         try
         {
-            Contract.ThrowIfFalse(
-                _rpcTargets.TryGetValue(request.TargetObject, out var rpcTarget),
-                $"Received a request for target object {request.TargetObject} but we don't have a registered object for that.");
+            object rpcTarget;
+
+            using (_rpcTargetsLock.DisposableRead())
+            {
+                Contract.ThrowIfFalse(
+                    _rpcTargets.TryGetValue(request.TargetObject, out rpcTarget!),
+                    $"Received a request for target object {request.TargetObject} but we don't have a registered object for that.");
+            }
 
             var method = rpcTarget.GetType().GetMethod(request.Method, BindingFlags.Public | BindingFlags.Instance);
 
@@ -128,45 +163,30 @@ internal sealed class RpcServer
 
             for (var i = 0; i < methodParameters.Length; i++)
             {
-                // If the method we're calling accepts a cancellation token, we wouldn't have passed that, so add in a CancellationToken.None here. Although we could
-                // remove the cancellation from the underlying method, this keeps that support around should we need it.
-                if (i == methodParameters.Length - 1 && lastParameterIsCancellationToken)
-                    arguments[i] = CancellationToken.None;
-                else
-                    arguments[i] = request.Parameters[i].ToObject(methodParameters[i].ParameterType);
+                // If the method we're calling accepts a cancellation token, we want to fill in a CancellationToken. That filling in happens in the
+                // RpcMethodInvoker, so we just keep the array null here.
+                if (!(i == methodParameters.Length - 1 && lastParameterIsCancellationToken))
+                    arguments[i] = request.Parameters[i].Deserialize(methodParameters[i].ParameterType, JsonSettings.SingleLineSerializerOptions);
             }
 
-            var result = method.Invoke(rpcTarget, arguments);
+            var result = _rpcMethodInvoker.InvokeMethod(rpcTarget, method, arguments, lastParameterIsCancellationToken);
 
-            if (result is Task task)
+            if (result is Task resultTask)
             {
-                await task.ConfigureAwait(false);
-
-                // If it's actually a Task<T> then get the result; we're looking at the declared return type because in some cases a method might
-                // return a Task<T> under the covers as a workaround for the lack of TaskCompletionSource on .NET Framework but we don't want to see
-                // that workaround since the result isn't intended to be seen.
-                if (method.ReturnType.IsConstructedGenericType)
-                {
-                    result = task.GetType().GetProperty("Result")!.GetValue(task);
-                }
-                else
-                {
-                    // It's just a simple Task so no result to return
-                    result = null;
-                }
+                result = await RpcMethodInvoker.GetTaskResultAsync(resultTask, calledMethod: method).ConfigureAwait(false);
             }
 
-            response = new Response { Id = request.Id, Value = result is not null ? JToken.FromObject(result) : null };
+            response = new Response { Id = request.Id, Value = result is not null ? JsonSerializer.SerializeToElement(result, JsonSettings.SingleLineSerializerOptions) : null };
         }
         catch (Exception e)
         {
             if (e is TargetInvocationException)
                 e = e.InnerException ?? e;
 
-            response = new Response { Id = request.Id, Exception = $"An exception of type {e.GetType()} was thrown: {e.Message}" };
+            response = new Response { Id = request.Id, ExceptionMessage = $"An exception of type {e.GetType()} was thrown: {e.Message}", ExceptionStackTrace = e.StackTrace };
         }
 
-        var responseJson = JsonConvert.SerializeObject(response, JsonSettings.SingleLineSerializerSettings);
+        var responseJson = JsonSerializer.Serialize(response, JsonSettings.SingleLineSerializerOptions);
 
 #if DEBUG
         // Assert we didn't put a newline in this, since if we did the receiving side won't know how to parse it

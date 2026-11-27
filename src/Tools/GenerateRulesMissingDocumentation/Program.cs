@@ -100,7 +100,7 @@ if (!validateOnly)
     File.WriteAllText(fileWithPath, builder.ToString());
 }
 
-// NOTE: Network errors (timeouts and 5xx status codes) are not considered failures.
+// NOTE: Network errors (timeouts, rate limits, and 5xx status codes) are not considered failures.
 async Task<bool> checkHelpLinkAsync(string helpLink)
 {
     try
@@ -117,7 +117,7 @@ async Task<bool> checkHelpLinkAsync(string helpLink)
         if (!success && response is not null)
         {
             Console.WriteLine($"##[warning]Failed to check '{helpLink}': {response.StatusCode}");
-            if ((int)response.StatusCode >= 500)
+            if ((int)response.StatusCode is (int)HttpStatusCode.TooManyRequests or >= 500)
             {
                 return true;
             }

@@ -16,5 +16,5 @@ namespace Microsoft.CodeAnalysis.LegacySolutionEvents;
 internal interface ILegacySolutionEventsListener
 {
     bool ShouldReportChanges(SolutionServices services);
-    ValueTask OnWorkspaceChangedAsync(WorkspaceChangeEventArgs args, CancellationToken cancellationToken);
+    ValueTask OnWorkspaceChangedAsync(WorkspaceChangeEventArgs args, bool processSourceGeneratedDocuments, CancellationToken cancellationToken);
 }

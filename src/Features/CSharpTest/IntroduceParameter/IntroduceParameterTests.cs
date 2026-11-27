@@ -1086,6 +1086,18 @@ public sealed class IntroduceParameterTests : AbstractCSharpCodeActionTest_NoEdi
             }
             """, index: 1, new(options: new OptionsCollection(GetLanguage()), parseOptions: CSharpParseOptions.Default));
 
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/82049")]
+    public Task TestMissingWithMissingRequiredArgument()
+        => TestMissingInRegularAndScriptAsync("""
+            class C
+            {
+                void M(int a, int b)
+                {
+                    M([|1|]);
+                }
+            }
+            """);
+
     [Fact]
     public Task TestExpressionCaseWithNestedRecursiveCallTrampoline()
         => TestInRegularAndScriptAsync("""

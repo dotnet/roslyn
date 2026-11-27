@@ -32,10 +32,10 @@
         <target state="translated">Falha do cliente ao conectar o depurador</target>
         <note />
       </trans-unit>
-      <trans-unit id="Completed_reload_of_all_projects_in_0">
-        <source>Completed (re)load of all projects in {0}</source>
-        <target state="translated">(Re)carregamento concluído de todos os projetos em {0}</target>
-        <note>The placeholder is a time duration like 00:15</note>
+      <trans-unit id="Completed_reload_of_0_projects_in_1">
+        <source>Completed (re)load of {0} project(s) in {1}</source>
+        <target state="translated">(Re)carregamento concluído de {0} projetos em {1}</target>
+        <note>The second placeholder is a time duration like 00:15</note>
       </trans-unit>
       <trans-unit id="Debug_Trace_Messages">
         <source>Debug Trace Messages</source>
@@ -67,6 +67,11 @@
         <target state="translated">Falhou:    {0}, Passou:    {1}, Ignorado:    {2}, Total:    {3}, Duração: {4}</target>
         <note />
       </trans-unit>
+      <trans-unit id="Failed_to_read_project_assets_file_0_version_1_2">
+        <source>Failed to read project assets file {0} (version {1}), assuming a restore is required. {2}</source>
+        <target state="translated">Falha ao ler o arquivo de ativos do projeto {0} (versão {1}), presumindo que seja necessário restaurar. {2}</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Failed_to_read_runsettings_file_at_0_1">
         <source>Failed to read .runsettings file at {0}:{1}</source>
         <target state="translated">Falha ao ler o arquivo .runsettings em {0}:{1}</target>
@@ -82,10 +87,30 @@
         <target state="translated">Foram encontrados {0} testes em {1}</target>
         <note />
       </trans-unit>
+      <trans-unit id="Loaded_0">
+        <source>Loaded {0}</source>
+        <target state="translated">{0} carregado</target>
+        <note>The placeholder is a name of a file</note>
+      </trans-unit>
+      <trans-unit id="Loaded_0_projects">
+        <source>Loaded {0} project(s)</source>
+        <target state="translated">{0} projeto(s) carregado(s)</target>
+        <note>The placeholder is the number of projects</note>
+      </trans-unit>
       <trans-unit id="Loading_0">
         <source>Loading {0}...</source>
         <target state="translated">Carregando {0}...</target>
         <note>The placeholder is a name of a file</note>
+      </trans-unit>
+      <trans-unit id="Loading_0_projects">
+        <source>Loading {0} project(s)...</source>
+        <target state="translated">Carregando {0} projeto(s)...</target>
+        <note>The placeholder is the number of projects</note>
+      </trans-unit>
+      <trans-unit id="Loading_projects">
+        <source>Loading projects...</source>
+        <target state="translated">Carregando projetos...</target>
+        <note />
       </trans-unit>
       <trans-unit id="Message">
         <source>Message</source>

@@ -5,6 +5,7 @@
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 using Xunit.Abstractions;
@@ -13,7 +14,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests;
 
 public sealed class IgnoredDirectiveParsingTests(ITestOutputHelper output) : ParsingTests(output)
 {
-    private const string FeatureName = "FileBasedProgram";
+    private const string FeatureName = CodeAnalysis.Feature.FileBasedProgram;
 
     [Theory, CombinatorialData]
     public void FeatureFlag(bool script)
@@ -186,15 +187,15 @@ public sealed class IgnoredDirectiveParsingTests(ITestOutputHelper output) : Par
         var expectedDiagnostics = script || featureFlag
             ? new[]
             {
-                // (1,2): error CS1040: Preprocessor directives must appear as the first non-whitespace character on a line
+                // (1,2): error CS9378: '#!' must be the first characters on the first line of the file
                 //  #!xyz
-                Diagnostic(ErrorCode.ERR_BadDirectivePlacement, "#").WithLocation(1, 2)
+                Diagnostic(ErrorCode.ERR_PPShebangNotOnFirstLine, "#").WithLocation(1, 2)
             }
             : new[]
             {
-                // (1,2): error CS1040: Preprocessor directives must appear as the first non-whitespace character on a line
+                // (1,2): error CS9378: '#!' must be the first characters on the first line of the file
                 //  #!xyz
-                Diagnostic(ErrorCode.ERR_BadDirectivePlacement, "#").WithLocation(1, 2),
+                Diagnostic(ErrorCode.ERR_PPShebangNotOnFirstLine, "#").WithLocation(1, 2),
                 // (1,3): error CS9314: '#!' directives can be only used in scripts or file-based programs
                 //  #!xyz
                 Diagnostic(ErrorCode.ERR_PPShebangInProjectBasedProgram, "!").WithLocation(1, 3)
@@ -219,6 +220,83 @@ public sealed class IgnoredDirectiveParsingTests(ITestOutputHelper output) : Par
                 }
             }
         }
+        EOF();
+    }
+
+    [Theory, CombinatorialData]
+    public void ShebangInDisabledRegion(bool script, bool featureFlag)
+    {
+        var options = script ? TestOptions.Script : TestOptions.Regular;
+
+        if (featureFlag)
+        {
+            options = options.WithFeature(FeatureName);
+        }
+
+        var source = """
+            #if false
+            #!xyz
+             # !abc
+            #if true
+            #!nested
+            #endif
+            #endif
+            #if true
+            #else
+            #!else
+            #endif
+            """;
+
+        var root = SyntaxFactory.ParseCompilationUnit(source, options: options);
+        root.GetDiagnostics().Verify();
+        Assert.Equal(source, root.ToFullString());
+
+        var shebangs = root.DescendantTrivia()
+            .Select(trivia => trivia.GetStructure())
+            .OfType<ShebangDirectiveTriviaSyntax>()
+            .ToArray();
+        AssertEx.Equal(["xyz", "abc", "nested", "else"], shebangs.Select(shebang => shebang.Content.ValueText));
+        Assert.All(shebangs, shebang => Assert.False(shebang.IsActive));
+    }
+
+    [Theory, CombinatorialData]
+    public void ShebangAfterDisabledRegion(bool script, bool featureFlag)
+    {
+        var options = script ? TestOptions.Script : TestOptions.Regular;
+
+        if (featureFlag)
+        {
+            options = options.WithFeature(FeatureName);
+        }
+
+        var source = """
+            #if false
+            #!ignored
+            #endif
+            #!active
+            """;
+
+        DiagnosticDescription[] expectedDiagnostics = script || featureFlag
+            ?
+            [
+                // (4,1): error CS9378: '#!' must be the first characters on the first line of the file
+                // #!active
+                Diagnostic(ErrorCode.ERR_PPShebangNotOnFirstLine, "#").WithLocation(4, 1),
+            ]
+            :
+            [
+                // (4,1): error CS9378: '#!' must be the first characters on the first line of the file
+                // #!active
+                Diagnostic(ErrorCode.ERR_PPShebangNotOnFirstLine, "#").WithLocation(4, 1),
+                // (4,2): error CS9314: '#!' directives can be only used in scripts or file-based programs
+                // #!active
+                Diagnostic(ErrorCode.ERR_PPShebangInProjectBasedProgram, "!").WithLocation(4, 2),
+            ];
+
+        UsingTree(source, options, expectedDiagnostics);
+
+        N(SyntaxKind.CompilationUnit);
+        N(SyntaxKind.EndOfFileToken);
         EOF();
     }
 
@@ -719,9 +797,9 @@ public sealed class IgnoredDirectiveParsingTests(ITestOutputHelper output) : Par
 
         VerifyTrivia();
         UsingTree(source, TestOptions.Script,
-            // (1,1): error CS1040: Preprocessor directives must appear as the first non-whitespace character on a line
+            // (1,1): error CS9378: '#!' must be the first characters on the first line of the file
             // # !xyz
-            Diagnostic(ErrorCode.ERR_BadDirectivePlacement, "#").WithLocation(1, 1));
+            Diagnostic(ErrorCode.ERR_PPShebangNotOnFirstLine, "#").WithLocation(1, 1));
 
         N(SyntaxKind.CompilationUnit);
         {
@@ -754,9 +832,9 @@ public sealed class IgnoredDirectiveParsingTests(ITestOutputHelper output) : Par
 
         VerifyTrivia();
         UsingTree(source, TestOptions.Script,
-            // (2,1): error CS1040: Preprocessor directives must appear as the first non-whitespace character on a line
+            // (2,1): error CS9378: '#!' must be the first characters on the first line of the file
             // #!xyz
-            Diagnostic(ErrorCode.ERR_BadDirectivePlacement, "#").WithLocation(2, 1));
+            Diagnostic(ErrorCode.ERR_PPShebangNotOnFirstLine, "#").WithLocation(2, 1));
 
         N(SyntaxKind.CompilationUnit);
         {
@@ -771,6 +849,42 @@ public sealed class IgnoredDirectiveParsingTests(ITestOutputHelper output) : Par
                     N(SyntaxKind.EndOfDirectiveToken);
                     {
                         L(SyntaxKind.PreprocessingMessageTrivia, "xyz");
+                    }
+                }
+            }
+        }
+        EOF();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/83111")]
+    public void ShebangIncorrectlyPlaced_FileBasedProgram()
+    {
+        // Shebang on the first column of a non-first line should get a specific error,
+        // not the generic "must appear as the first non-whitespace character on a line" error.
+        var source = """
+            // Comment
+            #!/usr/bin/env dotnet
+            """;
+
+        VerifyTrivia();
+        UsingTree(source, TestOptions.Regular.WithFeature(FeatureName),
+            // (2,1): error CS9378: '#!' must be the first characters on the first line of the file
+            // #!/usr/bin/env dotnet
+            Diagnostic(ErrorCode.ERR_PPShebangNotOnFirstLine, "#").WithLocation(2, 1));
+
+        N(SyntaxKind.CompilationUnit);
+        {
+            N(SyntaxKind.EndOfFileToken);
+            {
+                L(SyntaxKind.SingleLineCommentTrivia, "// Comment");
+                L(SyntaxKind.EndOfLineTrivia, "\n");
+                L(SyntaxKind.ShebangDirectiveTrivia);
+                {
+                    N(SyntaxKind.HashToken);
+                    N(SyntaxKind.ExclamationToken);
+                    N(SyntaxKind.EndOfDirectiveToken);
+                    {
+                        L(SyntaxKind.PreprocessingMessageTrivia, "/usr/bin/env dotnet");
                     }
                 }
             }

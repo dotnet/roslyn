@@ -168,7 +168,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
             Next
 
             If result Is Nothing Then
-                Assert.True(False, "Could not locate code element")
+                Assert.Fail("Could not locate code element")
             End If
 
             Return CType(result, T)

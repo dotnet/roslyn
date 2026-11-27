@@ -197,7 +197,7 @@ internal sealed partial class MessageBoxInProcess
                         //    return VSConstants.S_OK;
                         //}
 
-                        //Assert.True(false, "RevertEditsOnHotReload() failed");
+                        //Assert.Fail("RevertEditsOnHotReload() failed");
                         //throw ExceptionUtilities.Unreachable();
                         throw new NotImplementedException();
 

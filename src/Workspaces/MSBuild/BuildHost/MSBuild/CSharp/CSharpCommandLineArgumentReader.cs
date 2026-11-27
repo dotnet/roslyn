@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections.Immutable;
 using MSB = Microsoft.Build;
 
 namespace Microsoft.CodeAnalysis.MSBuild;
@@ -14,7 +13,7 @@ internal sealed class CSharpCommandLineArgumentReader : CommandLineArgumentReade
     {
     }
 
-    public static ImmutableArray<string> Read(MSB.Execution.ProjectInstance project)
+    public static string[] Read(MSB.Execution.ProjectInstance project)
     {
         return new CSharpCommandLineArgumentReader(project).Read();
     }
@@ -22,7 +21,6 @@ internal sealed class CSharpCommandLineArgumentReader : CommandLineArgumentReade
     protected override void ReadCore()
     {
         ReadAdditionalFiles();
-        ReadAnalyzers();
         ReadCodePage();
         ReadDebugInfo();
         ReadDelaySign();
@@ -30,7 +28,6 @@ internal sealed class CSharpCommandLineArgumentReader : CommandLineArgumentReade
         ReadFeatures();
         ReadImports();
         ReadPlatform();
-        ReadReferences();
         ReadSigning();
 
         AddIfNotNullOrWhiteSpace("appconfig", Project.ReadPropertyString(PropertyNames.AppConfigForCompiler));

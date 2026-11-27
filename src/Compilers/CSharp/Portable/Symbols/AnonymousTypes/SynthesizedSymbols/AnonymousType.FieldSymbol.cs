@@ -44,6 +44,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             public override FlowAnalysisAnnotations FlowAnalysisAnnotations
                 => FlowAnalysisAnnotations.None;
 
+            internal sealed override RequiresUnsafeMode GetRequiresUnsafeMode(ConsList<FieldSymbol> fieldsBeingBound) => RequiresUnsafeMode.None;
+
             internal override bool HasSpecialName
             {
                 get { return false; }

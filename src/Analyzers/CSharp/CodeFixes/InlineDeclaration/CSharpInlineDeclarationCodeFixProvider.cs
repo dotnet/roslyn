@@ -36,10 +36,9 @@ internal sealed partial class CSharpInlineDeclarationCodeFixProvider() : SyntaxE
     public override ImmutableArray<string> FixableDiagnosticIds
         => [IDEDiagnosticIds.InlineDeclarationDiagnosticId];
 
-    public override Task RegisterCodeFixesAsync(CodeFixContext context)
+    public override async Task RegisterCodeFixesAsync(CodeFixContext context)
     {
         RegisterCodeFix(context, CSharpAnalyzersResources.Inline_variable_declaration, nameof(CSharpAnalyzersResources.Inline_variable_declaration));
-        return Task.CompletedTask;
     }
 
     protected override async Task FixAllAsync(

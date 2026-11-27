@@ -138,7 +138,7 @@ public sealed class CodeActionsTests(ITestOutputHelper testOutputHelper) : Abstr
         Assert.Equal(AddImportDiagnosticIds.CS0103, addImport.Diagnostics.Single().Code!.Value);
     }
 
-    [Theory, CombinatorialData]
+    [ConditionalTheory(typeof(IsEnglishLocal)), CombinatorialData]
     public async Task TestStandardLspNestedCodeAction(bool mutatingLspWorkspace)
     {
         var markup = """
@@ -184,7 +184,7 @@ public sealed class CodeActionsTests(ITestOutputHelper testOutputHelper) : Abstr
         Assert.NotNull(inline?.Command);
     }
 
-    [Theory, CombinatorialData]
+    [ConditionalTheory(typeof(IsEnglishLocal)), CombinatorialData]
     public async Task TestStandardLspNestedFixAllCodeAction(bool mutatingLspWorkspace)
     {
         var markup = """
@@ -230,7 +230,7 @@ public sealed class CodeActionsTests(ITestOutputHelper testOutputHelper) : Abstr
         Assert.Equal("Fix All: in Source", data.NestedCodeActions!.Value[1].Title);
     }
 
-    [Theory, CombinatorialData]
+    [ConditionalTheory(typeof(IsEnglishLocal)), CombinatorialData]
     public async Task TestStandardLspNestedResolveTopLevelCodeAction(bool mutatingLspWorkspace)
     {
         var markup = """

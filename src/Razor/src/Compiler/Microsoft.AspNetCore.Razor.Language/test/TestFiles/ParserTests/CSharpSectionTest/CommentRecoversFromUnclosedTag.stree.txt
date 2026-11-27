@@ -1,0 +1,53 @@
+﻿RazorDocument - [0..33)::33 - [@section s {LF<aLF<!--  > " '-->}]
+    MarkupBlock - [0..33)::33
+        MarkupTextLiteral - [0..0)::0 - [] - Gen<Markup>
+            Marker;[];
+        CSharpCodeBlock - [0..33)::33
+            RazorDirective - [0..33)::33 - Directive:{section;RazorBlock;Unrestricted}
+                CSharpTransition - [0..1)::1 - Gen<None>
+                    Transition;[@];
+                RazorDirectiveBody - [1..33)::32
+                    RazorMetaCode - [1..8)::7 - Gen<None>
+                        Identifier;[section];
+                    CSharpCodeBlock - [8..33)::25
+                        CSharpStatementLiteral - [8..9)::1 - [ ] - Gen<None>
+                            Whitespace;[ ];
+                        CSharpStatementLiteral - [9..10)::1 - [s] - Gen<DirectiveToken {SectionName;Member;Opt:False}>
+                            Identifier;[s];
+                        UnclassifiedTextLiteral - [10..11)::1 - [ ] - Gen<None>
+                            Whitespace;[ ];
+                        RazorMetaCode - [11..12)::1 - Gen<None>
+                            LeftBrace;[{];
+                        MarkupBlock - [12..32)::20
+                            MarkupTextLiteral - [12..14)::2 - [LF] - Gen<Markup>
+                                NewLine;[LF];
+                            MarkupElement - [14..32)::18
+                                MarkupStartTag - [14..18)::4 - [<aLF] - Gen<Markup>
+                                    OpenAngle;[<];
+                                    Text;[a];
+                                    MarkupMiscAttributeContent - [16..18)::2
+                                        MarkupTextLiteral - [16..18)::2 - [LF] - Gen<Markup>
+                                            NewLine;[LF];
+                                    CloseAngle;[<Missing>];
+                                MarkupCommentBlock - [18..32)::14
+                                    MarkupTextLiteral - [18..22)::4 - [<!--] - Gen<Markup>
+                                        OpenAngle;[<];
+                                        Bang;[!];
+                                        DoubleHyphen;[--];
+                                    MarkupTextLiteral - [22..29)::7 - [  > " '] - Gen<Markup>
+                                        Whitespace;[  ];
+                                        CloseAngle;[>];
+                                        Whitespace;[ ];
+                                        DoubleQuote;["];
+                                        Whitespace;[ ];
+                                        SingleQuote;['];
+                                    MarkupTextLiteral - [29..32)::3 - [-->] - Gen<Markup>
+                                        DoubleHyphen;[--];
+                                        CloseAngle;[>];
+                            MarkupTextLiteral - [32..32)::0 - [] - Gen<Markup>
+                                Marker;[];
+                        RazorMetaCode - [32..33)::1 - Gen<None>
+                            RightBrace;[}];
+        MarkupTextLiteral - [33..33)::0 - [] - Gen<Markup>
+            Marker;[];
+    EndOfFile;[];

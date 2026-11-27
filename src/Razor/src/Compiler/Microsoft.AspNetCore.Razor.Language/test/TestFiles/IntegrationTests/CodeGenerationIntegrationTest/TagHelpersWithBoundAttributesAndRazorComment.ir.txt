@@ -1,0 +1,32 @@
+﻿Document - 
+    RazorCompiledItemAttribute - 
+    NamespaceDeclaration -  - AspNetCoreGeneratedDocument
+        UsingDirective - (1:0,1 [20] ) - global::System
+        UsingDirective - (24:1,1 [40] ) - global::System.Collections.Generic
+        UsingDirective - (67:2,1 [25] ) - global::System.Linq
+        UsingDirective - (95:3,1 [36] ) - global::System.Threading.Tasks
+        UsingDirective - (134:4,1 [38] ) - global::Microsoft.AspNetCore.Mvc
+        UsingDirective - (175:5,1 [48] ) - global::Microsoft.AspNetCore.Mvc.Rendering
+        UsingDirective - (226:6,1 [51] ) - global::Microsoft.AspNetCore.Mvc.ViewFeatures
+        RazorSourceChecksumAttribute - 
+        RazorCompiledItemMetadataAttribute - 
+        CreateNewOnMetadataUpdateAttribute - 
+        ClassDeclaration -  - internal sealed - TestFiles_IntegrationTests_CodeGenerationIntegrationTest_TagHelpersWithBoundAttributesAndRazorComment - global::Microsoft.AspNetCore.Mvc.Razor.RazorPage<dynamic> - 
+            PreallocatedTagHelperPropertyValue -  - __tagHelperAttribute_0 - value - Hello - HtmlAttributeValueStyle.DoubleQuotes
+            PreallocatedTagHelperPropertyValue -  - __tagHelperAttribute_1 - bound - World - HtmlAttributeValueStyle.DoubleQuotes
+            DefaultTagHelperRuntime - 
+            FieldDeclaration -  - private - global::InputTagHelper - __InputTagHelper
+            MethodDeclaration -  - public async override - global::System.Threading.Tasks.Task - ExecuteAsync
+                TagHelper - (31:1,0 [70] TagHelpersWithBoundAttributesAndRazorComment.cshtml) - input - TagMode.SelfClosing
+                    DefaultTagHelperBody - 
+                    DefaultTagHelperCreate -  - InputTagHelper
+                    PreallocatedTagHelperProperty - (45:1,14 [5] TagHelpersWithBoundAttributesAndRazorComment.cshtml) - __tagHelperAttribute_0 - value - FooProp
+                    PreallocatedTagHelperProperty - (92:1,61 [5] TagHelpersWithBoundAttributesAndRazorComment.cshtml) - __tagHelperAttribute_1 - bound - BoundProp
+                    DefaultTagHelperExecute - 
+                HtmlContent - (101:1,70 [2] TagHelpersWithBoundAttributesAndRazorComment.cshtml)
+                    LazyIntermediateToken - (101:1,70 [2] TagHelpersWithBoundAttributesAndRazorComment.cshtml) - Html - \n
+            Inject - 
+            Inject - 
+            Inject - 
+            Inject - 
+            Inject - 

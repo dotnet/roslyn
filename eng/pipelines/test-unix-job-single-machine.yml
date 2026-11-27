@@ -17,44 +17,53 @@ parameters:
   default: ''
 - name: poolParameters
   type: object
+- name: locale
+  type: string
+  default: ''
 
 jobs:
 - job: ${{ parameters.jobName }}
   pool: ${{ parameters.poolParameters }}
-  timeoutInMinutes: 50
+  timeoutInMinutes: 120
   variables:
-    DOTNET_ROLL_FORWARD: LatestMajor
-    DOTNET_ROLL_FORWARD_TO_PRERELEASE: 1
+    ${{ if ne(parameters.locale, '') }}:
+      LC_ALL: ${{ parameters.locale }}
   steps:
     - checkout: none
+
+    - script: sudo locale-gen ${{ parameters.locale }}
+      displayName: Generate Locale
+      condition: ne('${{ parameters.locale }}', '')
 
     - task: DownloadPipelineArtifact@2
       displayName: Download Test Payload
       inputs:
         artifact: ${{ parameters.testArtifactName }}
         path: '$(Build.SourcesDirectory)'
-    
+
     - task: ShellScript@2
       displayName: Rehydrate Unit Tests Environment
       inputs:
         scriptPath: ./rehydrate-all.sh
 
-    - task: ShellScript@2
-      inputs:
-        scriptPath: ./eng/build.sh
-        args: --ci --configuration ${{ parameters.configuration }} ${{ parameters.testArguments }}
-      displayName: Test
+    - template: install-dotnet.yml
 
-    - task: PublishTestResults@2
-      displayName: Publish xUnit Test Results
+    - task: Bash@3
       inputs:
-        testRunner: XUnit
-        testResultsFiles: '$(Build.SourcesDirectory)/artifacts/TestResults/${{ parameters.configuration }}/*.xml'
-        mergeTestResults: true
-        testRunTitle: ${{ parameters.testRunName }}
-      condition: always()
+        targetType: inline
+        script: |
+          set -e
+          # Mirror the Helix dump environment so tests that collect dumps or binlogs into HELIX_DUMP_FOLDER,
+          # and runtime crash dumps, end up in the published logs.
+          export HELIX_DUMP_FOLDER="$(Build.SourcesDirectory)/artifacts/log/${{ parameters.configuration }}/dumps"
+          mkdir -p "$HELIX_DUMP_FOLDER"
+          export DOTNET_DbgEnableMiniDump=1
+          export DOTNET_DbgMiniDumpName="$HELIX_DUMP_FOLDER/crash.%d.%e.dmp"
+          dotnet exec "$(Build.SourcesDirectory)/artifacts/bin/RunTests/${{ parameters.configuration }}/net10.0/RunTests.dll" --ci --testConfiguration ${{ parameters.configuration }} --logs "$(Build.SourcesDirectory)/artifacts/log/${{ parameters.configuration }}" ${{ parameters.testArguments }}
+      displayName: Test
 
     - template: publish-logs.yml
       parameters:
         configuration: ${{ parameters.configuration }}
         jobName: ${{ parameters.jobName }}
+        testRunName: ${{ parameters.testRunName }}

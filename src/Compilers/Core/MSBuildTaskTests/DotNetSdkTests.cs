@@ -311,6 +311,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
         [ConditionalTheory(typeof(DotNetSdkAvailable))]
         [CombinatorialData]
         [WorkItem(43476, "https://github.com/dotnet/roslyn/issues/43476")]
+        [WorkItem(82112, "https://github.com/dotnet/roslyn/issues/82112")]
         public void InitializeSourceRootMappedPathsReturnsSourceMap(bool deterministicSourcePaths)
         {
             ProjectDir.CreateFile("Project2.csproj").WriteAllText($@"
@@ -344,9 +345,11 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
                 },
                 expectedResults: new[]
                 {
-                    $"X{Path.DirectorySeparatorChar}",
-                    $"Y{Path.DirectorySeparatorChar}",
-                    $"Z{Path.DirectorySeparatorChar}",
+                    // SourceRoot items are canonicalized to absolute paths by the MapSourceRoots task
+                    // invoked from the InitializeSourceRootMappedPaths target.
+                    Path.GetFullPath(Path.Combine(ProjectDir.Path, "X")) + Path.DirectorySeparatorChar,
+                    Path.GetFullPath(Path.Combine(ProjectDir.Path, "Y")) + Path.DirectorySeparatorChar,
+                    Path.GetFullPath(Path.Combine(ProjectDir.Path, "Z")) + Path.DirectorySeparatorChar,
                 });
         }
 

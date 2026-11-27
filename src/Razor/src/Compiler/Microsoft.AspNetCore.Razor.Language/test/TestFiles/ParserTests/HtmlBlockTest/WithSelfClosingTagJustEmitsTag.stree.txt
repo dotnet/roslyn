@@ -1,0 +1,29 @@
+﻿RazorDocument - [0..10)::10 - [@{<foo />}]
+    MarkupBlock - [0..10)::10
+        MarkupTextLiteral - [0..0)::0 - [] - Gen<Markup>
+            Marker;[];
+        CSharpCodeBlock - [0..10)::10
+            CSharpStatement - [0..10)::10
+                CSharpTransition - [0..1)::1 - Gen<None>
+                    Transition;[@];
+                CSharpStatementBody - [1..10)::9
+                    RazorMetaCode - [1..2)::1 - Gen<None>
+                        LeftBrace;[{];
+                    CSharpCodeBlock - [2..9)::7
+                        MarkupBlock - [2..9)::7
+                            MarkupElement - [2..9)::7
+                                MarkupStartTag - [2..9)::7 - [<foo />] - Gen<Markup>
+                                    OpenAngle;[<];
+                                    Text;[foo];
+                                    MarkupMiscAttributeContent - [6..7)::1
+                                        MarkupTextLiteral - [6..7)::1 - [ ] - Gen<Markup>
+                                            Whitespace;[ ];
+                                    ForwardSlash;[/];
+                                    CloseAngle;[>];
+                        CSharpStatementLiteral - [9..9)::0 - [] - Gen<Stmt>
+                            Marker;[];
+                    RazorMetaCode - [9..10)::1 - Gen<None>
+                        RightBrace;[}];
+        MarkupTextLiteral - [10..10)::0 - [] - Gen<Markup>
+            Marker;[];
+    EndOfFile;[];

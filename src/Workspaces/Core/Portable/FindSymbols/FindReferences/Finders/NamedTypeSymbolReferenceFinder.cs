@@ -25,7 +25,7 @@ internal sealed class NamedTypeSymbolReferenceFinder : AbstractReferenceFinder<I
         return GetAllMatchingGlobalAliasNamesAsync(project, symbol.Name, symbol.Arity, cancellationToken);
     }
 
-    protected override ValueTask<ImmutableArray<ISymbol>> DetermineCascadedSymbolsAsync(
+    protected override async ValueTask<ImmutableArray<ISymbol>> DetermineCascadedSymbolsAsync(
         INamedTypeSymbol symbol,
         Solution solution,
         FindReferencesSearchOptions options,
@@ -40,9 +40,13 @@ internal sealed class NamedTypeSymbolReferenceFinder : AbstractReferenceFinder<I
         Add(result, symbol.Constructors);
 
         // cascade to destructor
-        Add(result, symbol.GetMembers(WellKnownMemberNames.DestructorName));
+        foreach (var member in symbol.GetMembers(WellKnownMemberNames.DestructorName))
+        {
+            if (member is IMethodSymbol { MethodKind: MethodKind.Destructor })
+                result.Add(member);
+        }
 
-        return new(result.ToImmutable());
+        return result.ToImmutable();
     }
 
     private static void Add<TSymbol>(ArrayBuilder<ISymbol> result, ImmutableArray<TSymbol> enumerable) where TSymbol : ISymbol

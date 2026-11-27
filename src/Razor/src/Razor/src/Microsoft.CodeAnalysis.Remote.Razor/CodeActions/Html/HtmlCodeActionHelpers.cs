@@ -1,0 +1,29 @@
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
+using System.Threading;
+using System.Threading.Tasks;
+using Microsoft.AspNetCore.Razor.Language;
+using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.Remote.Razor.DocumentMapping;
+using Microsoft.CodeAnalysis.Remote.Razor.ProjectSystem;
+
+namespace Microsoft.CodeAnalysis.Razor.CodeActions;
+
+internal static class HtmlCodeActionHelpers
+{
+    internal static async Task MapAndFixHtmlCodeActionEditAsync(IRazorEditService razorEditService, RemoteDocumentSnapshot documentSnapshot, CodeAction codeAction, CancellationToken cancellationToken)
+    {
+        Contract.ThrowIfNull(codeAction.Edit);
+
+        await razorEditService.MapWorkspaceEditAsync(documentSnapshot.TextDocument.Project.Solution, codeAction.Edit, cancellationToken).ConfigureAwait(false);
+
+        var codeDocument = await documentSnapshot.GetGeneratedOutputAsync(cancellationToken).ConfigureAwait(false);
+        var htmlSourceText = codeDocument.GetHtmlSourceText(cancellationToken);
+
+        foreach (var edit in codeAction.Edit.EnumerateTextDocumentEdits())
+        {
+            edit.Edits = htmlSourceText.FixHtmlTextEdits(edit.Edits);
+        }
+    }
+}

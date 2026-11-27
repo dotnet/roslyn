@@ -27,10 +27,8 @@ internal abstract class AbstractRefreshQueue :
     private readonly IClientLanguageServerManager _notificationManager;
 
     private readonly IAsynchronousOperationListener _asyncListener;
-    private readonly CancellationTokenSource _disposalTokenSource;
     private readonly LspWorkspaceRegistrationService _lspWorkspaceRegistrationService;
-
-    protected bool _isQueueCreated;
+    private readonly FeatureProviderRefresher _providerRefresher;
 
     protected abstract string GetFeatureAttribute();
     protected abstract bool? GetRefreshSupport(ClientCapabilities clientCapabilities);
@@ -40,20 +38,20 @@ internal abstract class AbstractRefreshQueue :
         IAsynchronousOperationListenerProvider asynchronousOperationListenerProvider,
         LspWorkspaceRegistrationService lspWorkspaceRegistrationService,
         LspWorkspaceManager lspWorkspaceManager,
-        IClientLanguageServerManager notificationManager)
+        IClientLanguageServerManager notificationManager,
+        FeatureProviderRefresher providerRefresher)
     {
-        _isQueueCreated = false;
         _asyncListener = asynchronousOperationListenerProvider.GetListener(GetFeatureAttribute());
         _lspWorkspaceRegistrationService = lspWorkspaceRegistrationService;
-        _disposalTokenSource = new();
         _lspWorkspaceManager = lspWorkspaceManager;
         _notificationManager = notificationManager;
+        _providerRefresher = providerRefresher;
+        _providerRefresher.ProviderRefreshRequested += EnqueueRefreshNotification;
     }
 
-    public Task OnInitializedAsync(ClientCapabilities clientCapabilities, RequestContext context, CancellationToken cancellationToken)
+    public async Task OnInitializedAsync(ClientCapabilities clientCapabilities, RequestContext context, CancellationToken cancellationToken)
     {
         Initialize(clientCapabilities);
-        return Task.CompletedTask;
     }
 
     public void Initialize(ClientCapabilities clientCapabilities)
@@ -69,9 +67,7 @@ internal abstract class AbstractRefreshQueue :
                 processBatchAsync: (documentUris, cancellationToken)
                     => FilterLspTrackedDocumentsAsync(_lspWorkspaceManager, _notificationManager, documentUris, cancellationToken),
                 equalityComparer: EqualityComparer<DocumentUri?>.Default,
-                asyncListener: _asyncListener,
-                _disposalTokenSource.Token);
-            _isQueueCreated = true;
+                asyncListener: _asyncListener);
             _lspWorkspaceRegistrationService.LspSolutionChanged += OnLspSolutionChanged;
         }
     }
@@ -95,29 +91,32 @@ internal abstract class AbstractRefreshQueue :
         }
     }
 
+    /// <summary>
+    /// Enqueues a request to refresh the workspace.  If <paramref name="documentUri"/> is null, then the refresh will
+    /// always happen.  If non-null, the refresh will only happen if the client is <em>not</em> tracking that document.
+    /// If the client is tracking the document, no refresh is necessary as the client clearly knows about the change.
+    /// </summary>
     protected void EnqueueRefreshNotification(DocumentUri? documentUri)
-    {
-        if (_isQueueCreated)
-        {
-            Contract.ThrowIfNull(_refreshQueue);
-            _refreshQueue.AddWork(documentUri);
-        }
-    }
+        => _refreshQueue?.AddWork(documentUri);
 
-    private ValueTask FilterLspTrackedDocumentsAsync(
+    private async ValueTask FilterLspTrackedDocumentsAsync(
         LspWorkspaceManager lspWorkspaceManager,
         IClientLanguageServerManager notificationManager,
         ImmutableSegmentedList<DocumentUri?> documentUris,
         CancellationToken cancellationToken)
     {
-        var trackedDocuments = lspWorkspaceManager.GetTrackedLspText();
+        var trackedDocuments = lspWorkspaceManager.GetTrackedDocuments();
         foreach (var documentUri in documentUris)
         {
             if (documentUri is null || !trackedDocuments.ContainsKey(documentUri))
             {
                 try
                 {
-                    return notificationManager.SendRequestAsync(GetWorkspaceRefreshName(), cancellationToken);
+                    // Fire the notification and immediately return.  Refresh notifications are server-wide, and are not
+                    // associated with a particular project/document.  So once we've sent one, we can stop processing
+                    // entirely.
+                    await notificationManager.SendRequestAsync(GetWorkspaceRefreshName(), cancellationToken).ConfigureAwait(false);
+                    return;
                 }
                 catch (Exception ex) when (ex is ObjectDisposedException or ConnectionLostException)
                 {
@@ -128,13 +127,12 @@ internal abstract class AbstractRefreshQueue :
         }
 
         // LSP is already tracking all changed documents so we don't need to send a refresh request.
-        return ValueTask.CompletedTask;
     }
 
     public virtual void Dispose()
     {
+        _providerRefresher.ProviderRefreshRequested -= EnqueueRefreshNotification;
         _lspWorkspaceRegistrationService.LspSolutionChanged -= OnLspSolutionChanged;
-        _disposalTokenSource.Cancel();
-        _disposalTokenSource.Dispose();
+        _refreshQueue?.Dispose();
     }
 }

@@ -1,0 +1,16 @@
+﻿Document - 
+    NamespaceDeclaration -  - Test
+        UsingDirective - (3:1,1 [20] ) - global::System
+        UsingDirective - (26:2,1 [40] ) - global::System.Collections.Generic
+        UsingDirective - (69:3,1 [25] ) - global::System.Linq
+        UsingDirective - (97:4,1 [36] ) - global::System.Threading.Tasks
+        UsingDirective - (136:5,1 [45] ) - global::Microsoft.AspNetCore.Components
+        ClassDeclaration -  - public partial - TestComponent - global::Microsoft.AspNetCore.Components.ComponentBase - 
+            MethodDeclaration -  - protected override - void - BuildRenderTree
+                CSharpCode - (2:0,2 [76] x:\dir\subdir\Test\TestComponent.razor)
+                    LazyIntermediateToken - (2:0,2 [76] x:\dir\subdir\Test\TestComponent.razor) - CSharp - \n    var value = new { A = new { B = 1 } };\n    _ = value is { A.B: 1 };\n
+                CSharpCode - (84:5,1 [29] x:\dir\subdir\Test\TestComponent.razor)
+                    LazyIntermediateToken - (84:5,1 [29] x:\dir\subdir\Test\TestComponent.razor) - CSharp - if (value is { A.B: 1 })\n{\n
+                MarkupBlock -  - <p>Matched</p>
+                CSharpCode - (133:8,0 [1] x:\dir\subdir\Test\TestComponent.razor)
+                    LazyIntermediateToken - (133:8,0 [1] x:\dir\subdir\Test\TestComponent.razor) - CSharp - }

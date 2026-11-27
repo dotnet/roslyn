@@ -65,7 +65,7 @@ internal sealed partial class SymbolicRenameLocations
             // Visual Basic and VB's identifiers are case insensitive. 
             // Do not cascade to symbols that are defined only in metadata.
             if (referencedSymbol.Kind == originalSymbol.Kind &&
-                string.Compare(TrimNameToAfterLastDot(referencedSymbol.Name), TrimNameToAfterLastDot(originalSymbol.Name), StringComparison.OrdinalIgnoreCase) == 0 &&
+                string.Equals(TrimNameToAfterLastDot(referencedSymbol.Name), TrimNameToAfterLastDot(originalSymbol.Name), StringComparison.OrdinalIgnoreCase) &&
                 referencedSymbol.Locations.Any(static loc => loc.IsInSource))
             {
                 return true;
@@ -159,7 +159,7 @@ internal sealed partial class SymbolicRenameLocations
         /// Given a ISymbol, returns the renameable locations for a given symbol.
         /// </summary>
         public static async Task<ImmutableArray<RenameLocation>> GetRenamableDefinitionLocationsAsync(
-            ISymbol referencedSymbol, ISymbol originalSymbol, Solution solution, CancellationToken cancellationToken)
+            ISymbol referencedSymbol, ISymbol originalSymbol, Solution solution, bool allowRenamesInRazorSourceGeneratedDocuments, CancellationToken cancellationToken)
         {
             var shouldIncludeSymbol = await ShouldIncludeSymbolAsync(referencedSymbol, originalSymbol, solution, false, cancellationToken).ConfigureAwait(false);
             if (!shouldIncludeSymbol)
@@ -236,19 +236,29 @@ internal sealed partial class SymbolicRenameLocations
 
                 // If the location is in a source generated file, we won't rename it. Our assumption in this case is we
                 // have cascaded to this symbol from our original source symbol, and the generator will update this file
-                // based on the renamed symbol.
-                if (document is not SourceGeneratedDocument || document.IsRazorSourceGeneratedDocument())
-                    results.Add(new RenameLocation(location, document.Id, isRenamableAccessor: isRenamableAccessor));
+                // based on the renamed symbol. Razor source generated documents are an exception - cohost rename can opt
+                // into including them even when the span mapping service is unavailable.
+                if (document is SourceGeneratedDocument sourceGeneratedDocument &&
+                    !ShouldIncludeSourceGeneratedDocument(sourceGeneratedDocument, allowRenamesInRazorSourceGeneratedDocuments))
+                {
+                    return;
+                }
+
+                results.Add(new RenameLocation(location, document.Id, isRenamableAccessor: isRenamableAccessor));
             }
         }
 
         internal static async Task<IEnumerable<RenameLocation>> GetRenamableReferenceLocationsAsync(
-            ISymbol referencedSymbol, ISymbol originalSymbol, ReferenceLocation location, Solution solution, CancellationToken cancellationToken)
+            ISymbol referencedSymbol, ISymbol originalSymbol, ReferenceLocation location, Solution solution, bool allowRenamesInRazorSourceGeneratedDocuments, CancellationToken cancellationToken)
         {
             // We won't try to update references in source generated files; we'll assume the generator will rerun
-            // and produce an updated document with the new name.
-            if (location.Document is SourceGeneratedDocument && !location.Document.IsRazorSourceGeneratedDocument())
+            // and produce an updated document with the new name. Razor source generated documents are an exception -
+            // cohost rename can opt into including them even when the span mapping service is unavailable.
+            if (location.Document is SourceGeneratedDocument sourceGeneratedDocument &&
+                !ShouldIncludeSourceGeneratedDocument(sourceGeneratedDocument, allowRenamesInRazorSourceGeneratedDocuments))
+            {
                 return [];
+            }
 
             var shouldIncludeSymbol = await ShouldIncludeSymbolAsync(referencedSymbol, originalSymbol, solution, true, cancellationToken).ConfigureAwait(false);
             if (!shouldIncludeSymbol)
@@ -258,6 +268,12 @@ internal sealed partial class SymbolicRenameLocations
             // want to consider those as part of the set
             if (location.IsImplicit)
                 return [];
+
+            var candidateReason = location.CandidateReason;
+            if (candidateReason is CandidateReason.OverloadResolutionFailure)
+            {
+                candidateReason = await GetCandidateReasonForOverloadResolutionFailureAsync(location, cancellationToken).ConfigureAwait(false);
+            }
 
             var results = new List<RenameLocation>();
 
@@ -291,7 +307,7 @@ internal sealed partial class SymbolicRenameLocations
                     if (location.Alias.Name == referencedSymbolName)
                     {
                         results.Add(new RenameLocation(location.Location, location.Document.Id,
-                            candidateReason: location.CandidateReason, isRenamableAliasUsage: true, isWrittenTo: location.IsWrittenTo));
+                            candidateReason: candidateReason, isRenamableAliasUsage: true, isWrittenTo: location.IsWrittenTo));
 
                         // We also need to add the location of the alias itself
                         var aliasLocation = location.Alias.Locations.Single();
@@ -314,12 +330,29 @@ internal sealed partial class SymbolicRenameLocations
                         location.Location,
                         location.Document.Id,
                         isWrittenTo: location.IsWrittenTo,
-                        candidateReason: location.CandidateReason,
+                        candidateReason: candidateReason,
                         isRenamableAccessor: await IsPropertyAccessorOrAnOverrideAsync(referencedSymbol, solution, cancellationToken).ConfigureAwait(false)));
                 }
             }
 
             return results;
+
+            static async Task<CandidateReason> GetCandidateReasonForOverloadResolutionFailureAsync(
+                ReferenceLocation location, CancellationToken cancellationToken)
+            {
+                var syntaxRoot = await location.Document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+                var token = syntaxRoot.FindToken(location.Location.SourceSpan.Start, findInsideTrivia: true);
+                var syntaxFacts = location.Document.GetRequiredLanguageService<ISyntaxFactsService>();
+                var bindableParent = syntaxFacts.TryGetBindableParent(token) ?? token.Parent;
+                if (bindableParent is null)
+                    return location.CandidateReason;
+
+                var semanticModel = await location.Document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+                var symbolInfo = semanticModel.GetSymbolInfo(bindableParent, cancellationToken);
+                return symbolInfo.CandidateSymbols.Length == 1
+                    ? CandidateReason.None
+                    : location.CandidateReason;
+            }
         }
 
         internal static async Task<(ImmutableArray<RenameLocation> strings, ImmutableArray<RenameLocation> comments)> GetRenamableLocationsInStringsAndCommentsAsync(
@@ -431,6 +464,22 @@ internal sealed partial class SymbolicRenameLocations
                     renameLocations.Add(renameLocation);
                 }
             }
+        }
+
+        private static bool ShouldIncludeSourceGeneratedDocument(
+            SourceGeneratedDocument document,
+            bool allowRenamesInRazorSourceGeneratedDocuments)
+        {
+            // Razor will call us with this flag set at times where the mapping service isn't available, because
+            // it will do the mapping once it has the results from us. If the rename didn't originate from Razor,
+            // then we only want to include the document if the mapping service is available.
+            if (allowRenamesInRazorSourceGeneratedDocuments && document.IsRazorSourceGeneratedDocument())
+            {
+                return true;
+            }
+
+            return document.Project.Solution.Services.GetService<ISourceGeneratedDocumentSpanMappingService>() is { } mappingService
+                && mappingService.CanMapSpans(document);
         }
     }
 }

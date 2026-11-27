@@ -33,20 +33,9 @@ internal abstract partial class CommonSemanticQuickInfoProvider : CommonQuickInf
         var semanticModel = await context.Document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
         var services = context.Document.Project.Solution.Services;
         var onTheFlyDocsInfo = await GetOnTheFlyDocsInfoAsync(context, cancellationToken).ConfigureAwait(false);
+        var interceptorDisplayParts = GetInterceptorDisplayParts(semanticModel, token, cancellationToken);
         return await CreateContentAsync(
-            services, semanticModel, token, tokenInformation, supportedPlatforms, context.Options, onTheFlyDocsInfo, cancellationToken).ConfigureAwait(false);
-    }
-
-    protected override async Task<QuickInfoItem?> BuildQuickInfoAsync(
-        CommonQuickInfoContext context, SyntaxToken token)
-    {
-        var tokenInformation = BindToken(context.Services, context.SemanticModel, token, context.CancellationToken);
-        if (tokenInformation.Symbols.IsDefaultOrEmpty)
-            return null;
-
-        // onTheFlyDocInfo is null here since On-The-Fly Docs are being computed at the document level.
-        return await CreateContentAsync(
-            context.Services, context.SemanticModel, token, tokenInformation, supportedPlatforms: null, context.Options, onTheFlyDocsInfo: null, context.CancellationToken).ConfigureAwait(false);
+            services, semanticModel, token, tokenInformation, supportedPlatforms, interceptorDisplayParts, context.Options, onTheFlyDocsInfo, cancellationToken).ConfigureAwait(false);
     }
 
     private async Task<(TokenInformation tokenInformation, SupportedPlatformData? supportedPlatforms)> ComputeQuickInfoDataAsync(
@@ -159,6 +148,7 @@ internal abstract partial class CommonSemanticQuickInfoProvider : CommonQuickInf
         SyntaxToken token,
         TokenInformation tokenInformation,
         SupportedPlatformData? supportedPlatforms,
+        ImmutableArray<TaggedText> interceptorDisplayParts,
         SymbolDescriptionOptions options,
         OnTheFlyDocsInfo? onTheFlyDocsInfo,
         CancellationToken cancellationToken)
@@ -178,7 +168,7 @@ internal abstract partial class CommonSemanticQuickInfoProvider : CommonQuickInf
 
         return QuickInfoUtilities.CreateQuickInfoItemAsync(
             services, semanticModel, token.Span, symbols, supportedPlatforms,
-            tokenInformation.ShowAwaitReturn, tokenInformation.NullabilityInfo, options, onTheFlyDocsInfo, cancellationToken);
+            tokenInformation.ShowAwaitReturn, tokenInformation.NullabilityInfo, interceptorDisplayParts, options, onTheFlyDocsInfo, cancellationToken);
     }
 
     protected abstract bool GetBindableNodeForTokenIndicatingLambda(SyntaxToken token, [NotNullWhen(returnValue: true)] out SyntaxNode? found);
@@ -187,6 +177,16 @@ internal abstract partial class CommonSemanticQuickInfoProvider : CommonQuickInf
 
     protected virtual Task<OnTheFlyDocsInfo?> GetOnTheFlyDocsInfoAsync(QuickInfoContext context, CancellationToken cancellationToken)
         => Task.FromResult<OnTheFlyDocsInfo?>(null);
+
+    protected virtual ImmutableArray<TaggedText> GetInterceptorDisplayParts(SemanticModel semanticModel, SyntaxToken token, CancellationToken cancellationToken) => default;
+
+    /// <summary>
+    /// Removes members from the member group that cannot be bound at the given location (for example instance
+    /// methods when accessed through a type), so they are not counted as overloads.
+    /// </summary>
+    protected virtual ImmutableArray<ISymbol> FilterMemberGroup(
+        SemanticModel semanticModel, SyntaxNode bindableParent, ImmutableArray<ISymbol> memberGroup, CancellationToken cancellationToken)
+        => memberGroup;
 
     protected virtual string? GetNullabilityAnalysis(SemanticModel semanticModel, ISymbol symbol, SyntaxNode node, CancellationToken cancellationToken) => null;
 
@@ -318,7 +318,14 @@ internal abstract partial class CommonSemanticQuickInfoProvider : CommonQuickInf
         using var _ = ArrayBuilder<ISymbol>.GetInstance(out var filteredSymbols);
 
         AddSymbols(GetSymbolsFromToken(token, services, semanticModel, cancellationToken), checkAccessibility: true);
-        AddSymbols(bindableParent != null ? semanticModel.GetMemberGroup(bindableParent, cancellationToken) : [], checkAccessibility: false);
+        if (bindableParent != null)
+        {
+            var memberGroup = semanticModel.GetMemberGroup(bindableParent, cancellationToken);
+            var filtered = FilterMemberGroup(semanticModel, bindableParent, memberGroup, cancellationToken);
+
+            // If nothing remains (e.g. invalid code like calling an instance method through a type), still show something.
+            AddSymbols(filtered.IsEmpty ? memberGroup : filtered, checkAccessibility: false);
+        }
 
         return filteredSymbols.ToImmutableAndClear();
 

@@ -189,12 +189,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <summary>Inference of tuple element names was added in VB 15.3</summary>
         <Extension>
         Friend Function DisallowInferredTupleElementNames(self As LanguageVersion) As Boolean
-            Return self < Feature.InferredTupleNames.GetLanguageVersion()
+            Return self < Syntax.InternalSyntax.Feature.InferredTupleNames.GetLanguageVersion()
         End Function
 
         <Extension>
         Friend Function AllowNonTrailingNamedArguments(self As LanguageVersion) As Boolean
-            Return self >= Feature.NonTrailingNamedArguments.GetLanguageVersion()
+            Return self >= Syntax.InternalSyntax.Feature.NonTrailingNamedArguments.GetLanguageVersion()
         End Function
     End Module
 

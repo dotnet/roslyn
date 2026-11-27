@@ -7,32 +7,32 @@ using Microsoft.CommonLanguageServerProtocol.Framework;
 
 namespace Microsoft.CodeAnalysis.LanguageServer;
 
-internal sealed class NoOpLspLogger : AbstractLspLogger, ILspService
+internal sealed class NoOpLspLogger : ILspLogger, ILspService
 {
     public static readonly NoOpLspLogger Instance = new();
 
     private NoOpLspLogger() { }
 
-    public override IDisposable? CreateContext(string context) => null;
-    public override IDisposable? CreateLanguageContext(string? context) => null;
+    public IDisposable? CreateContext(string context) => null;
+    public IDisposable? CreateLanguageContext(string? context) => null;
 
-    public override void LogDebug(string message, params object[] @params)
+    public void LogDebug(string message, params object[] @params)
     {
     }
 
-    public override void LogException(Exception exception, string? message = null, params object[] @params)
+    public void LogException(Exception exception, string? message = null, params object[] @params)
     {
     }
 
-    public override void LogInformation(string message, params object[] @params)
+    public void LogInformation(string message, params object[] @params)
     {
     }
 
-    public override void LogWarning(string message, params object[] @params)
+    public void LogWarning(string message, params object[] @params)
     {
     }
 
-    public override void LogError(string message, params object[] @params)
+    public void LogError(string message, params object[] @params)
     {
     }
 }

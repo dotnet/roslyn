@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.Emit.EditAndContinue
             => _oldMethod.IsHiddenBySignature;
 
         public bool IsNewSlot
-            => _oldMethod.IsMetadataNewSlot;
+            => _oldMethod.IsMetadataNewSlotIgnoringInterfaceImplementationChanges;
 
         public bool IsPlatformInvoke
             => _oldMethod.IsPlatformInvoke;

@@ -1,0 +1,31 @@
+﻿RazorDocument - [0..26)::26 - [@{<input string-prefix-/>}]
+    MarkupBlock - [0..26)::26
+        MarkupTextLiteral - [0..0)::0 - [] - Gen<Markup>
+            Marker;[];
+        CSharpCodeBlock - [0..26)::26
+            CSharpStatement - [0..26)::26
+                CSharpTransition - [0..1)::1 - Gen<None>
+                    Transition;[@];
+                CSharpStatementBody - [1..26)::25
+                    RazorMetaCode - [1..2)::1 - Gen<None>
+                        LeftBrace;[{];
+                    CSharpCodeBlock - [2..25)::23
+                        MarkupBlock - [2..25)::23
+                            MarkupTagHelperElement - [2..25)::23 - input[SelfClosing] - InputTagHelper3
+                                MarkupTagHelperStartTag - [2..25)::23 - [<input string-prefix-/>] - Gen<Markup>
+                                    OpenAngle;[<];
+                                    Text;[input];
+                                    MarkupMinimizedTagHelperAttribute - [8..23)::15 - string-prefix- - Minimized - Bound - [ string-prefix-]
+                                        MarkupTextLiteral - [8..9)::1 - [ ] - Gen<Markup>
+                                            Whitespace;[ ];
+                                        MarkupTextLiteral - [9..23)::14 - [string-prefix-] - Gen<Markup>
+                                            Text;[string-prefix-];
+                                    ForwardSlash;[/];
+                                    CloseAngle;[>];
+                        CSharpStatementLiteral - [25..25)::0 - [] - Gen<Stmt>
+                            Marker;[];
+                    RazorMetaCode - [25..26)::1 - Gen<None>
+                        RightBrace;[}];
+        MarkupTextLiteral - [26..26)::0 - [] - Gen<Markup>
+            Marker;[];
+    EndOfFile;[];

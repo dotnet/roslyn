@@ -5,10 +5,11 @@
 using System.Reflection.PortableExecutable;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Host;
 
 namespace Microsoft.CodeAnalysis.PdbSourceDocument;
 
-internal interface ISourceLinkService
+internal interface ISourceLinkService : IWorkspaceService
 {
     Task<SourceFilePathResult?> GetSourceFilePathAsync(string url, string relativePath, CancellationToken cancellationToken);
 

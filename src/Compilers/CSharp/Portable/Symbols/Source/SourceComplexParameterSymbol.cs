@@ -834,16 +834,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 ValidateCallerArgumentExpressionAttribute(arguments.AttributeSyntaxOpt, attribute, diagnostics);
             }
             else if (ReportExplicitUseOfReservedAttributes(in arguments,
-                ReservedAttributes.DynamicAttribute |
-                ReservedAttributes.IsReadOnlyAttribute |
-                ReservedAttributes.RequiresLocationAttribute |
-                ReservedAttributes.IsUnmanagedAttribute |
-                ReservedAttributes.IsByRefLikeAttribute |
-                ReservedAttributes.TupleElementNamesAttribute |
-                ReservedAttributes.NullableAttribute |
-                ReservedAttributes.NativeIntegerAttribute |
-                ReservedAttributes.ScopedRefAttribute |
-                ReservedAttributes.ExtensionMarkerAttribute))
+                permitted: ReservedAttributes.NullableContextAttribute
+                    | ReservedAttributes.NullablePublicOnlyAttribute
+                    | ReservedAttributes.CaseSensitiveExtensionAttribute
+                    | ReservedAttributes.RequiredMemberAttribute
+                    | ReservedAttributes.RefSafetyRulesAttribute))
             {
             }
             else if (attribute.IsTargetAttribute(AttributeDescription.AllowNullAttribute))
@@ -1627,7 +1622,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     case CollectionExpressionTypeKind.ImplementsIEnumerable:
                         {
                             var syntax = ParameterSyntax;
-                            var binder = GetDefaultParameterValueBinder(syntax).WithContainingMemberOrLambda(ContainingSymbol); // this binder is good for our purpose
+
+                            // We create unsafe binder so requires-unsafe errors in the signature are suppressed - there is no way user could suppress them there and they will be reported at the call site anyway.
+                            var binder = GetDefaultParameterValueBinder(syntax).WithAdditionalFlagsAndContainingMemberOrLambda(BinderFlags.UnsafeRegion, ContainingSymbol); // this binder is good for our purpose
 
                             binder.TryGetCollectionIterationType(syntax, Type, out elementTypeWithAnnotations);
                             elementType = elementTypeWithAnnotations.Type;
@@ -1637,7 +1634,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                 return;
                             }
 
-                            if (!binder.HasCollectionExpressionApplicableConstructor(syntax, Type, out MethodSymbol? constructor, isExpanded: out _, diagnostics, isParamsModifierValidation: true))
+                            if (!binder.HasCollectionExpressionApplicableConstructor(
+                                    withElement: null, syntax, Type, out MethodSymbol? constructor, isExpanded: out _, diagnostics, isParamsModifierValidation: true))
                             {
                                 return;
                             }
@@ -1685,7 +1683,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     case CollectionExpressionTypeKind.CollectionBuilder:
                         {
                             var syntax = ParameterSyntax;
-                            var binder = GetDefaultParameterValueBinder(syntax).WithContainingMemberOrLambda(ContainingSymbol); // this binder is good for our purpose
+
+                            // We create unsafe binder so requires-unsafe errors in the signature are suppressed - there is no way user could suppress them there and they will be reported at the call site anyway.
+                            var binder = GetDefaultParameterValueBinder(syntax).WithAdditionalFlagsAndContainingMemberOrLambda(BinderFlags.UnsafeRegion, ContainingSymbol); // this binder is good for our purpose
 
                             binder.TryGetCollectionIterationType(syntax, Type, out elementTypeWithAnnotations);
                             elementType = elementTypeWithAnnotations.Type;
@@ -1695,11 +1695,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                 return;
                             }
 
-                            MethodSymbol? collectionBuilderMethod = binder.GetAndValidateCollectionBuilderMethod(syntax, (NamedTypeSymbol)Type, diagnostics, elementType: out _);
-                            if (collectionBuilderMethod is null)
+                            var collectionBuilderMethods = binder.GetCollectionBuilderMethods(
+                                syntax, (NamedTypeSymbol)Type, diagnostics, forParams: true);
+                            Debug.Assert(collectionBuilderMethods.Length <= 1);
+
+                            if (collectionBuilderMethods is not [var collectionBuilderMethod])
                             {
+                                Debug.Assert(diagnostics.HasAnyErrors(), $"{nameof(binder.GetCollectionBuilderMethods)} should have reported an error in this case");
                                 return;
                             }
+
+                            binder.CheckCollectionBuilderMethod(syntax, collectionBuilderMethod, diagnostics);
 
                             if (ContainingSymbol.ContainingSymbol is NamedTypeSymbol) // No need to check for lambdas or local function
                             {

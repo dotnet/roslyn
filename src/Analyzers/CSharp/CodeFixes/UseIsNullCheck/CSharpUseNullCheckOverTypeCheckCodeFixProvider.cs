@@ -28,13 +28,12 @@ internal sealed class CSharpUseNullCheckOverTypeCheckCodeFixProvider() : SyntaxE
     public override ImmutableArray<string> FixableDiagnosticIds
         => [IDEDiagnosticIds.UseNullCheckOverTypeCheckDiagnosticId];
 
-    public override Task RegisterCodeFixesAsync(CodeFixContext context)
+    public override async Task RegisterCodeFixesAsync(CodeFixContext context)
     {
         RegisterCodeFix(context, CSharpAnalyzersResources.Prefer_null_check_over_type_check, nameof(CSharpAnalyzersResources.Prefer_null_check_over_type_check));
-        return Task.CompletedTask;
     }
 
-    protected override Task FixAllAsync(
+    protected override async Task FixAllAsync(
         Document document, ImmutableArray<Diagnostic> diagnostics,
         SyntaxEditor editor, CancellationToken cancellationToken)
     {
@@ -56,7 +55,5 @@ internal sealed class CSharpUseNullCheckOverTypeCheckCodeFixProvider() : SyntaxE
 
             editor.ReplaceNode(node, replacement.WithTriviaFrom(node));
         }
-
-        return Task.CompletedTask;
     }
 }

@@ -435,6 +435,62 @@ public sealed partial class SymbolCompletionProviderTests : AbstractCSharpComple
             ItemExpectation.Absent("AttributeUsage"),
         ]);
 
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/84394")]
+    public async Task AttributeTargetFiltering_InheritedAttributeUsage()
+    {
+        // AttributeUsage is inherited by derived attribute types. A method-only attribute and an attribute
+        // deriving from it (without its own AttributeUsage) should both be filtered out on a non-method target.
+        var code = """
+            [$$]
+            record struct TestRecordStruct
+            {
+            }
+
+            [System.AttributeUsage(System.AttributeTargets.Method)]
+            public class FactAttribute : System.Attribute
+            {
+            }
+
+            public class CulturedFactAttribute : FactAttribute
+            {
+            }
+            """;
+
+        await VerifyExpectedItemsAsync(code, [
+            ItemExpectation.Absent("Fact"),
+            ItemExpectation.Absent("CulturedFact")
+        ]);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/84394")]
+    public async Task AttributeTargetFiltering_InheritedAttributeUsageOnValidTarget()
+    {
+        // On a valid (method) target both the method-only attribute and its derived attribute are offered.
+        var code = """
+            class TestClass
+            {
+                [$$]
+                public void M()
+                {
+                }
+            }
+
+            [System.AttributeUsage(System.AttributeTargets.Method)]
+            public class FactAttribute : System.Attribute
+            {
+            }
+
+            public class CulturedFactAttribute : FactAttribute
+            {
+            }
+            """;
+
+        await VerifyExpectedItemsAsync(code, [
+            ItemExpectation.Exists("Fact"),
+            ItemExpectation.Exists("CulturedFact")
+        ]);
+    }
+
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/7640")]
     public async Task AttributeTargetFiltering_AssemblyAttribute()
     {
@@ -3818,6 +3874,211 @@ public sealed partial class SymbolCompletionProviderTests : AbstractCSharpComple
                     goto Goo $$
             """, "Goo");
 
+    [Fact]
+    public Task LabelAfterBreak_ImmediateWhile()
+        => VerifyItemExistsAsync("""
+            class C
+            {
+                void F()
+                {
+                    outer: while (true)
+                    {
+                        break $$
+                    }
+                }
+            }
+            """, "outer");
+
+    [Fact]
+    public Task LabelAfterContinue_ImmediateFor()
+        => VerifyItemExistsAsync("""
+            class C
+            {
+                void F()
+                {
+                    outer: for (int i = 0; i < 10; i++)
+                    {
+                        continue $$
+                    }
+                }
+            }
+            """, "outer");
+
+    [Fact]
+    public Task LabelAfterBreak_OuterWhile_SkipsInnerWhile()
+        => VerifyItemExistsAsync("""
+            class C
+            {
+                void F()
+                {
+                    outer: while (true)
+                    {
+                        while (true)
+                        {
+                            break $$
+                        }
+                    }
+                }
+            }
+            """, "outer");
+
+    [Fact]
+    public Task LabelAfterContinue_OuterFor_SkipsInnerWhile()
+        => VerifyItemExistsAsync("""
+            class C
+            {
+                void F()
+                {
+                    outer: for (int i = 0; i < 10; i++)
+                    {
+                        while (true)
+                        {
+                            continue $$
+                        }
+                    }
+                }
+            }
+            """, "outer");
+
+    [Fact]
+    public Task LabelAfterBreak_Switch()
+        => VerifyItemExistsAsync("""
+            class C
+            {
+                void F(int x)
+                {
+                    outer: switch (x)
+                    {
+                        case 0:
+                            break $$
+                    }
+                }
+            }
+            """, "outer");
+
+    [Fact]
+    public Task LabelAfterContinue_DoesNotOfferSwitchLabel()
+        => VerifyItemIsAbsentAsync("""
+            class C
+            {
+                void F(int x)
+                {
+                    outer: switch (x)
+                    {
+                        case 0:
+                            inner: while (true)
+                            {
+                                continue $$
+                            }
+                    }
+                }
+            }
+            """, "outer");
+
+    [Fact]
+    public Task LabelAfterContinue_OffersLoopLabelInsideSwitch()
+        => VerifyItemExistsAsync("""
+            class C
+            {
+                void F(int x)
+                {
+                    outer: switch (x)
+                    {
+                        case 0:
+                            inner: while (true)
+                            {
+                                continue $$
+                            }
+                    }
+                }
+            }
+            """, "inner");
+
+    [Fact]
+    public Task LabelAfterBreak_DoesNotOfferNonEnclosingLabel()
+        => VerifyItemIsAbsentAsync("""
+            class C
+            {
+                void F()
+                {
+                    other: while (true) { }
+
+                    outer: while (true)
+                    {
+                        break $$
+                    }
+                }
+            }
+            """, "other");
+
+    [Fact]
+    public Task LabelAfterBreak_DoesNotOfferPlainLabel()
+        => VerifyItemIsAbsentAsync("""
+            class C
+            {
+                void F()
+                {
+                    plain: ;
+                    outer: while (true)
+                    {
+                        break $$
+                    }
+                }
+            }
+            """, "plain");
+
+    [Fact]
+    public Task LabelAfterBreak_DoesNotOfferPlainLabel_PartiallyWritten()
+        => VerifyItemIsAbsentAsync("""
+            class C
+            {
+                void F()
+                {
+                    plain: ;
+                    outer: while (true)
+                    {
+                        break pl$$
+                    }
+                }
+            }
+            """, "plain");
+
+    [Fact]
+    public Task LabelAfterBreak_OffersMultipleEnclosingLabels()
+        => VerifyExpectedItemsAsync("""
+            class C
+            {
+                void F()
+                {
+                    outer: while (true)
+                    {
+                        inner: while (true)
+                        {
+                            break $$
+                        }
+                    }
+                }
+            }
+            """, [
+            ItemExpectation.Exists("outer"),
+            ItemExpectation.Exists("inner"),
+        ]);
+
+    [Fact]
+    public Task LabelAfterBreak_ExistingIdentifier()
+        => VerifyItemExistsAsync("""
+            class C
+            {
+                void F()
+                {
+                    outer: while (true)
+                    {
+                        break ou$$
+                    }
+                }
+            }
+            """, "outer");
+
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542225")]
     public Task AttributeName()
         => VerifyExpectedItemsAsync("""
@@ -4451,6 +4712,20 @@ public sealed partial class SymbolCompletionProviderTests : AbstractCSharpComple
                 }
             }
             """, "x");
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/82750")]
+    public Task TypeWithSameNameAsInstancePropertyInStaticMethod()
+        => VerifyItemExistsAsync("""
+            public sealed record SourceContainer(Source Source)
+            {
+                public static SourceContainer From(string source)
+                {
+                    Sour$$
+                }
+            }
+
+            public sealed record Source(string Content);
+            """, "Source", expectedDescriptionOrNull: "record Source");
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543601")]
     public Task NoInstanceFieldsInStaticFieldInitializer()
@@ -14271,6 +14546,75 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
             sourceCodeKind: SourceCodeKind.Regular,
             glyph: Glyph.ExtensionMethodPublic);
 
+    [Fact]
+    public Task ModernExtensionIndexerParameterTypeCompletion()
+        => VerifyItemExistsAsync(
+            MakeMarkup("""
+            static class E
+            {
+                extension(int i)
+                {
+                    int this[Cust$$] => i;
+                }
+            }
+
+            class Customer;
+            """, LanguageVersion.CSharp15),
+            "Customer",
+            sourceCodeKind: SourceCodeKind.Regular);
+
+    [Theory]
+    [InlineData("""public int Number => 0;""",
+                Glyph.PropertyPublic,
+                """
+                extension(TestClass testclass)
+                {
+                    public int Number()  => 0;
+                }
+                """,
+                Glyph.ExtensionMethodPublic)]
+    [InlineData("""public int Number => 0;""",
+                Glyph.PropertyPublic,
+                """public static int Number(this TestClass testclass)  => 0;""",
+                Glyph.ExtensionMethodPublic)]
+    [InlineData("""public int Number() => 0;""",
+                Glyph.MethodPublic,
+                """
+                extension(TestClass testclass)
+                {
+                    public int Number  => 0;
+                }
+                """,
+                Glyph.PropertyPublic)]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/70537")]
+    internal Task TestIdenticalNameWithExtensionMembersOfDifferentKind(string member, Glyph memberGlyph, string extension, Glyph extensionGlyph)
+        => VerifyExpectedItemsAsync(
+            MakeMarkup($$"""
+            public class TestClass
+            {
+                {{member}}
+            }
+
+            public static class Extensions
+            {
+                {{extension}}
+            }
+
+            internal class Program
+            {
+                static void Main(string[] args)
+                {
+                    var t = new TestClass();
+                    var x = t.$$
+                }
+            }
+            """, LanguageVersion.CSharp14),
+            results: [
+            new ItemExpectation(Name: "Number", IsAbsent: false, Glyph: memberGlyph),
+            new ItemExpectation(Name: "Number", IsAbsent: false, Glyph: extensionGlyph),
+            ],
+            sourceCodeKind: SourceCodeKind.Regular);
+
     private static string MakeMarkup(
         [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string source,
         LanguageVersion languageVersion = LanguageVersion.Preview)
@@ -14330,5 +14674,52 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
                 class Foo2 { }
             }
             """, commitChar: commitChar, sourceCodeKind: SourceCodeKind.Regular);
+    }
+
+    [Fact]
+    public async Task TestTypeCompletionInUnionParameterList_01()
+    {
+        await VerifyItemExistsAsync(GetMarkup("""
+            class Dog { }
+            class Cat { }
+            union Pet($$)
+            """, LanguageVersion.CSharp15), "Dog");
+    }
+
+    [Fact]
+    public async Task TestTypeCompletionInUnionParameterList_02()
+    {
+        await VerifyItemExistsAsync(GetMarkup("""
+            class Dog { }
+            class Cat { }
+            union Pet($$)
+            """, LanguageVersion.CSharp15), "Cat");
+    }
+
+    [Fact]
+    public async Task TestTypeCompletionInUnionParameterList_03()
+    {
+        await VerifyItemExistsAsync(GetMarkup("""
+            class Dog { }
+            class Cat { }
+            union Pet(Dog, $$)
+            """, LanguageVersion.CSharp15), "Cat");
+    }
+
+    [Fact]
+    public async Task TestTypeCompletionInUnionParameterList_04()
+    {
+        await VerifyItemExistsAsync(GetMarkup("""
+            union U($$)
+            """, LanguageVersion.CSharp15), "System");
+    }
+
+    [Fact]
+    public async Task TestTypeCompletionInUnionParameterList_05()
+    {
+        // Type parameter completion in generic union parameter list
+        await VerifyItemExistsAsync(GetMarkup("""
+            union U<T1, T2>(T1, $$)
+            """, LanguageVersion.CSharp15), "T2");
     }
 }

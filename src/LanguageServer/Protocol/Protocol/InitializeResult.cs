@@ -11,7 +11,7 @@ using System.Text.Json.Serialization;
 ///
 /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#initializeResult">Language Server Protocol specification</see> for additional information.
 /// </summary>
-internal sealed class InitializeResult
+internal class InitializeResult
 {
     /// <summary>
     /// Gets or sets the server capabilities.

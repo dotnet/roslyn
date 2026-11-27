@@ -11,6 +11,7 @@ using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Symbols;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
@@ -282,7 +283,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             };
 
             _enumeratorType = kind == SynthesizedReadOnlyListKind.SingleElement ? new SynthesizedReadOnlyListEnumeratorTypeSymbol(this, typeParameter) : null;
-            _field = new SynthesizedFieldSymbol(this, fieldType, kind == SynthesizedReadOnlyListKind.SingleElement ? "_item" : "_items", isReadOnly: true);
+            _field = new SynthesizedFieldSymbol(
+                this,
+                fieldType,
+                kind == SynthesizedReadOnlyListKind.SingleElement
+                    ? WellKnownGeneratedNames.SynthesizedReadOnlyList_SingleElementFieldName
+                    : WellKnownGeneratedNames.SynthesizedReadOnlyList_ItemsFieldName,
+                isReadOnly: true);
 
             var iEnumerable = compilation.GetSpecialType(SpecialType.System_Collections_IEnumerable);
             var iCollection = compilation.GetWellKnownType(WellKnownType.System_Collections_ICollection);
@@ -484,11 +491,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 else
                 {
                     // return _items.GetEnumerator();
+                    NamedTypeSymbol interfaceType = interfaceMethod.ContainingType;
+                    Debug.Assert(interfaceType.IsInterface);
+                    Conversion c = f.ClassifyEmitConversion(fieldReference, interfaceType);
+                    Debug.Assert(c.IsImplicit);
+                    Debug.Assert(c.IsReference);
+
                     return f.Return(
                         f.Call(
                             f.Convert(
-                                interfaceMethod.ContainingType,
-                                fieldReference),
+                                interfaceType,
+                                fieldReference,
+                                c),
                             interfaceMethod));
                 }
             }
@@ -532,10 +546,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             static BoundStatement generateSyncRoot(SyntheticBoundNodeFactory f, MethodSymbol method, MethodSymbol interfaceMethod)
             {
                 // return (object)this;
+                BoundThisReference thisRef = f.This();
+                TypeSymbol returnType = interfaceMethod.ReturnType;
+                Debug.Assert(returnType.IsObjectType());
+                Conversion c = f.ClassifyEmitConversion(thisRef, returnType);
+                Debug.Assert(c.IsImplicit);
+                Debug.Assert(c.IsReference);
+
                 return f.Return(
                     f.Convert(
-                        interfaceMethod.ReturnType,
-                        f.This()));
+                        returnType,
+                        thisRef,
+                        c));
             }
 
             // IList.IsFixedSize
@@ -568,11 +590,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 else if (containingType.IsArray || !interfaceMethod.ContainingType.IsGenericType)
                 {
                     // return ((ICollection<T>)_items).Contains(param0);
+                    NamedTypeSymbol interfaceType = interfaceMethod.ContainingType;
+                    Debug.Assert(interfaceType.IsInterface);
+                    Conversion c = f.ClassifyEmitConversion(fieldReference, interfaceType);
+                    Debug.Assert(c.IsImplicit);
+                    Debug.Assert(c.IsReference);
+
                     return f.Return(
                         f.Call(
                             f.Convert(
-                                interfaceMethod.ContainingType,
-                                fieldReference),
+                                interfaceType,
+                                fieldReference,
+                                c),
                             interfaceMethod,
                             parameterReference));
                 }
@@ -604,9 +633,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         var arraySetValueMethod = (MethodSymbol)method.DeclaringCompilation.GetSpecialTypeMember(SpecialMember.System_Array__SetValue)!;
 
                         // param0.SetValue((object)_item, param1)
+                        NamedTypeSymbol objectType = f.SpecialType(SpecialType.System_Object);
+                        Conversion c = f.ClassifyEmitConversion(fieldReference, objectType);
+                        Debug.Assert(c.IsImplicit);
+                        Debug.Assert(c.IsBoxing);
+
                         statement = f.ExpressionStatement(
                             f.Call(parameterReference0, arraySetValueMethod,
-                                f.Convert(f.SpecialType(SpecialType.System_Object), fieldReference),
+                                f.Convert(objectType, fieldReference, c),
                                 parameterReference1));
                     }
                     else
@@ -622,11 +656,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 else if (containingType.IsArray || !interfaceMethod.ContainingType.IsGenericType)
                 {
                     // ((ICollection<T>)_items).CopyTo(param0, param1);
+                    NamedTypeSymbol interfaceType = interfaceMethod.ContainingType;
+                    Debug.Assert(interfaceType.IsInterface);
+                    Conversion c = f.ClassifyEmitConversion(fieldReference, interfaceType);
+                    Debug.Assert(c.IsImplicit);
+                    Debug.Assert(c.IsReference);
+
                     statement = f.ExpressionStatement(
                         f.Call(
                             f.Convert(
-                                interfaceMethod.ContainingType,
-                                fieldReference),
+                                interfaceType,
+                                fieldReference,
+                                c),
                             interfaceMethod,
                             parameterReference0,
                             parameterReference1));
@@ -699,11 +740,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 else if (containingType.IsArray || !interfaceMethod.ContainingType.IsGenericType)
                 {
                     // return ((IList<T>)_items).IndexOf(param0);
+                    NamedTypeSymbol interfaceType = interfaceMethod.ContainingType;
+                    Debug.Assert(interfaceType.IsInterface);
+                    Conversion c = f.ClassifyEmitConversion(fieldReference, interfaceType);
+                    Debug.Assert(c.IsImplicit);
+                    Debug.Assert(c.IsReference);
+
                     return f.Return(
                         f.Call(
                             f.Convert(
-                                interfaceMethod.ContainingType,
-                                fieldReference),
+                                interfaceType,
+                                fieldReference,
+                                c),
                             interfaceMethod,
                             parameterReference));
                 }
@@ -748,6 +796,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 var equalityComparerType = equalityComparer_Equals.ContainingType;
                 var constructedEqualityComparer = equalityComparerType.Construct(fieldType);
 
+                Conversion c = f.ClassifyEmitConversion(parameterReference, fieldType);
+                Debug.Assert(c.IsUnboxing || c.IsIdentity);
+
                 // If the parameter type is object:
                 //
                 //      EqualityComparer<T>.Default.Equals(_item, (T)param0)
@@ -762,7 +813,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         equalityComparer_get_Default.AsMember(constructedEqualityComparer)),
                     equalityComparer_Equals.AsMember(constructedEqualityComparer),
                     fieldReference,
-                    f.Convert(fieldType, parameterReference));
+                    f.Convert(fieldType, parameterReference, c));
             }
         }
 
@@ -801,7 +852,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override NamedTypeSymbol ConstructedFrom => this;
 
-        public override bool MightContainExtensionMethods => false;
+        public override bool MightContainExtensions => false;
 
         public override string Name { get; }
 
@@ -849,9 +900,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override bool HasDeclaredRequiredMembers => false;
 
+        internal override bool IsClosed => false;
+
+        internal override ImmutableArray<NamedTypeSymbol> CandidateClosedSubtypeDefinitions => [];
+
         internal override bool HasCodeAnalysisEmbeddedAttribute => false;
 
         internal override bool HasCompilerLoweringPreserveAttribute => false;
+
+        internal override bool IsUnionTypeCore => false;
 
         internal override bool IsInterpolatedStringHandlerType => false;
 
@@ -929,6 +986,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal override void AddSynthesizedAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<CSharpAttributeData> attributes)
         {
             base.AddSynthesizedAttributes(moduleBuilder, ref attributes);
+
+            const string debuggerDisplayString = "Count = {System.Collections.ICollection.Count}";
+            AddSynthesizedAttribute(ref attributes, DeclaringCompilation.TrySynthesizeAttribute(
+                WellKnownMember.System_Diagnostics_DebuggerDisplayAttribute__ctor,
+                [new TypedConstant(DeclaringCompilation.GetSpecialType(SpecialType.System_String), TypedConstantKind.Primitive, debuggerDisplayString)]));
+
             AddSynthesizedAttribute(ref attributes, DeclaringCompilation.TrySynthesizeAttribute(WellKnownMember.System_Runtime_CompilerServices_CompilerGeneratedAttribute__ctor));
         }
 

@@ -6925,27 +6925,9 @@ class Program
                     }
                 }
                 """).VerifyDiagnostics(
-                // (5,27): error CS0103: The name 'partial' does not exist in the current context
+                // (5,27): error CS0267: The 'partial' modifier can only appear on a class, record, struct, interface, event, instance constructor, method or property.
                 //         System.Action x = partial static () => { };
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "partial").WithArguments("partial").WithLocation(5, 27),
-                // (5,35): error CS1002: ; expected
-                //         System.Action x = partial static () => { };
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "static").WithLocation(5, 35),
-                // (5,35): error CS0106: The modifier 'static' is not valid for this item
-                //         System.Action x = partial static () => { };
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "static").WithArguments("static").WithLocation(5, 35),
-                // (5,43): error CS8124: Tuple must contain at least two elements.
-                //         System.Action x = partial static () => { };
-                Diagnostic(ErrorCode.ERR_TupleTooFewElements, ")").WithLocation(5, 43),
-                // (5,45): error CS1001: Identifier expected
-                //         System.Action x = partial static () => { };
-                Diagnostic(ErrorCode.ERR_IdentifierExpected, "=>").WithLocation(5, 45),
-                // (5,45): error CS1003: Syntax error, ',' expected
-                //         System.Action x = partial static () => { };
-                Diagnostic(ErrorCode.ERR_SyntaxError, "=>").WithArguments(",").WithLocation(5, 45),
-                // (5,48): error CS1002: ; expected
-                //         System.Action x = partial static () => { };
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "{").WithLocation(5, 48));
+                Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(5, 27));
         }
 
         [Fact]
@@ -9395,6 +9377,74 @@ Convert(x" + (ExecutionConditionUtil.IsMonoOrCoreClr ? ", IWithIntProperty" : ""
 Parameter
 x.IntProperty
 ");
+        }
+
+        [Fact]
+        public void TestMultipleScopedModifiers()
+        {
+            CreateCompilation("""
+                using System;
+                var v = (scoped scoped Span<int> s) => { };
+                """,
+                targetFramework: TargetFramework.Net90).VerifyDiagnostics(
+                // (2,17): error CS1107: A parameter can only have one 'scoped' modifier
+                // var v = (scoped scoped Span<int> s) => { };
+                Diagnostic(ErrorCode.ERR_DupParamMod, "scoped").WithArguments("scoped").WithLocation(2, 17));
+        }
+
+        [Fact]
+        public void TestMultipleRefModifiers()
+        {
+            CreateCompilation("""
+                using System;
+                var v = (ref ref Span<int> s) => { };
+                """,
+                targetFramework: TargetFramework.Net90).VerifyDiagnostics(
+                // (2,14): error CS1107: A parameter can only have one 'ref' modifier
+                // var v = (ref ref Span<int> s) => { };
+                Diagnostic(ErrorCode.ERR_DupParamMod, "ref").WithArguments("ref").WithLocation(2, 14));
+        }
+
+        [Fact]
+        public void TestMultipleOutModifiers()
+        {
+            CreateCompilation("""
+                using System;
+                var v = (out out Span<int> s) => { s = default; };
+                """,
+                targetFramework: TargetFramework.Net90).VerifyDiagnostics(
+                // (2,14): error CS1107: A parameter can only have one 'out' modifier
+                // var v = (out out Span<int> s) => { s = default; };
+                Diagnostic(ErrorCode.ERR_DupParamMod, "out").WithArguments("out").WithLocation(2, 14));
+        }
+
+        [Fact]
+        public void TestMultipleInModifiers()
+        {
+            CreateCompilation("""
+                using System;
+                var v = (in in Span<int> s) => { };
+                """,
+                targetFramework: TargetFramework.Net90).VerifyDiagnostics(
+                // (2,13): error CS1107: A parameter can only have one 'in' modifier
+                // var v = (in in Span<int> s) => { };
+                Diagnostic(ErrorCode.ERR_DupParamMod, "in").WithArguments("in").WithLocation(2, 13));
+        }
+
+        [Fact]
+        public void TestMultipleReadonlyModifiers()
+        {
+            CreateCompilation("""
+                using System;
+                var v = (readonly readonly Span<int> s) => { };
+                """,
+                targetFramework: TargetFramework.Net90).VerifyDiagnostics(
+                // (2,10): error CS9190: 'readonly' modifier must be specified after 'ref'.
+                // var v = (readonly readonly Span<int> s) => { };
+                Diagnostic(ErrorCode.ERR_RefReadOnlyWrongOrdering, "readonly").WithLocation(2, 10),
+                // (2,19): error CS9190: 'readonly' modifier must be specified after 'ref'.
+                // var v = (readonly readonly Span<int> s) => { };
+                Diagnostic(ErrorCode.ERR_RefReadOnlyWrongOrdering, "readonly").WithLocation(2, 19));
         }
     }
 }

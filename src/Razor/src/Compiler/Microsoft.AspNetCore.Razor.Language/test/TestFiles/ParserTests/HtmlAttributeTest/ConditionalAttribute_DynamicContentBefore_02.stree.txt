@@ -1,0 +1,52 @@
+﻿RazorDocument - [0..25)::25 - [<p @(x + y) class="@c" />]
+    MarkupBlock - [0..25)::25
+        MarkupElement - [0..25)::25
+            MarkupStartTag - [0..25)::25 - [<p @(x + y) class="@c" />] - Gen<Markup>
+                OpenAngle;[<];
+                Text;[p];
+                MarkupMiscAttributeContent - [2..11)::9
+                    MarkupTextLiteral - [2..3)::1 - [ ] - Gen<Markup>
+                        Whitespace;[ ];
+                    CSharpCodeBlock - [3..11)::8
+                        CSharpExplicitExpression - [3..11)::8
+                            CSharpTransition - [3..4)::1 - Gen<None>
+                                Transition;[@];
+                            CSharpExplicitExpressionBody - [4..11)::7
+                                RazorMetaCode - [4..5)::1 - Gen<None>
+                                    LeftParenthesis;[(];
+                                CSharpCodeBlock - [5..10)::5
+                                    CSharpExpressionLiteral - [5..10)::5 - [x + y] - Gen<Expr>
+                                        Identifier;[x];
+                                        Whitespace;[ ];
+                                        CSharpOperator;[+];
+                                        Whitespace;[ ];
+                                        Identifier;[y];
+                                RazorMetaCode - [10..11)::1 - Gen<None>
+                                    RightParenthesis;[)];
+                MarkupAttributeBlock - [11..22)::11 - [ class="@c"]
+                    MarkupTextLiteral - [11..12)::1 - [ ] - Gen<Markup>
+                        Whitespace;[ ];
+                    MarkupTextLiteral - [12..17)::5 - [class] - Gen<Markup>
+                        Text;[class];
+                    Equals;[=];
+                    MarkupTextLiteral - [18..19)::1 - ["] - Gen<Markup>
+                        DoubleQuote;["];
+                    GenericBlock - [19..21)::2
+                        MarkupDynamicAttributeValue - [19..21)::2 - [@c]
+                            GenericBlock - [19..21)::2
+                                CSharpCodeBlock - [19..21)::2
+                                    CSharpImplicitExpression - [19..21)::2
+                                        CSharpTransition - [19..20)::1 - Gen<None>
+                                            Transition;[@];
+                                        CSharpImplicitExpressionBody - [20..21)::1
+                                            CSharpCodeBlock - [20..21)::1
+                                                CSharpExpressionLiteral - [20..21)::1 - [c] - Gen<Expr>
+                                                    Identifier;[c];
+                    MarkupTextLiteral - [21..22)::1 - ["] - Gen<Markup>
+                        DoubleQuote;["];
+                MarkupMiscAttributeContent - [22..23)::1
+                    MarkupTextLiteral - [22..23)::1 - [ ] - Gen<Markup>
+                        Whitespace;[ ];
+                ForwardSlash;[/];
+                CloseAngle;[>];
+    EndOfFile;[];

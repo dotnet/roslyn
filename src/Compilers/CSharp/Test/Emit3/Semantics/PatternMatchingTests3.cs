@@ -2738,19 +2738,18 @@ class C
 }";
             var compilation = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp9));
             compilation.VerifyDiagnostics(
-                // (5,6): error CS1525: Invalid expression term '|'
-                //     {
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "").WithArguments("|").WithLocation(5, 6),
-                // (6,18): error CS1525: Invalid expression term '||'
+                // (6,9): error CS1525: Invalid expression term '|'
                 //         | 3 => 3,
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "").WithArguments("||").WithLocation(6, 18),
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "|").WithArguments("|").WithLocation(6, 9),
+                // (7,9): error CS1525: Invalid expression term '||'
+                //         || 4 => 4,
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "||").WithArguments("||").WithLocation(7, 9),
                 // (8,11): error CS0211: Cannot take the address of the given expression
                 //         & 5 => 5,
                 Diagnostic(ErrorCode.ERR_InvalidAddrOp, "5").WithLocation(8, 11),
-                // (8,18): error CS1525: Invalid expression term '&&'
-                //         & 5 => 5,
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "").WithArguments("&&").WithLocation(8, 18)
-                );
+                // (9,9): error CS1525: Invalid expression term '&&'
+                //         && 6 => 6,
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "&&").WithArguments("&&").WithLocation(9, 9));
         }
 
         [Fact]
@@ -7414,13 +7413,7 @@ class C
             compilation.VerifyDiagnostics(
                 // (4,47): warning CS8847: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern '(null, true, false, true)' is not covered. However, a pattern with a 'when' clause might successfully match this value.
                 //     int M((object?, bool, bool, bool) t) => t switch
-                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNullWithWhen, "switch").WithArguments("(null, true, false, true)").WithLocation(4, 47),
-                // (11,18): hidden CS9271: The pattern is redundant.
-                //         ({ }, _, true, _) => 2,
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "true").WithLocation(11, 18),
-                // (12,10): hidden CS9271: The pattern is redundant.
-                //         (null, _, _, false) => 7,
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "null").WithLocation(12, 10)
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNullWithWhen, "switch").WithArguments("(null, true, false, true)").WithLocation(4, 47)
                 );
         }
 

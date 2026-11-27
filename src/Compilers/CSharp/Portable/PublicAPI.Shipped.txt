@@ -256,6 +256,7 @@ Microsoft.CodeAnalysis.CSharp.DeconstructionInfo.Nested.get -> System.Collection
 Microsoft.CodeAnalysis.CSharp.ForEachStatementInfo
 Microsoft.CodeAnalysis.CSharp.ForEachStatementInfo.CurrentConversion.get -> Microsoft.CodeAnalysis.CSharp.Conversion
 Microsoft.CodeAnalysis.CSharp.ForEachStatementInfo.CurrentProperty.get -> Microsoft.CodeAnalysis.IPropertySymbol?
+Microsoft.CodeAnalysis.CSharp.ForEachStatementInfo.DisposeAwaitableInfo.get -> Microsoft.CodeAnalysis.CSharp.AwaitExpressionInfo
 Microsoft.CodeAnalysis.CSharp.ForEachStatementInfo.DisposeMethod.get -> Microsoft.CodeAnalysis.IMethodSymbol?
 Microsoft.CodeAnalysis.CSharp.ForEachStatementInfo.ElementConversion.get -> Microsoft.CodeAnalysis.CSharp.Conversion
 Microsoft.CodeAnalysis.CSharp.ForEachStatementInfo.ElementType.get -> Microsoft.CodeAnalysis.ITypeSymbol?
@@ -263,6 +264,7 @@ Microsoft.CodeAnalysis.CSharp.ForEachStatementInfo.Equals(Microsoft.CodeAnalysis
 Microsoft.CodeAnalysis.CSharp.ForEachStatementInfo.ForEachStatementInfo() -> void
 Microsoft.CodeAnalysis.CSharp.ForEachStatementInfo.GetEnumeratorMethod.get -> Microsoft.CodeAnalysis.IMethodSymbol?
 Microsoft.CodeAnalysis.CSharp.ForEachStatementInfo.IsAsynchronous.get -> bool
+Microsoft.CodeAnalysis.CSharp.ForEachStatementInfo.MoveNextAwaitableInfo.get -> Microsoft.CodeAnalysis.CSharp.AwaitExpressionInfo
 Microsoft.CodeAnalysis.CSharp.ForEachStatementInfo.MoveNextMethod.get -> Microsoft.CodeAnalysis.IMethodSymbol?
 Microsoft.CodeAnalysis.CSharp.InterceptableLocation
 Microsoft.CodeAnalysis.CSharp.LanguageVersion
@@ -4649,6 +4651,8 @@ static Microsoft.CodeAnalysis.CSharp.CSharpExtensions.ClassifyConversion(this Mi
 static Microsoft.CodeAnalysis.CSharp.CSharpExtensions.ClassifyConversion(this Microsoft.CodeAnalysis.SemanticModel? semanticModel, Microsoft.CodeAnalysis.CSharp.Syntax.ExpressionSyntax! expression, Microsoft.CodeAnalysis.ITypeSymbol! destination, bool isExplicitInSource = false) -> Microsoft.CodeAnalysis.CSharp.Conversion
 static Microsoft.CodeAnalysis.CSharp.CSharpExtensions.GetAliasInfo(this Microsoft.CodeAnalysis.SemanticModel? semanticModel, Microsoft.CodeAnalysis.CSharp.Syntax.IdentifierNameSyntax! nameSyntax, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> Microsoft.CodeAnalysis.IAliasSymbol?
 static Microsoft.CodeAnalysis.CSharp.CSharpExtensions.GetAwaitExpressionInfo(this Microsoft.CodeAnalysis.SemanticModel? semanticModel, Microsoft.CodeAnalysis.CSharp.Syntax.AwaitExpressionSyntax! awaitExpression) -> Microsoft.CodeAnalysis.CSharp.AwaitExpressionInfo
+static Microsoft.CodeAnalysis.CSharp.CSharpExtensions.GetAwaitExpressionInfo(this Microsoft.CodeAnalysis.SemanticModel? semanticModel, Microsoft.CodeAnalysis.CSharp.Syntax.LocalDeclarationStatementSyntax! awaitUsingDeclaration) -> Microsoft.CodeAnalysis.CSharp.AwaitExpressionInfo
+static Microsoft.CodeAnalysis.CSharp.CSharpExtensions.GetAwaitExpressionInfo(this Microsoft.CodeAnalysis.SemanticModel? semanticModel, Microsoft.CodeAnalysis.CSharp.Syntax.UsingStatementSyntax! awaitUsingStatement) -> Microsoft.CodeAnalysis.CSharp.AwaitExpressionInfo
 static Microsoft.CodeAnalysis.CSharp.CSharpExtensions.GetCollectionInitializerSymbolInfo(this Microsoft.CodeAnalysis.SemanticModel? semanticModel, Microsoft.CodeAnalysis.CSharp.Syntax.ExpressionSyntax! expression, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> Microsoft.CodeAnalysis.SymbolInfo
 static Microsoft.CodeAnalysis.CSharp.CSharpExtensions.GetCompilationUnitRoot(this Microsoft.CodeAnalysis.SyntaxTree! tree, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> Microsoft.CodeAnalysis.CSharp.Syntax.CompilationUnitSyntax!
 static Microsoft.CodeAnalysis.CSharp.CSharpExtensions.GetConstantValue(this Microsoft.CodeAnalysis.SemanticModel? semanticModel, Microsoft.CodeAnalysis.CSharp.Syntax.ExpressionSyntax! expression, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> Microsoft.CodeAnalysis.Optional<object!>

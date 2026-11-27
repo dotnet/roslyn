@@ -297,36 +297,20 @@ public sealed class ConvertDirectCastToTryCastTests
         }.RunAsync();
 
     [Theory]
-    [InlineData("/* Leading */ (obj$$ect)1",
-                "/* Leading */ 1 as object")]
-    [InlineData("(obj$$ect)1 /* Trailing */",
-                "1 as object /* Trailing */")]
-    [InlineData("(obj$$ect)1; // Trailing",
-                "1 as object; // Trailing")]
-    [InlineData("(/* Middle1 */ obj$$ect)1",
-                """
-                1 as
-                /* Middle1 */ object
-                """)]
-    [InlineData("(obj$$ect /* Middle2 */ )1",
-                "1 as object /* Middle2 */ ")]
-    [InlineData("(obj$$ect) /* Middle3 */ 1",
-                "/* Middle3 */ 1 as object")]
+    [InlineData("/* Leading */ (obj$$ect)1", "/* Leading */ 1 as object")]
+    [InlineData("(obj$$ect)1 /* Trailing */", "1 as object /* Trailing */")]
+    [InlineData("(obj$$ect)1; // Trailing", "1 as object; // Trailing")]
+    [InlineData("(/* Middle1 */ obj$$ect)1", "1 as /* Middle1 */ object")]
+    [InlineData("(obj$$ect /* Middle2 */ )1", "1 as object /* Middle2 */ ")]
+    [InlineData("(obj$$ect) /* Middle3 */ 1", " /* Middle3 */ 1 as object")]
     [InlineData("/* Leading */ (/* Middle1 */ obj$$ect /* Middle2 */ ) /* Middle3 */ 1 /* Trailing */",
-                """
-                /* Leading */ /* Middle3 */ 1 as
-                /* Middle1 */ object /* Middle2 */  /* Trailing */
-                """)]
+                "/* Leading */  /* Middle3 */ 1 as /* Middle1 */ object /* Middle2 */  /* Trailing */")]
     [InlineData("""
         ($$
         object
         )
         1
-        """, """
-
-        1 as
-        object
-        """)]
+        """, "1 as object")]
     public Task ConvertFromExplicitToAs_Trivia(string cast, string asExpression)
         => new VerifyCS.Test
         {
@@ -437,4 +421,35 @@ public sealed class ConvertDirectCastToTryCastTests
             CodeActionValidationMode = CodeActionValidationMode.Full,
         }.RunAsync();
     }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/82576")]
+    public Task TestTrailingTrivia()
+        => new VerifyCS.Test
+        {
+            TestCode = """
+            using System.Linq;
+            
+            class Program
+            {
+                void M(object o)
+                {
+                    _ = from v in ([||]object[])o
+                        select v;
+                }
+            }
+            """,
+            FixedCode = """
+            using System.Linq;
+            
+            class Program
+            {
+                void M(object o)
+                {
+                    _ = from v in o as object[]
+                        select v;
+                }
+            }
+            """,
+            CodeActionValidationMode = CodeActionValidationMode.Full,
+        }.RunAsync();
 }

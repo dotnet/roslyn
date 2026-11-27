@@ -699,7 +699,15 @@ internal sealed class UnifiedSuggestedActionsSource
             // Only inline if the underlying code action allows it.
             if (action is { CodeAction.IsInlinable: true, NestedActionSets.Length: > 0 })
             {
-                newActions.AddRange(action.NestedActionSets.SelectMany(set => set.Actions));
+                foreach (var nestedAction in action.NestedActionSets.SelectMany(static set => set.Actions))
+                {
+                    // Once we inline nested actions, the parent action that originally carried the provider tag is no longer
+                    // present in the top-level list. Merge its tags into the nested action so hosts can still identify the
+                    // originating code fix/refactoring provider without losing any tags that were already present on the child.
+                    nestedAction.CodeAction.CustomTags = nestedAction.CodeAction.CustomTags.AddRange(action.CodeAction.CustomTags);
+
+                    newActions.Add(nestedAction);
+                }
             }
             else
             {

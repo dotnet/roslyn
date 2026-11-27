@@ -45,11 +45,10 @@ internal abstract class ForkingSyntaxEditorBasedCodeFixProvider<TDiagnosticNode>
         // Never try to fix the secondary diagnostics that were produced just to fade out code.
         => !diagnostic.Descriptor.ImmutableCustomTags().Contains(WellKnownDiagnosticTags.Unnecessary);
 
-    public sealed override Task RegisterCodeFixesAsync(CodeFixContext context)
+    public sealed override async Task RegisterCodeFixesAsync(CodeFixContext context)
     {
         var (title, equivalenceKey) = GetTitleAndEquivalenceKey(context);
         RegisterCodeFix(context, title, equivalenceKey);
-        return Task.CompletedTask;
     }
 
     protected sealed override async Task FixAllAsync(
@@ -80,7 +79,12 @@ internal abstract class ForkingSyntaxEditorBasedCodeFixProvider<TDiagnosticNode>
         {
             var (originalDiagnosticNode, diagnostic) = tuple;
             var currentRoot = semanticDocument.Root;
-            var diagnosticNode = currentRoot.GetCurrentNodes(originalDiagnosticNode).Single();
+
+            // A prior fix may have already rewritten or removed this node (for example, several diagnostics that a
+            // single fix resolves together).  If the tracked node is gone, there's nothing left to do for it.
+            var diagnosticNode = currentRoot.GetCurrentNodes(originalDiagnosticNode).SingleOrDefault();
+            if (diagnosticNode is null)
+                continue;
 
             var subEditor = new SyntaxEditor(currentRoot, solutionServices);
 

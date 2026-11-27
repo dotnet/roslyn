@@ -37,7 +37,7 @@ internal sealed partial class CSharpUseSystemThreadingLockCodeFixProvider() : Co
 
 #endif
 
-    public override Task RegisterCodeFixesAsync(CodeFixContext context)
+    public override async Task RegisterCodeFixesAsync(CodeFixContext context)
     {
         var cancellationToken = context.CancellationToken;
         var document = context.Document;
@@ -51,11 +51,9 @@ internal sealed partial class CSharpUseSystemThreadingLockCodeFixProvider() : Co
                 CodeAction.Create(
                     CSharpAnalyzersResources.Use_System_Threading_Lock,
                     cancellationToken => UseSystemThreadingLockAsync(document, semanticModel: null, variableDeclarator, cancellationToken),
-                    nameof(CSharpAnalyzersResources.Use_primary_constructor)),
+                    nameof(CSharpAnalyzersResources.Use_System_Threading_Lock)),
                 diagnostic);
         }
-
-        return Task.CompletedTask;
     }
 
     private static async Task<Solution> UseSystemThreadingLockAsync(

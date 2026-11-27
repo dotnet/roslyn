@@ -13,13 +13,13 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SourceGenerators;
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
 internal sealed class SourceGeneratorRefreshQueueFactory(
-    IAsynchronousOperationListenerProvider asynchronousOperationListenerProvider,
-    LspWorkspaceRegistrationService lspWorkspaceRegistrationService) : ILspServiceFactory
+    IAsynchronousOperationListenerProvider asynchronousOperationListenerProvider) : ILspServiceFactory
 {
     public ILspService CreateILspService(LspServices lspServices, WellKnownLspServerKinds serverKind)
     {
         var notificationManager = lspServices.GetRequiredService<IClientLanguageServerManager>();
         var lspWorkspaceManager = lspServices.GetRequiredService<LspWorkspaceManager>();
+        var lspWorkspaceRegistrationService = lspServices.GetRequiredService<LspWorkspaceRegistrationService>();
         return new SourceGeneratorRefreshQueue(asynchronousOperationListenerProvider, lspWorkspaceRegistrationService, lspWorkspaceManager, notificationManager);
     }
 }

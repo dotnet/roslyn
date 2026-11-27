@@ -1,0 +1,43 @@
+﻿RazorDocument - [0..43)::43 - [<Weather Value="@@currentCount @someVar" />]
+    MarkupBlock - [0..43)::43
+        MarkupElement - [0..43)::43
+            MarkupStartTag - [0..43)::43 - [<Weather Value="@@currentCount @someVar" />] - Gen<Markup>
+                OpenAngle;[<];
+                Text;[Weather];
+                MarkupAttributeBlock - [8..40)::32 - [ Value="@@currentCount @someVar"]
+                    MarkupTextLiteral - [8..9)::1 - [ ] - Gen<Markup>
+                        Whitespace;[ ];
+                    MarkupTextLiteral - [9..14)::5 - [Value] - Gen<Markup>
+                        Text;[Value];
+                    Equals;[=];
+                    MarkupTextLiteral - [15..16)::1 - ["] - Gen<Markup>
+                        DoubleQuote;["];
+                    GenericBlock - [16..39)::23
+                        MarkupBlock - [16..18)::2
+                            MarkupTextLiteral - [16..17)::1 - [@] - Gen<LitAttr:@(16:0,16)>
+                                Transition;[@];
+                            MarkupEphemeralTextLiteral - [17..18)::1 - [@] - Gen<None>
+                                Transition;[@];
+                        MarkupLiteralAttributeValue - [18..30)::12 - [currentCount]
+                            MarkupTextLiteral - [18..30)::12 - [currentCount] - Gen<Markup>
+                                Text;[currentCount];
+                        MarkupDynamicAttributeValue - [30..39)::9 - [ @someVar]
+                            MarkupTextLiteral - [30..31)::1 - [ ] - Gen<Markup>
+                                Whitespace;[ ];
+                            GenericBlock - [31..39)::8
+                                CSharpCodeBlock - [31..39)::8
+                                    CSharpImplicitExpression - [31..39)::8
+                                        CSharpTransition - [31..32)::1 - Gen<None>
+                                            Transition;[@];
+                                        CSharpImplicitExpressionBody - [32..39)::7
+                                            CSharpCodeBlock - [32..39)::7
+                                                CSharpExpressionLiteral - [32..39)::7 - [someVar] - Gen<Expr>
+                                                    Identifier;[someVar];
+                    MarkupTextLiteral - [39..40)::1 - ["] - Gen<Markup>
+                        DoubleQuote;["];
+                MarkupMiscAttributeContent - [40..41)::1
+                    MarkupTextLiteral - [40..41)::1 - [ ] - Gen<Markup>
+                        Whitespace;[ ];
+                ForwardSlash;[/];
+                CloseAngle;[>];
+    EndOfFile;[];

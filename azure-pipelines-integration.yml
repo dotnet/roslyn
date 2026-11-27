@@ -25,6 +25,7 @@ pr:
     - release/*
     - features/*
     - demos/*
+    - dev/*
     exclude:
     # Since the version of VS on the integration VM images are a moving target,
     # we are unable to reliably run integration tests on servicing branches.
@@ -36,6 +37,8 @@ pr:
       - docs/*
       - eng/config/OptProf.json
       - eng/config/PublishData.json
+      - eng/pipelines/insert.yml
+      - eng/pipelines/insertion-pr-tagger.yml
       - eng/setup-pr-validation.ps1
       - .vscode/*
       - .github/*
@@ -47,9 +50,7 @@ pr:
       - azure-pipelines-integration-scouting.yml
       - azure-pipelines-official.yml
       - azure-pipelines-pr-validation.yml
-      - CODE-OF-CONDUCT.md
-      - CONTRIBUTING.md
-      - README.md
+      - '*.md'
       - src/Compilers/*
       - src/LanguageServer/Microsoft.CommonLanguageServerProtocol.Framework/README.md
 
@@ -70,12 +71,17 @@ parameters:
 - name: queueName
   displayName: Queue Name
   type: string
-  default: windows.vs2022preview.scout.amd64.open
+  default: windows.vs2022.amd64.open
   values:
   - windows.vs2022.amd64.open
-  - windows.vs2022.scout.amd64.open
-  - windows.vs2022preview.amd64.open
-  - windows.vs2022preview.scout.amd64.open
+  - windows.vs2026preview.scout.amd64.open
+- name: buildQueueName
+  displayName: Build Queue Name
+  type: string
+  default: windows.vs2026preview.scout.amd64.open
+  values:
+  - windows.vs2022.amd64.open
+  - windows.vs2026preview.scout.amd64.open
 - name: timeout
   displayName: Timeout in Minutes
   type: number
@@ -86,8 +92,10 @@ stages:
   parameters:
     poolName: ${{ parameters.poolName }}
     queueName: ${{ parameters.queueName }}
+    buildQueueName: ${{ parameters.buildQueueName }}
     timeout: ${{ parameters.timeout }}
     configuration: Debug
+    warnAsError: true
     testRuns:
       - ${{ if ne(variables['Build.Reason'], 'PullRequest') }}:
         - oop64bit: false
@@ -101,8 +109,10 @@ stages:
   parameters:
     poolName: ${{ parameters.poolName }}
     queueName: ${{ parameters.queueName }}
+    buildQueueName: ${{ parameters.buildQueueName }}
     timeout: ${{ parameters.timeout }}
     configuration: Release
+    warnAsError: true
     testRuns:
       - oop64bit: false
         lspEditor: false

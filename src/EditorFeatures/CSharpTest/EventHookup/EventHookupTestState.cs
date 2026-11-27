@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.VisualStudio.Language.Suggestions;
 using Roslyn.Utilities;
 using Xunit;
 
@@ -23,7 +24,8 @@ internal sealed class EventHookupTestState : AbstractCommandHandlerTestState
 {
     private static readonly TestComposition s_composition = EditorTestCompositions.EditorFeatures.AddParts(
         typeof(EventHookupCommandHandler),
-        typeof(EventHookupSessionManager));
+        typeof(EventHookupSessionManager),
+        typeof(MockSuggestionService));
 
     private readonly EventHookupCommandHandler _commandHandler;
     private readonly Mutex _testSessionHookupMutex;
@@ -87,6 +89,12 @@ internal sealed class EventHookupTestState : AbstractCommandHandlerTestState
     internal void AssertCodeIs(string expectedCode)
     {
         Assert.Equal(expectedCode, TextView.TextSnapshot.GetText());
+    }
+
+    internal void AssertSuggestionServiceWasDismissed()
+    {
+        var service = (MockSuggestionService)Workspace.GetService<SuggestionServiceBase>();
+        Assert.True(service.WasDismissAndBlockCalled);
     }
 
     public void SendTypeChar(char ch)

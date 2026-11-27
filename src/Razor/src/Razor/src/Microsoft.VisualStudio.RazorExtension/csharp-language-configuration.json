@@ -1,0 +1,115 @@
+﻿{
+  "comments": {
+    "lineComment": "//",
+    "blockComment": [ "/*", "*/" ]
+  },
+  "brackets": [
+    [ "{", "}" ],
+    [ "[", "]" ],
+    [ "(", ")" ],
+    [ "/*", "*/" ]
+  ],
+  "autoCloseBefore": ";:.,=}])>` \r\n\t",
+  "autoClosingPairs": [
+    { "open": "{", "close": "}" },
+    { "open": "[", "close": "]" },
+    { "open": "(", "close": ")" },
+    {
+      "open": "'",
+      "close": "'",
+      "notIn": [ "string", "comment" ]
+    },
+    {
+      "open": "\"",
+      "close": "\"",
+      "notIn": [ "string", "comment" ]
+    },
+    {
+      "open": "/*",
+      "close": "*/",
+      "notIn": [ "string" ]
+    }
+  ],
+  "surroundingPairs": [
+    [ "{", "}" ],
+    [ "[", "]" ],
+    [ "(", ")" ],
+    [ "<", ">" ],
+    [ "'", "'" ],
+    [ "\"", "\"" ]
+  ],
+  "folding": {
+    "markers": {
+      "start": "^\\s*#region\\b",
+      "end": "^\\s*#endregion\\b"
+    }
+  },
+  "indentationRules": {
+    "increaseIndentPattern": "^((?!\\/\\/).)*(\\{([^}\"'`]*|(\\t|[ ])*\\/\\/.*)|\\([^)\"'`]*|\\[[^\\]\"'`]*)$",
+    "decreaseIndentPattern": "^((?!.*?\\/\\*).*\\*\\/)?\\s*[\\}\\]].*$",
+    "unIndentedLinePattern": "^(\\t|[ ])*[ ]\\*[^/]*\\*\\/\\s*$|^(\\t|[ ])*[ ]\\*\\/\\s*$|^(\\t|[ ])*[ ]\\*([ ]([^\\*]|\\*(?!\\/))*)?$"
+  },
+  "wordPattern": "(-?\\d*\\.\\d\\w*)|([^\\d\\`\\~\\!\\@\\%\\^\\&\\*\\(\\)\\-\\=\\+\\[\\{\\]\\}\\\\\\|\\;\\:\\'\\\"\\,\\.\\<\\>\\/\\?\\s][^\\`\\~\\!\\@\\%\\^\\&\\*\\(\\)\\-\\=\\+\\[\\{\\]\\}\\\\\\|\\;\\:\\'\\\"\\,\\.\\<\\>\\/\\?\\s]+)",
+  "onEnterRules": [
+    {
+      // e.g.  // ...|
+      "beforeText": "^\\s*\\/\\/",
+      "afterText": "(\\s*[^\\s]+)+\\s*$",
+      "action": {
+        "indent": "none",
+        "appendText": "// "
+      }
+    },
+    {
+      // e.g. /* | */
+      "beforeText": "^\\s*\\/\\*(?!\\/)([^\\*]|\\*(?!\\/))*$",
+      "afterText": "^\\s*\\*\\/$",
+      "action": {
+        "indent": "indentOutdent",
+        "appendText": " * "
+      }
+    },
+    {
+      // e.g. /* ...|
+      "beforeText": "^\\s*\\/\\*(?!\\/)([^\\*]|\\*(?!\\/))*$",
+      "action": {
+        "indent": "none",
+        "appendText": " * "
+      }
+    },
+    {
+      // e.g.  * ...|
+      "beforeText": "^(\\t|[ ])*[ ]\\*([ ]([^\\*]|\\*(?!\\/))*)?$",
+      "previousLineText": "(?=^(\\s*(\\/\\*|\\*)).*)(?=(?!(\\s*\\*\\/)))",
+      "action": {
+        "indent": "none",
+        "appendText": "* "
+      }
+    },
+    {
+      // e.g.  */|
+      "beforeText": "^(\\t|[ ])*[ ]\\*\\/\\s*$",
+      "action": {
+        "indent": "none",
+        "removeText": 1
+      }
+    },
+    {
+      // e.g.  *-----*/|
+      "beforeText": "^(\\t|[ ])*[ ]\\*[^/]*\\*\\/\\s*$",
+      "action": {
+        "indent": "none",
+        "removeText": 1
+      }
+    }
+    // Cannot auto-include doc-comments yet because C# will OnAutoInsert doc comment continuations asynchronously. Once they remove the support
+    // we can rely on this: https://github.com/dotnet/roslyn/issues/54431
+    //{
+    //  "beforeText": "^\\s*\\/\\/\\/\\s?",
+    //  "action": {
+    //    "indent": "none",
+    //    "appendText": "/// "
+    //  }
+    //}
+  ]
+}

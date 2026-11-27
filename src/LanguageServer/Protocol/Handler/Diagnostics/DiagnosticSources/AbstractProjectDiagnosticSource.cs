@@ -59,7 +59,7 @@ internal abstract class AbstractProjectDiagnosticSource(Project project)
     private sealed class CodeAnalysisDiagnosticSource(Project project, ICodeAnalysisDiagnosticAnalyzerService codeAnalysisService)
         : AbstractProjectDiagnosticSource(project)
     {
-        public override Task<ImmutableArray<DiagnosticData>> GetDiagnosticsAsync(
+        public override async Task<ImmutableArray<DiagnosticData>> GetDiagnosticsAsync(
             RequestContext context,
             CancellationToken cancellationToken)
         {
@@ -69,7 +69,7 @@ internal abstract class AbstractProjectDiagnosticSource(Project project)
             // user.  As such, it is definitely not "live" data, and it should be overridden by any subsequent fresh data
             // that has been produced.
             diagnostics = ProtocolConversions.AddBuildTagIfNotPresent(diagnostics);
-            return Task.FromResult(diagnostics);
+            return diagnostics;
         }
     }
 }

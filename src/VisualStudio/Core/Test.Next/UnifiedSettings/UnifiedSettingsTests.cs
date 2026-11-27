@@ -4,20 +4,16 @@
 
 using System;
 using System.Collections.Immutable;
-using System.IO;
-using System.IO.Hashing;
 using System.Linq;
 using System.Reflection;
-using System.Text;
 using System.Text.Json;
 using System.Text.Json.Nodes;
-using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Completion;
+using Microsoft.CodeAnalysis.Completion.Providers;
 using Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement;
 using Microsoft.CodeAnalysis.Options;
-using Microsoft.VisualStudio.LanguageServices;
 using Roslyn.Utilities;
 using Roslyn.VisualStudio.Next.UnitTests.UnifiedSettings.TestModel;
 using Xunit;
@@ -41,6 +37,7 @@ public sealed class UnifiedSettingsTests
         Add(CompletionOptionsStorage.EnterKeyBehavior, "languages.csharp.intellisense.returnKeyCompletionBehavior").
         Add(CompletionOptionsStorage.ShowNameSuggestions, "languages.csharp.intellisense.showNameCompletionSuggestions").
         Add(CompletionOptionsStorage.ShowItemsFromUnimportedNamespaces, "languages.csharp.intellisense.showCompletionItemsFromUnimportedNamespaces").
+        Add(CompletionOptionsStorage.ImportCompletionCommitBehavior, "languages.csharp.intellisense.importCompletionCommitBehavior").
         Add(CompletionViewOptionsStorage.EnableArgumentCompletionSnippets, "languages.csharp.intellisense.enableArgumentCompletionSnippets").
         Add(CompletionOptionsStorage.ShowNewSnippetExperienceUserOption, "languages.csharp.intellisense.showNewSnippetExperience");
 
@@ -107,7 +104,16 @@ public sealed class UnifiedSettingsTests
         (CompletionOptionsStorage.ShowItemsFromUnimportedNamespaces, CreateBooleanOption(
             CompletionOptionsStorage.ShowItemsFromUnimportedNamespaces,
             title: "Show items from unimported namespaces",
-            order: 80,
+            order: 80, languageName: LanguageNames.CSharp)),
+        (CompletionOptionsStorage.ImportCompletionCommitBehavior, CreateEnumOption(
+            CompletionOptionsStorage.ImportCompletionCommitBehavior,
+            title: "Completion behavior for items from unimported namespaces",
+            order: 81,
+            enableWhenOptionAndValue: (enableWhenOption: CompletionOptionsStorage.ShowItemsFromUnimportedNamespaces, whenValue: true),
+            customDefaultValue: ImportCompletionCommitBehavior.AlwaysAddImport,
+            enumLabels: ["Always add using", "Never add using", "Only add using if explicitly completed (via TAB or double-click)"],
+            enumValues: [ImportCompletionCommitBehavior.AlwaysAddImport, ImportCompletionCommitBehavior.NeverAddImport, ImportCompletionCommitBehavior.OnlyAddImportIfExplicitlyCompleted],
+            customMaps: [new Map { Result = "alwaysAddImport", Match = 0 }, new Map { Result = "neverAddImport", Match = 1 }, new Map { Result = "onlyAddImportIfExplicitlyCompleted", Match = 2}],
             languageName: LanguageNames.CSharp)),
         (CompletionViewOptionsStorage.EnableArgumentCompletionSnippets, CreateBooleanOption(
             CompletionViewOptionsStorage.EnableArgumentCompletionSnippets,
@@ -134,7 +140,6 @@ public sealed class UnifiedSettingsTests
         Assert.Equal(2, propertyToCategory.Count);
         Assert.Equal("C#", propertyToCategory["languages.csharp"]!.Title);
         Assert.Equal("IntelliSense", propertyToCategory["languages.csharp.intellisense"]!.Title);
-        await VerifyTagAsync(jsonDocument.ToString(), "Roslyn.VisualStudio.Next.UnitTests.csharpPackageRegistration.pkgdef");
     }
 
     [Fact]
@@ -148,7 +153,6 @@ public sealed class UnifiedSettingsTests
         }
 
         VerifyProperties(jsonDocument!, "languages.csharp.intellisense", s_csharpIntellisenseExpectedSettings);
-        await VerifyTagAsync(jsonDocument!.ToString(), "Roslyn.VisualStudio.Next.UnitTests.csharpPackageRegistration.pkgdef");
     }
 
     #endregion
@@ -165,6 +169,7 @@ public sealed class UnifiedSettingsTests
         Add(CompletionOptionsStorage.SnippetsBehavior, "languages.basic.intellisense.snippetsBehavior").
         Add(CompletionOptionsStorage.EnterKeyBehavior, "languages.basic.intellisense.returnKeyCompletionBehavior").
         Add(CompletionOptionsStorage.ShowItemsFromUnimportedNamespaces, "languages.basic.intellisense.showCompletionItemsFromUnimportedNamespaces").
+        Add(CompletionOptionsStorage.ImportCompletionCommitBehavior, "languages.basic.intellisense.importCompletionCommitBehavior").
         Add(CompletionViewOptionsStorage.EnableArgumentCompletionSnippets, "languages.basic.intellisense.enableArgumentCompletionSnippets");
 
     /// <summary>
@@ -214,7 +219,16 @@ public sealed class UnifiedSettingsTests
         (CompletionOptionsStorage.ShowItemsFromUnimportedNamespaces, CreateBooleanOption(
             CompletionOptionsStorage.ShowItemsFromUnimportedNamespaces,
             title: "Show items from unimported namespaces",
-            order: 50,
+            order: 50, languageName: LanguageNames.VisualBasic)),
+        (CompletionOptionsStorage.ImportCompletionCommitBehavior, CreateEnumOption(
+            CompletionOptionsStorage.ImportCompletionCommitBehavior,
+            title: "Completion behavior for items from unimported namespaces",
+            order: 51,
+            enableWhenOptionAndValue: (enableWhenOption: CompletionOptionsStorage.ShowItemsFromUnimportedNamespaces, whenValue: true),
+            customDefaultValue: ImportCompletionCommitBehavior.AlwaysAddImport,
+            enumLabels: ["Always add import", "Never add import", "Only add import if explicitly completed (via TAB or double-click)"],
+            enumValues: [ImportCompletionCommitBehavior.AlwaysAddImport, ImportCompletionCommitBehavior.NeverAddImport, ImportCompletionCommitBehavior.OnlyAddImportIfExplicitlyCompleted],
+            customMaps: [new Map { Result = "alwaysAddImport", Match = 0 }, new Map { Result = "neverAddImport", Match = 1 }, new Map { Result = "onlyAddImportIfExplicitlyCompleted", Match = 2}],
             languageName: LanguageNames.VisualBasic)),
         (CompletionViewOptionsStorage.EnableArgumentCompletionSnippets, CreateBooleanOption(
             CompletionViewOptionsStorage.EnableArgumentCompletionSnippets,
@@ -234,7 +248,6 @@ public sealed class UnifiedSettingsTests
         Assert.Equal(2, propertyToCategory.Count);
         Assert.Equal("Visual Basic", propertyToCategory["languages.basic"]!.Title);
         Assert.Equal("IntelliSense", propertyToCategory["languages.basic.intellisense"]!.Title);
-        await VerifyTagAsync(jsonDocument.ToString(), "Roslyn.VisualStudio.Next.UnitTests.visualBasicPackageRegistration.pkgdef");
     }
 
     [Fact]
@@ -248,7 +261,6 @@ public sealed class UnifiedSettingsTests
         }
 
         VerifyProperties(jsonDocument!, "languages.basic.intellisense", s_visualBasicIntellisenseExpectedSettings);
-        await VerifyTagAsync(jsonDocument!.ToString(), "Roslyn.VisualStudio.Next.UnitTests.visualBasicPackageRegistration.pkgdef");
     }
 
     private static void VerifyProperties(JsonNode jsonDocument, string prefix, ImmutableArray<(IOption2, UnifiedSettingBase)> expectedOptionToSettings)
@@ -270,23 +282,6 @@ public sealed class UnifiedSettingsTests
     #endregion
 
     #region Helpers
-
-    private static async Task VerifyTagAsync(string registrationFile, string pkgdefFileName)
-    {
-        using var pkgDefFileStream = typeof(UnifiedSettingsTests).GetTypeInfo().Assembly.GetManifestResourceStream(pkgdefFileName);
-        using var streamReader = new StreamReader(pkgDefFileStream);
-        var pkgdefFile = await streamReader.ReadToEndAsync();
-
-        var fileBytes = Encoding.ASCII.GetBytes(registrationFile);
-        var expectedTags = BitConverter.ToInt64([.. XxHash128.Hash(fileBytes).Take(8)], 0).ToString("X16");
-        var regex = new Regex("""
-                              "CacheTag"=qword:\w{16}
-                              """);
-        var match = regex.Match(pkgdefFile, 0).Value;
-        var actualTag = match[^16..];
-        // Please change the CacheTag value in pkddefFile when you modify the registration file.
-        Assert.Equal(expectedTags, actualTag);
-    }
 
     private static UnifiedSettingsOption<bool> CreateBooleanOption(
         IOption2 onboardedOption,

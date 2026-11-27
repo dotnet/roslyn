@@ -372,9 +372,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
             bool parsePropertyPatternClause([NotNullWhen(true)] out PropertyPatternClauseSyntax? propertyPatternClauseResult)
             {
+                // Check for the `id {` and report that the designator has to come after the property pattern.
+                var misplacedIdentifier =
+                    this.IsTrueIdentifier() &&
+                    this.IsValidPatternDesignation(inSwitchArmPattern) &&
+                    this.PeekToken(1).Kind == SyntaxKind.OpenBraceToken
+                        ? AddError(this.EatToken(), ErrorCode.ERR_DesignatorBeforePropertyPattern)
+                        : null;
+
                 if (this.CurrentToken.Kind == SyntaxKind.OpenBraceToken)
                 {
-                    propertyPatternClauseResult = ParsePropertyPatternClause();
+                    propertyPatternClauseResult = AddLeadingSkippedSyntax(ParsePropertyPatternClause(), misplacedIdentifier);
                     return true;
                 }
 
@@ -385,7 +393,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             bool looksLikeCast()
             {
                 using var _ = this.GetDisposableResetPoint(resetOnDispose: true);
-                return this.ScanCast(forPattern: true);
+                return this.ScanCast(forPattern: true, inSwitchArmPattern);
             }
         }
 
@@ -396,14 +404,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 : null;
         }
 
-        private bool IsValidPatternDesignation(bool whenIsKeyword)
+        private bool IsValidPatternDesignation(bool inSwitchArmPattern)
         {
             if (CurrentToken.Kind == SyntaxKind.IdentifierToken)
             {
                 switch (CurrentToken.ContextualKind)
                 {
                     case SyntaxKind.WhenKeyword:
-                        return !whenIsKeyword;
+                        // When directly in a switch arm, we *always* treat 'when' as a keyword starting the 'when
+                        // clause'.  In other patterns, we allow 'when' to be a normal designator.
+                        return !inSwitchArmPattern;
                     case SyntaxKind.AndKeyword:
                     case SyntaxKind.OrKeyword:
                         var tk = PeekToken(1).Kind;
@@ -562,7 +572,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             // However, such behavior isn't much desirable when parsing pattern of a case label in a switch statement. For instance, consider the following example: `case { Prop: { }: case ...`.
             // Normally we would skip second `:` and `case` keyword after it as bad tokens and continue parsing pattern, which produces a lot of noise errors.
             // In order to avoid that and produce single error of missing `}` we exit on unexpected `:` in such cases.
-            if (@this._termState.HasFlag(TerminatorState.IsExpressionOrPatternInCaseLabelOfSwitchStatement) && @this.CurrentToken.Kind is SyntaxKind.ColonToken)
+            if ((@this._termState & TerminatorState.IsExpressionOrPatternInCaseLabelOfSwitchStatement) == TerminatorState.IsExpressionOrPatternInCaseLabelOfSwitchStatement && @this.CurrentToken.Kind is SyntaxKind.ColonToken)
                 return PostSkipAction.Abort;
 
             // This is pretty much the same as above, but for switch expressions and `=>` and `:` tokens.
@@ -571,7 +581,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             // However, if we treated `=>` as "exit" token, parsing wouldn't consume full case label properly and would produce a lot of noise errors.
             // We can afford `:` to be the exit token for switch expressions because error recovery is already good enough and treats `:` as bad `=>`,
             // meaning that switch expression arm `{ : 1` can be recovered to `{ } => 1` where the closing `}` is missing and instead of `=>` we have `:`.
-            if (@this._termState.HasFlag(TerminatorState.IsPatternInSwitchExpressionArm) && @this.CurrentToken.Kind is SyntaxKind.EqualsGreaterThanToken or SyntaxKind.ColonToken)
+            if ((@this._termState & TerminatorState.IsPatternInSwitchExpressionArm) == TerminatorState.IsPatternInSwitchExpressionArm && @this.CurrentToken.Kind is SyntaxKind.EqualsGreaterThanToken or SyntaxKind.ColonToken)
                 return PostSkipAction.Abort;
 
             return @this.SkipBadSeparatedListTokensWithExpectedKind(ref open, list,

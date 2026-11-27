@@ -1,0 +1,36 @@
+﻿RazorDocument - [0..48)::48 - [@{LF    @@string.Format("1{0}", DateTime.Now)LF}]
+    MarkupBlock - [0..48)::48
+        MarkupTextLiteral - [0..0)::0 - [] - Gen<Markup>
+            Marker;[];
+        CSharpCodeBlock - [0..48)::48
+            CSharpStatement - [0..48)::48
+                CSharpTransition - [0..1)::1 - Gen<None>
+                    Transition;[@];
+                CSharpStatementBody - [1..48)::47
+                    RazorMetaCode - [1..2)::1 - Gen<None>
+                        LeftBrace;[{];
+                    CSharpCodeBlock - [2..47)::45
+                        CSharpStatementLiteral - [2..8)::6 - [LF    ] - Gen<Stmt>
+                            NewLine;[LF];
+                            Whitespace;[    ];
+                        CSharpEphemeralTextLiteral - [8..9)::1 - [@] - Gen<None>
+                            Transition;[@];
+                        CSharpStatementLiteral - [9..47)::38 - [@string.Format("1{0}", DateTime.Now)LF] - Gen<Stmt>
+                            Transition;[@];
+                            Keyword;[string];
+                            Dot;[.];
+                            Identifier;[Format];
+                            LeftParenthesis;[(];
+                            StringLiteral;["1{0}"];
+                            Comma;[,];
+                            Whitespace;[ ];
+                            Identifier;[DateTime];
+                            Dot;[.];
+                            Identifier;[Now];
+                            RightParenthesis;[)];
+                            NewLine;[LF];
+                    RazorMetaCode - [47..48)::1 - Gen<None>
+                        RightBrace;[}];
+        MarkupTextLiteral - [48..48)::0 - [] - Gen<Markup>
+            Marker;[];
+    EndOfFile;[];

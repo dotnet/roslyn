@@ -78,6 +78,37 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal virtual bool IsInsideNameof => NextRequired.IsInsideNameof;
 
+        internal static bool IsObjectInitializerMemberTarget(SyntaxNode node)
+        {
+            while (node.Parent is { } parent)
+            {
+                switch (parent)
+                {
+                    case AssignmentExpressionSyntax assignment:
+                        return assignment.Left == node &&
+                            assignment.Parent?.Kind() == SyntaxKind.ObjectInitializerExpression;
+
+                    case InitializerExpressionSyntax initializer
+                        when node is IdentifierNameSyntax &&
+                             initializer.Kind() == SyntaxKind.ObjectInitializerExpression:
+                        return true;
+
+                    case BracketedArgumentListSyntax:
+                        // We cut off inside the indexer argument list of an object initializer so
+                        // things like "new C().StaticProp" get standard error messages, rather than
+                        // the object initializer specific error CS1914.
+                        return false;
+
+                    case StatementSyntax:
+                        return false;
+                }
+
+                node = parent;
+            }
+
+            return false;
+        }
+
         /// <summary>
         /// Get the next binder in which to look up a name, if not found by this binder.
         /// </summary>
@@ -348,27 +379,33 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// returns the <see cref="GeneratedLabelSymbol"/> that a break statement would branch to.
         /// Returns null otherwise.
         /// </summary>
-        internal virtual GeneratedLabelSymbol? BreakLabel
-        {
-            get
-            {
-                RoslynDebug.Assert(Next is object);
-                return Next.BreakLabel;
-            }
-        }
+        internal GeneratedLabelSymbol? BreakLabel => GetBreakLabel(labelName: null);
 
         /// <summary>
         /// If we are inside a context where a continue statement is legal,
         /// returns the <see cref="GeneratedLabelSymbol"/> that a continue statement would branch to.
         /// Returns null otherwise.
         /// </summary>
-        internal virtual GeneratedLabelSymbol? ContinueLabel
+        internal GeneratedLabelSymbol? ContinueLabel => GetContinueLabel(labelName: null);
+
+        /// <summary>
+        /// Returns the <see cref="GeneratedLabelSymbol"/> for a break statement targeting the given label,
+        /// or the nearest enclosing loop/switch if <paramref name="labelName"/> is null.
+        /// </summary>
+        internal virtual GeneratedLabelSymbol? GetBreakLabel(string? labelName)
         {
-            get
-            {
-                RoslynDebug.Assert(Next is object);
-                return Next.ContinueLabel;
-            }
+            RoslynDebug.Assert(Next is object);
+            return Next.GetBreakLabel(labelName);
+        }
+
+        /// <summary>
+        /// Returns the <see cref="GeneratedLabelSymbol"/> for a continue statement targeting the given label,
+        /// or the nearest enclosing loop if <paramref name="labelName"/> is null.
+        /// </summary>
+        internal virtual GeneratedLabelSymbol? GetContinueLabel(string? labelName)
+        {
+            RoslynDebug.Assert(Next is object);
+            return Next.GetContinueLabel(labelName);
         }
 
         /// <summary>
@@ -484,6 +521,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return this.Next.LocalInProgress;
             }
         }
+
+        internal virtual bool BindingCollectionExpressionWithArguments => false;
 
         internal virtual NamedTypeSymbol? ParamsCollectionTypeInProgress => null;
 
@@ -754,11 +793,19 @@ namespace Microsoft.CodeAnalysis.CSharp
             return symbol.IsExtensionBlockMember() && (symbol.IsStatic || symbol.MethodKind != MethodKind.Ordinary);
         }
 
-        internal static void ReportDiagnosticsIfDisallowedExtension(BindingDiagnosticBag diagnostics, MethodSymbol method, SyntaxNode syntax)
+        internal static void ReportDisallowedExtensionBlockMethod(MethodSymbol method, SyntaxNode syntax, BindingDiagnosticBag diagnostics)
         {
             if (IsDisallowedExtensionInOlderLangVer(method))
             {
                 MessageID.IDS_FeatureExtensions.CheckFeatureAvailability(diagnostics, syntax);
+            }
+        }
+
+        internal void ReportDisallowedExtensionBlockIndexer(PropertySymbol property, SyntaxNode syntax, BindingDiagnosticBag diagnostics)
+        {
+            if (property.IsIndexer && property.IsExtensionBlockMember() && property.ContainingModule != Compilation.SourceModule)
+            {
+                MessageID.IDS_FeatureExtensionIndexers.CheckFeatureAvailability(diagnostics, syntax);
             }
         }
 

@@ -1,0 +1,24 @@
+{
+  "extraKnownMarketplaces": {
+    "dotnet-arcade-skills": {
+      "source": {
+        "source": "github",
+        "repo": "dotnet/arcade-skills"
+      }
+    },
+    "dotnet-agent-skills": {
+      "source": {
+        "source": "github",
+        "repo": "dotnet/skills"
+      }
+    }
+  },
+  "enabledPlugins": {
+    "dotnet-dnceng@dotnet-arcade-skills": true,
+    "dotnet@dotnet-agent-skills": true,
+    "dotnet-test@dotnet-agent-skills": true,
+    "dotnet-diag@dotnet-agent-skills": true,
+    "dotnet-msbuild@dotnet-agent-skills": true,
+    "dotnet-nuget@dotnet-agent-skills": true
+  }
+}

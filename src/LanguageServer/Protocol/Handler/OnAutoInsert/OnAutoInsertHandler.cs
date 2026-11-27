@@ -42,28 +42,30 @@ internal sealed class OnAutoInsertHandler(
 
     public LSP.TextDocumentIdentifier GetTextDocumentIdentifier(LSP.VSInternalDocumentOnAutoInsertParams request) => request.TextDocument;
 
-    public Task<LSP.VSInternalDocumentOnAutoInsertResponseItem?> HandleRequestAsync(
+    public async Task<LSP.VSInternalDocumentOnAutoInsertResponseItem?> HandleRequestAsync(
         LSP.VSInternalDocumentOnAutoInsertParams request,
         RequestContext context,
         CancellationToken cancellationToken)
     {
-        var document = context.Document;
+        var document = await context.GetDocumentAsync(cancellationToken).ConfigureAwait(false);
         if (document == null)
-            return SpecializedTasks.Null<LSP.VSInternalDocumentOnAutoInsertResponseItem>();
+            return null;
 
         var onAutoInsertEnabled = _globalOptions.GetOption(LspOptionsStorage.LspEnableAutoInsert, document.Project.Language);
         if (!onAutoInsertEnabled)
-            return SpecializedTasks.Null<LSP.VSInternalDocumentOnAutoInsertResponseItem>();
+            return null;
 
         var servicesForDocument = _braceCompletionServices.SelectAsArray(s => s.Metadata.Language == document.Project.Language, s => s.Value);
-        var isRazorRequest = context.ServerKind == WellKnownLspServerKinds.RazorLspServer;
         var position = ProtocolConversions.PositionToLinePosition(request.Position);
         var supportsVSExtensions = context.GetRequiredClientCapabilities().HasVisualStudioLspCapability();
 
-        // We want adjust the braces after enter for razor and non-VS clients.
+        // We want adjust the braces after enter for non-VS clients.
         // We don't do this via on type formatting as it does not support snippets.
-        var includeNewLineBraceFormatting = isRazorRequest || !supportsVSExtensions;
-        return GetOnAutoInsertResponseAsync(_globalOptions, servicesForDocument, document, position, request.Character, request.Options, includeNewLineBraceFormatting, cancellationToken);
+        var includeNewLineBraceFormatting = !supportsVSExtensions;
+
+        // We should use the options passed in by LSP instead of the document's options.
+        var formattingOptions = await ProtocolConversions.GetFormattingOptionsAsync(request.Options, document, cancellationToken).ConfigureAwait(false);
+        return await GetOnAutoInsertResponseAsync(_globalOptions, servicesForDocument, document, position, request.Character, formattingOptions, includeNewLineBraceFormatting, cancellationToken).ConfigureAwait(false);
     }
 
     internal static async Task<LSP.VSInternalDocumentOnAutoInsertResponseItem?> GetOnAutoInsertResponseAsync(
@@ -72,14 +74,11 @@ internal sealed class OnAutoInsertHandler(
         Document document,
         LinePosition linePosition,
         string character,
-        LSP.FormattingOptions lspFormattingOptions,
+        SyntaxFormattingOptions formattingOptions,
         bool includeNewLineBraceFormatting,
         CancellationToken cancellationToken)
     {
         var service = document.GetRequiredLanguageService<IDocumentationCommentSnippetService>();
-
-        // We should use the options passed in by LSP instead of the document's options.
-        var formattingOptions = await ProtocolConversions.GetFormattingOptionsAsync(lspFormattingOptions, document, cancellationToken).ConfigureAwait(false);
 
         // The editor calls this handler for C# and VB comment characters, but we only need to process the one for the language that matches the document
         if (character == "\n" || character == service.DocumentationCommentCharacter)

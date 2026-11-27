@@ -1,0 +1,5 @@
+﻿Source Location: (95:5,1 [16] x:\dir\subdir\Test\TestComponent.razor)
+|GetLength(null!)|
+Generated Location: (761:21,24 [16] )
+|GetLength(null!)|
+

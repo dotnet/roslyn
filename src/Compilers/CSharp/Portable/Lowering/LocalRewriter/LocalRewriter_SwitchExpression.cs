@@ -123,14 +123,26 @@ namespace Microsoft.CodeAnalysis.CSharp
                     result.Add(_factory.Label(defaultLabel));
                     if (produceDetailedSequencePoints)
                         result.Add(new BoundRestorePreviousSequencePoint(node.Syntax, restorePointForSwitchBody));
-                    var objectType = _factory.SpecialType(SpecialType.System_Object);
-                    var throwCall =
-                        (implicitConversionExists(savedInputExpression, objectType) &&
-                                _factory.WellKnownMember(WellKnownMember.System_Runtime_CompilerServices_SwitchExpressionException__ctorObject, isOptional: true) is MethodSymbol)
-                            ? ConstructThrowSwitchExpressionExceptionHelperCall(_factory, _factory.Convert(objectType, savedInputExpression)) :
-                        (_factory.WellKnownMember(WellKnownMember.System_Runtime_CompilerServices_SwitchExpressionException__ctor, isOptional: true) is MethodSymbol)
-                            ? ConstructThrowSwitchExpressionExceptionParameterlessHelperCall(_factory) :
-                        ConstructThrowInvalidOperationExceptionHelperCall(_factory);
+
+                    (UnreachableDefaultLabelExceptionCreationStrategy strategy, Conversion inputToObjectConversion) = DetermineUnreachableDefaultLabelExceptionCreationStrategy(savedInputExpression);
+                    BoundStatement throwCall;
+
+                    switch (strategy)
+                    {
+                        case UnreachableDefaultLabelExceptionCreationStrategy.System_Runtime_CompilerServices_SwitchExpressionException__ctorObject:
+                            Debug.Assert(inputToObjectConversion.IsImplicit);
+                            Debug.Assert(inputToObjectConversion.IsBoxing || inputToObjectConversion.IsReference || inputToObjectConversion.IsIdentity);
+                            var objectType = _factory.SpecialType(SpecialType.System_Object);
+                            throwCall = ConstructThrowSwitchExpressionExceptionHelperCall(_factory, _factory.Convert(objectType, savedInputExpression, inputToObjectConversion));
+                            break;
+                        case UnreachableDefaultLabelExceptionCreationStrategy.System_Runtime_CompilerServices_SwitchExpressionException__ctor:
+                            throwCall = ConstructThrowSwitchExpressionExceptionParameterlessHelperCall(_factory);
+                            break;
+                        default:
+                            Debug.Assert(strategy == UnreachableDefaultLabelExceptionCreationStrategy.System_InvalidOperationException__ctor);
+                            throwCall = ConstructThrowInvalidOperationExceptionHelperCall(_factory);
+                            break;
+                    }
 
                     result.Add(throwCall);
                 }
@@ -144,13 +156,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 outerVariables.Add(resultTemp);
                 outerVariables.AddRange(_tempAllocator.AllTemps());
                 return _factory.SpillSequence(outerVariables.ToImmutableAndFree(), result.ToImmutableAndFree(), _factory.Local(resultTemp));
-
-                bool implicitConversionExists(BoundExpression expression, TypeSymbol type)
-                {
-                    var discardedUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
-                    Conversion c = _localRewriter._compilation.Conversions.ClassifyConversionFromExpression(expression, type, isChecked: false, ref discardedUseSiteInfo);
-                    return c.IsImplicit;
-                }
             }
 
             private static BoundStatement ConstructThrowSwitchExpressionExceptionHelperCall(SyntheticBoundNodeFactory factory, BoundExpression unmatchedValue)

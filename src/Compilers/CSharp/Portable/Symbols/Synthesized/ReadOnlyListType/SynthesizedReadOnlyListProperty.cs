@@ -4,6 +4,7 @@
 
 using System.Collections.Immutable;
 using System.Diagnostics;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
@@ -75,6 +76,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal override bool MustCallMethodsDirectly => false;
 
         internal override bool HasUnscopedRefAttribute => false;
+
+        internal override RequiresUnsafeMode GetRequiresUnsafeMode(ConsList<FieldSymbol> fieldsBeingBound) => RequiresUnsafeMode.None;
 
         internal override ObsoleteAttributeData? ObsoleteAttributeData => null;
 

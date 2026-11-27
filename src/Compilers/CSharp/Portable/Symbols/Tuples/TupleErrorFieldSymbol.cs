@@ -154,6 +154,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        internal sealed override RequiresUnsafeMode GetRequiresUnsafeMode(ConsList<FieldSymbol> fieldsBeingBound) => RequiresUnsafeMode.None;
+
         public override RefKind RefKind => RefKind.None;
 
         public override ImmutableArray<CustomModifier> RefCustomModifiers => ImmutableArray<CustomModifier>.Empty;

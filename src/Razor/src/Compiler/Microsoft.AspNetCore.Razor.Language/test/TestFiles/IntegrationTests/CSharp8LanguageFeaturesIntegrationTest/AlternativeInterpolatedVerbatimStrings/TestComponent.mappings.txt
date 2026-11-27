@@ -1,0 +1,16 @@
+﻿Source Location: (2:0,2 [57] x:\dir\subdir\Test\TestComponent.razor)
+|
+    var value = $@"Hello {1}";
+    _ = value.Length;
+|
+Generated Location: (733:21,0 [57] )
+|
+    var value = $@"Hello {1}";
+    _ = value.Length;
+|
+
+Source Location: (66:5,2 [13] x:\dir\subdir\Test\TestComponent.razor)
+|$@"Hello {1}"|
+Generated Location: (949:31,24 [13] )
+|$@"Hello {1}"|
+

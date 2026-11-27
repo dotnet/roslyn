@@ -11,43 +11,36 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.DebugConfiguration;
 
 [ExportCSharpVisualBasicStatelessLspService(typeof(WorkspaceDebugConfigurationHandler)), Shared]
 [Method(MethodName)]
-internal sealed class WorkspaceDebugConfigurationHandler : ILspServiceRequestHandler<WorkspaceDebugConfigurationParams, ProjectDebugConfiguration[]>
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal sealed class WorkspaceDebugConfigurationHandler() : ILspServiceRequestHandler<WorkspaceDebugConfigurationParams, ProjectDebugConfiguration[]>
 {
     private const string MethodName = "workspace/debugConfiguration";
-
-    private readonly ProjectTargetFrameworkManager _targetFrameworkManager;
-
-    [ImportingConstructor]
-    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public WorkspaceDebugConfigurationHandler(ProjectTargetFrameworkManager targetFrameworkManager)
-    {
-        _targetFrameworkManager = targetFrameworkManager;
-    }
-
     public bool MutatesSolutionState => false;
 
     public bool RequiresLSPSolution => true;
 
-    public Task<ProjectDebugConfiguration[]> HandleRequestAsync(WorkspaceDebugConfigurationParams request, RequestContext context, CancellationToken cancellationToken)
+    public async Task<ProjectDebugConfiguration[]> HandleRequestAsync(WorkspaceDebugConfigurationParams request, RequestContext context, CancellationToken cancellationToken)
     {
-        Contract.ThrowIfNull(context.Solution, nameof(context.Solution));
+        var solution = await context.GetRequiredSolutionAsync(cancellationToken).ConfigureAwait(false);
+        var projectTargetFrameworkManager = context.GetRequiredService<ProjectTargetFrameworkManager>();
 
-        var projects = context.Solution.Projects
-            .Where(p => p.FilePath != null && p.OutputFilePath != null)
+        var projects = solution.Projects
+            .Where(p => p is { FilePath: not null, OutputFilePath: not null })
             .Where(p => IsProjectInWorkspace(request.WorkspacePath, p))
-            .Select(GetProjectDebugConfiguration).ToArray();
-        return Task.FromResult(projects);
+            .Select(p => GetProjectDebugConfiguration(p, projectTargetFrameworkManager)).ToArray();
+        return projects;
     }
 
     private static bool IsProjectInWorkspace(DocumentUri workspacePath, Project project)
     {
-        return PathUtilities.IsSameDirectoryOrChildOf(project.FilePath!, workspacePath.GetRequiredParsedUri().LocalPath);
+        return PathUtilities.IsSameDirectoryOrChildOf(project.FilePath!, workspacePath.GetRequiredParsedUri().FsPath);
     }
 
-    private ProjectDebugConfiguration GetProjectDebugConfiguration(Project project)
+    private static ProjectDebugConfiguration GetProjectDebugConfiguration(Project project, ProjectTargetFrameworkManager projectTargetFrameworkManager)
     {
         var isExe = project.CompilationOptions?.OutputKind is OutputKind.ConsoleApplication or OutputKind.WindowsApplication;
-        var targetsDotnetCore = _targetFrameworkManager.IsDotnetCoreProject(project.Id);
+        var targetsDotnetCore = projectTargetFrameworkManager.IsDotnetCoreProject(project.Id);
         return new ProjectDebugConfiguration(project.FilePath!, project.OutputFilePath!, GetProjectName(project), targetsDotnetCore, isExe, project.Solution.FilePath);
     }
 

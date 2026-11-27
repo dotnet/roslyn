@@ -2317,6 +2317,60 @@ class C
         }
 
         [Fact]
+        public void TestWithArray()
+        {
+            string source = @"
+class C
+{
+    async System.Threading.Tasks.Task M(int[] collection)
+    {
+        await foreach (var i in collection)
+        {
+        }
+    }
+}";
+            var comp = CreateCompilationWithTasksExtensions(source + s_IAsyncEnumerable);
+            comp.VerifyDiagnostics(
+                // (6,33): error CS8415: Asynchronous foreach statement cannot operate on variables of type 'int[]' because 'int[]' does not contain a public instance or extension definition for 'GetAsyncEnumerator'. Did you mean 'foreach' rather than 'await foreach'?
+                //         await foreach (var i in collection)
+                Diagnostic(ErrorCode.ERR_AwaitForEachMissingMemberWrongAsync, "collection").WithArguments("int[]", "GetAsyncEnumerator").WithLocation(6, 33)
+                );
+        }
+
+        [Fact]
+        public void TestWithArrayAndExtensionGetAsyncEnumerator_NotUsed()
+        {
+            string source = @"
+using System;
+using System.Threading.Tasks;
+public class C
+{
+    public static async Task Main()
+    {
+        await foreach (var i in new int[] { 7, 8, 9 })
+        {
+            Console.Write(i);
+        }
+    }
+    public sealed class Enumerator
+    {
+        public int Current { get; private set; }
+        public Task<bool> MoveNextAsync() => Task.FromResult(Current++ != 3);
+    }
+}
+public static class Extensions
+{
+    public static C.Enumerator GetAsyncEnumerator(this int[] self) => new C.Enumerator();
+}";
+            var comp = CreateCompilationWithMscorlib46(source, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics(
+                // (8,33): error CS8415: Asynchronous foreach statement cannot operate on variables of type 'int[]' because 'int[]' does not contain a public instance or extension definition for 'GetAsyncEnumerator'. Did you mean 'foreach' rather than 'await foreach'?
+                //         await foreach (var i in new int[] { 7, 8, 9 })
+                Diagnostic(ErrorCode.ERR_AwaitForEachMissingMemberWrongAsync, "new int[] { 7, 8, 9 }").WithArguments("int[]", "GetAsyncEnumerator").WithLocation(8, 33)
+                );
+        }
+
+        [Fact]
         public void TestPatternBasedAsyncEnumerableWithRegularForeach()
         {
             string source = @"
@@ -2720,11 +2774,11 @@ unsafe class C
         public int* Current { get => throw null; }
     }
 }";
-            var comp = CreateCompilationWithTasksExtensions(source + s_IAsyncEnumerable, options: TestOptions.UnsafeDebugDll);
+            var comp = CreateCompilationWithTasksExtensions(source + s_IAsyncEnumerable, options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.Regular15);
             comp.VerifyDiagnostics(
-                // (6,9): error CS4004: Cannot await in an unsafe context
+                // (6,9): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //         await foreach (var i in new C())
-                Diagnostic(ErrorCode.ERR_AwaitInUnsafeContext, "await").WithLocation(6, 9));
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "await").WithArguments("updated memory safety rules").WithLocation(6, 9));
 
             var tree = comp.SyntaxTrees.Single();
             var model = (SyntaxTreeSemanticModel)comp.GetSemanticModel(tree, ignoreAccessibility: false);
@@ -4277,7 +4331,7 @@ class C
                 ILVerifyMessage = """
                     [Main]: Return value missing on the stack. { Offset = 0x8c }
                     [MoveNextAsync]: Unexpected type on the stack. { Offset = 0x65, Found = Int32, Expected = ref '[System.Runtime]System.Threading.Tasks.Task`1<bool>' }
-                    [DisposeAsync]: Return value missing on the stack. { Offset = 0x2e }
+                    [DisposeAsync]: Return value missing on the stack. { Offset = 0x35 }
                     """
             });
             verifier.VerifyIL("C.Main()", """
@@ -9656,6 +9710,80 @@ class C
         }
 
         [Fact]
+        public void RuntimeAsync_PatternBasedDisposal_ReturnsNullableTask_Warns()
+        {
+            string source = @"#nullable enable
+using System.Threading.Tasks;
+class C
+{
+    static async Task M()
+    {
+        await foreach (var i in new C())
+        {
+        }
+    }
+    public Enumerator GetAsyncEnumerator() => new Enumerator();
+    public sealed class Enumerator
+    {
+        public int Current => 0;
+        public Task<bool> MoveNextAsync() => Task.FromResult(false);
+        public Task? DisposeAsync() => null;
+    }
+}";
+            var comp = CreateRuntimeAsyncCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (7,33): warning CS8604: Possible null reference argument for parameter 'task' in 'void AsyncHelpers.Await(Task task)'.
+                //         await foreach (var i in new C())
+                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "new C()").WithArguments("task", "void AsyncHelpers.Await(Task task)").WithLocation(7, 33)
+                );
+        }
+
+        [Fact]
+        public void RuntimeAsync_UserDefinedIAsyncDisposable_ReturnsNullableValueTask_Errors()
+        {
+            string source = @"#nullable enable
+using System.Threading.Tasks;
+namespace System
+{
+    public interface IAsyncDisposable
+    {
+        ValueTask? DisposeAsync();
+    }
+}
+class C
+{
+    static async Task M()
+    {
+        await foreach (var i in new C())
+        {
+        }
+    }
+    public Enumerator GetAsyncEnumerator() => new Enumerator();
+    public sealed class Enumerator : System.IAsyncDisposable
+    {
+        public int Current => 0;
+        public Task<bool> MoveNextAsync() => Task.FromResult(false);
+        ValueTask? System.IAsyncDisposable.DisposeAsync() => null;
+    }
+}";
+            var comp = CreateRuntimeAsyncCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (14,9): error CS0656: Missing compiler required member 'System.IAsyncDisposable.DisposeAsync'
+                //         await foreach (var i in new C())
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"await foreach (var i in new C())
+        {
+        }").WithArguments("System.IAsyncDisposable", "DisposeAsync").WithLocation(14, 9),
+                // (19,45): warning CS0436: The type 'IAsyncDisposable' in '' conflicts with the imported type 'IAsyncDisposable' in 'System.Runtime, Version=10.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a'. Using the type defined in ''.
+                //     public sealed class Enumerator : System.IAsyncDisposable
+                Diagnostic(ErrorCode.WRN_SameFullNameThisAggAgg, "IAsyncDisposable").WithArguments("", "System.IAsyncDisposable", "System.Runtime, Version=10.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a", "System.IAsyncDisposable").WithLocation(19, 45),
+                // (23,27): warning CS0436: The type 'IAsyncDisposable' in '' conflicts with the imported type 'IAsyncDisposable' in 'System.Runtime, Version=10.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a'. Using the type defined in ''.
+                //         ValueTask? System.IAsyncDisposable.DisposeAsync() => null;
+                Diagnostic(ErrorCode.WRN_SameFullNameThisAggAgg, "IAsyncDisposable").WithArguments("", "System.IAsyncDisposable", "System.Runtime, Version=10.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a", "System.IAsyncDisposable").WithLocation(23, 27)
+
+                );
+        }
+
+        [Fact]
         public void PatternBasedDisposal_WithOptionalParameter()
         {
             string source = @"
@@ -14333,8 +14461,8 @@ struct AsyncEnumerator : IAsyncEnumerator<int>
                 {
                     ILVerifyMessage = """
                         [Main]: Return value missing on the stack. { Offset = 0x5b }
-                        [MoveNextAsync]: Unexpected type on the stack. { Offset = 0x25, Found = Int32, Expected = value '[System.Runtime]System.Threading.Tasks.ValueTask`1<bool>' }
-                        [DisposeAsync]: Return value missing on the stack. { Offset = 0x2e }
+                        [MoveNextAsync]: Unexpected type on the stack. { Offset = 0x2c, Found = Int32, Expected = value '[System.Runtime]System.Threading.Tasks.ValueTask`1<bool>' }
+                        [DisposeAsync]: Return value missing on the stack. { Offset = 0x35 }
                         """
                 });
                 verifier.VerifyIL("C.Main()", """
@@ -14470,8 +14598,8 @@ struct AsyncEnumerator : IAsyncDisposable
                 {
                     ILVerifyMessage = """
                         [Main]: Return value missing on the stack. { Offset = 0x5b }
-                        [MoveNextAsync]: Unexpected type on the stack. { Offset = 0x25, Found = Int32, Expected = value '[System.Runtime]System.Threading.Tasks.ValueTask`1<bool>' }
-                        [DisposeAsync]: Return value missing on the stack. { Offset = 0x2e }
+                        [MoveNextAsync]: Unexpected type on the stack. { Offset = 0x2c, Found = Int32, Expected = value '[System.Runtime]System.Threading.Tasks.ValueTask`1<bool>' }
+                        [DisposeAsync]: Return value missing on the stack. { Offset = 0x35 }
                         """
                 });
                 verifier.VerifyIL("C.Main()", """
@@ -14609,8 +14737,8 @@ struct AsyncEnumerator : IAsyncEnumerator<int>
                 {
                     ILVerifyMessage = """
                         [Main]: Return value missing on the stack. { Offset = 0x61 }
-                        [System.Collections.Generic.IAsyncEnumerator<System.Int32>.MoveNextAsync]: Unexpected type on the stack. { Offset = 0x25, Found = Int32, Expected = value '[System.Runtime]System.Threading.Tasks.ValueTask`1<bool>' }
-                        [System.IAsyncDisposable.DisposeAsync]: Return value missing on the stack. { Offset = 0x2e }
+                        [System.Collections.Generic.IAsyncEnumerator<System.Int32>.MoveNextAsync]: Unexpected type on the stack. { Offset = 0x2c, Found = Int32, Expected = value '[System.Runtime]System.Threading.Tasks.ValueTask`1<bool>' }
+                        [System.IAsyncDisposable.DisposeAsync]: Return value missing on the stack. { Offset = 0x35 }
                         """
                 });
                 verifier.VerifyIL("C.Main()", """
@@ -14805,8 +14933,8 @@ struct AsyncEnumerator : IAsyncEnumerator<(int, int)>
                 {
                     ILVerifyMessage = """
                         [Main]: Return value missing on the stack. { Offset = 0x5b }
-                        [MoveNextAsync]: Unexpected type on the stack. { Offset = 0x25, Found = Int32, Expected = value '[System.Runtime]System.Threading.Tasks.ValueTask`1<bool>' }
-                        [DisposeAsync]: Return value missing on the stack. { Offset = 0x2e }
+                        [MoveNextAsync]: Unexpected type on the stack. { Offset = 0x2c, Found = Int32, Expected = value '[System.Runtime]System.Threading.Tasks.ValueTask`1<bool>' }
+                        [DisposeAsync]: Return value missing on the stack. { Offset = 0x35 }
                         """
                 });
                 verifier.VerifyIL("C.Main()", """
@@ -15032,6 +15160,75 @@ class C
                   IL_007f:  ret
                 }
                 """);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/53426")]
+        public void AwaitAsyncEnumerable()
+        {
+            var source = """
+                using System.Collections.Generic;
+                using System.Threading.Tasks;
+
+                public class C 
+                {
+                    public async Task M(IAsyncEnumerable<int> e) 
+                    {
+                        await e;
+                    }
+                }
+                """;
+
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net80);
+            comp.VerifyDiagnostics(
+                // (8,9): error CS9353: 'IAsyncEnumerable<int>' does not contain a definition for 'GetAwaiter' and no accessible extension method 'GetAwaiter' accepting a first argument of type 'IAsyncEnumerable<int>' could be found (did you mean to iterate over the async collection with 'await foreach' instead?)
+                //         await e;
+                Diagnostic(ErrorCode.ERR_NoAwaitOnAsyncEnumerable, "await e").WithArguments("System.Collections.Generic.IAsyncEnumerable<int>", "GetAwaiter").WithLocation(8, 9));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/53426")]
+        public void AwaitAsyncEnumerator()
+        {
+            var source = """
+                using System.Collections.Generic;
+                using System.Threading.Tasks;
+
+                public class C 
+                {
+                    public async Task M(IAsyncEnumerator<int> e) 
+                    {
+                        await e;
+                    }
+                }
+                """;
+
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net80);
+            comp.VerifyDiagnostics(
+                // (8,9): error CS1061: 'IAsyncEnumerator<int>' does not contain a definition for 'GetAwaiter' and no accessible extension method 'GetAwaiter' accepting a first argument of type 'IAsyncEnumerator<int>' could be found (are you missing a using directive or an assembly reference?)
+                //         await e;
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "await e").WithArguments("System.Collections.Generic.IAsyncEnumerator<int>", "GetAwaiter").WithLocation(8, 9));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/53426")]
+        public void CallGetAwaiterOnAsyncEnumerable()
+        {
+            var source = """
+                using System.Collections.Generic;
+                using System.Threading.Tasks;
+
+                public class C 
+                {
+                    public async Task M(IAsyncEnumerable<int> e) 
+                    {
+                        e.GetAwaiter();
+                    }
+                }
+                """;
+
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net80);
+            comp.VerifyDiagnostics(
+                // (8,11): error CS1061: 'IAsyncEnumerable<int>' does not contain a definition for 'GetAwaiter' and no accessible extension method 'GetAwaiter' accepting a first argument of type 'IAsyncEnumerable<int>' could be found (are you missing a using directive or an assembly reference?)
+                //         e.GetAwaiter();
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "GetAwaiter").WithArguments("System.Collections.Generic.IAsyncEnumerable<int>", "GetAwaiter").WithLocation(8, 11));
         }
     }
 }

@@ -42,7 +42,7 @@ public abstract class AbstractBracePairsTests
         foreach (var bracePair in bracePairs)
         {
             if (!FindMatch(expected, bracePair))
-                AssertEx.Fail($"Unexpected brace pair: {bracePair}");
+                Assert.Fail($"Unexpected brace pair: {bracePair}");
         }
     }
 

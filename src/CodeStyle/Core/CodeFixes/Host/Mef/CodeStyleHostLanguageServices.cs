@@ -11,6 +11,7 @@ using System.Composition;
 using System.Composition.Hosting;
 using System.Linq;
 using System.Reflection;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.PooledObjects;
 
@@ -28,8 +29,28 @@ internal sealed partial class CodeStyleHostLanguageServices : HostLanguageServic
         public static MefHostExportProvider Create(string languageName)
         {
             var assemblies = CreateAssemblies(languageName);
-            var compositionConfiguration = new ContainerConfiguration().WithAssemblies(assemblies);
+            var types = assemblies.SelectMany(GetTypesFromAssembly);
+            var compositionConfiguration = new ContainerConfiguration().WithParts(types);
             return new MefHostExportProvider(compositionConfiguration.CreateContainer());
+        }
+
+        /// <summary>
+        /// Safely gets types from an assembly, handling <see cref="ReflectionTypeLoadException"/>
+        /// that can occur when some types in the assembly can't be loaded
+        /// </summary>
+        private static IEnumerable<Type> GetTypesFromAssembly(Assembly assembly)
+        {
+            try
+            {
+                return assembly.GetTypes();
+            }
+            catch (ReflectionTypeLoadException ex)
+            {
+                FatalError.ReportNonFatalError(ex);
+
+                // Return only the types that were successfully loaded
+                return ex.Types.Where(t => t is not null);
+            }
         }
 
         private static ImmutableArray<Assembly> CreateAssemblies(string languageName)

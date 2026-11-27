@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Immutable;
 using Roslyn.Utilities;
 using MSB = Microsoft.Build;
 
@@ -16,7 +15,7 @@ internal sealed class VisualBasicCommandLineArgumentReader : CommandLineArgument
     {
     }
 
-    public static ImmutableArray<string> Read(MSB.Execution.ProjectInstance project)
+    public static string[] Read(MSB.Execution.ProjectInstance project)
     {
         return new VisualBasicCommandLineArgumentReader(project).Read();
     }
@@ -24,7 +23,6 @@ internal sealed class VisualBasicCommandLineArgumentReader : CommandLineArgument
     protected override void ReadCore()
     {
         ReadAdditionalFiles();
-        ReadAnalyzers();
         ReadCodePage();
         ReadDebugInfo();
         ReadDelaySign();
@@ -34,7 +32,6 @@ internal sealed class VisualBasicCommandLineArgumentReader : CommandLineArgument
         ReadImports();
         ReadOptions();
         ReadPlatform();
-        ReadReferences();
         ReadSigning();
         ReadVbRuntime();
 

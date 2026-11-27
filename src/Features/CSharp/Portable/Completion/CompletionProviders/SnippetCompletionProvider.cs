@@ -52,6 +52,7 @@ internal sealed class SnippetCompletionProvider() : LSPCompletionProvider
         CSharpSnippetIdentifiers.StaticIntMain,
         CSharpSnippetIdentifiers.Struct,
         CSharpSnippetIdentifiers.StaticVoidMain,
+        CSharpSnippetIdentifiers.Unsafe,
         CSharpSnippetIdentifiers.Using,
         CSharpSnippetIdentifiers.While
     ];

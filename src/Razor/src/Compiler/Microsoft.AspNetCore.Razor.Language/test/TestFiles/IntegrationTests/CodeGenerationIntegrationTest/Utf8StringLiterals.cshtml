@@ -1,0 +1,55 @@
+@page
+@using System.Text
+
+<div class="text-center">
+    @{
+        // UTF-8 string literal with lowercase u8 suffix
+        ReadOnlySpan<byte> span1 = "hello"u8;
+        
+        // UTF-8 string literal with uppercase U8 suffix
+        ReadOnlySpan<byte> span2 = "world"U8;
+        
+        // Empty UTF-8 string
+        ReadOnlySpan<byte> empty = ""u8;
+        
+        // UTF-8 string with escape sequences
+        ReadOnlySpan<byte> escaped = "hello\nworld"u8;
+        
+        // UTF-8 raw string literal
+        ReadOnlySpan<byte> raw = """hello"""u8;
+    }
+
+    @* UTF-8 string in expression *@
+    <p>@Encoding.UTF8.GetString("test"u8)</p>
+    
+    @* UTF-8 string in code block with semicolon *@
+    @{
+        var bytes = "data"u8;
+    }
+    
+    @* UTF-8 verbatim string *@
+    @{
+        ReadOnlySpan<byte> verbatim = @"path\to\file"u8;
+    }
+    
+    @* UTF-8 raw string with content *@
+    @{
+        ReadOnlySpan<byte> rawContent = """
+            raw content
+            """u8;
+    }
+</div>
+
+@functions {
+    // UTF-8 string in @functions block
+    private ReadOnlySpan<byte> GetFunctionData()
+    {
+        return "function data"u8;
+    }
+    
+    // UTF-8 raw string literal in functions
+    private ReadOnlySpan<byte> GetRawData()
+    {
+        return """raw data"""u8;
+    }
+}

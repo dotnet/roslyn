@@ -8,7 +8,6 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Collections;
-using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
@@ -26,36 +25,41 @@ namespace Microsoft.CodeAnalysis.LegacySolutionEvents;
 /// to an entirely differently (ideally 'pull') model for test discovery.
 /// </summary>
 [ExportEventListener(WellKnownEventListeners.Workspace, WorkspaceKind.Host), Shared]
-internal sealed partial class HostLegacySolutionEventsWorkspaceEventListener : IEventListener
+internal sealed partial class HostLegacySolutionEventsWorkspaceEventListener : IEventListener, IDisposable
 {
     private readonly IGlobalOptionService _globalOptions;
-    private readonly IThreadingContext _threadingContext;
     private readonly AsyncBatchingWorkQueue<WorkspaceChangeEventArgs> _eventQueue;
 
     private WorkspaceEventRegistration? _workspaceChangedDisposer;
+
+    private bool? _processSourceGeneratedDocuments;
 
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
     public HostLegacySolutionEventsWorkspaceEventListener(
         IGlobalOptionService globalOptions,
-        IThreadingContext threadingContext,
         IAsynchronousOperationListenerProvider listenerProvider)
     {
         _globalOptions = globalOptions;
-        _threadingContext = threadingContext;
         _eventQueue = new AsyncBatchingWorkQueue<WorkspaceChangeEventArgs>(
             DelayTimeSpan.Short,
             ProcessWorkspaceChangeEventsAsync,
-            listenerProvider.GetListener(FeatureAttribute.SolutionCrawlerUnitTesting),
-            _threadingContext.DisposalToken);
+            listenerProvider.GetListener(FeatureAttribute.SolutionCrawlerUnitTesting));
     }
+
+    public void Dispose() => _eventQueue.Dispose();
 
     public void StartListening(Workspace workspace)
     {
         // We only support this option to disable crawling in internal speedometer and ddrit perf runs to lower noise.
         // It is not exposed to the user.
         if (_globalOptions.GetOption(SolutionCrawlerRegistrationService.EnableSolutionCrawler))
+        {
+            // Fetch whether we're processing source-generated files or not. We latch whatever we first read, to avoid any cases where changing the option might cause
+            // inconsistent analysis.
+            _processSourceGeneratedDocuments ??= _globalOptions.GetOption(SolutionCrawlerRegistrationService.ProcessRoslynSourceGeneratedFiles);
             _workspaceChangedDisposer = workspace.RegisterWorkspaceChangedHandler(OnWorkspaceChanged);
+        }
     }
 
     public void StopListening(Workspace workspace)
@@ -93,6 +97,9 @@ internal sealed partial class HostLegacySolutionEventsWorkspaceEventListener : I
         var workspace = events[0].OldSolution.Workspace;
         Contract.ThrowIfTrue(events.Any(e => e.OldSolution.Workspace != workspace || e.NewSolution.Workspace != workspace));
 
+        // We should have initialized this before subscribing to the workspace changed events
+        Contract.ThrowIfFalse(_processSourceGeneratedDocuments.HasValue);
+
         var client = await RemoteHostClient.TryGetClientAsync(workspace, cancellationToken).ConfigureAwait(false);
 
         if (client is null)
@@ -103,7 +110,7 @@ internal sealed partial class HostLegacySolutionEventsWorkspaceEventListener : I
                 return;
 
             foreach (var args in events)
-                await aggregationService.OnWorkspaceChangedAsync(args, cancellationToken).ConfigureAwait(false);
+                await aggregationService.OnWorkspaceChangedAsync(args, _processSourceGeneratedDocuments.Value, cancellationToken).ConfigureAwait(false);
         }
         else
         {
@@ -123,7 +130,7 @@ internal sealed partial class HostLegacySolutionEventsWorkspaceEventListener : I
                 await client.TryInvokeAsync<IRemoteLegacySolutionEventsAggregationService>(
                     args.OldSolution, args.NewSolution,
                     (service, oldSolutionChecksum, newSolutionChecksum, cancellationToken) =>
-                        service.OnWorkspaceChangedAsync(oldSolutionChecksum, newSolutionChecksum, args.Kind, args.ProjectId, args.DocumentId, cancellationToken),
+                        service.OnWorkspaceChangedAsync(oldSolutionChecksum, newSolutionChecksum, args.Kind, args.ProjectId, args.DocumentId, _processSourceGeneratedDocuments.Value, cancellationToken),
                     cancellationToken).ConfigureAwait(false);
             }
         }

@@ -24,9 +24,9 @@ namespace Microsoft.CodeAnalysis.UnitTests
             return null;
         }
 
-        public Exception LoadAnalyzer(string shadowPath, string analyzerPath)
+        public Exception LoadAnalyzer(string baseDirectory, string analyzerPath)
         {
-            var loader = AnalyzerAssemblyLoader.CreateNonLockingLoader(shadowPath, []);
+            var loader = AnalyzerAssemblyLoader.CreateNonLockingLoader(baseDirectory, []);
             Exception analyzerLoadException = null;
             var analyzerRef = new AnalyzerFileReference(analyzerPath, loader);
             analyzerRef.AnalyzerLoadFailed += (s, e) => analyzerLoadException = e.Exception;
@@ -45,13 +45,14 @@ namespace Microsoft.CodeAnalysis.UnitTests
             dir.CopyFile(typeof(AppDomainUtils).Assembly.Location);
             dir.CopyFile(typeof(RemoteAnalyzerFileReferenceTest).Assembly.Location);
             dir.CopyFile(typeof(Vector).Assembly.Location);
+            dir.CopyFile(typeof(System.IO.Hashing.XxHash128).Assembly.Location);
             var analyzerFile = DesktopTestHelpers.CreateCSharpAnalyzerAssemblyWithTestAnalyzer(dir, "MyAnalyzer");
             var loadDomain = AppDomainUtils.Create("AnalyzerTestDomain", basePath: dir.Path);
             try
             {
                 // Test analyzer load success.
                 var remoteTest = (RemoteAnalyzerFileReferenceTest)loadDomain.CreateInstanceAndUnwrap(typeof(RemoteAnalyzerFileReferenceTest).Assembly.FullName, typeof(RemoteAnalyzerFileReferenceTest).FullName);
-                var exception = remoteTest.LoadAnalyzer(dir.CreateDirectory("shadow").Path, analyzerFile.Path);
+                var exception = remoteTest.LoadAnalyzer(dir.CreateDirectory("resolver").Path, analyzerFile.Path);
                 Assert.Null(exception);
             }
             finally
@@ -88,6 +89,7 @@ public class TestAnalyzer : DiagnosticAnalyzer
             var analyzer = dir.CopyFile(typeof(DiagnosticAnalyzer).Assembly.Location);
             dir.CopyFile(typeof(RemoteAnalyzerFileReferenceTest).Assembly.Location);
             dir.CopyFile(typeof(Vector).Assembly.Location);
+            dir.CopyFile(typeof(System.IO.Hashing.XxHash128).Assembly.Location);
 
             var analyzerCompilation = CSharp.CSharpCompilation.Create(
                 "MyAnalyzer",
@@ -109,7 +111,7 @@ public class TestAnalyzer : DiagnosticAnalyzer
             {
                 // Test analyzer load failure.
                 var remoteTest = (RemoteAnalyzerFileReferenceTest)loadDomain.CreateInstanceAndUnwrap(typeof(RemoteAnalyzerFileReferenceTest).Assembly.FullName, typeof(RemoteAnalyzerFileReferenceTest).FullName);
-                var exception = remoteTest.LoadAnalyzer(dir.CreateDirectory("shadow").Path, analyzerFile.Path);
+                var exception = remoteTest.LoadAnalyzer(dir.CreateDirectory("resolver").Path, analyzerFile.Path);
                 Assert.NotNull(exception as TypeLoadException);
             }
             finally

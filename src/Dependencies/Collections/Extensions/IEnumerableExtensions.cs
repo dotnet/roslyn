@@ -530,6 +530,19 @@ namespace Roslyn.Utilities
             return builder.ToImmutableAndFree();
         }
 
+        public static ImmutableArray<TResult> SelectManyAsArray<TItem, TArg, TResult>(this IReadOnlyCollection<TItem>? source, Func<TItem, TArg, OneOrMany<TResult>> selector, TArg arg)
+        {
+            if (source is null or { Count: 0 })
+                return [];
+
+            // Basic heuristic. Assume each element in the source adds one item to the result.
+            var builder = ArrayBuilder<TResult>.GetInstance(source.Count);
+            foreach (var item in source)
+                selector(item, arg).AddRangeTo(builder);
+
+            return builder.ToImmutableAndFree();
+        }
+
         public static ImmutableArray<TResult> SelectManyAsArray<TSource, TResult>(this IEnumerable<TSource>? source, Func<TSource, OneOrMany<TResult>> selector)
         {
             if (!TryGetBuilder<TSource, TResult>(source, useCountForBuilder: false, out var builder))
@@ -1100,7 +1113,7 @@ namespace System.Linq
 
 #endif
 
-#if NET9_0_OR_GREATER
+#if NET10_0_OR_GREATER
         public static IEnumerable<(int Index, TSource Item)> Index<TSource>(IEnumerable<TSource> source)
              => Enumerable.Index(source);
 #else

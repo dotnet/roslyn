@@ -102,7 +102,7 @@ internal partial class AbstractAsynchronousTaggerProvider<TTag>
             // Everything we're passing in here is synchronous.  So we can assert that this must complete synchronously
             // as well.
             var (oldTagTrees, newTagTrees, _) = CompareAndSwapTagTreesAsync(
-                static (oldTagTrees, args, _) =>
+                static async (oldTagTrees, args, _) =>
                 {
                     var (@this, e, tagsToRemove, allTagsList, allTagsSet) = args;
 
@@ -135,12 +135,12 @@ internal partial class AbstractAsynchronousTaggerProvider<TTag>
                                 snapshot,
                                 @this._dataSource.SpanTrackingMode,
                                 allTagsList);
-                            return ValueTask.FromResult((oldTagTrees.SetItem(buffer, newTagTree), default(VoidResult)));
+                            return (oldTagTrees.SetItem(buffer, newTagTree), default(VoidResult));
                         }
                     }
 
                     // return oldTagTrees to indicate nothing changed.
-                    return ValueTask.FromResult((oldTagTrees, default(VoidResult)));
+                    return (oldTagTrees, default(VoidResult));
                 },
                 args: (this, e, tagsToRemove, allTagsList, allTagsSet),
                 _disposalTokenSource.Token).VerifyCompleted();
@@ -298,6 +298,12 @@ internal partial class AbstractAsynchronousTaggerProvider<TTag>
             var valueOpt = await _dataSource.MainThreadManager.PerformWorkOnMainThreadAsync(
                 GetTaggerUIData, cancellationToken).ConfigureAwait(true);
 
+            // Check cancellation before 'valueOpt is null' below: PerformWorkOnMainThreadAsync also returns null when
+            // canceled, and we don't want that case falling into the 'no UI data' branch, which would redundantly
+            // call EnqueueWork when newer work has already enqueued itself.
+            if (cancellationToken.IsCancellationRequested)
+                return null;
+
             if (valueOpt is null)
             {
                 // We failed to get the UI data we need.  This can happen in cases like trying to get that during a layout pass.
@@ -307,11 +313,6 @@ internal partial class AbstractAsynchronousTaggerProvider<TTag>
             }
 
             var (isVisible, caretPosition, snapshotSpansToTag) = valueOpt.Value;
-
-            // Since we don't ever throw above, check and see if the await completed due to cancellation and do not
-            // proceed.
-            if (cancellationToken.IsCancellationRequested)
-                return null;
 
             // if we're tagging documents that are not visible, then introduce a long delay so that we avoid
             // consuming machine resources on work the user isn't likely to see.

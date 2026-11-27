@@ -32,6 +32,8 @@ This page discusses the process by which language feature *implementations* are 
 
 1. **Prototype phase**: All features are initially prototyped in a separate branch. The name of the branch is `features/<feature name>`. These branches are created when a feature speclet is marked as 'Ready for prototype', language team member champions the feature, and [a developer is assigned](#community-contributions) to implement the feature. The developer is responsible for keeping an up-to-date speclet of the feature at `docs/features/<feature name>.md` throughout the development.  
 
+     When starting work on a new feature, use the `new-compiler-feature` Copilot skill (in `.github/skills/new-compiler-feature/`) to set up tracking: it creates a test plan issue, a `Feature - <name>` label, updates the [Language Feature Status](../Language%20Feature%20Status.md) page, and links related PRs. Run it from a PR that implements (part of) the feature.
+
      All features should be off by default until fully accepted into the language. A new feature should only be enabled when explicitly included in the `/features:<feature-name>` compiler option. This helps ensure the language is always in a shippable state no matter what prototypes are in the current branch.
 
 1. **Prototype decision**: When the prototype phase ends, the Language Team will make a decision on the feature:

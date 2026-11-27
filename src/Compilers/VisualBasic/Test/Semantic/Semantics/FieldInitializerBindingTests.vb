@@ -1331,7 +1331,7 @@ End Interface
                                 AssertEx.Equal(_ONE4, reader.GetBlobBytes(constant.Value))
 
                             Case Else
-                                Assert.True(False, "Unknown field: " + name)
+                                Assert.Fail("Unknown field: " + name)
                         End Select
                     End If
                 Next

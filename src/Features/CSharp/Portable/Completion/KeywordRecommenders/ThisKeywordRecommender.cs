@@ -2,10 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Linq;
 using System.Threading;
-using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -17,8 +15,7 @@ internal sealed class ThisKeywordRecommender() : AbstractSyntacticSingleKeywordR
     protected override bool IsValidContext(int position, CSharpSyntaxContext context, CancellationToken cancellationToken)
         => IsInstanceExpressionOrStatement(context) ||
            IsThisParameterModifierContext(context) ||
-           IsConstructorInitializerContext(context) ||
-           IsNameofInsideAttributeContext(context);
+           IsConstructorInitializerContext(context);
 
     private static bool IsInstanceExpressionOrStatement(CSharpSyntaxContext context)
         => context.IsInstanceContext && (context.IsNonAttributeExpressionContext || context.IsStatementContext);
@@ -56,25 +53,6 @@ internal sealed class ThisKeywordRecommender() : AbstractSyntacticSingleKeywordR
         }
 
         return false;
-    }
-
-    private static bool IsNameofInsideAttributeContext(CSharpSyntaxContext context)
-    {
-        // Fascinatingly, the language supports [Attr(nameof(this.X))]
-
-        var token = context.TargetToken;
-        if (token.Kind() != SyntaxKind.OpenParenToken)
-            return false;
-
-        if (!context.IsNameOfContext)
-            return false;
-
-        var attribute = token.GetAncestor<AttributeSyntax>();
-        if (attribute is null)
-            return false;
-
-        var typeDeclaration = attribute.GetAncestor<TypeDeclarationSyntax>();
-        return typeDeclaration != null;
     }
 
     protected override bool ShouldPreselect(CSharpSyntaxContext context, CancellationToken cancellationToken)

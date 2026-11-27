@@ -29,6 +29,11 @@ namespace Microsoft.CodeAnalysis.EditAndContinue;
 
 internal abstract partial class AbstractEditAndContinueAnalyzer : IEditAndContinueAnalyzer
 {
+    // TODO: https://github.com/dotnet/roslyn/issues/81728
+    // Temporarily disabled until https://devdiv.visualstudio.com/DevDiv/_queries/edit/1835505 is implemented.
+    // Only enabled in dotnet-watch and tests.
+    internal static bool EnableProjectLevelAnalysis = false;
+
     internal const int DefaultStatementPart = 0;
     private const string CreateNewOnMetadataUpdateAttributeName = "CreateNewOnMetadataUpdateAttribute";
     private const string RestartRequiredOnMetadataUpdateAttributeName = "RestartRequiredOnMetadataUpdateAttribute";
@@ -578,7 +583,7 @@ internal abstract partial class AbstractEditAndContinueAnalyzer : IEditAndContin
             // since the option changed would have different semantics than the parts that have changed.
             //
             // Skip further analysis of the document if we detect any such change (classified as rude edits) in parse options.
-            if (GetParseOptionsRudeEdits(oldTree.Options, newTree.Options).Any())
+            if (EnableProjectLevelAnalysis && GetParseOptionsRudeEdits(oldTree.Options, newTree.Options).Any())
             {
                 log.Write($"Parse options differ for '{filePath}'");
 
@@ -1872,7 +1877,7 @@ internal abstract partial class AbstractEditAndContinueAnalyzer : IEditAndContin
         var hasAncestor = TryGetMatchingAncestor(forwardMap, deletedDeclaration, out var newAncestor);
         Debug.Assert(hasAncestor && newAncestor != null);
 
-        // the only matching ancestor is teh compilation unit:
+        // the only matching ancestor is the compilation unit:
         if (newAncestor.Parent == null)
         {
             return default;
@@ -2258,8 +2263,8 @@ internal abstract partial class AbstractEditAndContinueAnalyzer : IEditAndContin
                 continue;
             }
 
-            var newTokensEnum = newTokens.GetEnumerator();
-            var oldTokensEnum = oldTokens.GetEnumerator();
+            using var newTokensEnum = newTokens.GetEnumerator();
+            using var oldTokensEnum = oldTokens.GetEnumerator();
 
             var lastNewToken = default(SyntaxToken);
             var lastOldStartLine = -1;
@@ -2533,10 +2538,10 @@ internal abstract partial class AbstractEditAndContinueAnalyzer : IEditAndContin
     // They only affect custom attributes or metadata flags emitted on the members - all runtimes are expected to accept
     // these updates in metadata deltas, even if they do not have any observable effect.
     private static readonly SymbolEquivalenceComparer s_runtimeSymbolEqualityComparer = new(
-        AssemblyEqualityComparer.Instance, distinguishRefFromOut: false, tupleNamesMustMatch: false, ignoreNullableAnnotations: true, objectAndDynamicCompareEqually: true, arrayAndReadOnlySpanCompareEqually: false);
+        AssemblyEqualityComparer.Instance, distinguishRefFromOut: false, tupleNamesMustMatch: false, ignoreNullableAnnotations: true, objectAndDynamicCompareEqually: true, arrayAndReadOnlySpanCompareEqually: false, distinguishPartialParts: true);
 
     private static readonly SymbolEquivalenceComparer s_exactSymbolEqualityComparer = new(
-        AssemblyEqualityComparer.Instance, distinguishRefFromOut: true, tupleNamesMustMatch: true, ignoreNullableAnnotations: false, objectAndDynamicCompareEqually: false, arrayAndReadOnlySpanCompareEqually: false);
+        AssemblyEqualityComparer.Instance, distinguishRefFromOut: true, tupleNamesMustMatch: true, ignoreNullableAnnotations: false, objectAndDynamicCompareEqually: false, arrayAndReadOnlySpanCompareEqually: false, distinguishPartialParts: true);
 
     protected static bool SymbolsEquivalent(ISymbol oldSymbol, ISymbol newSymbol)
         => s_exactSymbolEqualityComparer.Equals(oldSymbol, newSymbol);

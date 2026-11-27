@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         // Initialized in two steps. Hold a copy if accessing during initialization.
         private ImmutableArray<ImmutableArray<TypeWithAnnotations>> _lazyTypeParameterConstraintTypes;
         private ImmutableArray<TypeParameterConstraintKind> _lazyTypeParameterConstraintKinds;
-        private TypeWithAnnotations.Boxed? _lazyReturnType;
+        private volatile TypeWithAnnotations.Boxed? _lazyReturnType;
         private ImmutableArray<CustomModifier> _lazyRefCustomModifiers;
 
         // Lock for initializing lazy fields and registering their diagnostics
@@ -50,13 +50,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             _declarationModifiers =
                 DeclarationModifiers.Private |
-                syntax.Modifiers.ToDeclarationModifiers(isForTypeDeclaration: false, diagnostics: _declarationDiagnostics);
+                syntax.Modifiers.ToDeclarationModifiers(allowsPartialModifier: false, diagnostics: _declarationDiagnostics);
 
             var diagnostics = BindingDiagnosticBag.GetInstance();
             Debug.Assert(diagnostics.DiagnosticBag is { });
             Debug.Assert(diagnostics.DependenciesBag is { });
 
-            this.CheckUnsafeModifier(_declarationModifiers, diagnostics);
+            this.CheckUnsafeOptionForModifiers(_declarationModifiers, diagnostics, syntax.Modifiers);
+
+            if ((_declarationModifiers & DeclarationModifiers.Safe) != 0)
+            {
+                var safeToken = syntax.Modifiers.FirstOrDefault(SyntaxKind.SafeKeyword);
+                MessageID.IDS_FeatureUnsafeEvolution.CheckFeatureAvailability(diagnostics, safeToken, safeToken == default ? syntax.Identifier.GetLocation() : null);
+            }
 
             ScopeBinder = binder;
 
@@ -126,6 +132,26 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             GetReturnTypeAttributes();
 
             var compilation = DeclaringCompilation;
+
+            if (ContainingModule.UseUpdatedMemorySafetyRules && IsExtern && !HasUnsafeModifier && !HasSafeModifier)
+            {
+                addTo.Add(ErrorCode.ERR_ExternMemberRequiresUnsafeOrSafe,
+                    Syntax.Modifiers.GetModifierLocation(SyntaxKind.ExternKeyword, Syntax.Identifier.GetLocation()));
+            }
+
+            if (GetRequiresUnsafeMode(ConsList<FieldSymbol>.Empty) == RequiresUnsafeMode.Explicit)
+            {
+                compilation.EnsureRequiresUnsafeAttributeExists(addTo,
+                    Syntax.Modifiers.GetModifierLocation(SyntaxKind.UnsafeKeyword, Syntax.Identifier.GetLocation()),
+                    modifyCompilation: false);
+            }
+
+            if (HasSafeModifier && HasUnsafeModifier)
+            {
+                addTo.Add(ErrorCode.ERR_SafeModifierCannotBeUsedWithUnsafe,
+                    Syntax.Modifiers.GetModifierLocation(SyntaxKind.SafeKeyword, Syntax.Identifier.GetLocation()));
+            }
+
             ParameterHelpers.EnsureRefKindAttributesExist(compilation, Parameters, addTo, modifyCompilation: false);
             ParameterHelpers.EnsureParamCollectionAttributeExists(compilation, Parameters, addTo, modifyCompilation: false);
             ParameterHelpers.EnsureNativeIntegerAttributeExists(compilation, Parameters, addTo, modifyCompilation: false);
@@ -138,7 +164,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             AsyncMethodChecks(addTo);
 
             var diagnostics = BindingDiagnosticBag.GetInstance(withDiagnostics: false, withDependencies: addTo.AccumulatesDependencies);
-            if (IsEntryPointCandidate && !IsGenericMethod &&
+            if (!_binder.IsSemanticModelBinder && IsEntryPointCandidate && !IsGenericMethod &&
                 ContainingSymbol is SynthesizedSimpleProgramEntryPointSymbol &&
                 compilation.HasEntryPointSignature(this, diagnostics).IsCandidate)
             {
@@ -306,7 +332,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 _declarationDiagnostics.AddRange(diagnostics.DiagnosticBag);
                 _declarationDependencies.AddAll(diagnostics.DependenciesBag);
                 diagnostics.Free();
+#pragma warning disable CS0420 // A reference to a volatile field will not be treated as volatile
                 Interlocked.CompareExchange(ref _lazyReturnType, new TypeWithAnnotations.Boxed(returnType), null);
+#pragma warning restore CS0420 // A reference to a volatile field will not be treated as volatile
             }
         }
 
@@ -391,7 +419,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override bool IsExtern => (_declarationModifiers & DeclarationModifiers.Extern) != 0;
 
-        public bool IsUnsafe => (_declarationModifiers & DeclarationModifiers.Unsafe) != 0;
+        internal override bool HasUnsafeModifier => (_declarationModifiers & DeclarationModifiers.Unsafe) != 0;
+        internal override bool HasSafeModifier => (_declarationModifiers & DeclarationModifiers.Safe) != 0;
+        internal override bool CanRequireUnsafe => true;
 
         internal bool IsExpressionBodied => Syntax is { Body: null, ExpressionBody: object _ };
 
@@ -399,9 +429,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override bool IsInitOnly => false;
 
-        internal override bool IsMetadataNewSlot(bool ignoreInterfaceImplementationChanges = false) => false;
+        internal override bool IsMetadataNewSlot(ModuleSymbol? context, bool ignoreInterfaceImplementationChanges = false) => false;
 
-        internal override bool IsMetadataVirtual(IsMetadataVirtualOption option = IsMetadataVirtualOption.None) => false;
+        internal override bool IsMetadataVirtual(ModuleSymbol? context, bool ignoreInterfaceImplementationChanges = false) => false;
 
         internal override int CalculateLocalSyntaxOffset(int localPosition, SyntaxTree localTree)
         {

@@ -8,6 +8,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using System.Threading;
 using Microsoft.CodeAnalysis.DocumentationComments;
 
 namespace Microsoft.CodeAnalysis.MetadataAsSource;
@@ -141,14 +142,22 @@ internal abstract partial class AbstractMetadataAsSourceService
 
         public bool IsRecord => _symbol.IsRecord;
 
+        public bool IsUnion => _symbol.IsUnion;
+
+        public ImmutableArray<ITypeSymbol> UnionCaseTypes => _symbol.UnionCaseTypes;
+
         public bool IsNativeIntegerType => _symbol.IsNativeIntegerType;
 
         public bool IsExtension => _symbol.IsExtension;
         public IParameterSymbol ExtensionParameter => _symbol.ExtensionParameter;
         public string ExtensionGroupingName => _symbol.ExtensionGroupingName;
         public string ExtensionMarkerName => _symbol.ExtensionMarkerName;
+        public TypeLayout TypeLayout => _symbol.TypeLayout;
 
         public bool IsFileLocal => _symbol.IsFileLocal;
+
+        public bool IsClosed => _symbol.IsClosed;
+        public ClosedDerivedTypeInfo GetClosedDerivedTypeInfo(CancellationToken cancellationToken) => _symbol.GetClosedDerivedTypeInfo(cancellationToken);
 
         public INamedTypeSymbol NativeIntegerUnderlyingType => _symbol.NativeIntegerUnderlyingType;
 

@@ -17,9 +17,20 @@ There are a few ways to tell:
 3. If you're using Visual Studio 2015 Update 2 or later, look for warning IDE0006 in the error list:
     ![IDE0006 error example](images/design-time-build-errors/ide0006.png)
 
-## How do I get log files to diagnose what is happening in Visual Studio 2022?
+## How do I get log files to diagnose what is happening in Visual Studio 2026?
 
-1. Install the [Project System Tools 2022 Extension from the Visual Studio Marketplace](https://marketplace.visualstudio.com/items?itemName=VisualStudioProductTeam.ProjectSystemTools2022)
+1. Go under the View menu, choose Other Windows, and then Command Window.
+2. The Command Window opens up. In it, type `Project.LogRoslynWorkspaceStructure`:
+
+    ![Example screenshot of the Command Window](images/design-time-build-errors//typing-in-command-window.png)
+
+3. Press enter. A prompt will appear asking you to save an XML file. This will prompt to save an XML file, and the process may take some time. Attach this item privately to your problem report if you have one.
+
+## How do I get log files to diagnose what is happening in Visual Studio 2017, 2019, or 2022?
+
+1. Install the Project System Tools Extension from the Visual Studio Marketplace:
+   - [Version for Visual Studio 2022](https://marketplace.visualstudio.com/items?itemName=VisualStudioProductTeam.ProjectSystemTools2022)
+   - [Version for Visual Studio 2017 and 2019](https://marketplace.visualstudio.com/items?itemName=VisualStudioProductTeam.ProjectSystemTools)
 2. Restart Visual Studio as a part of installing the extension.
 3. Close Visual Studio again, find your solution file on disk, and delete the .vs hidden folder that is alongside your solution. You'll have to show hidden files if you don't see it.
 4. Open Visual Studio. Don't open your Solution yet.

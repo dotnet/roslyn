@@ -91,6 +91,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             Debug.Assert(sourceMethod.IsDefinition);
             Debug.Assert(TypeSymbol.Equals((TypeSymbol)sourceMethod.ContainingSymbol, container.SubstitutedSourceType.OriginalDefinition, TypeCompareKind.ConsiderEverything2));
             Debug.Assert(sourceLocals.All(l => l.ContainingSymbol == sourceMethod));
+            Debug.Assert(!sourceMethod.IsAsync);
 
             _container = container;
             _name = name;
@@ -215,12 +216,12 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             return SynthesizedParameterSymbol.Create(this, sourceParameter.TypeWithAnnotations, ordinal, sourceParameter.RefKind, name, ScopedKind.None, refCustomModifiers: sourceParameter.RefCustomModifiers);
         }
 
-        internal override bool IsMetadataNewSlot(bool ignoreInterfaceImplementationChanges = false)
+        internal override bool IsMetadataNewSlot(ModuleSymbol context, bool ignoreInterfaceImplementationChanges = false)
         {
             return false;
         }
 
-        internal override bool IsMetadataVirtual(IsMetadataVirtualOption option = IsMetadataVirtualOption.None)
+        internal override bool IsMetadataVirtual(ModuleSymbol context, bool ignoreInterfaceImplementationChanges = false)
         {
             return false;
         }
@@ -312,7 +313,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 
         public override RefKind RefKind
         {
-            get { return this.SubstitutedSourceMethod.RefKind; }
+            get { return RefKind.None; }
         }
 
         public override bool ReturnsVoid
@@ -324,6 +325,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
         {
             get { return false; }
         }
+
+        internal override ThreeState RuntimeAsyncMethodGenerationAttributeSetting => throw ExceptionUtilities.Unreachable();
 
         public override TypeWithAnnotations ReturnTypeWithAnnotations
         {
@@ -468,6 +471,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 
         internal override bool UseUpdatedEscapeRules => false;
 
+        internal override RequiresUnsafeMode GetRequiresUnsafeMode(ConsList<FieldSymbol> fieldsBeingBound) => RequiresUnsafeMode.None;
+
         internal ResultProperties ResultProperties
         {
             get { return _lazyResultProperties; }
@@ -581,6 +586,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 
                     Debug.Assert(!diagnostics.HasAnyErrors());
                     Debug.Assert(!body.HasErrors);
+                    PipelinePhaseValidator.AssertAfterInitialBinding(body);
 
                     body = LocalRewriter.Rewrite(
                         compilation: this.DeclaringCompilation,
@@ -690,6 +696,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 {
                     localsSet.Free();
                 }
+
+                PipelinePhaseValidator.AssertAfterClosureConversion(body);
 
                 // Insert locals from the original method,
                 // followed by any new locals.

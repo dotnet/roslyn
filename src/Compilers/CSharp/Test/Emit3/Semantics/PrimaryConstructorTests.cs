@@ -3263,7 +3263,7 @@ public " + keyword + @" Test2(
     int M1() => P1;
 }
 ";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularDefault.WithFeature("run-nullable-analysis", "never"));
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularDefault.WithFeature(Feature.RunNullableAnalysis, "never"));
             var test1 = comp.GetTypeByMetadataName("Test1");
             var ctor = test1.InstanceConstructors.Where(c => !c.IsDefaultValueTypeConstructor()).Single();
 
@@ -5429,7 +5429,7 @@ class Attr1 : System.Attribute {}
                         break;
                 }
 
-                Assert.Same(literal.SyntaxTree, context.ContainingSymbol!.DeclaringSyntaxReferences.Single().SyntaxTree);
+                Assert.Same(literal.SyntaxTree, context.ContainingSymbol.DeclaringSyntaxReferences.Single().SyntaxTree);
             }
 
             protected void Handle2(SyntaxNodeAnalysisContext context)
@@ -5447,7 +5447,7 @@ class Attr1 : System.Attribute {}
                         break;
                 }
 
-                Assert.Same(equalsValue.SyntaxTree, context.ContainingSymbol!.DeclaringSyntaxReferences.Single().SyntaxTree);
+                Assert.Same(equalsValue.SyntaxTree, context.ContainingSymbol.DeclaringSyntaxReferences.Single().SyntaxTree);
             }
 
             protected void Handle3(SyntaxNodeAnalysisContext context)
@@ -5465,7 +5465,7 @@ class Attr1 : System.Attribute {}
                         break;
                 }
 
-                Assert.Same(initializer.SyntaxTree, context.ContainingSymbol!.DeclaringSyntaxReferences.Single().SyntaxTree);
+                Assert.Same(initializer.SyntaxTree, context.ContainingSymbol.DeclaringSyntaxReferences.Single().SyntaxTree);
             }
 
             protected void Handle4(SyntaxNodeAnalysisContext context)
@@ -5494,7 +5494,7 @@ class Attr1 : System.Attribute {}
                         break;
                 }
 
-                Assert.Same(record.SyntaxTree, context.ContainingSymbol!.DeclaringSyntaxReferences.Single().SyntaxTree);
+                Assert.Same(record.SyntaxTree, context.ContainingSymbol.DeclaringSyntaxReferences.Single().SyntaxTree);
             }
 
             protected void Handle7(SyntaxNodeAnalysisContext context)
@@ -6965,7 +6965,7 @@ public class Derived(int X) : Base(X);
 class Attr : System.Attribute {}
 ";
 
-            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview.WithFeature("run-nullable-analysis", "never"), targetFramework: TargetFramework.NetCoreApp);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview.WithFeature(Feature.RunNullableAnalysis, "never"), targetFramework: TargetFramework.NetCoreApp);
             comp.VerifyDiagnostics();
 
             var tree = comp.SyntaxTrees[0];
@@ -6991,7 +6991,7 @@ public class Derived() : Base(M(out var y))
 class Attr : System.Attribute {}
 ";
 
-            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview.WithFeature("run-nullable-analysis", "never"), targetFramework: TargetFramework.NetCoreApp);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview.WithFeature(Feature.RunNullableAnalysis, "never"), targetFramework: TargetFramework.NetCoreApp);
             comp.VerifyDiagnostics();
 
             var tree = comp.SyntaxTrees[0];
@@ -19443,7 +19443,7 @@ class C(int y)
     	IL_000a: call int32 C::'<M>g__local|2_0'(valuetype C/'<>c__DisplayClass2_0'&)
     	IL_000f: ret
     } // end of method C::M
-    .method assembly hidebysig static 
+    .method private hidebysig static 
     	int32 '<M>g__local|2_0' (
     		valuetype C/'<>c__DisplayClass2_0'& ''
     	) cil managed 
@@ -19524,7 +19524,7 @@ class C(int y)
     	IL_0014: ldloc.1
     	IL_0015: ret
     } // end of method C::M
-    .method assembly hidebysig static 
+    .method private hidebysig static 
     	int32 '<M>g__local|2_0' (
     		valuetype C/'<>c__DisplayClass2_0'& ''
     	) cil managed 
@@ -22114,7 +22114,7 @@ class C1(int* x)
     public int X => *x;
 }
 ";
-            var comp = CreateCompilation(source, options: TestOptions.ReleaseDll);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular15, options: TestOptions.ReleaseDll);
             comp.VerifyDiagnostics(
                 // (2,11): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
                 // struct S1(int* x)
@@ -22129,6 +22129,21 @@ class C1(int* x)
                 //     public int X => *x;
                 Diagnostic(ErrorCode.ERR_UnsafeNeeded, "x").WithLocation(9, 22)
                 );
+
+            var expectedPreviewDiagnostics = new[]
+            {
+                // (4,21): error CS9360: This operation may only be used in an unsafe context
+                //     public int X => *x;
+                Diagnostic(ErrorCode.ERR_UnsafeOperation, "*").WithLocation(4, 21),
+                // (9,21): error CS9360: This operation may only be used in an unsafe context
+                //     public int X => *x;
+                Diagnostic(ErrorCode.ERR_UnsafeOperation, "*").WithLocation(9, 21),
+            };
+
+            comp = CreateCompilation(source, options: TestOptions.ReleaseDll);
+            comp.VerifyDiagnostics(expectedPreviewDiagnostics);
+            comp = CreateCompilation(source, parseOptions: TestOptions.RegularNext, options: TestOptions.ReleaseDll);
+            comp.VerifyDiagnostics(expectedPreviewDiagnostics);
         }
 
         [Fact]

@@ -73,13 +73,13 @@ public abstract class AbstractKeywordHighlighterTests
             {
                 var actualLineSpan = tree.GetLineSpan(highlightSpans[j]).Span;
                 var actualText = tree.GetText().ToString(highlightSpans[j]);
-                Assert.False(true, $"Unexpected highlight at {actualLineSpan}: '{actualText}'");
+                Assert.Fail($"Unexpected highlight at {actualLineSpan}: '{actualText}'");
             }
             else if (j >= highlightSpans.Count)
             {
                 var expectedLineSpan = tree.GetLineSpan(expectedHighlightSpans[j]).Span;
                 var expectedText = tree.GetText().ToString(expectedHighlightSpans[j]);
-                Assert.False(true, $"Missing highlight at {expectedLineSpan}: '{expectedText}'");
+                Assert.Fail($"Missing highlight at {expectedLineSpan}: '{expectedText}'");
             }
 
             var expected = expectedHighlightSpans[j];

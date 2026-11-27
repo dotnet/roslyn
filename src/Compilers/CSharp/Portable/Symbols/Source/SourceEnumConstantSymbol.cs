@@ -58,6 +58,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public sealed override RefKind RefKind => RefKind.None;
 
+        internal sealed override RequiresUnsafeMode GetRequiresUnsafeMode(ConsList<FieldSymbol> fieldsBeingBound) => RequiresUnsafeMode.None;
+
         internal override TypeWithAnnotations GetFieldType(ConsList<FieldSymbol> fieldsBeingBound)
         {
             return TypeWithAnnotations.Create(this.ContainingType);

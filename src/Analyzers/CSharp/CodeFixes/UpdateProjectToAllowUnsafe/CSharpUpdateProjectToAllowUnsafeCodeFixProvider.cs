@@ -17,9 +17,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UpdateProjectToAllowUnsafe;
 internal sealed class CSharpUpdateProjectToAllowUnsafeCodeFixProvider() : CodeFixProvider
 {
     private const string CS0227 = nameof(CS0227); // error CS0227: Unsafe code may only appear if compiling with /unsafe
+    private const string CS9401 = nameof(CS9401); // error CS9401: Unsafe or safe declaration modifiers may only appear if compiling with /unsafe.
 
     public override ImmutableArray<string> FixableDiagnosticIds { get; } =
-        [CS0227];
+        [CS0227, CS9401];
 
     public override FixAllProvider? GetFixAllProvider()
     {
@@ -28,11 +29,10 @@ internal sealed class CSharpUpdateProjectToAllowUnsafeCodeFixProvider() : CodeFi
         return null;
     }
 
-    public override Task RegisterCodeFixesAsync(CodeFixContext context)
+    public override async Task RegisterCodeFixesAsync(CodeFixContext context)
     {
         context.RegisterCodeFix(ProjectOptionsChangeAction.Create(CSharpCodeFixesResources.Allow_unsafe_code_in_this_project,
-            _ => Task.FromResult(AllowUnsafeOnProject(context.Document.Project))), context.Diagnostics);
-        return Task.CompletedTask;
+            async _ => AllowUnsafeOnProject(context.Document.Project)), context.Diagnostics);
     }
 
     private static Solution AllowUnsafeOnProject(Project project)

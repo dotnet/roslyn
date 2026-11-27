@@ -27,10 +27,9 @@ internal sealed class UseCoalesceExpressionForNullableTernaryConditionalCheckCod
     protected override bool IncludeDiagnosticDuringFixAll(Diagnostic diagnostic)
         => !diagnostic.Descriptor.ImmutableCustomTags().Contains(WellKnownDiagnosticTags.Unnecessary);
 
-    public override Task RegisterCodeFixesAsync(CodeFixContext context)
+    public override async Task RegisterCodeFixesAsync(CodeFixContext context)
     {
         RegisterCodeFix(context, AnalyzersResources.Use_coalesce_expression, nameof(AnalyzersResources.Use_coalesce_expression));
-        return Task.CompletedTask;
     }
 
     protected override async Task FixAllAsync(

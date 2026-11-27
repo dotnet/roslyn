@@ -1,0 +1,19 @@
+﻿is_global = true
+
+# CA1707: Remove the underscores from member name 'name'
+dotnet_diagnostic.CA1707.severity = none
+
+# CA1822: Member GetSecondarySpanAsync does not access instance data and can be marked as static
+dotnet_diagnostic.CA1822.severity = suggestion
+
+# CA1825: Avoid unnecessary zero-length array allocations
+dotnet_diagnostic.CA1825.severity = none
+
+# CA2227: Change 'property' to be read-only by removing the property setter
+dotnet_diagnostic.CA2227.severity = suggestion
+
+# VSTHRD012: Provide an instance of JoinableTaskFactory in this call (or another overload) to avoid deadlocks with the main thread
+dotnet_diagnostic.VSTHRD012.severity = suggestion
+
+# VSSDK005: Use the ThreadHelper.JoinableTaskContext singleton rather than instantiating your own to avoid deadlocks
+dotnet_diagnostic.VSSDK005.severity = suggestion

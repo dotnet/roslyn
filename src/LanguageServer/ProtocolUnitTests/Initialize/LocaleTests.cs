@@ -16,7 +16,7 @@ using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests;
 
-public sealed class LocaleTests(ITestOutputHelper? testOutputHelper) : AbstractLanguageServerProtocolTests(testOutputHelper)
+public sealed class LocaleTests(ITestOutputHelper testOutputHelper) : AbstractLanguageServerProtocolTests(testOutputHelper)
 {
     protected override TestComposition Composition => base.Composition
             .AddParts(typeof(LocaleTestHandler));
@@ -93,9 +93,9 @@ public sealed class LocaleTests(ITestOutputHelper? testOutputHelper) : AbstractL
         public bool MutatesSolutionState => true;
         public bool RequiresLSPSolution => true;
 
-        public Task<Response> HandleRequestAsync(Request request, RequestContext context, CancellationToken cancellationToken)
+        public async Task<Response> HandleRequestAsync(Request request, RequestContext context, CancellationToken cancellationToken)
         {
-            return Task.FromResult(new Response(CultureInfo.CurrentUICulture.Name));
+            return new Response(CultureInfo.CurrentUICulture.Name);
         }
     }
 

@@ -1,0 +1,18 @@
+﻿RazorDocument - [0..17)::17 - [@foo .bar() (baz)]
+    MarkupBlock - [0..17)::17
+        MarkupTextLiteral - [0..0)::0 - [] - Gen<Markup>
+            Marker;[];
+        CSharpCodeBlock - [0..4)::4
+            CSharpImplicitExpression - [0..4)::4
+                CSharpTransition - [0..1)::1 - Gen<None>
+                    Transition;[@];
+                CSharpImplicitExpressionBody - [1..4)::3
+                    CSharpCodeBlock - [1..4)::3
+                        CSharpExpressionLiteral - [1..4)::3 - [foo] - Gen<Expr>
+                            Identifier;[foo];
+        MarkupTextLiteral - [4..17)::13 - [ .bar() (baz)] - Gen<Markup>
+            Whitespace;[ ];
+            Text;[.bar()];
+            Whitespace;[ ];
+            Text;[(baz)];
+    EndOfFile;[];

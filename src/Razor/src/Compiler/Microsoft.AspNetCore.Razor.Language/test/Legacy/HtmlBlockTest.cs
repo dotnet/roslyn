@@ -1,0 +1,578 @@
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
+#nullable disable
+
+using Microsoft.AspNetCore.Razor.Language.Syntax;
+using Roslyn.Test.Utilities;
+using Xunit;
+
+namespace Microsoft.AspNetCore.Razor.Language.Legacy;
+
+public class HtmlBlockTest() : ParserTestBase(layer: TestProject.Layer.Compiler)
+{
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/85414")]
+    public void XmlBodyPreservesLeadingStars()
+    {
+        const string source = "\n* <summary>Text</summary>\n}";
+
+        var end = HtmlMarkupParser.ParseXmlBody(
+            RazorSourceDocument.Create(source, "test.cshtml"), start: 0, RazorParserOptions.Default, cancellationToken: default);
+
+        Assert.Equal(source.Length - 1, end);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/85414")]
+    public void XmlBodyAcceptsLeadingWhitespace()
+    {
+        const string source = "\n  <summary>Text</summary>\n}";
+
+        var end = HtmlMarkupParser.ParseXmlBody(
+            RazorSourceDocument.Create(source, "test.cshtml"), start: 0, RazorParserOptions.Default, cancellationToken: default);
+
+        Assert.Equal(source.Length - 1, end);
+    }
+
+    [Theory]
+    [InlineData("<summary>Text</summary>")]
+    [InlineData("<summary><see/></summary>")]
+    [InlineData("<see/>")]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/85414")]
+    public void XmlBodyAcceptsTrailingTextAfterCompletedElement(string markup)
+    {
+        var source = markup + " Extra information.\n}";
+
+        var end = HtmlMarkupParser.ParseXmlBody(
+            RazorSourceDocument.Create(source, "test.cshtml"), start: 0, RazorParserOptions.Default, cancellationToken: default);
+
+        Assert.Equal(source.Length - 1, end);
+    }
+
+    [Theory]
+    [InlineData("<summary>Text</summary>")]
+    [InlineData("<summary><see/></summary>")]
+    [InlineData("<see/>")]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/85414")]
+    public void XmlBodyAcceptsTrailingExclamationMarkAfterCompletedElement(string markup)
+    {
+        var source = markup + " Extra information!\n}";
+
+        var end = HtmlMarkupParser.ParseXmlBody(
+            RazorSourceDocument.Create(source, "test.cshtml"), start: 0, RazorParserOptions.Default, cancellationToken: default);
+
+        Assert.Equal(source.Length - 1, end);
+    }
+
+    [Theory]
+    [InlineData("<summary>Text</summary>")]
+    [InlineData("<summary><see/></summary>")]
+    [InlineData("<see/>")]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/85414")]
+    public void XmlBodyAcceptsTrailingQuestionMarkAfterCompletedElement(string markup)
+    {
+        var source = markup + " Extra information?\n}";
+
+        var end = HtmlMarkupParser.ParseXmlBody(
+            RazorSourceDocument.Create(source, "test.cshtml"), start: 0, RazorParserOptions.Default, cancellationToken: default);
+
+        Assert.Equal(source.Length - 1, end);
+    }
+
+    [Theory]
+    [InlineData("/")]
+    [InlineData("[")]
+    [InlineData(">")]
+    [InlineData("]")]
+    [InlineData("=")]
+    [InlineData("\"")]
+    [InlineData("'")]
+    [InlineData("--")]
+    [InlineData("&lt;")]
+    [InlineData("""<see cref="System.String"/>""")]
+    [InlineData("<!-- Extra information -->")]
+    [InlineData("<![CDATA[Extra information]]>")]
+    [InlineData("<?example Extra information?>")]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/85414")]
+    public void XmlBodyAcceptsTrailingPunctuationAndMarkup(string suffix)
+    {
+        var source = "<summary>\n}\n@code { public int Example => 1; }\n</summary> " + suffix + "\n}";
+
+        var end = HtmlMarkupParser.ParseXmlBody(
+            RazorSourceDocument.Create(source, "test.cshtml"), start: 0, RazorParserOptions.Default, cancellationToken: default);
+
+        Assert.Equal(source.Length - 1, end);
+    }
+
+    [Theory]
+    [InlineData("summary", "summary")]
+    [InlineData("Summary", "Summary")]
+    [InlineData("summary", "Summary")]
+    [InlineData("Summary", "summary")]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/85414")]
+    public void XmlBodyMatchesTagNamesCaseSensitively(string startTagName, string endTagName)
+    {
+        var body = $"<root><{startTagName}>Text</{endTagName}></root>";
+        var source = body + "}after";
+
+        var end = HtmlMarkupParser.ParseXmlBody(
+            RazorSourceDocument.Create(source, "test.cshtml"), start: 0, RazorParserOptions.Default, cancellationToken: default);
+
+        Assert.Equal(body.Length, end);
+    }
+
+    [Theory]
+    [InlineData("summary", "summary")]
+    [InlineData("Summary", "Summary")]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/85414")]
+    public void XmlBodyMatchingTagNameCaseStopsAtClosingBrace(string startTagName, string endTagName)
+    {
+        var body = $"<{startTagName}>Text</{endTagName}>";
+        var source = body + "}after";
+
+        var end = HtmlMarkupParser.ParseXmlBody(
+            RazorSourceDocument.Create(source, "test.cshtml"), start: 0, RazorParserOptions.Default, cancellationToken: default);
+
+        Assert.Equal(body.Length, end);
+    }
+
+    [Theory]
+    [InlineData("summary", "Summary")]
+    [InlineData("Summary", "summary")]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/85414")]
+    public void XmlBodyDifferentTagNameCaseConsumesToEndOfFile(string startTagName, string endTagName)
+    {
+        var body = $"<{startTagName}>Text</{endTagName}>";
+        var source = body + "}after";
+
+        var end = HtmlMarkupParser.ParseXmlBody(
+            RazorSourceDocument.Create(source, "test.cshtml"), start: 0, RazorParserOptions.Default, cancellationToken: default);
+
+        Assert.Equal(source.Length, end);
+    }
+
+    [Theory]
+    [InlineData("<summary>Text")]
+    [InlineData("<summary><para>Text")]
+    [InlineData("<summary><para>Text</para>")]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/85414")]
+    public void XmlBodyUnclosedElementsConsumeToEndOfFile(string markup)
+    {
+        var source = markup + "}after";
+
+        var end = HtmlMarkupParser.ParseXmlBody(
+            RazorSourceDocument.Create(source, "test.cshtml"), start: 0, RazorParserOptions.Default, cancellationToken: default);
+
+        Assert.Equal(source.Length, end);
+    }
+
+    [Theory]
+    [InlineData("<summary><para>Text</summary>")]
+    [InlineData("<summary><para><c>Text</summary>")]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/85414")]
+    public void XmlBodyRecoversUnclosedElementsAtAncestorEndTag(string body)
+    {
+        var source = body + "}after";
+
+        var end = HtmlMarkupParser.ParseXmlBody(
+            RazorSourceDocument.Create(source, "test.cshtml"), start: 0, RazorParserOptions.Default, cancellationToken: default);
+
+        Assert.Equal(body.Length, end);
+    }
+
+    [Theory]
+    [InlineData("@")]
+    [InlineData("@@")]
+    [InlineData("@**@")]
+    [InlineData("@{}")]
+    [InlineData("@value")]
+    [InlineData("@* comment")]
+    [InlineData("@{")]
+    [InlineData("@}")]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/85414")]
+    public void XmlBodyTreatsRazorTransitionsAsLiteralText(string content)
+    {
+        const string prefix = "before{";
+        var body = "<summary>" + content + "</summary>";
+        var source = prefix + body + "}after";
+
+        var end = HtmlMarkupParser.ParseXmlBody(
+            RazorSourceDocument.Create(source, "test.cshtml"), start: prefix.Length, RazorParserOptions.Default, cancellationToken: default);
+
+        Assert.Equal(prefix.Length + body.Length, end);
+    }
+
+    [Theory]
+    [InlineData("<![CDATA[[{}]]]>")]
+    [InlineData("<![CDATA[[[{}]]]]>")]
+    [InlineData("<?example ??>")]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/85414")]
+    public void XmlBodyHandlesOverlappingTerminators(string markup)
+    {
+        var source = "<summary>" + markup + "</summary>}";
+
+        var end = HtmlMarkupParser.ParseXmlBody(
+            RazorSourceDocument.Create(source, "test.cshtml"), start: 0, RazorParserOptions.Default, cancellationToken: default);
+
+        Assert.Equal(source.Length - 1, end);
+    }
+
+    [Theory]
+    [InlineData("<![CDATA[[{}]]]>")]
+    [InlineData("<![CDATA[[[{}]]]]>")]
+    [InlineData("<?example ??>")]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/85414")]
+    public void HtmlBlockHandlesOverlappingTerminators(string markup)
+    {
+        var source = "@{\n" + markup + "\nvar value = 42;\n}";
+
+        var tree = RazorSyntaxTree.Parse(RazorSourceDocument.Create(source, "test.cshtml"), RazorParserOptions.Default);
+
+        Assert.Empty(tree.Diagnostics);
+        Assert.Equal(source, tree.Root.GetContent());
+        Assert.Contains<CSharpStatementLiteralSyntax>(
+            [.. tree.Root.DescendantNodes().OfType<CSharpStatementLiteralSyntax>()],
+            literal => literal.GetContent().Contains("var value = 42;"));
+    }
+
+    [Theory]
+    [InlineData("<![CDATA[text]")]
+    [InlineData("<![CDATA[text]]")]
+    [InlineData("<?example ?")]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/85414")]
+    public void XmlBodyHandlesIncompleteSpecialTags(string markup)
+    {
+        var source = "<summary>" + markup;
+
+        var end = HtmlMarkupParser.ParseXmlBody(
+            RazorSourceDocument.Create(source, "test.cshtml"), start: 0, RazorParserOptions.Default, cancellationToken: default);
+
+        Assert.Equal(source.Length, end);
+    }
+
+    [Fact]
+    public void HandlesUnbalancedTripleDashHTMLComments()
+    {
+        ParseDocumentTest(
+@"@{
+    <!-- Hello, I'm a comment that shouldn't break razor --->
+}");
+    }
+
+    [Fact]
+    public void HandlesOpenAngleAtEof()
+    {
+        ParseDocumentTest("""
+            @{
+            <
+            """);
+    }
+
+    [Fact]
+    public void HandlesOpenAngleWithProperTagFollowingIt()
+    {
+        ParseDocumentTest("""
+            @{
+            <
+            </html>
+            """);
+    }
+
+    [Fact]
+    public void TagWithoutCloseAngleDoesNotTerminateBlock()
+    {
+        ParseDocumentTest("""
+            @{<                      
+               
+            """);
+    }
+
+    [Fact]
+    public void AllowsStartAndEndTagsToDifferInCase()
+    {
+        ParseDocumentTest("@{<li><p>Foo</P></lI>}");
+    }
+
+    [Fact]
+    public void ReadsToEndOfLineIfFirstCharacterAfterTransitionIsColon()
+    {
+        ParseDocumentTest("""
+            @{@:<li>Foo Bar Baz
+            bork}
+            """);
+    }
+
+    [Fact]
+    public void StopsParsingSingleLineBlockAtEOFIfNoEOLReached()
+    {
+        ParseDocumentTest("@{@:foo bar");
+    }
+
+    [Fact]
+    public void StopsAtMatchingCloseTagToStartTag()
+    {
+        ParseDocumentTest("@{<a><b></b></a><c></c>}");
+    }
+
+    [Fact]
+    public void ParsesUntilMatchingEndTagIfFirstNonWhitespaceCharacterIsStartTag()
+    {
+        ParseDocumentTest("@{<baz><boz><biz></biz></boz></baz>}");
+    }
+
+    [Fact]
+    public void AllowsUnclosedTagsAsLongAsItCanRecoverToAnExpectedEndTag()
+    {
+        ParseDocumentTest("@{<foo><bar><baz></foo>}");
+    }
+
+    [Fact]
+    public void WithSelfClosingTagJustEmitsTag()
+    {
+        ParseDocumentTest("@{<foo />}");
+    }
+
+    [Fact]
+    public void CanHandleSelfClosingTagsWithinBlock()
+    {
+        ParseDocumentTest("@{<foo><bar /></foo>}");
+    }
+
+    [Fact]
+    public void SupportsTagsWithAttributes()
+    {
+        ParseDocumentTest("@{<foo bar=\"baz\"><biz><boz zoop=zork/></biz></foo>}");
+    }
+
+    [Fact]
+    public void AllowsCloseAngleBracketInAttributeValueIfDoubleQuoted()
+    {
+        ParseDocumentTest("@{<foo><bar baz=\">\" /></foo>}");
+    }
+
+    [Fact]
+    public void AllowsCloseAngleBracketInAttributeValueIfSingleQuoted()
+    {
+        ParseDocumentTest("@{<foo><bar baz=\'>\' /></foo>}");
+    }
+
+    [Fact]
+    public void AllowsSlashInAttributeValueIfDoubleQuoted()
+    {
+        ParseDocumentTest("@{<foo><bar baz=\"/\"></bar></foo>}");
+    }
+
+    [Fact]
+    public void AllowsSlashInAttributeValueIfSingleQuoted()
+    {
+        ParseDocumentTest("@{<foo><bar baz=\'/\'></bar></foo>}");
+    }
+
+    [Fact]
+    public void TerminatesAtEOF()
+    {
+        ParseDocumentTest("@{<foo>");
+    }
+
+    [Fact]
+    public void SupportsCommentAsBlock()
+    {
+        ParseDocumentTest("@{<!-- foo -->}");
+    }
+
+    [Fact]
+    public void SupportsCommentWithExtraDashAsBlock()
+    {
+        ParseDocumentTest("@{<!-- foo --->}");
+    }
+
+    [Fact]
+    public void SupportsCommentWithinBlock()
+    {
+        ParseDocumentTest("@{<foo>bar<!-- zoop -->baz</foo>}");
+    }
+
+    [Fact]
+    public void HtmlCommentSupportsMultipleDashes()
+    {
+        ParseDocumentTest(
+@"<div><!--- Hello World ---></div>
+<div><!---- Hello World ----></div>
+<div><!----- Hello World -----></div>
+<div><!----- Hello < --- > World </div> -----></div>
+");
+    }
+
+    [Fact]
+    public void ProperlyBalancesCommentStartAndEndTags()
+    {
+        ParseDocumentTest("@{<!--<foo></bar>-->}");
+    }
+
+    [Fact]
+    public void TerminatesAtEOFWhenParsingComment()
+    {
+        ParseDocumentTest("@{<!--<foo>");
+    }
+
+    [Fact]
+    public void OnlyTerminatesCommentOnFullEndSequence()
+    {
+        ParseDocumentTest("@{<!--<foo>--</bar>-->}");
+    }
+
+    [Fact]
+    public void TerminatesCommentAtFirstOccurrenceOfEndSequence()
+    {
+        ParseDocumentTest("@{<foo><!--<foo></bar-->--></foo>}");
+    }
+
+    [Fact]
+    public void TreatsMalformedTagsAsContent()
+    {
+        ParseDocumentTest("@{<foo></!-- bar --></foo>}");
+    }
+
+
+    [Fact]
+    public void ParsesSGMLDeclarationAsEmptyTag()
+    {
+        ParseDocumentTest("@{<foo><!DOCTYPE foo bar baz></foo>}");
+    }
+
+    [Fact]
+    public void TerminatesSGMLDeclarationAtFirstCloseAngle()
+    {
+        ParseDocumentTest("@{<foo><!DOCTYPE foo bar> baz></foo>}");
+    }
+
+    [Fact]
+    public void ParsesXMLProcessingInstructionAsEmptyTag()
+    {
+        ParseDocumentTest("@{<foo><?xml foo bar baz?></foo>}");
+    }
+
+    [Fact]
+    public void TerminatesXMLProcessingInstructionAtQuestionMarkCloseAnglePair()
+    {
+        ParseDocumentTest("@{<foo><?xml foo bar baz?> baz</foo>}");
+    }
+
+    [Fact]
+    public void DoesNotTerminateXMLProcInstrAtCloseAngleUnlessPreceededByQuestionMark()
+    {
+        // ParseBlockDoesNotTerminateXMLProcessingInstructionAtCloseAngleUnlessPreceededByQuestionMark
+        ParseDocumentTest("@{<foo><?xml foo bar> baz?></foo>}");
+    }
+
+    [Fact]
+    public void SupportsScriptTagsWithLessThanSignsInThem()
+    {
+        ParseDocumentTest(@"@{<script>if(foo<bar) { alert(""baz"");)</script>}");
+    }
+
+    [Fact]
+    public void SupportsScriptTagsWithSpacedLessThanSignsInThem()
+    {
+        ParseDocumentTest(@"@{<script>if(foo < bar) { alert(""baz"");)</script>}");
+    }
+
+    [Fact]
+    public void AcceptsEmptyTextTag()
+    {
+        ParseDocumentTest("@{<text/>}");
+    }
+
+    [Fact]
+    public void AcceptsTextTagAsOuterTagButDoesNotRender()
+    {
+        ParseDocumentTest("@{<text>Foo Bar <foo> Baz</text> zoop}");
+    }
+
+    [Fact]
+    public void RendersLiteralTextTagIfDoubled()
+    {
+        ParseDocumentTest("@{<text><text>Foo Bar <foo> Baz</text></text> zoop}");
+    }
+
+    [Fact]
+    public void DoesNotConsiderPsuedoTagWithinMarkupBlock()
+    {
+        ParseDocumentTest("@{<foo><text><bar></bar></foo>}");
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/razor/issues/10180")]
+    public void TextAfterCodeBlockInMarkupTransition_01()
+    {
+        ParseDocumentTest("""
+            @{
+                @:@{ <i>x y z </i> }
+                <text>a b c</text>
+            }
+            """);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/razor/issues/10180")]
+    public void TextAfterCodeBlockInMarkupTransition_02()
+    {
+        ParseDocumentTest("""
+            @{
+                @:@{ <i>x y z </i> }
+                <text><b>a b c</b></text>
+            }
+            """);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/razor/issues/10180")]
+    public void TextAfterCodeBlockInMarkupTransition_03()
+    {
+        ParseDocumentTest("""
+            @{
+                @:@{ <i>x y z </i> }
+                <b>a b c</b>
+            }
+            """);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/razor/issues/10180")]
+    public void TextAfterCodeBlockInMarkupTransition_04()
+    {
+        ParseDocumentTest("""
+            @{
+                @:@{
+                    <i>x
+                    y
+                    z </i>
+                }
+                <text>a
+                b
+                c</text>
+            }
+            """);
+    }
+
+    [Fact]
+    public void StopsParsingMidEmptyTagIfEOFReached()
+    {
+        ParseDocumentTest("@{<br/}");
+    }
+
+    [Fact]
+    public void CorrectlyHandlesSingleLineOfMarkupWithEmbeddedStatement()
+    {
+        ParseDocumentTest("@{<div>Foo @if(true) {} Bar</div>}");
+    }
+
+    [Fact]
+    public void IgnoresTagsInContentsOfScriptTag()
+    {
+        ParseDocumentTest(@"@{<script>foo<bar baz='@boz'></script>}");
+    }
+
+    [Fact]
+    public void HandlesForwardSlashInAttributeContent()
+    {
+        ParseDocumentTest(@"@{<p / class=foo />}");
+    }
+}

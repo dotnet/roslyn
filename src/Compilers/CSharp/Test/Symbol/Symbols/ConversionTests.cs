@@ -7,8 +7,8 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using Basic.Reference.Assemblies;
-using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
@@ -185,7 +185,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols
                     if (kind != result.Kind)
                     {
                         var result2 = c.ClassifyConversionFromType(types[j], types[i], ref useSiteDiagnostics); // set breakpoint here if this test is failing...
-                        Assert.True(false, string.Format("Expected {0} but got {1} when converting {2} -> {3}", kind, result, types[j], types[i]));
+                        Assert.Fail(string.Format("Expected {0} but got {1} when converting {2} -> {3}", kind, result, types[j], types[i]));
                     }
                 }
             }
@@ -765,6 +765,21 @@ public sealed class C
             var model = comp.GetSemanticModel(tree);
             var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "C.Test");
             Assert.Equal("System.Int32 C.Test()", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+        }
+
+        [Fact]
+        public void DefaultConversion_AllPropertiesHaveDefaultValues()
+        {
+            var conversion = default(Conversion);
+
+            foreach (var propertyInfo in typeof(Conversion).GetProperties(BindingFlags.Public | BindingFlags.Instance))
+            {
+                var propertyType = propertyInfo.PropertyType;
+                var propertyValue = propertyInfo.GetValue(conversion);
+
+                var defaultValue = propertyType.IsValueType ? Activator.CreateInstance(propertyType) : null;
+                Assert.Equal(defaultValue, propertyValue);
+            }
         }
 
         #region "Diagnostics"
@@ -2079,7 +2094,7 @@ class C<T>
             var boundForEach = memberModel.GetBoundNodes(forEachSyntax).ToArray().OfType<BoundForEachStatement>().Single();
             var elementConversion = BoundNode.GetConversion(boundForEach.ElementConversion, boundForEach.ElementPlaceholder);
             Assert.Equal(LookupResultKind.OverloadResolutionFailure, elementConversion.ResultKind);
-            AssertEx.SetEqual(elementConversion.OriginalUserDefinedConversions.GetPublicSymbols(), conversionSymbols);
+            AssertEx.SetEqual(elementConversion.OriginalUserDefinedOrUnionConversions.GetPublicSymbols(), conversionSymbols);
         }
 
         [WorkItem(715207, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/715207")]

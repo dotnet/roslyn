@@ -1,0 +1,13 @@
+﻿Source Location: (2:0,2 [190] x:\dir\subdir\Test\TestComponent.razor)
+|
+    var useArgumentException = true;
+    System.Exception value = useArgumentException ? new System.ArgumentException() : new System.InvalidOperationException();
+    _ = value.Message;
+|
+Generated Location: (733:21,0 [190] )
+|
+    var useArgumentException = true;
+    System.Exception value = useArgumentException ? new System.ArgumentException() : new System.InvalidOperationException();
+    _ = value.Message;
+|
+

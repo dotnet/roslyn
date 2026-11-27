@@ -8,9 +8,6 @@
     <TargetFrameworks>$(NetRoslynSourceBuild);netstandard2.0</TargetFrameworks>
     <DefineConstants>$(DefineConstants);COMPILERCORE;MICROSOFT_CODEANALYSIS_CONTRACTS_NO_CONTRACT</DefineConstants>
 
-    <!-- Do not expose PooledDisposer APIs to core compiler libraries as widespread implicit try-finally blocks might negatively affect performance. -->
-    <DefineConstants>$(DefineConstants);MICROSOFT_CODEANALYSIS_POOLEDOBJECTS_NO_POOLED_DISPOSER</DefineConstants>
-
     <NoStdLib>true</NoStdLib>
     <ApplyNgenOptimization Condition="'$(TargetFramework)' == 'netstandard2.0'">full</ApplyNgenOptimization>
     <GeneratePerformanceSensitiveAttribute>true</GeneratePerformanceSensitiveAttribute>
@@ -36,6 +33,7 @@
     -->
     <PackageReference Include="Microsoft.CodeAnalysis.Analyzers" Condition="'$(DotNetBuildSourceOnly)' != 'true'" PrivateAssets="ContentFiles" />
     <PackageReference Include="System.Collections.Immutable" />
+    <PackageReference Include="System.IO.Hashing" />
     <PackageReference Include="System.Memory" Condition="'$(TargetFramework)' == 'netstandard2.0'" />
     <PackageReference Include="System.Reflection.Metadata" />
     <PackageReference Include="System.Runtime.CompilerServices.Unsafe" Condition="'$(TargetFrameworkIdentifier)' != '.NETCoreApp'" />
@@ -67,6 +65,8 @@
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.CSharp.Emit.UnitTests" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.CSharp.Emit2.UnitTests" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.CSharp.Emit3.UnitTests" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.CSharp.CSharp15.UnitTests" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.CSharp.CSharp16.UnitTests" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.CSharp.EndToEnd.UnitTests" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.CSharp.WinRT.UnitTests" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.CSharp.IOperation.UnitTests" />
@@ -104,6 +104,7 @@
     <InternalsVisibleTo Include="VBCSCompiler.UnitTests" />
     <InternalsVisibleTo Include="DynamicProxyGenAssembly2" Key="$(MoqPublicKey)" LoadsWithinVisualStudio="false" />
     <InternalsVisibleTo Include="CompilerBenchmarks" />
+    <InternalsVisibleTo Include="Benchmarks" />
 
     <EmbeddedResource Update="CodeAnalysisResources.resx" GenerateSource="true" />
     <EmbeddedResource Include="Resources\default.win32manifest" />

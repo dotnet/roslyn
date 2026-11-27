@@ -40,6 +40,7 @@ internal static class VSInternalExtensionUtilities
         AddOrReplaceConverter<CompletionSetting, VSInternalCompletionSetting>();
         AddOrReplaceConverter<DynamicRegistrationSetting, VSInternalExecuteCommandClientCapabilities>();
         AddOrReplaceConverter<Hover, VSInternalHover>();
+        AddOrReplaceConverter<HoverSetting, RoslynHoverSetting>();
         AddOrReplaceConverter<Location, VSInternalLocation>();
         AddOrReplaceConverter<VSProjectContext, VSInternalProjectContext>();
         AddOrReplaceConverter<ServerCapabilities, VSInternalServerCapabilities>();
@@ -52,6 +53,7 @@ internal static class VSInternalExtensionUtilities
         AddOrReplaceConverter<RenameRange, VSInternalRenameRange>();
         AddOrReplaceConverter<RenameParams, VSInternalRenameParams>();
         AddOrReplaceConverter<DocumentSymbol, RoslynDocumentSymbol>();
+        AddOrReplaceConverter<WorkspaceClientCapabilities, VSInternalWorkspaceClientCapabilities>();
 
         void AddOrReplaceConverter<TBase, TExtension>()
             where TExtension : TBase

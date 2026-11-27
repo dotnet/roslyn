@@ -1,0 +1,3 @@
+﻿// TestFiles/IntegrationTests/CodeGenerationIntegrationTest/TagHelpersWithTemplate.cshtml(4,59): error CS0246: The type or namespace name 'HelperResult' could not be found (are you missing a using directive or an assembly reference?)
+//     public void RenderTemplate(string title, Func<string, HelperResult> template)
+Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "HelperResult").WithArguments("HelperResult").WithLocation(4, 59)

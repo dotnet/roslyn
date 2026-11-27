@@ -379,6 +379,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get;
         }
 
+        internal sealed override RequiresUnsafeMode GetRequiresUnsafeMode(ConsList<FieldSymbol> fieldsBeingBound) => RequiresUnsafeMode.None;
+
         protected sealed override ISymbol CreateISymbol()
         {
             return new PublicModel.LocalSymbol(this);

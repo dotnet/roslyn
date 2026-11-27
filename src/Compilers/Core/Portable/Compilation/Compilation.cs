@@ -25,6 +25,7 @@ using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Symbols;
+using Microsoft.CodeAnalysis.Text;
 using Microsoft.DiaSymReader;
 using Roslyn.Utilities;
 
@@ -202,10 +203,23 @@ namespace Microsoft.CodeAnalysis
             ImmutableArray<ISourceGenerator> generators = default,
             ImmutableArray<KeyValuePair<string, string>> pathMap = default,
             EmitOptions? emitOptions = null,
+            Stream? sourceLinkStream = null,
+            ImmutableArray<ResourceDescription> resources = default,
             DeterministicKeyOptions options = DeterministicKeyOptions.Default)
         {
             return DeterministicKey.GetDeterministicKey(
-                compilationOptions, syntaxTrees, references, publicKey, additionalTexts, analyzers, generators, pathMap, emitOptions, options);
+                compilationOptions,
+                syntaxTrees,
+                references,
+                publicKey,
+                additionalTexts,
+                analyzers,
+                generators,
+                pathMap,
+                emitOptions,
+                sourceLinkStream,
+                resources,
+                options);
         }
 
         internal string GetDeterministicKey(
@@ -214,18 +228,24 @@ namespace Microsoft.CodeAnalysis
             ImmutableArray<ISourceGenerator> generators = default,
             ImmutableArray<KeyValuePair<string, string>> pathMap = default,
             EmitOptions? emitOptions = null,
+            Stream? sourceLinkStream = null,
+            ImmutableArray<ResourceDescription> resources = default,
             DeterministicKeyOptions options = DeterministicKeyOptions.Default)
-            => GetDeterministicKey(
+        {
+            return GetDeterministicKey(
                 Options,
                 CommonSyntaxTrees,
-                ExternalReferences.Concat(DirectiveReferences),
-                Assembly.Identity.PublicKey,
+                References.AsImmutable(),
+                StrongNameKeys.PublicKey.NullToEmpty(),
                 additionalTexts,
                 analyzers,
                 generators,
                 pathMap,
                 emitOptions,
+                sourceLinkStream,
+                resources,
                 options);
+        }
 
         internal static void ValidateScriptCompilationParameters(Compilation? previousScriptCompilation, Type? returnType, ref Type? globalsType)
         {
@@ -2191,7 +2211,7 @@ namespace Microsoft.CodeAnalysis
         internal bool SignUsingBuilder =>
             string.IsNullOrEmpty(StrongNameKeys.KeyContainer) &&
             !StrongNameKeys.HasCounterSignature &&
-            !_features.ContainsKey("UseLegacyStrongNameProvider");
+            !HasFeature(CodeAnalysis.Feature.UseLegacyStrongNameProvider);
 
         /// <summary>
         /// Constructs the module serialization properties out of the compilation options of this compilation.
@@ -2867,12 +2887,6 @@ namespace Microsoft.CodeAnalysis
                 options = options.WithIncludePrivateMembers(true);
             }
 
-            if (options?.DebugInformationFormat == DebugInformationFormat.Embedded &&
-                options?.EmitMetadataOnly == true)
-            {
-                throw new ArgumentException(CodeAnalysisResources.EmbeddingPdbUnexpectedWhenEmittingMetadata, nameof(metadataPEStream));
-            }
-
             if (this.Options.OutputKind == OutputKind.NetModule)
             {
                 if (metadataPEStream != null)
@@ -2944,89 +2958,97 @@ namespace Microsoft.CodeAnalysis
             options = options ?? EmitOptions.Default.WithIncludePrivateMembers(metadataPEStream == null);
 
             bool embedPdb = options.DebugInformationFormat == DebugInformationFormat.Embedded;
+            bool emitPdb = !options.EmitMetadataOnly && (pdbStream != null || embedPdb);
             Debug.Assert(!embedPdb || pdbStream == null);
             Debug.Assert(metadataPEStream == null || !options.IncludePrivateMembers); // you may not use a secondary stream and include private members together
 
             var diagnostics = DiagnosticBag.GetInstance();
 
-            var moduleBeingBuilt = CheckOptionsAndCreateModuleBuilder(
-                diagnostics,
-                manifestResources,
-                options,
-                debugEntryPoint,
-                sourceLinkStream,
-                embeddedTexts,
-                testData,
-                cancellationToken);
-
-            bool success = false;
-
-            if (moduleBeingBuilt != null)
+            try
             {
-                try
+                var moduleBeingBuilt = CheckOptionsAndCreateModuleBuilder(
+                    diagnostics,
+                    manifestResources,
+                    options,
+                    debugEntryPoint,
+                    sourceLinkStream,
+                    embeddedTexts,
+                    testData,
+                    cancellationToken);
+
+                bool success = false;
+
+                if (moduleBeingBuilt != null)
                 {
-                    success = CompileMethods(
-                        moduleBeingBuilt,
-                        emittingPdb: pdbStream != null || embedPdb,
-                        diagnostics: diagnostics,
-                        filterOpt: null,
-                        cancellationToken: cancellationToken);
-
-                    if (!options.EmitMetadataOnly)
+                    try
                     {
-                        // NOTE: We generate documentation even in presence of compile errors.
-                        // https://github.com/dotnet/roslyn/issues/37996 tracks revisiting this behavior.
-                        if (!GenerateResources(moduleBeingBuilt, win32Resources, useRawWin32Resources: rebuildData is object, diagnostics, cancellationToken) ||
-                            !GenerateDocumentationComments(xmlDocumentationStream, options.OutputNameOverride, diagnostics, cancellationToken))
-                        {
-                            success = false;
-                        }
+                        success = CompileMethods(
+                            moduleBeingBuilt,
+                            emittingPdb: emitPdb,
+                            diagnostics: diagnostics,
+                            filterOpt: null,
+                            cancellationToken: cancellationToken);
 
-                        if (success)
+                        if (!options.EmitMetadataOnly)
                         {
-                            ReportUnusedImports(diagnostics, cancellationToken);
+                            // NOTE: We generate documentation even in presence of compile errors.
+                            // https://github.com/dotnet/roslyn/issues/37996 tracks revisiting this behavior.
+                            if (!GenerateResources(moduleBeingBuilt, win32Resources, useRawWin32Resources: rebuildData is object, diagnostics, cancellationToken) ||
+                                !GenerateDocumentationComments(xmlDocumentationStream, options.OutputNameOverride, diagnostics, cancellationToken))
+                            {
+                                success = false;
+                            }
+
+                            if (success)
+                            {
+                                ReportUnusedImports(diagnostics, cancellationToken);
+                            }
+                        }
+                        else if (xmlDocumentationStream != null)
+                        {
+                            // If we're in metadata only, and the caller asks for xml docs, then still proceed and generate those.
+                            success = GenerateDocumentationComments(
+                                xmlDocumentationStream, options.OutputNameOverride, diagnostics, cancellationToken);
                         }
                     }
-                    else if (xmlDocumentationStream != null)
+                    finally
                     {
-                        // If we're in metadata only, and the caller asks for xml docs, then still proceed and generate those.
-                        success = GenerateDocumentationComments(
-                            xmlDocumentationStream, options.OutputNameOverride, diagnostics, cancellationToken);
+                        moduleBeingBuilt.CompilationFinished();
+                    }
+
+                    RSAParameters? privateKeyOpt = null;
+                    if (Options.StrongNameProvider != null && SignUsingBuilder && !Options.PublicSign)
+                    {
+                        privateKeyOpt = StrongNameKeys.PrivateKey;
+                    }
+
+                    if (!options.EmitMetadataOnly && CommonCompiler.HasUnsuppressedErrors(diagnostics))
+                    {
+                        success = false;
+                    }
+
+                    if (success)
+                    {
+                        success = SerializeToPeStream(
+                            moduleBeingBuilt,
+                            new SimpleEmitStreamProvider(peStream),
+                            (metadataPEStream != null) ? new SimpleEmitStreamProvider(metadataPEStream) : null,
+                            (emitPdb && pdbStream != null) ? new SimpleEmitStreamProvider(pdbStream) : null,
+                            rebuildData,
+                            testData?.SymWriterFactory,
+                            diagnostics,
+                            emitOptions: options,
+                            privateKeyOpt: privateKeyOpt,
+                            cancellationToken: cancellationToken);
                     }
                 }
-                finally
-                {
-                    moduleBeingBuilt.CompilationFinished();
-                }
 
-                RSAParameters? privateKeyOpt = null;
-                if (Options.StrongNameProvider != null && SignUsingBuilder && !Options.PublicSign)
-                {
-                    privateKeyOpt = StrongNameKeys.PrivateKey;
-                }
-
-                if (!options.EmitMetadataOnly && CommonCompiler.HasUnsuppressedErrors(diagnostics))
-                {
-                    success = false;
-                }
-
-                if (success)
-                {
-                    success = SerializeToPeStream(
-                        moduleBeingBuilt,
-                        new SimpleEmitStreamProvider(peStream),
-                        (metadataPEStream != null) ? new SimpleEmitStreamProvider(metadataPEStream) : null,
-                        (pdbStream != null) ? new SimpleEmitStreamProvider(pdbStream) : null,
-                        rebuildData,
-                        testData?.SymWriterFactory,
-                        diagnostics,
-                        emitOptions: options,
-                        privateKeyOpt: privateKeyOpt,
-                        cancellationToken: cancellationToken);
-                }
+                return new EmitResult(success, diagnostics.ToReadOnly());
             }
-
-            return new EmitResult(success, diagnostics.ToReadOnlyAndFree());
+            finally
+            {
+                diagnostics.Free();
+            }
         }
 
 #pragma warning disable RS0026 // Do not add multiple public overloads with optional parameters
@@ -3244,10 +3266,16 @@ namespace Microsoft.CodeAnalysis
 
             // PDB Stream provider should not be given if PDB is to be embedded into the PE file:
             Debug.Assert(moduleBeingBuilt.DebugInformationFormat != DebugInformationFormat.Embedded || pdbStreamProvider == null);
+            Debug.Assert(!emitOptions.EmitMetadataOnly || pdbStreamProvider == null);
 
             string? pePdbFilePath = emitOptions.PdbFilePath;
 
-            if (moduleBeingBuilt.DebugInformationFormat == DebugInformationFormat.Embedded || pdbStreamProvider != null)
+            if (emitOptions.EmitMetadataOnly)
+            {
+                // Metadata-only output has no associated PDB. Clear the path so the PE writer doesn't emit a CodeView entry.
+                pePdbFilePath = null;
+            }
+            else if (moduleBeingBuilt.DebugInformationFormat == DebugInformationFormat.Embedded || pdbStreamProvider != null)
             {
                 pePdbFilePath = pePdbFilePath ?? FileNameUtilities.ChangeExtension(SourceModule.Name, "pdb");
             }
@@ -3531,9 +3559,10 @@ namespace Microsoft.CodeAnalysis
                 var baseline = MapToCompilation(moduleBeingBuilt);
                 var encId = Guid.NewGuid();
 
+                DeltaMetadataWriter? writer = null;
                 try
                 {
-                    var writer = new DeltaMetadataWriter(
+                    writer = new DeltaMetadataWriter(
                         context,
                         MessageProvider,
                         baseline,
@@ -3574,7 +3603,9 @@ namespace Microsoft.CodeAnalysis
                 }
                 finally
                 {
-                    foreach (var (_, builder) in moduleBeingBuilt.GetDeletedMemberDefinitions())
+                    writer?.FreePooledObjects();
+
+                    foreach (var (_, builder) in moduleBeingBuilt.GetDeletedMemberDefinitionsOrEmpty())
                     {
                         builder.Free();
                     }
@@ -3582,8 +3613,14 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
+        internal bool HasFeature(string feature)
+        {
+            return Feature(feature) is not null;
+        }
+
         internal string? Feature(string p)
         {
+            CodeAnalysis.Feature.AssertValidFeature(p);
             string? v;
             return _features.TryGetValue(p, out v) ? v : null;
         }
@@ -3596,13 +3633,13 @@ namespace Microsoft.CodeAnalysis
         /// False when the "debug-analyzers" feature flag is set.
         /// When that flag is set, the compiler will not catch exceptions from analyzer execution to allow creating dumps.
         /// </summary>
-        internal bool CatchAnalyzerExceptions => Feature("debug-analyzers") == null;
+        internal bool CatchAnalyzerExceptions => !HasFeature(CodeAnalysis.Feature.DebugAnalyzers);
 
         internal int? DataSectionStringLiteralThreshold => _lazyDataSectionStringLiteralThreshold.Value;
 
         private int? ComputeDataSectionStringLiteralThreshold()
         {
-            if (Feature("experimental-data-section-string-literals") is { } s)
+            if (Feature(CodeAnalysis.Feature.ExperimentalDataSectionStringLiterals) is { } s)
             {
                 if (s == "off")
                 {

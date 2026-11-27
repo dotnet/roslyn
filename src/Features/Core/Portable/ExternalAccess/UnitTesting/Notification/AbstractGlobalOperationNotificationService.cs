@@ -13,7 +13,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.Notification;
 
-internal abstract partial class AbstractGlobalOperationNotificationService : IGlobalOperationNotificationService
+internal abstract partial class AbstractGlobalOperationNotificationService : IGlobalOperationNotificationService, IDisposable
 {
     private readonly object _gate = new();
 
@@ -26,15 +26,15 @@ internal abstract partial class AbstractGlobalOperationNotificationService : IGl
     public event EventHandler? Stopped;
 
     protected AbstractGlobalOperationNotificationService(
-        IAsynchronousOperationListenerProvider listenerProvider,
-        CancellationToken disposalToken)
+        IAsynchronousOperationListenerProvider listenerProvider)
     {
         _eventQueue = new AsyncBatchingWorkQueue<bool>(
             TimeSpan.Zero,
             ProcessEventsAsync,
-            listenerProvider.GetListener(FeatureAttribute.GlobalOperation),
-            disposalToken);
+            listenerProvider.GetListener(FeatureAttribute.GlobalOperation));
     }
+
+    public virtual void Dispose() => _eventQueue.Dispose();
 
     ~AbstractGlobalOperationNotificationService()
     {

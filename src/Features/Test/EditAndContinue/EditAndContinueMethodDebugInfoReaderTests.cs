@@ -32,22 +32,33 @@ public sealed class EditAndContinueMethodDebugInfoReaderTests
     [Fact]
     public void Create_Errors()
     {
-        Assert.Throws<ArgumentNullException>(() => EditAndContinueMethodDebugInfoReader.Create((ISymUnmanagedReader5)null));
-        Assert.Throws<ArgumentNullException>(() => EditAndContinueMethodDebugInfoReader.Create((MetadataReader)null));
-        Assert.Throws<ArgumentNullException>(() => EditAndContinueMethodDebugInfoReader.Create(null, 1));
+        Assert.Throws<ArgumentNullException>(() => EditAndContinueDebugInfoReader.Create((ISymUnmanagedReader5)null));
+        Assert.Throws<ArgumentNullException>(() => EditAndContinueDebugInfoReader.Create((MetadataReader)null));
+        Assert.Throws<ArgumentNullException>(() => EditAndContinueDebugInfoReader.Create(null, 1));
 
         var mockSymReader = new Mock<ISymUnmanagedReader5>(MockBehavior.Strict).Object;
-        Assert.Throws<ArgumentOutOfRangeException>(() => EditAndContinueMethodDebugInfoReader.Create(mockSymReader, 0));
-        Assert.Throws<ArgumentOutOfRangeException>(() => EditAndContinueMethodDebugInfoReader.Create(mockSymReader, -1));
+        Assert.Throws<ArgumentOutOfRangeException>(() => EditAndContinueDebugInfoReader.Create(mockSymReader, 0));
+        Assert.Throws<ArgumentOutOfRangeException>(() => EditAndContinueDebugInfoReader.Create(mockSymReader, -1));
     }
 
     [Theory]
     [InlineData(DebugInformationFormat.PortablePdb, true)]
     [InlineData(DebugInformationFormat.PortablePdb, false)]
-    [InlineData(DebugInformationFormat.Pdb, true)]
     public void DebugInfo(DebugInformationFormat format, bool useSymReader)
     {
-        var source = """
+        DebugInfoImpl(format, useSymReader);
+    }
+
+    [ConditionalFact(typeof(WindowsOnly), Reason = "Native PDB writing requires Windows")]
+    public void DebugInfo_NativePdb()
+    {
+        // xunit3: consider using Assert.Skip
+        DebugInfoImpl(DebugInformationFormat.Pdb, useSymReader: true);
+    }
+
+    private static void DebugInfoImpl(DebugInformationFormat format, bool useSymReader)
+    {
+        var source = ("""
 
             using System;
             delegate void D();
@@ -61,7 +72,7 @@ public sealed class EditAndContinueMethodDebugInfoReaderTests
                 }
             }
 
-            """;
+            """).NormalizeLineEndings();
         var tree = CSharpTestSource.Parse(source, path: "/a/c.cs", options: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), checksumAlgorithm: SourceHashAlgorithm.Sha1);
         var compilation = CSharpTestBase.CreateCompilationWithMscorlib40AndSystemCore(tree, options: TestOptions.DebugDll);
 
@@ -70,19 +81,19 @@ public sealed class EditAndContinueMethodDebugInfoReaderTests
         pdbStream.Position = 0;
 
         DebugInformationReaderProvider provider;
-        EditAndContinueMethodDebugInfoReader reader;
+        EditAndContinueDebugInfoReader reader;
 
         if (format == DebugInformationFormat.PortablePdb && useSymReader)
         {
             var pdbStreamCom = SymUnmanagedStreamFactory.CreateStream(pdbStream);
             var metadataImportProvider = new DummyMetadataImportProvider();
             Assert.Equal(0, new SymBinder().GetReaderFromPdbStream(metadataImportProvider, pdbStreamCom, out var symReader));
-            reader = EditAndContinueMethodDebugInfoReader.Create((ISymUnmanagedReader5)symReader, version: 1);
+            reader = EditAndContinueDebugInfoReader.Create((ISymUnmanagedReader5)symReader, version: 1);
         }
         else
         {
             provider = DebugInformationReaderProvider.CreateFromStream(pdbStream);
-            reader = provider.CreateEditAndContinueMethodDebugInfoReader();
+            reader = provider.CreateEditAndContinueDebugInfoReader();
         }
 
         // Main method

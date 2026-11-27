@@ -38,6 +38,10 @@ internal static partial class SyntaxTreeExtensions
     public static bool IsScript(this SyntaxTree syntaxTree)
         => syntaxTree.Options.Kind != SourceCodeKind.Regular;
 
+    public static bool IsFileBasedProgram(this SyntaxTree syntaxTree)
+        // See also internal 'CSharpParseOptions.FileBasedProgram' helper.
+        => syntaxTree.Options.Features.TryGetValue("FileBasedProgram", out var value) && value is not null;
+
     /// <summary>
     /// Returns the identifier, keyword, contextual keyword or preprocessor keyword touching this
     /// position, or a token of Kind = None if the caret is not touching either.
@@ -242,7 +246,7 @@ internal static partial class SyntaxTreeExtensions
 
         // Otherwise, fallback to generated code heuristic.
         return GeneratedCodeUtilities.IsGeneratedCode(
-            syntaxTree, t => syntaxFacts.IsRegularComment(t) || syntaxFacts.IsDocumentationComment(t), cancellationToken);
+            syntaxTree, syntaxFacts.IsRegularComment, cancellationToken);
     }
 
     /// <summary>

@@ -11,21 +11,24 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     internal sealed partial class DecisionDagBuilder
     {
-        private Tests MakeTestsAndBindingsForListPattern(BoundDagTemp input, BoundListPattern list, out BoundDagTemp output, ArrayBuilder<BoundPatternBinding> bindings)
+        private Tests MakeTestsAndBindingsForListPattern(TestInputOutputInfo inputInfo, BoundListPattern list, out TestInputOutputInfo outputInfo, ArrayBuilder<BoundPatternBinding> bindings)
         {
-            Debug.Assert(input.Type.IsErrorType() || list.HasErrors || list.InputType.IsErrorType() ||
-                         input.Type.Equals(list.InputType, TypeCompareKind.AllIgnoreOptions) &&
-                         input.Type.StrippedType().Equals(list.NarrowedType, TypeCompareKind.ConsiderEverything) &&
+#if DEBUG
+            TypeSymbol inputType = inputInfo.GetInputType();
+            Debug.Assert(inputType.IsErrorType() || list.HasErrors || list.InputType.IsErrorType() ||
+                         inputType.Equals(list.InputType, TypeCompareKind.AllIgnoreOptions) &&
+                         inputType.StrippedType().Equals(list.NarrowedType, TypeCompareKind.ConsiderEverything) &&
                          list.Subpatterns.Count(p => p.Kind == BoundKind.SlicePattern) == (list.HasSlice ? 1 : 0) &&
                          list.LengthAccess is not null);
-
+#endif
             var syntax = list.Syntax;
             var subpatterns = list.Subpatterns;
             var tests = ArrayBuilder<Tests>.GetInstance(4 + subpatterns.Length * 2);
-            output = input = MakeConvertToType(input, list.Syntax, list.NarrowedType, isExplicitTest: false, tests);
+            inputInfo = MakeConvertToType(inputInfo, list.Syntax, list.NarrowedType, isExplicitTest: false, tests);
 
             if (list.HasErrors)
             {
+                BoundDagTemp input = PrepareForUnionValuePropertyMatching(ref inputInfo, tests);
                 tests.Add(new Tests.One(new BoundDagTypeTest(list.Syntax, ErrorType(), input, hasErrors: true)));
             }
             else if (list.HasSlice &&
@@ -36,12 +39,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
+                BoundDagTemp input = PrepareForUnionValuePropertyMatching(ref inputInfo, tests);
                 Debug.Assert(list.LengthAccess is not null);
                 var lengthProperty = Binder.GetPropertySymbol(list.LengthAccess, out _, out _);
                 Debug.Assert(lengthProperty is not null);
                 var lengthEvaluation = new BoundDagPropertyEvaluation(syntax, lengthProperty, isLengthOrCount: true, input);
                 tests.Add(new Tests.One(lengthEvaluation));
-                var lengthTemp = new BoundDagTemp(syntax, _compilation.GetSpecialType(SpecialType.System_Int32), lengthEvaluation);
+                var lengthTemp = lengthEvaluation.MakeResultTemp();
                 tests.Add(new Tests.One(list.HasSlice
                     ? new BoundDagRelationalTest(syntax, BinaryOperatorKind.IntGreaterThanOrEqual, ConstantValue.Create(subpatterns.Length - 1), lengthTemp)
                     : new BoundDagValueTest(syntax, ConstantValue.Create(subpatterns.Length), lengthTemp)));
@@ -65,7 +69,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 slice.IndexerAccess, slice.ReceiverPlaceholder, slice.ArgumentPlaceholder, input);
 
                             tests.Add(new Tests.One(sliceEvaluation));
-                            var sliceTemp = new BoundDagTemp(slicePattern.Syntax, slicePattern.InputType, sliceEvaluation);
+                            var sliceTemp = sliceEvaluation.MakeResultTemp();
                             tests.Add(MakeTestsAndBindings(sliceTemp, slicePattern, bindings));
                         }
 
@@ -80,16 +84,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                         list.IndexerAccess, list.ReceiverPlaceholder, list.ArgumentPlaceholder, input);
 
                     tests.Add(new Tests.One(indexEvaluation));
-                    var indexTemp = new BoundDagTemp(subpattern.Syntax, subpattern.InputType, indexEvaluation);
+                    var indexTemp = indexEvaluation.MakeResultTemp();
                     tests.Add(MakeTestsAndBindings(indexTemp, subpattern, bindings));
                 }
             }
 
             if (list.VariableAccess is not null)
             {
+                BoundDagTemp input = PrepareForUnionValuePropertyMatching(ref inputInfo, tests);
                 bindings.Add(new BoundPatternBinding(list.VariableAccess, input));
             }
 
+            outputInfo = inputInfo;
             return Tests.AndSequence.Create(tests);
         }
     }

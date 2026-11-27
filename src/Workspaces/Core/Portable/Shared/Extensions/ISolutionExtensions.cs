@@ -54,7 +54,7 @@ internal static partial class ISolutionExtensions
                 return solution.WithAdditionalDocumentText(documentId, text, mode);
 
             case null:
-                throw new InvalidOperationException(WorkspaceExtensionsResources.The_solution_does_not_contain_the_specified_document);
+                throw CreateDocumentNotFoundException(documentId);
 
             default:
                 throw ExceptionUtilities.UnexpectedValue(documentKind);

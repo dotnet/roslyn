@@ -1,0 +1,19 @@
+﻿Document - 
+    NamespaceDeclaration -  - Test
+        UsingDirective - (3:1,1 [20] ) - global::System
+        UsingDirective - (26:2,1 [40] ) - global::System.Collections.Generic
+        UsingDirective - (69:3,1 [25] ) - global::System.Linq
+        UsingDirective - (97:4,1 [36] ) - global::System.Threading.Tasks
+        UsingDirective - (136:5,1 [45] ) - global::Microsoft.AspNetCore.Components
+        ClassDeclaration -  - public partial - TestComponent - global::Microsoft.AspNetCore.Components.ComponentBase - 
+            MethodDeclaration -  - protected override - void - BuildRenderTree
+                CSharpCode - (2:0,2 [2] x:\dir\subdir\Test\TestComponent.razor)
+                    LazyIntermediateToken - (2:0,2 [2] x:\dir\subdir\Test\TestComponent.razor) - CSharp - \n
+                MarkupBlock -  - <div>#if true</div>
+                CSharpCode - (25:2,0 [0] x:\dir\subdir\Test\TestComponent.razor)
+                    LazyIntermediateToken - (25:2,0 [0] x:\dir\subdir\Test\TestComponent.razor) - CSharp - 
+                CSharpCode - (30:3,2 [2] x:\dir\subdir\Test\TestComponent.razor)
+                    LazyIntermediateToken - (30:3,2 [2] x:\dir\subdir\Test\TestComponent.razor) - CSharp - \n
+                MarkupBlock -  - <div>#endif</div>
+                CSharpCode - (51:5,0 [0] x:\dir\subdir\Test\TestComponent.razor)
+                    LazyIntermediateToken - (51:5,0 [0] x:\dir\subdir\Test\TestComponent.razor) - CSharp - 

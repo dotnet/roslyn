@@ -1,0 +1,354 @@
+@using App.Models.Feedback
+@using App.Models.Surveys
+@using App.Client.Web.Pages.Surveys.Forms.Components.FormViewer
+
+@inject IJSRuntime JS
+@inject HttpClient Http
+@inject ILogger<AttemptDetailsDialog> Logger
+
+<Dialog OnClose="OnClose" CssClass="attempt-details-dialog">
+    <ChildContent>
+        <header class="stack vertical">
+            <h3>@AttemptModel.Attempt.Recipient.FullName</h3>
+            <p>@(AttemptModel.Attempt.RecipientAddress is Attempt.PhoneNumber phoneNumber ? phoneNumber.Number : String.Empty)</p>
+            <p>@(AttemptModel.Attempt.StartedAt?.LocalDateTime.ToString("F"))</p>
+            @if (AttemptModel.Attempt.IsRecordingAvailable)
+            {
+                <audio controls controlsList="nodownload">
+                    <source src="@RecordingUrl" type="audio/wav" />
+                </audio>
+            }
+            <div class="pivot">
+                <header>
+                    <button type="button" @onclick="() => SelectAttemptDetail(AttemptDetail.Details)"
+                            class="@(CssBuilder.Combine("item", CssBuilder.If(_selectedAttemptDetail == AttemptDetail.Details, "selected")))">
+                        <AppIcon Value="WellKnownIcons.SlideText" />
+                        <span>Részletek</span>
+                    </button>
+                    <button type="button" @onclick="() => SelectAttemptDetail(AttemptDetail.Recording)" disabled="@(!AttemptModel.Attempt.IsRecordingAvailable)"
+                            class="@(CssBuilder.Combine("item", CssBuilder.If(_selectedAttemptDetail == AttemptDetail.Recording, "selected")))">
+                        <AppIcon Value="WellKnownIcons.Speaker2" />
+                        <span>Hangfelvétel</span>
+                    </button>
+                    <button type="button" @onclick="() => SelectAttemptDetail(AttemptDetail.Transcript)" disabled="@(!AttemptModel.Attempt.IsTranscriptAvailable)"
+                            class="@(CssBuilder.Combine("item", CssBuilder.If(_selectedAttemptDetail == AttemptDetail.Transcript, "selected")))">
+                        <AppIcon Value="WellKnownIcons.ChatSparkle" />
+                        <span>Leirat</span>
+                    </button>
+                    <button type="button" @onclick="() => SelectAttemptDetail(AttemptDetail.Answers)" disabled="@(AttemptModel.Attempt.Status is not AnsweredAttemptStatus)"
+                            class="@(CssBuilder.Combine("item", CssBuilder.If(_selectedAttemptDetail == AttemptDetail.Answers, "selected")))">
+                        <AppIcon Value="WellKnownIcons.TextBulletList" />
+                        <span>Válaszok</span>
+                    </button>
+                    <button type="button" @onclick="() => SelectAttemptDetail(AttemptDetail.Statuses)"
+                            class="@(CssBuilder.Combine("item", CssBuilder.If(_selectedAttemptDetail == AttemptDetail.Statuses, "selected")))">
+                        <AppIcon Value="WellKnownIcons.Info" />
+                        <span>Állapot</span>
+                    </button>
+                </header>
+            </div>
+        </header>
+        <main class="stack vertical">
+            @switch (_selectedAttemptDetail)
+            {
+                case AttemptDetail.Details:
+                    <div class="stack vertical">
+                        @if (AttemptModel.Attempt.StartedAt.HasValue)
+                        {
+                            <div class="form-item">
+                                <label>Hívás kezdete</label>
+                                <p>@AttemptModel.Attempt.StartedAt.Value.LocalDateTime.ToString("F")</p>
+                            </div>
+                        }
+
+                        @if (AttemptModel.Attempt is CallAttempt callAttempt && callAttempt.EndedAt.HasValue)
+                        {
+                            <div class="form-item">
+                                <label>Hívás vége</label>
+                                <p>@callAttempt.EndedAt.Value.LocalDateTime.ToString("F")</p>
+                            </div>
+
+                            @if (AttemptModel.Attempt.StartedAt.HasValue)
+                            {
+                                <div class="form-item">
+                                    <label>Hívás hossza</label>
+                                    <p>@((callAttempt.EndedAt.Value - AttemptModel.Attempt.StartedAt.Value).ToString(@"hh\:mm\:ss"))</p>
+                                </div>
+                            }
+                        }
+
+                        @if (AttemptModel.Attempt is CallAttempt { OutboundPhoneNumber: not null } callAttemptWithNumber)
+                        {
+                            <div class="form-item">
+                                <label>Kimenő telefonszám</label>
+                                <p>
+                                    <a href="tel:@callAttemptWithNumber.OutboundPhoneNumber.PhoneNumber.EncodeUri()" target="_blank">
+                                        @callAttemptWithNumber.OutboundPhoneNumber.PhoneNumber
+                                    </a>
+                                </p>
+                            </div>
+                        }
+
+                        <div class="form-item">
+                            <label>Címzett lista</label>
+                            <p>
+                                @if (AttemptModel.Execution is PhoneCallCampaignExecution phoneExecution)
+                                {
+                                    <a href="/surveys/recipients/lists/@phoneExecution.RecipientListHeader.Id.EncodeUri()">
+                                        @phoneExecution.RecipientListHeader.DisplayName
+                                    </a>
+                                }
+                                else if (AttemptModel.Execution is ManualCampaignExecution manualExecution)
+                                {
+                                    <a href="/surveys/recipients/lists/@manualExecution.RecipientListHeader.Id.EncodeUri()">
+                                        @manualExecution.RecipientListHeader.DisplayName
+                                    </a>
+                                }
+                                else if (AttemptModel.Execution is StubCampaignExecution stubExecution)
+                                {
+                                    <a href="/surveys/recipients/lists/@stubExecution.RecipientListHeader.Id.EncodeUri()">
+                                        @stubExecution.RecipientListHeader.DisplayName
+                                    </a>
+                                }
+                                else
+                                {
+                                    <span>Címzett lista nem érhető el</span>
+                                }
+                            </p>
+                        </div>
+
+                        <div class="form-item">
+                            <label>Címzett neve</label>
+                            <p>@(AttemptModel.Attempt.Recipient.FullName ?? "Nincs megadva")</p>
+                        </div>
+
+                        @if (AttemptModel.Attempt.RecipientAddress is Attempt.PhoneNumber phoneAddress)
+                        {
+                            <div class="form-item">
+                                <label>Használt cím (telefonszám)</label>
+                                <p>
+                                    <a href="tel:@phoneAddress.Number.EncodeUri()" target="_blank">
+                                        @phoneAddress.Number
+                                    </a>
+                                </p>
+                            </div>
+                        }
+
+                        @if (AttemptModel.Attempt.Recipient.Dimensions?.Any() == true)
+                        {
+                            <div class="form-item">
+                                <label>Dimenziók</label>
+                                <div class="stack vertical">
+                                    @foreach (var dimension in AttemptModel.Attempt.Recipient.Dimensions)
+                                    {
+                                        <p><strong>@dimension.Key:</strong> @dimension.Value</p>
+                                    }
+                                </div>
+                            </div>
+                        }
+
+                        @if (!string.IsNullOrWhiteSpace(AttemptModel.Attempt.Recipient.FreeFormAddress))
+                        {
+                            <div class="form-item">
+                                <label>Cím</label>
+                                <p>@AttemptModel.Attempt.Recipient.FreeFormAddress</p>
+                            </div>
+                        }
+
+						<div class="form-item">
+							<label>Belső azonosító</label>
+							<p>@AttemptModel.Attempt.Id</p>
+						</div>
+
+						@if (!AttemptModel.Attempt.CallProviderCallId.IsNullOrEmpty())
+						{
+							<div class="form-item">
+								<label>Hívás szolgáltató azonosító</label>
+								<p>@AttemptModel.Attempt.CallProviderCallId</p>
+							</div>
+						}
+
+						@if (!AttemptModel.Attempt.ExternalProviderCallId.IsNullOrEmpty())
+						{
+							<div class="form-item">
+								<label>Külső szolgáltató azonosító</label>
+								<p>@AttemptModel.Attempt.ExternalProviderCallId</p>
+							</div>
+						}
+					</div>
+                    break;
+
+                case AttemptDetail.Transcript:
+                    if (!AttemptModel.Attempt.IsTranscriptAvailable) break;
+                    if (AttemptModel.Transcript is null)
+                    {
+                        if (_transcriptLoading)
+                        {
+                            <ProgressRing />
+                        }
+                    }
+                    else
+                    {
+                        <TranscriptView Transcript="AttemptModel.Transcript" />
+                    }
+
+                    break;
+
+                case AttemptDetail.Recording:
+                    if (!AttemptModel.Attempt.IsRecordingAvailable) break;
+
+                    <div class="stack horizontal">
+                        <button type="button" @onclick="DownloadCallRecording" disabled="@(!AttemptModel.Attempt.IsRecordingAvailable)">
+                            <AppIcon Value="WellKnownIcons.ArrowDownload" />
+                            Letöltés
+                        </button>
+                    </div>
+                    break;
+
+                case AttemptDetail.Answers:
+                    if (AttemptModel.Attempt.Status is not AnsweredAttemptStatus) break;
+
+                    if (_surveySnapshot is null)
+                    {
+                        <ProgressRing />
+                    }
+                    else
+                    {
+	                    <FormViewer
+		                    @ref="_formViewer"
+		                    @key="_formRenderId"
+							Items="@_surveySnapshot.Items"
+							SavedResponses="@AttemptModel.Attempt.Responses"
+							Locked="@(!_isEditingAnswers)"
+							OnResponseChanged="OnFormResponsesChanged"/>
+                    }
+
+                    <div class="stack horizontal">
+                        <button type="button" @onclick="() => _showReevaluateDialog = true">
+                            <AppIcon Value="WellKnownIcons.ArrowClockwise" />
+                            Újraértékelés
+                        </button>
+						<button type="button" @onclick="ToggleAnswerEditing" disabled="@(_isEditingAnswers && _savingResponses)">
+							<AppIcon Value="@(_isEditingAnswers ? WellKnownIcons.LockClosed : WellKnownIcons.Edit)"/>
+							@(_isEditingAnswers ? _formViewer.HasAnyChanges ? "Mentés" :" Szerkesztés befejezése" : "Válaszok szerkesztése")
+						</button>
+						@if (_isEditingAnswers && _formViewer.HasAnyChanges)
+						{
+							<button type="button" @onclick="ResetFormResponses">
+								<AppIcon Value="WellKnownIcons.ArrowUndo" />
+								Visszaállítás
+							</button>
+						}
+                    </div>
+                    break;
+
+                case AttemptDetail.Statuses:
+                    @if (_attemptStatuses is { } attemptStatuses)
+                    {
+                        <table class="data-grid">
+                            <thead>
+                                <tr>
+                                    <th>Idő</th>
+                                    <th>Állapot</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var status in attemptStatuses)
+                                {
+                                    <tr>
+                                        <td>@status.Timestamp.LocalDateTime.ToString()</td>
+                                        <td>
+                                            @switch (status.Value)
+                                            {
+                                                case DeclinedAttemptStatus { Reason: string reason }:
+                                                    <span>Visszautasítva:</span>
+                                                    @reason
+                                                    break;
+
+                                                case RescheduledAttemptStatus { RescheduledTo: DateTimeOffset rescheduledTo }:
+                                                    <span>Átütemezve:</span>
+                                                    @rescheduledTo.LocalDateTime
+													break;
+
+												case OutboundAddressConcurrencyLimitReachedAttemptStatus mceas:
+													<span>Egyidejű korlát elérve:</span>
+													@mceas.OutboundAddress
+													break;
+
+												case OutboundAddressUnavailableAttemptStatus mceas:
+													<span>Kimenő kapcsolat nem elérhető:</span>
+													@mceas.OutboundAddress
+													break;
+
+												case ModelConfigurationErrorAttemptStatus mceas:
+													<span>Konfigurációs hiba:</span>
+													@mceas.ProviderErrorCode @mceas.ProviderErrorMessage
+													break;
+
+												case CallProviderErrorAttemptStatus mceas:
+													<span>Hívás szolgáltató hiba:</span>
+													@mceas.ProviderErrorCode @mceas.ProviderErrorMessage
+													break;
+
+												case InvalidAddressAttemptStatus mceas:
+													<span>Hibás cím:</span>
+													@mceas.Address @mceas.ProviderErrorCode @mceas.ProviderErrorMessage
+													break;
+
+                                                default:
+                                                    @status.Value.ToDisplayString()
+                                                    break;
+                                            }
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    }
+                    else
+                    {
+                        <ProgressRing />
+                    }
+
+                    break;
+            }
+        </main>
+        @if (_showFeedback)
+        {
+            <FeedbackDialog Context="@(new CampaignExecutionAttemptFeedbackContext(
+                Campaign,
+                _surveySnapshot!,
+                Campaign.Executions!.First(e => e.Id == AttemptModel.Execution.Id),
+                AttemptModel.Attempt))" OnClose="() => _showFeedback = false" />
+        }
+
+        @if (_showReevaluateDialog)
+        {
+            <ReevaluateDialog 
+                CampaignId="@Campaign.Id" 
+                Attempts="[new ExecutionAttemptId(AttemptModel.Execution.Id, AttemptModel.Attempt.Id)]"
+                OnClose="OnReevaluateDialogClose"
+                OnReevaluationComplete="OnReevaluationCompleteInternal" />
+        }
+    </ChildContent>
+	<CornerCommands>
+		@if (AttemptModel.Attempt is { PreviousAttemptLink: { } previousLink })
+		{
+			<button @onclick="() => OnNavigateAttempt.InvokeAsync(previousLink.AttemptId)" type="button" title="Előző">
+				<AppIcon Value="WellKnownIcons.ChevronLeft" />
+			</button>
+		}
+		@if (AttemptModel.Attempt is { NextAttemptLink: { } nextLink })
+		{
+			<button @onclick="() => OnNavigateAttempt.InvokeAsync(nextLink.AttemptId)" type="button" title="Következő">
+				<AppIcon Value="WellKnownIcons.ChevronRight" />
+			</button>
+		}
+		@if (AttemptModel is { Attempt.IsTranscriptAvailable: true } or { Attempt.IsRecordingAvailable: true })
+        {
+            <button @onclick="() => _showFeedback = true" type="button" title="Visszajelzés">
+                <AppIcon Value="WellKnownIcons.ThumbLikeDislike" />
+            </button>
+        }
+    </CornerCommands>
+</Dialog>

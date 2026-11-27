@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
@@ -112,7 +113,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     if (!ContainingAssembly.RuntimeSupportsDefaultInterfaceImplementation)
                     {
-                        diagnostics.Add(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, this.GetFirstLocation());
+                        if (this.IsStatic)
+                        {
+                            SourceMemberMethodSymbol.ReportLackOfRuntimeSupportForStaticMembersInInterfaces(declaratorSyntax, DeclaredAccessibility, diagnostics, this.GetFirstLocation());
+                        }
+                        else
+                        {
+                            diagnostics.Add(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, this.GetFirstLocation());
+                        }
                     }
                 }
                 else if (!this.IsAbstract && !this.IsPartialDefinition)
@@ -247,6 +255,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             public override Accessibility DeclaredAccessibility => AssociatedEvent.DeclaredAccessibility;
 
             public override bool IsImplicitlyDeclared => true;
+
+            public override bool IsDefinedInSourceTree(SyntaxTree tree, TextSpan? definedWithinSpan, CancellationToken cancellationToken = default)
+                => SourceEventSymbol.IsDefinedInSourceTree(AssociatedEvent, tree, definedWithinSpan) ||
+                   PartialImplementationPart?.IsDefinedInSourceTree(tree, definedWithinSpan, cancellationToken) == true;
 
             internal override bool GenerateDebugInfo => true;
 

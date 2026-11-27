@@ -1,0 +1,20 @@
+﻿Source Location: (28:0,28 [6] x:\dir\subdir\Test\TestComponent.cshtml)
+|(1, 2)|
+Generated Location: (861:23,0 [6] )
+|(1, 2)|
+
+Source Location: (1:0,1 [15] x:\dir\subdir\Test\TestComponent.cshtml)
+|ParentComponent|
+Generated Location: (1843:46,45 [15] )
+|ParentComponent|
+
+Source Location: (17:0,17 [9] x:\dir\subdir\Test\TestComponent.cshtml)
+|Parameter|
+Generated Location: (2041:50,0 [9] )
+|Parameter|
+
+Source Location: (43:1,5 [14] x:\dir\subdir\Test\TestComponent.cshtml)
+|ChildComponent|
+Generated Location: (2636:66,45 [14] )
+|ChildComponent|
+

@@ -1,0 +1,10 @@
+﻿{
+  "properties": {
+    "test.includeSourceGeneratedFilesInRealTimeDiscovery": {
+      "title": "@Include_Roslyn_source_generated_files;..\\Microsoft.VisualStudio.LanguageServices.dll",
+      "type": "boolean",
+      "default": false,
+      "enableWhen": "${config:test.realTimeDiscovery} == 'true'"
+    }
+  }
+}

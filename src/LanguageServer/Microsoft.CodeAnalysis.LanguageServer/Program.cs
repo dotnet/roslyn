@@ -5,34 +5,28 @@
 using System.CommandLine;
 using System.Diagnostics;
 using System.IO.Pipes;
+using System.Reflection;
 using System.Runtime.InteropServices;
-using System.Text.Json;
-using Microsoft.CodeAnalysis.Contracts.Telemetry;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Common;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.LanguageServer;
-using Microsoft.CodeAnalysis.LanguageServer.BrokeredServices;
-using Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
-using Microsoft.CodeAnalysis.LanguageServer.LanguageServer;
+using Microsoft.CodeAnalysis.LanguageServer.Daemon;
 using Microsoft.CodeAnalysis.LanguageServer.Logging;
 using Microsoft.CodeAnalysis.LanguageServer.Services;
-using Microsoft.CodeAnalysis.LanguageServer.StarredSuggestions;
+using Microsoft.CodeAnalysis.LanguageServer.Telemetry;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Console;
 using RoslynLog = Microsoft.CodeAnalysis.Internal.Log;
 
-// Setting the title can fail if the process is run without a window, such
-// as when launched detached from nodejs
-try
-{
-    Console.Title = "Microsoft.CodeAnalysis.LanguageServer";
-}
-catch (IOException)
-{
-}
-
 WindowsErrorReporting.SetErrorModeOnWindows();
 
-var command = CreateCommand();
+// Child processes receive their own redirected standard handles. Do not also let them inherit the server's standard
+// handles, since a long-lived descendant could keep the thin client's pipes open after the server exits.
+StandardHandleInheritance.SetStandardHandlesInheritable(false);
+
+var command = LanguageServerCommandLine.CreateCommand(RunAsync);
 var invocationConfiguration = new InvocationConfiguration()
 {
     // By default, System.CommandLine will catch all exceptions, log them to the console, and return a non-zero exit code.
@@ -42,19 +36,31 @@ var invocationConfiguration = new InvocationConfiguration()
 };
 return await command.Parse(args).InvokeAsync(invocationConfiguration, CancellationToken.None);
 
-static async Task RunAsync(ServerConfiguration serverConfiguration, CancellationToken cancellationToken)
+static async Task<int> RunAsync(ServerConfiguration serverConfiguration, CancellationToken cancellationToken)
 {
+    if (serverConfiguration.IsDaemon)
+    {
+        Contract.ThrowIfTrue(serverConfiguration.UseStdIo, "Server cannot be started with --daemon together with --stdio.");
+        Contract.ThrowIfNull(serverConfiguration.ServerPipeName, "Server started with --daemon must also specify --pipe.");
+        Contract.ThrowIfTrue(serverConfiguration.ClientProcessId is not null, "Server cannot be started with --daemon together with --clientProcessId.");
+    }
+    else if (serverConfiguration.UseStdIo)
+    {
+        Contract.ThrowIfFalse(serverConfiguration.ServerPipeName is null, "Server cannot be started with --stdio together with --pipe.");
+    }
+    else
+    {
+        Contract.ThrowIfNull(serverConfiguration.ServerPipeName, "Server must be started with either --stdio or --pipe option.");
+    }
+
     if (serverConfiguration.UseStdIo)
     {
-        if (serverConfiguration.ServerPipeName is not null)
-        {
-            throw new InvalidOperationException("Server cannot be started with both --stdio and --pipe options.");
-        }
-
-        // Redirect Console.Out to try prevent the standard output stream from being corrupted. 
+        // Redirect Console.Out to try prevent the standard output stream from being corrupted.
         // This should be done before the logger is created as it can write to the standard output.
         Console.SetOut(new StreamWriter(Console.OpenStandardError()));
     }
+
+    var connectionManager = new LanguageServerConnectionManager();
 
     // Create a console logger as a fallback to use before the LSP server starts.
     using var loggerFactory = LoggerFactory.Create(builder =>
@@ -62,21 +68,35 @@ static async Task RunAsync(ServerConfiguration serverConfiguration, Cancellation
         // The actual logger is responsible for deciding whether to log based on the current log level.
         // The factory should be configured to log everything.
         builder.SetMinimumLevel(LogLevel.Trace);
-        builder.AddProvider(new LspLogMessageLoggerProvider(fallbackLoggerFactory:
-            // Add a console logger as a fallback for when the LSP server has not finished initializing.
+        builder.AddProvider(new GlobalLogMessageLoggerProvider(fallbackLoggerFactory:
+            // Add a console logger as a fallback for when an LSP server is not available.
             LoggerFactory.Create(builder =>
             {
                 builder.SetMinimumLevel(LogLevel.Trace);
                 builder.AddConsole();
                 // The console logger outputs control characters on unix for colors which don't render correctly in VSCode.
                 builder.AddSimpleConsole(formatterOptions => formatterOptions.ColorBehavior = LoggerColorBehavior.Disabled);
-            }), serverConfiguration
+            }), connectionManager, new(serverConfiguration.InitialLogLevel)
         ));
     });
 
     var logger = loggerFactory.CreateLogger<Program>();
 
-    logger.LogInformation("Server started with process ID {processId}", Environment.ProcessId);
+    logger.LogInformation("Server information:");
+    logger.LogInformation("  Assembly informational version: {assemblyInformationalVersion}", typeof(Program).Assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion ?? "<unknown>");
+    logger.LogInformation("  Executable path: {processPath}", Environment.ProcessPath ?? "<unknown>");
+    logger.LogInformation("  Process ID: {processId}", Environment.ProcessId);
+
+    if (serverConfiguration.IsDaemon)
+    {
+        // We are the shared daemon. A short-lived bootstrap process (in the thin client) started us and then exited,
+        // orphaning us out of the editor's process tree so a teardown of that tree can't take us down. On Unix,
+        // additionally move into a new session so signals aimed at the launching client's session/process group (e.g.
+        // terminal-close SIGHUP) don't reach the shared daemon. A no-op on Windows, where leaving the editor's
+        // job/tree is handled entirely by the bootstrap orphaning us.
+        DaemonProcessDetach.DetachIntoNewSessionIfUnix(logger);
+    }
+
     if (serverConfiguration.LaunchDebugger)
     {
         if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
@@ -103,234 +123,124 @@ static async Task RunAsync(ServerConfiguration serverConfiguration, Cancellation
 
     var cacheDirectory = Path.Combine(Path.GetDirectoryName(typeof(Program).Assembly.Location)!, "cache");
 
-    using var exportProvider = await LanguageServerExportProviderBuilder.CreateExportProviderAsync(AppContext.BaseDirectory, extensionManager, assemblyLoader, serverConfiguration.DevKitDependencyPath, cacheDirectory, loggerFactory, cancellationToken);
+    using var exportProvider = await LanguageServerExportProviderBuilder.CreateExportProviderAsync(AppContext.BaseDirectory, extensionManager, assemblyLoader, serverConfiguration, cacheDirectory, loggerFactory, cancellationToken);
 
-    // LSP server doesn't have the pieces yet to support 'balanced' mode for source-generators.  Hardcode us to
-    // 'automatic' for now.
     var globalOptionService = exportProvider.GetExportedValue<Microsoft.CodeAnalysis.Options.IGlobalOptionService>();
-    globalOptionService.SetGlobalOption(WorkspaceConfigurationOptionsStorage.SourceGeneratorExecution, SourceGeneratorExecutionPreference.Automatic);
+    globalOptionService.SetGlobalOption(WorkspaceConfigurationOptionsStorage.SourceGeneratorExecution, serverConfiguration.SourceGeneratorExecutionPreference);
+    logger.LogTrace("Source generator execution preference set to {preference}", serverConfiguration.SourceGeneratorExecutionPreference);
 
     // The log file directory passed to us by VSCode might not exist yet, though its parent directory is guaranteed to exist.
-    Directory.CreateDirectory(serverConfiguration.ExtensionLogDirectory);
-
-    // Initialize the server configuration MEF exported value.
-    exportProvider.GetExportedValue<ServerConfigurationFactory>().InitializeConfiguration(serverConfiguration);
-
-    // Initialize the fault handler if it's available
-    var telemetryReporter = exportProvider.GetExports<ITelemetryReporter>().SingleOrDefault()?.Value;
-    RoslynLogger.Initialize(telemetryReporter, serverConfiguration.TelemetryLevel, serverConfiguration.SessionId);
-
-    // Create the workspace first, since right now the language server will assume there's at least one Workspace. This as a side effect creates the actual workspace
-    // object which is registered by the LspWorkspaceRegistrationEventListener.
-    var workspaceFactory = exportProvider.GetExportedValue<LanguageServerWorkspaceFactory>();
-
-    var serviceBrokerFactory = exportProvider.GetExportedValue<ServiceBrokerFactory>();
-    StarredCompletionAssemblyHelper.InitializeInstance(serverConfiguration.StarredCompletionsPath, extensionManager, loggerFactory, serviceBrokerFactory);
-    // TODO: Remove, the path should match exactly. Workaround for https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1830914.
-    Microsoft.CodeAnalysis.EditAndContinue.EditAndContinueMethodDebugInfoReader.IgnoreCaseWhenComparingDocumentNames = Path.DirectorySeparatorChar == '\\';
-
-    LanguageServerHost? server = null;
-    if (serverConfiguration.UseStdIo)
+    if (serverConfiguration.ExtensionLogDirectory is not null)
     {
-        server = new LanguageServerHost(Console.OpenStandardInput(), Console.OpenStandardOutput(), exportProvider, loggerFactory, typeRefResolver);
-    }
-    else
-    {
-        var (clientPipeName, serverPipeName) = serverConfiguration.ServerPipeName is null
-            ? CreateNewPipeNames()
-            : (serverConfiguration.ServerPipeName, serverConfiguration.ServerPipeName);
-
-        var pipeServer = new NamedPipeServerStream(serverPipeName,
-            PipeDirection.InOut,
-            maxNumberOfServerInstances: 1,
-            PipeTransmissionMode.Byte,
-            PipeOptions.CurrentUserOnly | PipeOptions.Asynchronous);
-
-        // Send the named pipe connection info to the client 
-        Console.WriteLine(JsonSerializer.Serialize(new NamedPipeInformation(clientPipeName)));
-
-        // Wait for connection from client
-        await pipeServer.WaitForConnectionAsync(cancellationToken);
-
-        server = new LanguageServerHost(pipeServer, pipeServer, exportProvider, loggerFactory, typeRefResolver);
+        Directory.CreateDirectory(serverConfiguration.ExtensionLogDirectory);
     }
 
-    server.Start();
+    using var telemetryService = LanguageServerTelemetry.CreateSession(
+        serverConfiguration,
+        loggerFactory,
+        RoslynLog.RoslynTelemetry.Current,
+        serverConfiguration.SessionId,
+        isDefaultSession: true,
+        copilotSessionId: serverConfiguration.IsDaemon
+            ? null
+            : Environment.GetEnvironmentVariable(DaemonHandshake.CopilotSessionIdEnvironmentVariable));
 
-    logger.LogInformation("Language server initialized");
-    RoslynLog.Logger.Log(RoslynLog.FunctionId.VSCode_LanguageServer_Started, logLevel: RoslynLog.LogLevel.Information);
+    // Memory is sampled on the process-level session: in daemon mode every server shares this process's memory.
+    using var memoryTelemetry = telemetryService is null
+        ? null
+        : new ProcessMemoryTelemetry(
+            telemetryService.Telemetry,
+            () => connectionManager.ActiveConnections,
+            ProcessMemoryTelemetry.DefaultSampleInterval);
+
+    var exitReason = "Faulted";
+    // VS telemetry reads block properties on completion, after the final count and exit reason are known.
+    using var processLifetime = RoslynLog.Logger.LogBlock(
+        RoslynLog.FunctionId.VSCode_LanguageServer_Process_Lifetime,
+        RoslynLog.KeyValueLogMessage.Create(m =>
+        {
+            m["ConnectionsAccepted"] = connectionManager.ConnectionsAccepted;
+            m["ExitReason"] = exitReason;
+        }),
+        cancellationToken);
 
     try
     {
-        await server.WaitForExitAsync();
+        // Build the connection source for the configured mode. Single-server mode (stdio / connect-out pipe) yields
+        // exactly one connection; daemon mode accepts many and manages its own idle timeout. Both run through the same
+        // connection manager loop.
+        ILanguageServerConnectionSource connectionSource;
+
+        if (serverConfiguration.IsDaemon)
+        {
+            if (!NamedPipeDaemonConnectionSource.TryCreate(
+                    serverConfiguration.ServerPipeName!, serverConfiguration.DaemonKeepAlive, logger, out var daemonSource))
+            {
+                // Another daemon already owns this pipe. With the thin client holding its startup mutex through
+                // the connect, this generally only happens when a '--daemon' process is started outside that
+                // protocol (e.g. manually, or a stale instance). It's recoverable - the client connects to the
+                // existing daemon - so we exit with a distinct non-zero code rather than throwing, which would
+                // surface a stack trace in the editor's output for a benign condition.
+                exitReason = "DaemonAlreadyRunning";
+                return ServerExitCodes.DaemonAlreadyRunning;
+            }
+
+            connectionSource = daemonSource;
+        }
+        else if (serverConfiguration.UseStdIo)
+        {
+            connectionSource = new SingleLanguageServerConnectionSource(
+                new LanguageServerConnection(Console.OpenStandardInput(), Console.OpenStandardOutput()));
+        }
+        else
+        {
+            // The VS Code LSP client passes a full pipe path (e.g. \\.\pipe\<guid> on Windows, /tmp/<id>.sock on Unix).
+            // NamedPipeClientStream expects just the pipe name on Windows (it prepends \\.\pipe\ itself),
+            // and the full socket path on Unix.
+            var pipeName = serverConfiguration.ServerPipeName!;
+            const string windowsPipePrefix = @"\\.\pipe\";
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows) &&
+                pipeName.StartsWith(windowsPipePrefix, StringComparison.OrdinalIgnoreCase))
+            {
+                pipeName = pipeName[windowsPipePrefix.Length..];
+            }
+
+            var pipeClient = new NamedPipeClientStream(".", pipeName, PipeDirection.InOut, PipeOptions.CurrentUserOnly | PipeOptions.Asynchronous);
+            await pipeClient.ConnectAsync(cancellationToken);
+            connectionSource = new SingleLanguageServerConnectionSource(new LanguageServerConnection(pipeClient, pipeClient, pipeClient));
+        }
+
+        // Monitor the client process in single-server mode only; a shared daemon must not exit when one client
+        // dies (and the thin client doesn't forward --clientProcessId to the daemon).
+        if (!serverConfiguration.IsDaemon &&
+            serverConfiguration.ClientProcessId is int clientProcessId &&
+            RoslynLanguageServer.TryRegisterClientProcessId(clientProcessId))
+        {
+            logger.LogInformation("Monitoring client process {clientProcessId} for exit", clientProcessId);
+        }
+
+        logger.LogInformation("Language server initialized");
+        RoslynLog.Logger.Log(RoslynLog.FunctionId.VSCode_LanguageServer_Started, logLevel: RoslynLog.LogLevel.Information);
+
+        try
+        {
+            using (connectionSource as IDisposable)
+            {
+                await connectionManager.RunAsync(
+                    connectionSource, exportProvider, typeRefResolver, logger, telemetryService, cancellationToken);
+            }
+        }
+        finally
+        {
+            FeaturesSessionTelemetry.Report();
+        }
+
+        exitReason = "Normal";
+        return ServerExitCodes.Success;
     }
-    finally
+    catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
     {
-        // After the LSP server shutdown, report session wide telemetry
-        RoslynLogger.ShutdownAndReportSessionTelemetry();
-
-        // Server has exited, cancel our service broker service
-        await serviceBrokerFactory.ShutdownAndWaitForCompletionAsync();
+        exitReason = "Canceled";
+        throw;
     }
-}
-
-static RootCommand CreateCommand()
-{
-    var debugOption = new Option<bool>("--debug")
-    {
-        Description = "Flag indicating if the debugger should be launched on startup.",
-        Required = false,
-        DefaultValueFactory = _ => false,
-    };
-    var brokeredServicePipeNameOption = new Option<string?>("--brokeredServicePipeName")
-    {
-        Description = "The name of the pipe used to connect to a remote process (if one exists).",
-        Required = false,
-    };
-
-    var logLevelOption = new Option<LogLevel>("--logLevel")
-    {
-        Description = "The minimum log verbosity.",
-        Required = true,
-    };
-    var starredCompletionsPathOption = new Option<string?>("--starredCompletionComponentPath")
-    {
-        Description = "The location of the starred completion component (if one exists).",
-        Required = false,
-    };
-
-    var telemetryLevelOption = new Option<string?>("--telemetryLevel")
-    {
-        Description = "Telemetry level, Defaults to 'off'. Example values: 'all', 'crash', 'error', or 'off'.",
-        Required = false,
-    };
-    var extensionLogDirectoryOption = new Option<string>("--extensionLogDirectory")
-    {
-        Description = "The directory where we should write log files to",
-        Required = true,
-    };
-
-    var sessionIdOption = new Option<string?>("--sessionId")
-    {
-        Description = "Session Id to use for telemetry",
-        Required = false
-    };
-
-    var extensionAssemblyPathsOption = new Option<string[]?>("--extension")
-    {
-        Description = "Full paths of extension assemblies to load (optional).",
-        Required = false
-    };
-
-    var devKitDependencyPathOption = new Option<string?>("--devKitDependencyPath")
-    {
-        Description = "Full path to the Roslyn dependency used with DevKit (optional).",
-        Required = false
-    };
-
-    var razorSourceGeneratorOption = new Option<string?>("--razorSourceGenerator")
-    {
-        Description = "Full path to the Razor source generator (optional).",
-        Required = false
-    };
-
-    var razorDesignTimePathOption = new Option<string?>("--razorDesignTimePath")
-    {
-        Description = "Full path to the Razor design time target path (optional).",
-        Required = false
-    };
-
-    var csharpDesignTimePathOption = new Option<string?>("--csharpDesignTimePath")
-    {
-        Description = "Full path to the C# design time target path (optional).",
-        Required = false
-    };
-
-    var serverPipeNameOption = new Option<string?>("--pipe")
-    {
-        Description = "The name of the pipe the server will connect to.",
-        Required = false
-    };
-
-    var useStdIoOption = new Option<bool>("--stdio")
-    {
-        Description = "Use stdio for communication with the client.",
-        Required = false,
-        DefaultValueFactory = _ => false,
-
-    };
-
-    var rootCommand = new RootCommand()
-    {
-        debugOption,
-        brokeredServicePipeNameOption,
-        logLevelOption,
-        starredCompletionsPathOption,
-        telemetryLevelOption,
-        sessionIdOption,
-        extensionAssemblyPathsOption,
-        devKitDependencyPathOption,
-        razorSourceGeneratorOption,
-        razorDesignTimePathOption,
-        csharpDesignTimePathOption,
-        extensionLogDirectoryOption,
-        serverPipeNameOption,
-        useStdIoOption
-    };
-
-    rootCommand.SetAction((parseResult, cancellationToken) =>
-    {
-        var launchDebugger = parseResult.GetValue(debugOption);
-        var logLevel = parseResult.GetValue(logLevelOption);
-        var starredCompletionsPath = parseResult.GetValue(starredCompletionsPathOption);
-        var telemetryLevel = parseResult.GetValue(telemetryLevelOption);
-        var sessionId = parseResult.GetValue(sessionIdOption);
-        var extensionAssemblyPaths = parseResult.GetValue(extensionAssemblyPathsOption) ?? [];
-        var devKitDependencyPath = parseResult.GetValue(devKitDependencyPathOption);
-        var razorDesignTimePath = parseResult.GetValue(razorDesignTimePathOption);
-        var csharpDesignTimePath = parseResult.GetValue(csharpDesignTimePathOption);
-        var extensionLogDirectory = parseResult.GetValue(extensionLogDirectoryOption)!;
-        var serverPipeName = parseResult.GetValue(serverPipeNameOption);
-        var useStdIo = parseResult.GetValue(useStdIoOption);
-
-        var serverConfiguration = new ServerConfiguration(
-            LaunchDebugger: launchDebugger,
-            LogConfiguration: new LogConfiguration(logLevel),
-            StarredCompletionsPath: starredCompletionsPath,
-            TelemetryLevel: telemetryLevel,
-            SessionId: sessionId,
-            ExtensionAssemblyPaths: extensionAssemblyPaths,
-            DevKitDependencyPath: devKitDependencyPath,
-            RazorDesignTimePath: razorDesignTimePath,
-            CSharpDesignTimePath: csharpDesignTimePath,
-            ServerPipeName: serverPipeName,
-            UseStdIo: useStdIo,
-            ExtensionLogDirectory: extensionLogDirectory);
-
-        return RunAsync(serverConfiguration, cancellationToken);
-    });
-
-    return rootCommand;
-}
-
-static (string clientPipe, string serverPipe) CreateNewPipeNames()
-{
-    // On windows, .NET and Nodejs use different formats for the pipe name
-    const string WINDOWS_NODJS_PREFIX = @"\\.\pipe\";
-    const string WINDOWS_DOTNET_PREFIX = @"\\.\";
-
-    // The pipe name constructed by some systems is very long (due to temp path).
-    // Shorten the unique id for the pipe. 
-    var newGuid = Guid.NewGuid().ToString();
-    var pipeName = newGuid.Split('-')[0];
-
-    return RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
-        ? (WINDOWS_NODJS_PREFIX + pipeName, WINDOWS_DOTNET_PREFIX + pipeName)
-        : (GetUnixTypePipeName(pipeName), GetUnixTypePipeName(pipeName));
-}
-
-static string GetUnixTypePipeName(string pipeName)
-{
-    // Unix-type pipes are actually writing to a file
-    return Path.Combine(Path.GetTempPath(), pipeName + ".sock");
 }

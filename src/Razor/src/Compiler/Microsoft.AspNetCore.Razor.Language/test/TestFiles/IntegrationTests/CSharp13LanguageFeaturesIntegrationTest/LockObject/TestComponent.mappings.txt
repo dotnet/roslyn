@@ -1,0 +1,17 @@
+﻿Source Location: (2:0,2 [97] x:\dir\subdir\Test\TestComponent.razor)
+|
+    var gate = new System.Threading.Lock();
+    lock (gate)
+    {
+        _ = gate;
+    }
+|
+Generated Location: (733:21,0 [97] )
+|
+    var gate = new System.Threading.Lock();
+    lock (gate)
+    {
+        _ = gate;
+    }
+|
+

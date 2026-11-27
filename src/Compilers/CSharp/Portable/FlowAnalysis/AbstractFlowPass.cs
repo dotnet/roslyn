@@ -374,6 +374,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return base.Visit(node);
         }
 
+        [DebuggerStepThrough]
         protected override bool ConvertInsufficientExecutionStackExceptionToCancelledByStackGuardException()
         {
             return false; // just let the original exception bubble up.
@@ -622,7 +623,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Visit a boolean condition expression.
         /// </summary>
         /// <param name="node"></param>
-        protected void VisitCondition(BoundExpression node)
+        protected virtual void VisitCondition(BoundExpression node)
         {
             Visit(node);
             AdjustConditionalState(node);
@@ -1347,20 +1348,30 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 calls.Push(node);
 
+                // The receiver calls are not visited through VisitAlways, so their region boundaries are tracked here.
                 node = receiver1;
+                EnterRegionIfNeeded(node);
                 while (node.ReceiverOpt is BoundCall receiver2)
                 {
                     calls.Push(node);
                     node = receiver2;
+                    EnterRegionIfNeeded(node);
                 }
 
                 VisitReceiverBeforeCall(node.ReceiverOpt, node.Method);
 
-                do
+                while (true)
                 {
                     visitArgumentsAndCompleteAnalysis(node);
+
+                    if (!calls.Any())
+                    {
+                        break;
+                    }
+
+                    LeaveRegionIfNeeded(node);
+                    node = calls.Pop();
                 }
-                while (calls.TryPop(out node));
 
                 calls.Free();
             }
@@ -2073,6 +2084,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitCollectionExpression(BoundCollectionExpression node)
         {
+            Visit(node.CollectionCreation);
             VisitCollectionExpression(node.Elements);
             return null;
         }
@@ -3034,7 +3046,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             }
 
-            if (!conversion.IsUserDefined)
+            if (!conversion.IsUserDefined && !conversion.IsUnion)
             {
                 return true;
             }
@@ -3510,7 +3522,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
-        protected void VisitAddressOfOperand(BoundExpression operand, bool shouldReadOperand)
+        private void VisitAddressOfOperand(BoundExpression operand, bool shouldReadOperand)
         {
             if (shouldReadOperand)
             {
@@ -3521,7 +3533,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                 this.VisitLvalue(operand);
             }
 
-            this.WriteArgument(operand, RefKind.Out, null); //Out because we know it will definitely be assigned.
+            this.WriteArgument(operand, RefKind.Out, null); //Out because for the purpose of definite assignment we assume that it is definitely assigned after the address is taken.
+        }
+
+        public override BoundNode VisitRefAccess(BoundRefAccess node)
+        {
+            var operand = node.Expression;
+
+            // Treat operand as right-hand side of a ref assignment. 
+            VisitRvalue(operand, isKnownToBeAnLvalue: true);
+            return null;
         }
 
         public override BoundNode VisitPointerIndirectionOperator(BoundPointerIndirectionOperator node)
@@ -3698,6 +3719,16 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         public override BoundNode VisitAwaitableValuePlaceholder(BoundAwaitableValuePlaceholder node)
+        {
+            return null;
+        }
+
+        public override BoundNode VisitValuePlaceholder(BoundValuePlaceholder node)
+        {
+            return null;
+        }
+
+        public override BoundNode VisitCollectionBuilderElementsPlaceholder(BoundCollectionBuilderElementsPlaceholder node)
         {
             return null;
         }

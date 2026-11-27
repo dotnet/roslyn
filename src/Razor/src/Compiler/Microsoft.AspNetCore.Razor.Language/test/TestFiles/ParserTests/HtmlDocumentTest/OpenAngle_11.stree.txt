@@ -1,0 +1,15 @@
+﻿RazorDocument - [0..4)::4 - [< @@]
+    MarkupBlock - [0..4)::4
+        MarkupElement - [0..4)::4
+            MarkupStartTag - [0..4)::4 - [< @@] - Gen<Markup>
+                OpenAngle;[<];
+                Text;[<Missing>];
+                MarkupTextLiteral - [1..2)::1 - [ ] - Gen<Markup>
+                    Whitespace;[ ];
+                MarkupEphemeralTextLiteral - [2..3)::1 - [@] - Gen<Markup>
+                    Transition;[@];
+                MarkupMinimizedAttributeBlock - [3..4)::1 - [@]
+                    MarkupTextLiteral - [3..4)::1 - [@] - Gen<Markup>
+                        Transition;[@];
+                CloseAngle;[<Missing>];
+    EndOfFile;[];

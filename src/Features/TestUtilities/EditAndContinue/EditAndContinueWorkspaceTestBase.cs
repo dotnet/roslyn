@@ -11,6 +11,7 @@ using System.Linq;
 using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
 using System.Reflection.PortableExecutable;
+using System.Security.Cryptography;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
@@ -33,6 +34,12 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests;
 
 public abstract class EditAndContinueWorkspaceTestBase : TestBase, IDisposable
 {
+    static EditAndContinueWorkspaceTestBase()
+    {
+        // TODO: remove https://github.com/dotnet/roslyn/issues/81728
+        AbstractEditAndContinueAnalyzer.EnableProjectLevelAnalysis = true;
+    }
+
     private protected static readonly Guid s_solutionTelemetryId = Guid.Parse("00000000-AAAA-AAAA-AAAA-000000000000");
     private protected static readonly Guid s_defaultProjectTelemetryId = Guid.Parse("00000000-AAAA-AAAA-AAAA-111111111111");
     private protected static readonly Regex s_timePropertiesRegex = new("[|](EmitDifferenceMilliseconds|TotalAnalysisMilliseconds)=[0-9]+");
@@ -156,7 +163,7 @@ public abstract class EditAndContinueWorkspaceTestBase : TestBase, IDisposable
 
     internal EditAndContinueService GetEditAndContinueService(TestWorkspace workspace)
     {
-        var service = (EditAndContinueService)workspace.GetService<IEditAndContinueService>();
+        var service = (EditAndContinueService)workspace.Services.GetRequiredService<IEditAndContinueWorkspaceService>().Service;
         var accessor = service.GetTestAccessor();
 
         // Empty guid means project is not built.
@@ -279,10 +286,12 @@ public abstract class EditAndContinueWorkspaceTestBase : TestBase, IDisposable
         string language = LanguageNames.CSharp,
         string? sourceFilePath = null,
         Encoding? encoding = null,
-        SourceHashAlgorithm checksumAlgorithm = SourceHashAlgorithms.Default,
         string? assemblyName = null,
+        DebugInformationFormat pdbFormat = DebugInformationFormat.PortablePdb,
+        SourceHashAlgorithm checksumAlgorithm = SourceHashAlgorithms.Default,
+        Encoding? defaultEncoding = null,
         TargetFramework targetFramework = DefaultTargetFramework)
-        => LoadLibraryToDebuggee(EmitLibrary(projectId, source, sourceFilePath, language, encoding, checksumAlgorithm, assemblyName, targetFramework: targetFramework));
+        => LoadLibraryToDebuggee(EmitLibrary(projectId, source, sourceFilePath, language, encoding, assemblyName, pdbFormat, checksumAlgorithm, defaultEncoding, targetFramework: targetFramework));
 
     internal Guid LoadLibraryToDebuggee(Guid moduleId, ManagedHotReloadAvailability availability = default)
     {
@@ -304,9 +313,10 @@ public abstract class EditAndContinueWorkspaceTestBase : TestBase, IDisposable
         string? sourceFilePath = null,
         string language = LanguageNames.CSharp,
         Encoding? encoding = null,
-        SourceHashAlgorithm checksumAlgorithm = SourceHashAlgorithms.Default,
         string? assemblyName = null,
         DebugInformationFormat pdbFormat = DebugInformationFormat.PortablePdb,
+        SourceHashAlgorithm checksumAlgorithm = SourceHashAlgorithms.Default,
+        Encoding? defaultEncoding = null,
         Project? generatorProject = null,
         string? additionalFileText = null,
         IEnumerable<(string, string)>? analyzerOptions = null,
@@ -316,9 +326,10 @@ public abstract class EditAndContinueWorkspaceTestBase : TestBase, IDisposable
             [(source, sourceFilePath ?? Path.Combine(TempRoot.Root, "test1.cs"))],
             language,
             encoding,
-            checksumAlgorithm,
             assemblyName,
             pdbFormat,
+            checksumAlgorithm,
+            defaultEncoding,
             generatorProject,
             additionalFileText,
             analyzerOptions,
@@ -329,9 +340,10 @@ public abstract class EditAndContinueWorkspaceTestBase : TestBase, IDisposable
         (string content, string filePath)[] sources,
         string language = LanguageNames.CSharp,
         Encoding? encoding = null,
-        SourceHashAlgorithm checksumAlgorithm = SourceHashAlgorithms.Default,
         string? assemblyName = null,
         DebugInformationFormat pdbFormat = DebugInformationFormat.PortablePdb,
+        SourceHashAlgorithm checksumAlgorithm = SourceHashAlgorithms.Default,
+        Encoding? defaultEncoding = null,
         Project? generatorProject = null,
         string? additionalFileText = null,
         IEnumerable<(string, string)>? analyzerOptions = null,
@@ -343,16 +355,12 @@ public abstract class EditAndContinueWorkspaceTestBase : TestBase, IDisposable
             language,
             assemblyName,
             pdbFormat,
+            checksumAlgorithm,
+            defaultEncoding,
             generatorProject,
             additionalFileText,
             analyzerOptions,
             targetFramework);
-    }
-
-    internal static SourceText CreateText(string source, Encoding? encoding = null, SourceHashAlgorithm checksumAlgorithm = SourceHashAlgorithms.Default)
-    {
-        encoding ??= Encoding.UTF8;
-        return SourceText.From(new MemoryStream(encoding.GetBytesWithPreamble(source)), encoding, checksumAlgorithm);
     }
 
     internal Guid EmitLibrary(
@@ -361,6 +369,8 @@ public abstract class EditAndContinueWorkspaceTestBase : TestBase, IDisposable
         string language = LanguageNames.CSharp,
         string? assemblyName = null,
         DebugInformationFormat pdbFormat = DebugInformationFormat.PortablePdb,
+        SourceHashAlgorithm checksumAlgorithm = SourceHashAlgorithms.Default,
+        Encoding? defaultEncoding = null,
         Project? generatorProject = null,
         string? additionalFileText = null,
         IEnumerable<(string, string)>? analyzerOptions = null,
@@ -419,12 +429,29 @@ public abstract class EditAndContinueWorkspaceTestBase : TestBase, IDisposable
             compilation = outputCompilation;
         }
 
-        return EmitLibrary(projectId, compilation, pdbFormat);
+        return EmitLibrary(projectId, compilation, pdbFormat, checksumAlgorithm, defaultEncoding);
     }
 
-    internal Guid EmitLibrary(ProjectId projectId, Compilation compilation, DebugInformationFormat pdbFormat = DebugInformationFormat.PortablePdb)
+    internal Guid EmitLibrary(
+        ProjectId projectId,
+        Compilation compilation,
+        DebugInformationFormat pdbFormat = DebugInformationFormat.PortablePdb,
+        SourceHashAlgorithm checksumAlgorithm = SourceHashAlgorithms.Default,
+        Encoding? defaultEncoding = null)
     {
-        var (peImage, pdbImage) = compilation.EmitToArrays(new EmitOptions(debugInformationFormat: pdbFormat));
+        var hashAlgorithmName = checksumAlgorithm switch
+        {
+            SourceHashAlgorithm.Sha1 => HashAlgorithmName.SHA1,
+            SourceHashAlgorithm.Sha256 => HashAlgorithmName.SHA256,
+            _ => throw ExceptionUtilities.UnexpectedValue(checksumAlgorithm),
+        };
+
+        var (peImage, pdbImage) = compilation.EmitToArrays(new EmitOptions(debugInformationFormat: pdbFormat, pdbChecksumAlgorithm: hashAlgorithmName, defaultSourceFileEncoding: defaultEncoding));
+
+        var dir = Temp.CreateDirectory();
+        dir.CreateFile(compilation.AssemblyName + ".dll").WriteAllBytes(peImage.ToArray());
+        dir.CreateFile(compilation.AssemblyName + ".pdb").WriteAllBytes(pdbImage.ToArray());
+
         var symReader = SymReaderTestHelpers.OpenDummySymReader(pdbImage);
 
         var moduleMetadata = ModuleMetadata.CreateFromImage(peImage);
@@ -457,13 +484,16 @@ public abstract class EditAndContinueWorkspaceTestBase : TestBase, IDisposable
         return moduleId;
     }
 
-    internal static SourceText CreateText(string source)
-        => SourceText.From(source, Encoding.UTF8, SourceHashAlgorithms.Default);
+    internal static SourceText CreateText(string source, Encoding? encoding = null, SourceHashAlgorithm checksumAlgorithm = SourceHashAlgorithms.Default)
+    {
+        encoding ??= Encoding.UTF8;
+        return SourceText.From(new MemoryStream(encoding.GetBytesWithPreamble(source)), encoding, checksumAlgorithm);
+    }
 
-    internal static SourceText CreateTextFromFile(string path)
+    internal static SourceText CreateTextFromFile(string path, Encoding? encoding = null)
     {
         using var stream = File.OpenRead(path);
-        return SourceText.From(stream, Encoding.UTF8, SourceHashAlgorithms.Default);
+        return SourceText.From(stream, encoding ?? Encoding.UTF8, SourceHashAlgorithms.Default);
     }
 
     internal static TextSpan GetSpan(string str, string substr)
@@ -481,7 +511,7 @@ public abstract class EditAndContinueWorkspaceTestBase : TestBase, IDisposable
                 }
                 else
                 {
-                    ((DebugInformationReaderProvider)reader).CreateEditAndContinueMethodDebugInfoReader();
+                    ((DebugInformationReaderProvider)reader).CreateEditAndContinueDebugInfoReader();
                 }
             });
         }
@@ -505,7 +535,7 @@ public abstract class EditAndContinueWorkspaceTestBase : TestBase, IDisposable
     {
         public override Task<TextAndVersion> LoadTextAndVersionAsync(LoadTextOptions options, CancellationToken cancellationToken)
         {
-            Assert.True(false, $"Content of document should never be loaded");
+            Assert.Fail($"Content of document should never be loaded");
             throw ExceptionUtilities.Unreachable();
         }
     }

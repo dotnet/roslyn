@@ -1,0 +1,10 @@
+﻿Document - 
+    RazorCompiledItemAttribute - 
+    NamespaceDeclaration -  - Razor
+        RazorSourceChecksumAttribute - 
+        ClassDeclaration -  - public - Template - global::LegacyTemplateBase - 
+            MethodDeclaration -  - public async override - global::System.Threading.Tasks.Task - ExecuteAsync
+                HtmlContent - (38:1,0 [2] TestFiles\IntegrationTests\CSharp11LanguageFeaturesIntegrationTest_Legacy\TestView.cshtml)
+                    LazyIntermediateToken - (38:1,0 [2] TestFiles\IntegrationTests\CSharp11LanguageFeaturesIntegrationTest_Legacy\TestView.cshtml) - Html - \n
+            CSharpCode - (52:2,12 [248] TestFiles\IntegrationTests\CSharp11LanguageFeaturesIntegrationTest_Legacy\TestView.cshtml)
+                LazyIntermediateToken - (52:2,12 [248] TestFiles\IntegrationTests\CSharp11LanguageFeaturesIntegrationTest_Legacy\TestView.cshtml) - CSharp - \n    public interface IValue<TSelf>\n        where TSelf : IValue<TSelf>\n    {\n        static abstract TSelf Zero { get; }\n    }\n    \n    public readonly struct Value : IValue<Value>\n    {\n        public static Value Zero => new();\n    }\n

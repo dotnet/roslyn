@@ -34,6 +34,7 @@ Imports TestResources.Analyzers
 Imports Xunit
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.CommandLine.UnitTests
+    <ValidatePooledObjects(WaitForOutstandingObjectsToBeFreed:=True)>
     Partial Public Class CommandLineTests
         Inherits BasicTestBase
 
@@ -1865,7 +1866,7 @@ End Module").Path
 
             parsedArgs = DefaultParse({"/CodePage:1252", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify()
-            Assert.Equal("Western European (Windows)", parsedArgs.Encoding.EncodingName)
+            Assert.Equal(1252, parsedArgs.Encoding.CodePage)
 
             ' errors 
             parsedArgs = DefaultParse({"/codepage:0", "a.vb"}, _baseDirectory)
@@ -1902,6 +1903,16 @@ End Module").Path
             parsedArgs = DefaultParse({"/checksumAlgorithm:sha256", "a.cs"}, _baseDirectory)
             parsedArgs.Errors.Verify()
             Assert.Equal(SourceHashAlgorithm.Sha256, parsedArgs.ChecksumAlgorithm)
+            Assert.Equal(HashAlgorithmName.SHA256, parsedArgs.EmitOptions.PdbChecksumAlgorithm)
+
+            parsedArgs = DefaultParse({"/checksumAlgorithm:sHa384", "a.cs"}, _baseDirectory)
+            parsedArgs.Errors.Verify()
+            Assert.Equal(SourceHashAlgorithm.Sha384, parsedArgs.ChecksumAlgorithm)
+            Assert.Equal(HashAlgorithmName.SHA256, parsedArgs.EmitOptions.PdbChecksumAlgorithm)
+
+            parsedArgs = DefaultParse({"/checksumAlgorithm:sha512", "a.cs"}, _baseDirectory)
+            parsedArgs.Errors.Verify()
+            Assert.Equal(SourceHashAlgorithm.Sha512, parsedArgs.ChecksumAlgorithm)
             Assert.Equal(HashAlgorithmName.SHA256, parsedArgs.EmitOptions.PdbChecksumAlgorithm)
 
             parsedArgs = DefaultParse({"a.cs"}, _baseDirectory)
@@ -3679,6 +3690,7 @@ End Module
 
             ' Legacy feature flag
             Using dir As New DisposableDirectory(Temp)
+                Assert.Equal("pdb-path-determinism", Feature.PdbPathDeterminism)
                 Dim pePdbPath = Path.Combine(dir.Path, "a.pdb")
                 assertPdbEmit(dir, "a.pdb", {"/features:pdb-path-determinism"})
             End Using
@@ -4933,6 +4945,7 @@ End Class
         End Sub
 
         <Fact()>
+        <ValidatePooledObjects(LeakReason:="Binary file detection exception path")>
         Public Sub BinaryFile()
             Dim binaryPath = Temp.CreateFile().WriteAllBytes(Net461.Resources.mscorlib).Path
             Dim outWriter As New StringWriter()
@@ -7746,8 +7759,8 @@ End Class
             args = DefaultParse({"/features:Test", "a.vb", "/Features:Experiment"}, _baseDirectory)
             args.Errors.Verify()
             Assert.Equal(2, args.ParseOptions.Features.Count)
-            Assert.True(args.ParseOptions.Features.ContainsKey("Test"))
-            Assert.True(args.ParseOptions.Features.ContainsKey("Experiment"))
+            Assert.True(args.ParseOptions.HasFeature("Test"))
+            Assert.True(args.ParseOptions.HasFeature("Experiment"))
 
             args = DefaultParse({"/features:Test=false,Key=value", "a.vb"}, _baseDirectory)
             args.Errors.Verify()
@@ -8946,7 +8959,7 @@ End Class
                 Nothing,
                 _baseDirectory,
                 {"/reportanalyzer", "/t:library", source},
-                analyzers:={New WarningDiagnosticAnalyzer()},
+                analyzers:={New WarningDiagnosticAnalyzer(), New ConcurrentAnalyzer({"C"}), New DiagnosticSuppressorForId("Warning01", "Suppressor01")},
                 generators:={New DoNothingGenerator().AsSourceGenerator()})
             Dim outWriter = New StringWriter()
             Dim exitCode = vbc.Run(outWriter, Nothing)
@@ -8954,8 +8967,44 @@ End Class
             Dim output = outWriter.ToString()
             Assert.Contains(New WarningDiagnosticAnalyzer().ToString(), output, StringComparison.Ordinal)
             Assert.Contains(CodeAnalysisResources.AnalyzerExecutionTimeColumnHeader, output, StringComparison.Ordinal)
+            Assert.Contains($"{NameOf(DiagnosticSuppressorForId)} (Suppressor01)", output, StringComparison.Ordinal)
             Assert.Contains(CodeAnalysisResources.GeneratorNameColumnHeader, output, StringComparison.Ordinal)
             Assert.Contains(GetType(DoNothingGenerator).FullName, output, StringComparison.Ordinal)
+
+            Assert.DoesNotContain(CodeAnalysisResources.AllAnalyzersConcurrentMessage, output, StringComparison.Ordinal)
+            Dim nonConcurrentSection = output.Substring(output.IndexOf(CodeAnalysisResources.NonConcurrentAnalyzersHeader))
+            Assert.Contains(NameOf(WarningDiagnosticAnalyzer), nonConcurrentSection, StringComparison.Ordinal)
+            Assert.DoesNotContain(NameOf(DiagnosticSuppressorForId), nonConcurrentSection, StringComparison.Ordinal)
+            Assert.DoesNotContain(GetType(ConcurrentAnalyzer).Assembly.FullName, nonConcurrentSection, StringComparison.Ordinal)
+            Assert.DoesNotContain(NameOf(ConcurrentAnalyzer), nonConcurrentSection, StringComparison.Ordinal)
+            CleanupAllGeneratedFiles(source)
+        End Sub
+
+        <Fact>
+        Public Sub ReportAnalyzerOutput_AllConcurrentAnalyzers()
+            Dim source As String = Temp.CreateFile().WriteAllText(<text>
+Class C
+End Class
+</text>.Value).Path
+
+            Dim vbc = New MockVisualBasicCompiler(
+                Nothing,
+                _baseDirectory,
+                {"/reportanalyzer", "/t:library", source},
+                analyzers:={New ConcurrentAnalyzer({"C"}), New DiagnosticSuppressorForId("Warning01", "Suppressor01")},
+                generators:={New DoNothingGenerator().AsSourceGenerator()})
+            Dim outWriter = New StringWriter()
+            Dim exitCode = vbc.Run(outWriter, Nothing)
+            Assert.Equal(0, exitCode)
+            Dim output = outWriter.ToString()
+            Assert.Contains(CodeAnalysisResources.AnalyzerExecutionTimeColumnHeader, output, StringComparison.Ordinal)
+            Assert.DoesNotContain(New WarningDiagnosticAnalyzer().ToString(), output, StringComparison.Ordinal)
+            Assert.Contains($"{NameOf(DiagnosticSuppressorForId)} (Suppressor01)", output, StringComparison.Ordinal)
+            Assert.Contains(CodeAnalysisResources.GeneratorNameColumnHeader, output, StringComparison.Ordinal)
+            Assert.Contains(GetType(DoNothingGenerator).FullName, output, StringComparison.Ordinal)
+
+            Assert.DoesNotContain(CodeAnalysisResources.NonConcurrentAnalyzersHeader, output, StringComparison.Ordinal)
+            Assert.Contains(CodeAnalysisResources.AllAnalyzersConcurrentMessage, output, StringComparison.Ordinal)
             CleanupAllGeneratedFiles(source)
         End Sub
 
@@ -9082,6 +9131,7 @@ End Class
         End Sub
 
         <Fact>
+        <ValidatePooledObjects(LeakReason:="Binary file detection exception path")>
         Public Sub AdditionalFileDiagnostics()
             Dim dir = Temp.CreateDirectory()
             Dim source = dir.CreateFile("a.vb").WriteAllText(<text>
@@ -9518,6 +9568,29 @@ a
             CleanupAllGeneratedFiles(dir.Path)
         End Sub
 
+        <Fact>
+        Public Sub RefOnly_EmbeddedDebugInformation()
+            Dim dir = Temp.CreateDirectory()
+            Dim src = dir.CreateFile("a.vb")
+            src.WriteAllText("Public Class C
+End Class")
+
+            Dim outWriter = New StringWriter(CultureInfo.InvariantCulture)
+            Dim vbc = New MockVisualBasicCompiler(Nothing, dir.Path,
+                {"/define:_MYTYPE=""Empty"" ", "/nologo", "/target:library", "/out:a.dll", "/refonly", "/debug:embedded", "/deterministic", "a.vb"})
+
+            Assert.Equal(0, vbc.Run(outWriter))
+            Assert.Equal("", outWriter.ToString())
+
+            Using peReader = New PEReader(File.OpenRead(Path.Combine(dir.Path, "a.dll")))
+                AssertEx.Equal(
+                    {DebugDirectoryEntryType.Reproducible},
+                    peReader.ReadDebugDirectory().Select(Function(entry) entry.Type))
+            End Using
+
+            CleanupAllGeneratedFiles(dir.Path)
+        End Sub
+
         <WorkItem(13681, "https://github.com/dotnet/roslyn/issues/13681")>
         <Theory()>
         <InlineData("/t:exe", "/out:goo.dll", "goo.dll", "goo.dll.exe")>                                'Output with known but different extension
@@ -9674,7 +9747,7 @@ End Module
             ' Missing Microsoft.CodeAnalysis.VisualBasic.dll.
             Dim result = ProcessUtilities.Run(vbcPath, arguments:="/nologo /t:library unknown.vb", workingDirectory:=dir.Path)
             Assert.Equal(1, result.ExitCode)
-            Assert.Equal(
+            AssertEx.Equal(
                 $"Could not load file or assembly '{GetType(VisualBasicCompilation).Assembly.FullName}' or one of its dependencies. The system cannot find the file specified.",
                 result.Output.Trim())
 
@@ -9682,8 +9755,8 @@ End Module
             dir.CopyFile(GetType(VisualBasicCompilation).Assembly.Location)
             result = ProcessUtilities.Run(vbcPath, arguments:="/nologo /t:library unknown.vb", workingDirectory:=dir.Path)
             Assert.Equal(1, result.ExitCode)
-            Assert.Equal(
-                $"Could not load file or assembly '{GetType(ImmutableArray).Assembly.FullName}' or one of its dependencies. The system cannot find the file specified.",
+            AssertEx.Equal(
+                $"Could not load file or assembly '{GetType(ImmutableArray).Assembly.FullName.Replace(".10", ".0")}' or one of its dependencies. The system cannot find the file specified.",
                 result.Output.Trim())
         End Sub
 
@@ -9712,15 +9785,79 @@ End Module
         End Sub
 
         <Fact>
-        Public Sub StrongNameProviderWithCustomTempPath()
-            Dim tempDir = Temp.CreateDirectory()
+        Public Sub StrongNameProviderUsesOutputDirectory()
             Dim workingDir = Temp.CreateDirectory()
             workingDir.CreateFile("a.vb")
 
-            Dim vbc = New MockVisualBasicCompiler(Nothing, New BuildPaths("", workingDir.Path, Nothing, tempDir.Path),
+            Dim vbc = New MockVisualBasicCompiler(Nothing, New BuildPaths("", workingDir.Path, Nothing),
                               {"/features:UseLegacyStrongNameProvider", "/nostdlib", "a.vb"})
             Dim comp = vbc.CreateCompilation(TextWriter.Null, New TouchedFileLogger(), NullErrorLogger.Instance, Nothing)
             Assert.False(comp.SignUsingBuilder)
+            Assert.Equal(workingDir.Path, comp.Options.StrongNameProvider.FileSystem.GetSigningPath())
+        End Sub
+
+        Private NotInheritable Class LegacySigningCompiler
+            Inherits MockVisualBasicCompiler
+
+            Private ReadOnly _beforeSign As Action(Of String)
+
+            Public Sub New(workingDirectory As String, arguments As String(), beforeSign As Action(Of String))
+                MyBase.New(Nothing, workingDirectory, arguments, additionalReferences:={MscorlibRef})
+                _beforeSign = beforeSign
+            End Sub
+
+            Public Overrides Function CreateCompilation(
+                consoleOutput As TextWriter,
+                touchedFilesLogger As TouchedFileLogger,
+                errorLogger As ErrorLogger,
+                syntaxTreeDiagnosticOptionsOpt As ImmutableArray(Of AnalyzerConfigOptionsResult),
+                globalDiagnosticOptions As AnalyzerConfigOptionsResult) As Compilation
+
+                Dim compilation = MyBase.CreateCompilation(consoleOutput, touchedFilesLogger, errorLogger, syntaxTreeDiagnosticOptionsOpt, globalDiagnosticOptions)
+                Dim original = DirectCast(compilation.Options.StrongNameProvider, DesktopStrongNameProvider)
+                Dim provider = New TestDesktopStrongNameProvider(fileSystem:=original.FileSystem) With {
+                    .SignFileFunc = Sub(keys, path)
+                                        _beforeSign(path)
+                                        original.SignFile(keys, path)
+                                    End Sub
+                }
+                Return compilation.WithOptions(compilation.Options.WithStrongNameProvider(provider))
+            End Function
+        End Class
+
+        <ConditionalFact(GetType(WindowsOnly))>
+        Public Sub LegacySigningOutputPaths()
+            Dim workingDirectory = Temp.CreateDirectory()
+            Dim outputDirectory = workingDirectory.CreateDirectory("bin")
+            Dim referenceDirectory = Temp.CreateDirectory()
+            Dim source = workingDirectory.CreateFile("Library.vb").WriteAllText("Public Class C : End Class")
+            Dim key = workingDirectory.CreateFile("key.snk").WriteAllBytes(TestResources.General.snKey)
+            Dim outputPath = Path.Combine(outputDirectory.Path, "Library.dll")
+            Dim referencePath = Path.Combine(referenceDirectory.Path, "Reference.dll")
+            Dim stagingPaths = New List(Of String)()
+            Dim arguments = {
+                "/nologo", "/nostdlib", "/vbruntime-", "/define:_MYTYPE=""Empty""", "/target:library", "/features:UseLegacyStrongNameProvider",
+                "/keyfile:" & key.Path, "/out:bin\Library.dll", "/refout:" & referencePath, source.Path
+            }
+            Dim compiler = New LegacySigningCompiler(workingDirectory.Path, arguments, Sub(path) stagingPaths.Add(path))
+            Using writer As New StringWriter()
+                Dim exitCode = compiler.Run(writer)
+                Assert.True(exitCode = 0, writer.ToString())
+                Assert.Equal("", writer.ToString())
+            End Using
+
+            Assert.Equal(2, stagingPaths.Count)
+            For Each path In stagingPaths
+                Assert.Equal(outputDirectory.Path, System.IO.Path.GetDirectoryName(path))
+                Assert.Matches("^legacy-sign\.[0-9a-f]{32}\.dll$", System.IO.Path.GetFileName(path))
+                Assert.False(File.Exists(path))
+            Next
+            Using stream = File.OpenRead(outputPath)
+                Assert.True(ILValidation.IsStreamFullSigned(stream))
+            End Using
+            Using stream = File.OpenRead(referencePath)
+                Assert.True(ILValidation.IsStreamFullSigned(stream))
+            End Using
         End Sub
 
         Private Function MakeTrivialExe(Optional directory As String = Nothing) As String
@@ -10706,6 +10843,114 @@ End Class")
             Assert.[False](hostOutputRan)
             Assert.[True](sourceOutputRan)
             CleanupAllGeneratedFiles(src.Path)
+            Directory.Delete(dir.Path, True)
+        End Sub
+
+        <Theory>
+        <InlineData({"/out:checksum.exe", "/debug:portable", "/checksumAlgorithm:SHA256"})>
+        <InlineData({"/out:checksum.exe", "/debug:portable"})>
+        Public Sub SourceGenerators_ChecksumAlgorithm(ParamArray additionalFlags As String())
+            Dim dir = Temp.CreateDirectory()
+            Dim src = dir.CreateFile("temp.vb")
+            src.WriteAllText("Class C : End Class")
+
+            Dim genPath1 = Path.Combine(dir.Path, "Microsoft.CodeAnalysis.Test.Utilities", "Roslyn.Test.Utilities.TestGenerators.TestSourceGenerator", "hint1.vb")
+            Dim genPath2 = Path.Combine(dir.Path, "Microsoft.CodeAnalysis.Test.Utilities", "Roslyn.Test.Utilities.TestGenerators.TestSourceGenerator", "hint2.vb")
+
+            Dim generator = New TestSourceGenerator() With {
+                .ExecuteImpl = Sub(context)
+                                   context.AddSource("hint1",
+"Class G1
+    Sub F()
+    End Sub
+End Class")
+                                   context.AddSource("hint2", SourceText.From(
+"Class G2
+    Sub F()
+    End Sub
+End Class", Encoding.UTF8, checksumAlgorithm:=SourceHashAlgorithm.Sha1))
+                               End Sub
+            }
+
+            VerifyOutput(
+                dir,
+                src,
+                includeCurrentAssemblyAsAnalyzerReference:=False,
+                additionalFlags:=additionalFlags,
+                generators:={generator},
+                analyzers:=Nothing)
+
+            Using peStream As Stream = File.OpenRead(Path.Combine(dir.Path, "checksum.exe")), pdbStream As Stream = File.OpenRead(Path.Combine(dir.Path, "checksum.pdb"))
+                PdbValidation.VerifyPdb(peStream, pdbStream, $"
+<symbols>
+  <files>
+    <file id=""1"" name=""{src.Path}"" language=""VB"" checksumAlgorithm=""SHA256"" checksum=""06-9C-3E-BB-78-B9-FA-FD-74-2B-65-88-0E-04-4D-DE-94-05-2C-30-B5-95-1E-A9-03-94-64-D0-BD-56-C3-B9"" />
+    <file id=""2"" name=""{genPath1}"" language=""VB"" checksumAlgorithm=""SHA256"" checksum=""99-23-2B-FF-51-23-DE-B6-19-58-ED-05-25-F7-1C-73-08-28-53-A3-04-98-F3-77-7A-69-C0-D6-98-E6-BF-30""><![CDATA[﻿Class G1
+    Sub F()
+    End Sub
+End Class]]></file>
+    <file id=""3"" name=""{genPath2}"" language=""VB"" checksumAlgorithm=""SHA256"" checksum=""FA-30-AB-86-18-EA-08-F8-C0-B8-9E-D2-46-A7-2E-D3-22-D3-91-8C-AB-DB-F4-FA-60-C3-9C-B5-3B-44-84-58""><![CDATA[﻿Class G2
+    Sub F()
+    End Sub
+End Class]]></file>
+    <file id=""4"" name="""" language=""VB"" />
+  </files>
+</symbols>", PdbValidationOptions.ExcludeMethods)
+            End Using
+
+            Directory.Delete(dir.Path, True)
+        End Sub
+
+        <Fact>
+        Public Sub SourceGenerators_ChecksumAlgorithm_Sha1()
+            Dim dir = Temp.CreateDirectory()
+            Dim src = dir.CreateFile("temp.vb")
+            src.WriteAllText("Class C : End Class")
+
+            Dim genPath1 = Path.Combine(dir.Path, "Microsoft.CodeAnalysis.Test.Utilities", "Roslyn.Test.Utilities.TestGenerators.TestSourceGenerator", "hint1.vb")
+            Dim genPath2 = Path.Combine(dir.Path, "Microsoft.CodeAnalysis.Test.Utilities", "Roslyn.Test.Utilities.TestGenerators.TestSourceGenerator", "hint2.vb")
+
+            Dim generator = New TestSourceGenerator() With {
+                .ExecuteImpl = Sub(context)
+                                   context.AddSource("hint1",
+"Class G1
+    Sub F()
+    End Sub
+End Class")
+                                   context.AddSource("hint2", SourceText.From(
+"Class G2
+    Sub F()
+    End Sub
+End Class", Encoding.UTF8, checksumAlgorithm:=SourceHashAlgorithm.Sha256))
+                               End Sub
+            }
+
+            VerifyOutput(
+                dir,
+                src,
+                includeCurrentAssemblyAsAnalyzerReference:=False,
+                additionalFlags:={"/out:checksum.exe", "/debug:portable", "/checksumAlgorithm:SHA1"},
+                generators:={generator},
+                analyzers:=Nothing)
+
+            Using peStream As Stream = File.OpenRead(Path.Combine(dir.Path, "checksum.exe")), pdbStream As Stream = File.OpenRead(Path.Combine(dir.Path, "checksum.pdb"))
+                PdbValidation.VerifyPdb(peStream, pdbStream, $"
+<symbols>
+  <files>
+    <file id=""1"" name=""{src.Path}"" language=""VB"" checksumAlgorithm=""SHA1"" checksum=""ED-80-C6-0D-E5-21-AE-E8-37-DF-7C-7E-CB-32-A5-3E-6E-5E-41-99"" />
+    <file id=""2"" name=""{genPath1}"" language=""VB"" checksumAlgorithm=""SHA1"" checksum=""33-BB-2D-D5-0D-9F-72-84-25-14-83-D7-5F-5F-34-B7-F1-36-5C-8B""><![CDATA[﻿Class G1
+    Sub F()
+    End Sub
+End Class]]></file>
+    <file id=""3"" name=""{genPath2}"" language=""VB"" checksumAlgorithm=""SHA1"" checksum=""58-43-AA-2E-95-BE-21-5B-C4-74-EF-BA-1D-82-DF-77-77-73-16-46""><![CDATA[﻿Class G2
+    Sub F()
+    End Sub
+End Class]]></file>
+    <file id=""4"" name="""" language=""VB"" />
+  </files>
+</symbols>", PdbValidationOptions.ExcludeMethods)
+            End Using
+
             Directory.Delete(dir.Path, True)
         End Sub
 

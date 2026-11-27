@@ -1,0 +1,35 @@
+﻿RazorDocument - [0..14)::14 - [@{LF<LF</html>]
+    MarkupBlock - [0..14)::14
+        MarkupTextLiteral - [0..0)::0 - [] - Gen<Markup>
+            Marker;[];
+        CSharpCodeBlock - [0..14)::14
+            CSharpStatement - [0..14)::14
+                CSharpTransition - [0..1)::1 - Gen<None>
+                    Transition;[@];
+                CSharpStatementBody - [1..14)::13
+                    RazorMetaCode - [1..2)::1 - Gen<None>
+                        LeftBrace;[{];
+                    CSharpCodeBlock - [2..14)::12
+                        CSharpStatementLiteral - [2..4)::2 - [LF] - Gen<Stmt>
+                            NewLine;[LF];
+                        MarkupBlock - [4..7)::3
+                            MarkupElement - [4..7)::3
+                                MarkupStartTag - [4..7)::3 - [<LF] - Gen<Markup>
+                                    OpenAngle;[<];
+                                    Text;[<Missing>];
+                                    MarkupMiscAttributeContent - [5..7)::2
+                                        MarkupTextLiteral - [5..7)::2 - [LF] - Gen<Markup>
+                                            NewLine;[LF];
+                                    CloseAngle;[<Missing>];
+                        MarkupBlock - [7..14)::7
+                            MarkupElement - [7..14)::7
+                                MarkupEndTag - [7..14)::7 - [</html>] - Gen<Markup>
+                                    OpenAngle;[<];
+                                    ForwardSlash;[/];
+                                    Text;[html];
+                                    CloseAngle;[>];
+                        CSharpStatementLiteral - [14..14)::0 - [] - Gen<Stmt>
+                            Marker;[];
+                    RazorMetaCode - [14..14)::0 - Gen<None>
+                        RightBrace;[<Missing>];
+    EndOfFile;[];

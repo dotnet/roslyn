@@ -1,0 +1,2 @@
+﻿(2,8): Error RZ1027: An opening "(" is missing the corresponding closing ")".
+(2,14): Error RZ1043: C# preprocessor directives must be at the start of the line, except for whitespace.

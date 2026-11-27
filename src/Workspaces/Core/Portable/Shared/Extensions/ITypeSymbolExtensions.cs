@@ -175,22 +175,18 @@ internal static partial class ITypeSymbolExtensions
     public static bool CanBeEnumerated(this ITypeSymbol type)
     {
         // Type itself is IEnumerable/IEnumerable<SomeType>
-        if (type.OriginalDefinition is { SpecialType: SpecialType.System_Collections_Generic_IEnumerable_T or SpecialType.System_Collections_IEnumerable })
-        {
-            return true;
-        }
-
-        return type.AllInterfaces.Any(s => s.SpecialType is SpecialType.System_Collections_Generic_IEnumerable_T or SpecialType.System_Collections_IEnumerable);
+        return type.OriginalDefinition is { SpecialType: SpecialType.System_Collections_Generic_IEnumerable_T or SpecialType.System_Collections_IEnumerable } ||
+            type.AllInterfaces.Any(s => s.SpecialType is SpecialType.System_Collections_Generic_IEnumerable_T or SpecialType.System_Collections_IEnumerable);
     }
 
     public static bool CanBeAsynchronouslyEnumerated(this ITypeSymbol type, Compilation compilation)
-    {
-        var asyncEnumerableType = compilation.IAsyncEnumerableOfTType();
+        => type.CanBeAsynchronouslyEnumerated(compilation.IAsyncEnumerableOfTType());
 
+    public static bool CanBeAsynchronouslyEnumerated(this ITypeSymbol type, INamedTypeSymbol? asyncEnumerableType)
+    {
+        asyncEnumerableType = asyncEnumerableType?.OriginalDefinition;
         if (asyncEnumerableType is null)
-        {
             return false;
-        }
 
         // Type itself is an IAsyncEnumerable<SomeType>
         if (type.TypeKind == TypeKind.Interface &&
@@ -202,9 +198,7 @@ internal static partial class ITypeSymbolExtensions
         foreach (var @interface in type.AllInterfaces)
         {
             if (@interface.OriginalDefinition.Equals(asyncEnumerableType, SymbolEqualityComparer.Default))
-            {
                 return true;
-            }
         }
 
         return false;

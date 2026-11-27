@@ -1,0 +1,9 @@
+﻿#nullable enable
+Microsoft.AspNetCore.Razor.Optional<T>
+Microsoft.AspNetCore.Razor.Optional<T>.GetValueOrDefault(T defaultValue) -> T
+Microsoft.AspNetCore.Razor.Optional<T>.HasValue.get -> bool
+Microsoft.AspNetCore.Razor.Optional<T>.Optional() -> void
+Microsoft.AspNetCore.Razor.Optional<T>.Optional(T value) -> void
+Microsoft.AspNetCore.Razor.Optional<T>.Value.get -> T
+override Microsoft.AspNetCore.Razor.Optional<T>.ToString() -> string!
+static Microsoft.AspNetCore.Razor.Optional<T>.implicit operator Microsoft.AspNetCore.Razor.Optional<T>(T value) -> Microsoft.AspNetCore.Razor.Optional<T>

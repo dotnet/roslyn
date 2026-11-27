@@ -4,8 +4,7 @@
 
 using System;
 using System.Collections.Immutable;
-using System.ComponentModel.Design;
-using System.Composition;
+using System.ComponentModel.Composition;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
@@ -28,7 +27,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.UnusedReferences;
 
-[Export(typeof(RemoveUnusedReferencesCommandHandler)), Shared]
+[Export(typeof(RemoveUnusedReferencesCommandHandler))]
 internal sealed class RemoveUnusedReferencesCommandHandler
 {
     private const string ProjectAssetsFilePropertyName = "ProjectAssetsFile";
@@ -37,7 +36,7 @@ internal sealed class RemoveUnusedReferencesCommandHandler
     private readonly VisualStudioWorkspace _workspace;
     private readonly IGlobalOptionService _globalOptions;
     private readonly IUIThreadOperationExecutor _threadOperationExecutor;
-    private IServiceProvider? _serviceProvider;
+    private readonly IServiceProvider _serviceProvider;
 
     private IReferenceCleanupService ReferenceCleanupService
         => _workspace.Services.GetRequiredService<IReferenceCleanupService>();
@@ -49,31 +48,18 @@ internal sealed class RemoveUnusedReferencesCommandHandler
         RemoveUnusedReferencesDialogProvider unusedReferenceDialogProvider,
         IUIThreadOperationExecutor threadOperationExecutor,
         VisualStudioWorkspace workspace,
-        IGlobalOptionService globalOptions)
+        IGlobalOptionService globalOptions,
+        [Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider)
     {
         _threadingContext = threadingContext;
         _unusedReferenceDialogProvider = unusedReferenceDialogProvider;
         _threadOperationExecutor = threadOperationExecutor;
         _workspace = workspace;
         _globalOptions = globalOptions;
+        _serviceProvider = serviceProvider;
     }
 
-    public async Task InitializeAsync(IAsyncServiceProvider serviceProvider, CancellationToken cancellationToken)
-    {
-        Contract.ThrowIfNull(serviceProvider);
-
-        _serviceProvider = (IServiceProvider)serviceProvider;
-
-        // Hook up the "Remove Unused References" menu command for CPS based managed projects.
-        var menuCommandService = await serviceProvider.GetServiceAsync<IMenuCommandService, IMenuCommandService>(throwOnFailure: false, cancellationToken).ConfigureAwait(false);
-        if (menuCommandService != null)
-        {
-            await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
-            VisualStudioCommandHandlerHelpers.AddCommand(menuCommandService, ID.RoslynCommands.RemoveUnusedReferences, Guids.RoslynGroupId, OnRemoveUnusedReferencesForSelectedProject, OnRemoveUnusedReferencesForSelectedProjectStatus);
-        }
-    }
-
-    private void OnRemoveUnusedReferencesForSelectedProjectStatus(object sender, EventArgs e)
+    internal void OnRemoveUnusedReferencesForSelectedProjectStatus(object sender, EventArgs e)
     {
         var command = (OleMenuCommand)sender;
 
@@ -105,7 +91,7 @@ internal sealed class RemoveUnusedReferencesCommandHandler
         }
     }
 
-    private void OnRemoveUnusedReferencesForSelectedProject(object sender, EventArgs args)
+    internal void OnRemoveUnusedReferencesForSelectedProject(object sender, EventArgs args)
     {
         if (VisualStudioCommandHandlerHelpers.TryGetSelectedProjectHierarchy(_serviceProvider, out var hierarchy))
         {

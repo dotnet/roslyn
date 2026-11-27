@@ -8,11 +8,6 @@
 
     <IsPackable>false</IsPackable>
 
-    <!--
-      NETSDK1206: Until we move to a newer release of the SQLitePCLRaw packages (2.1.6+) that removes the libs for alpine RIDs, we have to ignore the SDK warning about distribution specific RIDs.
-    -->
-    <NoWarn>$(NoWarn);NETSDK1206</NoWarn>
-
   </PropertyGroup>
 
   <ItemGroup>
@@ -20,12 +15,17 @@
     <ProjectReference Include="..\Microsoft.CodeAnalysis.LanguageServer\Microsoft.CodeAnalysis.LanguageServer.csproj" />
     <ProjectReference Include="..\Protocol.TestUtilities\Microsoft.CodeAnalysis.LanguageServer.Protocol.Test.Utilities.csproj" />
     <ProjectReference Include="..\Protocol\Microsoft.CodeAnalysis.LanguageServer.Protocol.csproj" />
-
+    <ProjectReference Include="..\..\Workspaces\MSBuild\Contracts\Microsoft.CodeAnalysis.Workspaces.MSBuild.Contracts.csproj" Aliases="MSBuildWorkspacesContracts" />
     <ProjectReference Include="..\..\VisualStudio\DevKit\Impl\Microsoft.VisualStudio.LanguageServices.DevKit.csproj" ReferenceOutputAssembly="false" Private="false" />
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Analyzer.Testing.XUnit" />
+    <PackageReference Include="Basic.Reference.Assemblies.Net100" />
+    <PackageReference Include="Microsoft.VisualStudio.HotReload.RemoteContracts" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="IdeCoreBenchmarks" />
   </ItemGroup>
 
   <!--
@@ -60,4 +60,3 @@
     </ItemGroup>
   </Target>
 </Project>
-

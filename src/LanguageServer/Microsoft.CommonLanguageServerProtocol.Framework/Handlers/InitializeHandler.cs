@@ -23,12 +23,12 @@ internal sealed class InitializeHandler<TRequest, TResponse, TRequestContext>
 
     public bool MutatesSolutionState => true;
 
-    public Task<TResponse> HandleRequestAsync(TRequest request, TRequestContext context, CancellationToken cancellationToken)
+    public async Task<TResponse> HandleRequestAsync(TRequest request, TRequestContext context, CancellationToken cancellationToken)
     {
         _capabilitiesManager.SetInitializeParams(request);
 
         var serverCapabilities = _capabilitiesManager.GetInitializeResult();
 
-        return Task.FromResult(serverCapabilities);
+        return serverCapabilities;
     }
 }

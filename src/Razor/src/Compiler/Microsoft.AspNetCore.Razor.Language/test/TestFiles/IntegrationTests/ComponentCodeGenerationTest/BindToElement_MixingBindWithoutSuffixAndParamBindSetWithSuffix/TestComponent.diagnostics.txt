@@ -1,0 +1,1 @@
+﻿x:\dir\subdir\Test\TestComponent.cshtml(1,44): Error RZ10016: Attribute 'bind-value:set' was used but no attribute 'bind-value:get' was found.

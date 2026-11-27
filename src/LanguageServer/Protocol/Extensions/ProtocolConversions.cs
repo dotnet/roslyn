@@ -184,13 +184,16 @@ internal static partial class ProtocolConversions
         }
     }
 
-    public static string GetDocumentFilePathFromUri(Uri uri)
+    public static bool IsSourceGeneratedScheme(string scheme)
     {
-        return uri.IsFile ? uri.LocalPath : uri.AbsoluteUri;
+        // URI scheme names are case-insensitive, so source-generated URIs must be recognized regardless of their casing.
+        return string.Equals(scheme, SourceGeneratedDocumentUri.Scheme, StringComparison.OrdinalIgnoreCase);
     }
 
+#pragma warning disable RS0030 // Do not use banned APIs
     /// <summary>
     /// Converts an absolute local file path or an absolute URL string to <see cref="Uri"/>.
+    /// Should only be used for callers that require a <see cref="System.Uri"/> 
     /// </summary>
     /// <exception cref="UriFormatException">
     /// The <paramref name="absolutePath"/> can't be represented as <see cref="Uri"/>.
@@ -198,20 +201,66 @@ internal static partial class ProtocolConversions
     /// </exception>
     public static Uri CreateAbsoluteUri(string absolutePath)
     {
-        var uriString = IsAscii(absolutePath) ? absolutePath : GetAbsoluteUriString(absolutePath);
+        var uriString = IsAsciiStr(absolutePath) ? absolutePath : GetAbsoluteUriString(absolutePath);
         try
         {
-#pragma warning disable RS0030 // Do not use banned APIs
             return new(uriString, UriKind.Absolute);
-#pragma warning restore
-
         }
         catch (UriFormatException e)
         {
             // The standard URI format exception does not include the failing path, however
             // in pretty much all cases we need to know the URI string (and original string) in order to fix the issue.
-            throw new UriFormatException($"Failed create URI from '{uriString}'; original string: '{absolutePath}'", e);
+            throw new UriFormatException($"Failed to create URI from '{uriString}'; original string: '{absolutePath}'", e);
         }
+
+        // Implements workaround for https://github.com/dotnet/runtime/issues/89538:
+        static string GetAbsoluteUriString(string absolutePath)
+        {
+            if (!PathUtilities.IsAbsolute(absolutePath))
+            {
+                return absolutePath;
+            }
+
+            var parts = absolutePath.Split(s_dirSeparators);
+
+            if (PathUtilities.IsUnixLikePlatform)
+            {
+                // Unix path: first part is empty, all parts should be escaped
+                return "file://" + string.Join("/", parts.Select(EscapeUriPart));
+            }
+
+            if (parts is ["", "", var serverName, ..])
+            {
+                // UNC path: first non-empty part is server name and shouldn't be escaped
+                return "file://" + serverName + "/" + string.Join("/", parts.Skip(3).Select(EscapeUriPart));
+            }
+
+            // Drive-rooted path: first part is "C:" and shouldn't be escaped
+            return "file:///" + parts[0] + "/" + string.Join("/", parts.Skip(1).Select(EscapeUriPart));
+
+#pragma warning disable SYSLIB0013 // Type or member is obsolete
+#pragma warning disable RS0030 // Do not use banned APIs
+            static string EscapeUriPart(string stringToEscape)
+                => Uri.EscapeUriString(stringToEscape).Replace("#", "%23");
+        }
+
+        static bool IsAscii(char c)
+            => (uint)c <= '\x007f';
+
+        static bool IsAsciiStr(string filePath)
+        {
+            for (var i = 0; i < filePath.Length; i++)
+            {
+                if (!IsAscii(filePath[i]))
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+#pragma warning restore RS0030 // Do not use banned APIs
+#pragma warning restore SYSLIB0013 // Type or member is obsolete
     }
 
     /// <summary>
@@ -219,75 +268,13 @@ internal static partial class ProtocolConversions
     /// For use with callers (generally LSP) that require <see cref="DocumentUri"/>
     /// </summary>
     /// <exception cref="UriFormatException">
-    /// The <paramref name="absolutePath"/> can't be represented as <see cref="Uri"/>.
+    /// The <paramref name="absolutePath"/> can't be represented as <see cref="ParsedUri"/>.
     /// For example, UNC paths with invalid characters in server name.
     /// </exception>
     public static DocumentUri CreateAbsoluteDocumentUri(string absolutePath)
     {
-        return new(CreateAbsoluteUri(absolutePath));
-    }
-
-    internal static DocumentUri CreateRelativePatternBaseUri(string path)
-    {
-        // According to VSCode LSP RelativePattern spec,
-        // found at https://github.com/microsoft/vscode/blob/9e1974682eb84eebb073d4ae775bad1738c281f6/src/vscode-dts/vscode.d.ts#L2226
-        // the baseUri should not end in a trailing separator, nor should it
-        // have any relative segmeents (., ..)
-        if (path[^1] == System.IO.Path.DirectorySeparatorChar)
-        {
-            path = path[..^1];
-        }
-
-        Debug.Assert(!path.Split(System.IO.Path.DirectorySeparatorChar).Any(p => p == "." || p == ".."));
-
-        return new(CreateAbsoluteUri(path));
-    }
-
-    // Implements workaround for https://github.com/dotnet/runtime/issues/89538:
-    internal static string GetAbsoluteUriString(string absolutePath)
-    {
-        if (!PathUtilities.IsAbsolute(absolutePath))
-        {
-            return absolutePath;
-        }
-
-        var parts = absolutePath.Split(s_dirSeparators);
-
-        if (PathUtilities.IsUnixLikePlatform)
-        {
-            // Unix path: first part is empty, all parts should be escaped
-            return "file://" + string.Join("/", parts.Select(EscapeUriPart));
-        }
-
-        if (parts is ["", "", var serverName, ..])
-        {
-            // UNC path: first non-empty part is server name and shouldn't be escaped
-            return "file://" + serverName + "/" + string.Join("/", parts.Skip(3).Select(EscapeUriPart));
-        }
-
-        // Drive-rooted path: first part is "C:" and shouldn't be escaped
-        return "file:///" + parts[0] + "/" + string.Join("/", parts.Skip(1).Select(EscapeUriPart));
-
-#pragma warning disable SYSLIB0013 // Type or member is obsolete
-        static string EscapeUriPart(string stringToEscape)
-            => Uri.EscapeUriString(stringToEscape).Replace("#", "%23");
-#pragma warning restore
-    }
-
-    private static bool IsAscii(char c)
-        => (uint)c <= '\x007f';
-
-    private static bool IsAscii(string filePath)
-    {
-        for (var i = 0; i < filePath.Length; i++)
-        {
-            if (!IsAscii(filePath[i]))
-            {
-                return false;
-            }
-        }
-
-        return true;
+        var parsed = PathUtilities.IsAbsolute(absolutePath) ? ParsedUri.File(absolutePath) : ParsedUri.Parse(absolutePath);
+        return new DocumentUri(parsed);
     }
 
     public static LSP.TextDocumentPositionParams PositionToTextDocumentPositionParams(int position, SourceText text, Document document)
@@ -308,12 +295,36 @@ internal static partial class ProtocolConversions
     public static LinePosition PositionToLinePosition(LSP.Position position)
         => new(position.Line, position.Character);
 
+    /// <summary>
+    /// Clamps the character of <paramref name="position"/> to the end of its line.  The LSP spec explicitly
+    /// allows clients to send a character past the end of the line:
+    /// <em>"If the character value is greater than the line length it defaults back to the line length."</em>
+    /// <para/>
+    /// Positions whose line is outside <paramref name="text"/> are returned unchanged so that callers still
+    /// surface the out of range line - the spec does not allow the line to go past the end of the document.
+    /// </summary>
+    public static LinePosition ClampPositionToLineEnd(LinePosition position, SourceText text)
+    {
+        if (position.Line < 0 || position.Line >= text.Lines.Count)
+            return position;
+
+        var line = text.Lines[position.Line];
+        var lineLength = line.End - line.Start;
+        return position.Character > lineLength
+            ? new LinePosition(position.Line, lineLength)
+            : position;
+    }
+
     public static LinePositionSpan RangeToLinePositionSpan(LSP.Range range)
         => new(PositionToLinePosition(range.Start), PositionToLinePosition(range.End));
 
     public static TextSpan RangeToTextSpan(LSP.Range range, SourceText text)
     {
         var linePositionSpan = RangeToLinePositionSpan(range);
+
+        linePositionSpan = new LinePositionSpan(
+            ClampPositionToLineEnd(linePositionSpan.Start, text),
+            ClampPositionToLineEnd(linePositionSpan.End, text));
 
         // Handle the specific case where the end position is exactly one line beyond the document bounds
         // and the end character is 0 (start of the non-existent next line).
@@ -367,7 +378,7 @@ internal static partial class ProtocolConversions
     public static TextChange TextEditToTextChange(LSP.TextEdit edit, SourceText oldText)
         => new(RangeToTextSpan(edit.Range, oldText), edit.NewText);
 
-    public static TextChange ContentChangeEventToTextChange(LSP.TextDocumentContentChangeEvent changeEvent, SourceText text)
+    public static TextChange ContentChangeEventToTextChange(LSP.TextDocumentContentChangePartial changeEvent, SourceText text)
         => new(RangeToTextSpan(changeEvent.Range, text), changeEvent.Text);
 
     public static LSP.Position LinePositionToPosition(LinePosition linePosition)
@@ -468,21 +479,23 @@ internal static partial class ProtocolConversions
         }
 
         // Now process source generated documents that might have changed, via the source generated document mapping service
-        var sourceGeneratedDocumentMappingService = newSolution.Services.GetService<ISourceGeneratedDocumentSpanMappingService>();
-        if (sourceGeneratedDocumentMappingService is not null)
+        // We have to ensure the old solution has run the generators so the mapper has something to compare to, but we only do
+        // it for FrozenSourceGeneratedDocumentStates, so only documents that the rename engine thought were worthy of touching,
+        // which in practical terms at time of writing this comment, means Razor.
+        foreach (var (docId, state) in solutionChanges.NewSolution.CompilationState.FrozenSourceGeneratedDocumentStates.States)
         {
-            // Since we're mapping changes to source generated documents, we have to ensure the old solution has run the generators
-            // so the mapper has something to compare to.
-            foreach (var (docId, state) in solutionChanges.NewSolution.CompilationState.FrozenSourceGeneratedDocumentStates.States)
-            {
-                var document = await solutionChanges.OldSolution.GetRequiredDocumentAsync(docId, includeSourceGenerated: true, cancellationToken).ConfigureAwait(false);
-                Contract.ThrowIfFalse(document.IsRazorSourceGeneratedDocument());
-            }
+            var document = await solutionChanges.OldSolution.GetRequiredDocumentAsync(docId, includeSourceGenerated: true, cancellationToken).ConfigureAwait(false);
+            Contract.ThrowIfFalse(document.IsRazorSourceGeneratedDocument());
+        }
 
-            foreach (var docId in solutionChanges.GetExplicitlyChangedSourceGeneratedDocuments())
+        var sourceGeneratedDocumentMappingService = newSolution.Services.GetService<ISourceGeneratedDocumentSpanMappingService>();
+        foreach (var docId in solutionChanges.GetExplicitlyChangedSourceGeneratedDocuments())
+        {
+            var oldDocument = solutionChanges.OldSolution.GetRequiredSourceGeneratedDocumentForAlreadyGeneratedId(docId);
+            var newDocument = solutionChanges.NewSolution.GetRequiredSourceGeneratedDocumentForAlreadyGeneratedId(docId);
+
+            if (sourceGeneratedDocumentMappingService?.CanMapSpans(oldDocument) == true)
             {
-                var oldDocument = solutionChanges.OldSolution.GetRequiredSourceGeneratedDocumentForAlreadyGeneratedId(docId);
-                var newDocument = solutionChanges.NewSolution.GetRequiredSourceGeneratedDocumentForAlreadyGeneratedId(docId);
                 var mappedTextChanges = await sourceGeneratedDocumentMappingService.GetMappedTextChangesAsync(oldDocument, newDocument, cancellationToken).ConfigureAwait(false);
                 foreach (var (filePath, textChange) in mappedTextChanges)
                 {
@@ -498,6 +511,16 @@ internal static partial class ProtocolConversions
                         Range = TextSpanToRange(textChange.Span, mappedText),
                         NewText = textChange.NewText ?? string.Empty
                     }));
+                }
+            }
+            else
+            {
+                // There's no span mapping available, just create text edits from the original text changes.
+                var oldText = await oldDocument.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
+                var textChanges = await textDiffService.GetTextChangesAsync(oldDocument, newDocument, cancellationToken).ConfigureAwait(false);
+                foreach (var textChange in textChanges)
+                {
+                    uriToTextEdits.Add((oldDocument.GetURI(), TextChangeToTextEdit(textChange, oldText)));
                 }
             }
         }
@@ -598,8 +621,10 @@ internal static partial class ProtocolConversions
         }
     }
 
-    public static LSP.CodeDescription? HelpLinkToCodeDescription(Uri? uri)
-        => (uri != null) ? new LSP.CodeDescription { Href = new(uri) } : null;
+    public static LSP.CodeDescription? HelpLinkToCodeDescription(string? helpLinkUri)
+    {
+        return !string.IsNullOrEmpty(helpLinkUri) ? new LSP.CodeDescription { Href = new DocumentUri(helpLinkUri) } : null;
+    }
 
     public static LSP.SymbolKind NavigateToKindToSymbolKind(string kind)
     {

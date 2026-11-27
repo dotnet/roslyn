@@ -11,6 +11,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Collections;
+using Microsoft.CodeAnalysis.Completion.Providers;
 using Microsoft.CodeAnalysis.Extensions;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.LanguageService;
@@ -103,7 +104,17 @@ public abstract partial class CompletionService
         // that's all we'll return.
         var exclusiveContexts = triggeredContexts.WhereAsArray(t => t.IsExclusive);
         if (!exclusiveContexts.IsEmpty)
+        {
+            // If every exclusive context opted into allowing expand items, include the expand-item contexts too
+            // and merge as non-exclusive so the editor still shows those items.
+            if (exclusiveContexts.All(static t => t.AllowExpandedItemsWhileExclusive))
+            {
+                var expandedContexts = triggeredContexts.WhereAsArray(static t => t.Provider.IsExpandItemProvider);
+                return MergeAndPruneCompletionLists(exclusiveContexts.AddRange(expandedContexts), options, isExclusive: false);
+            }
+
             return MergeAndPruneCompletionLists(exclusiveContexts, options, isExclusive: true);
+        }
 
         // Great!  We had some items.  Now we want to see if any of the other providers 
         // would like to augment the completion list.  For example, we might trigger
@@ -287,8 +298,11 @@ public abstract partial class CompletionService
     /// </summary>
     protected virtual bool ItemsMatch(CompletionItem item, CompletionItem existingItem)
     {
+        // If both items is marked as `DoNotMerge`, we will keep them separated in the list.
+        // If only one of them is marked as `DoNotMerge`, the one with `DoNotMerge` is considered "better" item and will be merged into.
         return item.Span == existingItem.Span
-            && item.SortText == existingItem.SortText && item.InlineDescription == existingItem.InlineDescription;
+            && item.SortText == existingItem.SortText && item.InlineDescription == existingItem.InlineDescription
+            && !(item.TryGetProperty(CommonCompletionItem.DoNotMergeProperty, out _) && existingItem.TryGetProperty(CommonCompletionItem.DoNotMergeProperty, out _));
     }
 
     /// <summary>
@@ -296,6 +310,15 @@ public abstract partial class CompletionService
     /// </summary>
     protected virtual CompletionItem GetBetterItem(CompletionItem item, CompletionItem existingItem)
     {
+        if (item.TryGetProperty(CommonCompletionItem.DoNotMergeProperty, out _))
+        {
+            return item;
+        }
+        else if (existingItem.TryGetProperty(CommonCompletionItem.DoNotMergeProperty, out _))
+        {
+            return existingItem;
+        }
+
         // the item later in the sort order (determined by provider order) wins?
         return item;
     }

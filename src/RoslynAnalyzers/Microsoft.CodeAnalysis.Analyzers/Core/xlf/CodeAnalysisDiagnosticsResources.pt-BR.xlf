@@ -174,17 +174,17 @@
       </trans-unit>
       <trans-unit id="DoNotUseFileTypesForAnalyzersOrGeneratorsDescription">
         <source>Using a 'file' type is not allowed for implementing analyzers, generators, or code fixers. This can break analyzer loading on some platforms.</source>
-        <target state="new">Using a 'file' type is not allowed for implementing analyzers, generators, or code fixers. This can break analyzer loading on some platforms.</target>
+        <target state="translated">O uso de um tipo "file" não é permitido para implementar analisadores, geradores ou corredores de código. Isso pode interromper o carregamento do analisador em algumas plataformas.</target>
         <note />
       </trans-unit>
       <trans-unit id="DoNotUseFileTypesForAnalyzersOrGeneratorsMessage">
         <source>Type '{0}' should not be marked with 'file'</source>
-        <target state="new">Type '{0}' should not be marked with 'file'</target>
+        <target state="translated">O tipo "{0}" não deve ser marcado com "file"</target>
         <note />
       </trans-unit>
       <trans-unit id="DoNotUseFileTypesForAnalyzersOrGeneratorsTitle">
         <source>Do not use file types for implementing analyzers, generators, and code fixers</source>
-        <target state="new">Do not use file types for implementing analyzers, generators, and code fixers</target>
+        <target state="translated">Não use tipos de arquivo para implementar analisadores, geradores e corredores de código</target>
         <note />
       </trans-unit>
       <trans-unit id="DoNotUseReservedDiagnosticIdDescription">
@@ -234,17 +234,17 @@
       </trans-unit>
       <trans-unit id="ImplementationIsObsoleteDescription">
         <source>The author of this interface has deprecated implementing this interface.</source>
-        <target state="new">The author of this interface has deprecated implementing this interface.</target>
+        <target state="translated">O autor dessa interface preteriu a implementação dessa interface.</target>
         <note />
       </trans-unit>
       <trans-unit id="ImplementationIsObsoleteMessage">
         <source>Type {0} cannot implement interface {1} because {1} is obsolete for implementation. See {2} for more details.</source>
-        <target state="new">Type {0} cannot implement interface {1} because {1} is obsolete for implementation. See {2} for more details.</target>
+        <target state="translated">O tipo {0} não pode implementar a interface {1} porque {1} está obsoleto para implementação. Consulte {2} para obter mais detalhes.</target>
         <note />
       </trans-unit>
       <trans-unit id="ImplementationIsObsoleteTitle">
         <source>Implementations of this interface are not allowed</source>
-        <target state="new">Implementations of this interface are not allowed</target>
+        <target state="translated">Implementações desta interface não são permitidas</target>
         <note />
       </trans-unit>
       <trans-unit id="InvalidEntryInAnalyzerReleasesFileRuleDescription">

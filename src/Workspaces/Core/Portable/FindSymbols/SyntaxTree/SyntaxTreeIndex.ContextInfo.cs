@@ -39,7 +39,8 @@ internal sealed partial class SyntaxTreeIndex
             bool containsAttribute,
             bool containsDirective,
             bool containsPrimaryConstructorBaseType,
-            bool containsPartialClass)
+            bool containsPartialClass,
+            bool containsCollectionExpression)
             : this(predefinedTypes, predefinedOperators,
                    ConvertToContainingNodeFlag(
                      containsForEachStatement,
@@ -62,7 +63,8 @@ internal sealed partial class SyntaxTreeIndex
                      containsAttribute,
                      containsDirective,
                      containsPrimaryConstructorBaseType,
-                     containsPartialClass))
+                     containsPartialClass,
+                     containsCollectionExpression))
         {
         }
 
@@ -94,7 +96,8 @@ internal sealed partial class SyntaxTreeIndex
             bool containsAttribute,
             bool containsDirective,
             bool containsPrimaryConstructorBaseType,
-            bool containsPartialClass)
+            bool containsPartialClass,
+            bool containsCollectionExpression)
         {
             var containingNodes = ContainingNodes.None;
 
@@ -119,6 +122,7 @@ internal sealed partial class SyntaxTreeIndex
             containingNodes |= containsDirective ? ContainingNodes.ContainsDirective : 0;
             containingNodes |= containsPrimaryConstructorBaseType ? ContainingNodes.ContainsPrimaryConstructorBaseType : 0;
             containingNodes |= containsPartialClass ? ContainingNodes.ContainsPartialClass : 0;
+            containingNodes |= containsCollectionExpression ? ContainingNodes.ContainsCollectionExpression : 0;
 
             return containingNodes;
         }
@@ -192,6 +196,9 @@ internal sealed partial class SyntaxTreeIndex
         public bool ContainsPrimaryConstructorBaseType
             => (_containingNodes & ContainingNodes.ContainsPrimaryConstructorBaseType) == ContainingNodes.ContainsPrimaryConstructorBaseType;
 
+        public bool ContainsCollectionExpression
+            => (_containingNodes & ContainingNodes.ContainsCollectionExpression) == ContainingNodes.ContainsCollectionExpression;
+
         public void WriteTo(ObjectWriter writer)
         {
             writer.WriteInt32(_predefinedTypes);
@@ -241,6 +248,7 @@ internal sealed partial class SyntaxTreeIndex
             ContainsDirective = 1 << 18,
             ContainsPrimaryConstructorBaseType = 1 << 19,
             ContainsPartialClass = 1 << 20,
+            ContainsCollectionExpression = 1 << 21,
         }
     }
 }

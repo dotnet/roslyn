@@ -118,7 +118,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.PublicModel
 
         IPropertySymbol? IPropertySymbol.ReduceExtensionMember(ITypeSymbol receiverType)
         {
-            if (_underlying.IsExtensionBlockMember() && SourceMemberContainerTypeSymbol.IsAllowedExtensionMember(_underlying))
+            if (_underlying.IsExtensionBlockMember() && SourceMemberContainerTypeSymbol.IsAllowedExtensionMember(_underlying, LanguageVersion.Preview))
             {
                 var csharpReceiver = receiverType.EnsureCSharpSymbolOrNull(nameof(receiverType));
                 return (IPropertySymbol?)SourceNamedTypeSymbol.ReduceExtensionMember(compilation: null, _underlying, csharpReceiver, wasExtensionFullyInferred: out _).GetPublicSymbol();

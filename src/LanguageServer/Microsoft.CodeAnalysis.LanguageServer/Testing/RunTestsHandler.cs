@@ -3,26 +3,44 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Composition;
-using System.Diagnostics;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.Testing;
+using Microsoft.CodeAnalysis.LanguageServer.Logging;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.Extensions.Logging;
-using Microsoft.TestPlatform.VsTestConsole.TranslationLayer;
 using LSP = Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Testing;
 
-[ExportCSharpVisualBasicStatelessLspService(typeof(RunTestsHandler)), Shared]
-[Method(RunTestsMethodName)]
+[ExportCSharpVisualBasicLspServiceFactory(typeof(RunTestsHandler)), Shared]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal sealed class RunTestsHandler(DotnetCliHelper dotnetCliHelper, TestDiscoverer testDiscoverer, TestRunner testRunner, ServerConfiguration serverConfiguration, ILoggerFactory loggerFactory)
+internal sealed class RunTestsHandlerFactory(ServerConfiguration serverConfiguration, IGlobalOptionService globalOptionService) : ILspServiceFactory
+{
+    public ILspService CreateILspService(LspServices lspServices, WellKnownLspServerKinds serverKind)
+    {
+        var loggerFactory = lspServices.GetRequiredService<ILoggerFactory>();
+        return new RunTestsHandler(
+            new VsTestRunner(
+                loggerFactory,
+                serverConfiguration,
+                lspServices.GetRequiredService<DotnetCliHelper>(),
+                lspServices.GetRequiredService<LspLoggerFactory>().LogConfiguration),
+            new MtpTestRunner(loggerFactory),
+            globalOptionService);
+    }
+}
+
+[Method(RunTestsMethodName)]
+internal sealed class RunTestsHandler(
+    VsTestRunner vsTestRunner,
+    MtpTestRunner mtpTestRunner,
+    IGlobalOptionService globalOptionService)
     : ILspServiceDocumentRequestHandler<RunTestsParams, RunTestsPartialResult[]>
 {
     private const string RunTestsMethodName = "textDocument/runTests";
-
-    private readonly ILogger _logger = loggerFactory.CreateLogger<RunTestsHandler>();
+    private const string TestingPlatformServerCapability = "TestingPlatformServer";
 
     public bool MutatesSolutionState => false;
 
@@ -35,45 +53,60 @@ internal sealed class RunTestsHandler(DotnetCliHelper dotnetCliHelper, TestDisco
 
     public async Task<RunTestsPartialResult[]> HandleRequestAsync(RunTestsParams request, RequestContext context, CancellationToken cancellationToken)
     {
-        Contract.ThrowIfNull(context.Document);
+        var document = await context.GetRequiredDocumentAsync(cancellationToken).ConfigureAwait(false);
         using var progress = BufferedProgress.Create(request.PartialResultToken);
+        var dotnetCliHelper = context.GetRequiredService<DotnetCliHelper>();
 
         // First, build to make sure we have a relatively up to date project.
-        await BuildAsync(context.Document, progress, cancellationToken);
+        await BuildAsync(document, progress, dotnetCliHelper, cancellationToken);
 
-        var projectOutputPath = context.Document.Project.OutputFilePath;
+        var projectOutputPath = document.Project.OutputFilePath;
         Contract.ThrowIfFalse(File.Exists(projectOutputPath), $"Output path {projectOutputPath} is missing");
         var projectOutputDirectory = Path.GetDirectoryName(projectOutputPath);
         Contract.ThrowIfNull(projectOutputDirectory, $"Could not get project output directory from {projectOutputPath}");
 
-        // Find the appropriate vstest.console.dll from the SDK.
-        var vsTestConsolePath = await dotnetCliHelper.GetVsTestConsolePathAsync(projectOutputDirectory, cancellationToken);
-
-        var dotnetRootUser = Environment.GetEnvironmentVariable("DOTNET_ROOT_USER");
-
-        // Instantiate the test platform wrapper.
-        var vsTestConsoleWrapper = new VsTestConsoleWrapper(vsTestConsolePath, new ConsoleParameters
-        {
-            LogFilePath = Path.Combine(serverConfiguration.ExtensionLogDirectory, "testLogs", "vsTestLogs.txt"),
-            TraceLevel = GetTraceLevel(serverConfiguration),
-            EnvironmentVariables = new()
-            {
-                // Reset dotnet root so that vs test console can find the right runtimes.
-                { DotnetCliHelper.DotnetRootEnvVar, string.IsNullOrEmpty(dotnetRootUser) || dotnetRootUser == "EMPTY" ? string.Empty : dotnetRootUser }
-            }
-        });
-
         var runSettingsPath = request.RunSettingsPath;
-        var runSettings = await GetRunSettingsAsync(runSettingsPath, progress, cancellationToken);
-        var testCases = await testDiscoverer.DiscoverTestsAsync(request.Range, context.Document, projectOutputPath, runSettings, progress, vsTestConsoleWrapper, cancellationToken);
-        if (!testCases.IsEmpty)
+        var runSettings = await GetRunSettingsAsync(runSettingsPath, progress, context, cancellationToken);
+        var clientLanguageServerManager = context.GetRequiredLspService<IClientLanguageServerManager>();
+        var projectCapabilityManager = context.GetRequiredService<ProjectCapabilityManager>();
+        var useSemanticTestDiscovery = globalOptionService.GetOption(LspOptionsStorage.LspUseSemanticTestDiscovery, document.Project.Language);
+
+        if (ShouldUseMtp(runSettingsPath, document.Project.Id, projectCapabilityManager))
         {
-            var clientLanguageServerManager = context.GetRequiredLspService<IClientLanguageServerManager>();
-            await testRunner.RunTestsAsync(testCases, progress, vsTestConsoleWrapper, request.AttachDebugger, runSettings, clientLanguageServerManager, cancellationToken);
+            await mtpTestRunner.RunTestsAsync(
+                request.Range,
+                document,
+                projectOutputPath,
+                request.AttachDebugger,
+                progress,
+                clientLanguageServerManager,
+                useSemanticTestDiscovery,
+                cancellationToken).ConfigureAwait(false);
+
+            return progress.GetValues() ?? [];
         }
+
+        await vsTestRunner.RunTestsAsync(
+            request.Range,
+            document,
+            projectOutputPath,
+            projectOutputDirectory,
+            request.AttachDebugger,
+            runSettings,
+            progress,
+            clientLanguageServerManager,
+            useSemanticTestDiscovery,
+            cancellationToken).ConfigureAwait(false);
 
         return progress.GetValues() ?? [];
     }
+
+    // MTP cannot forward VSTest run settings, so path presence selects VSTest even when reading the file failed.
+    internal static bool ShouldUseMtp(
+        string? runSettingsPath,
+        ProjectId projectId,
+        ProjectCapabilityManager projectCapabilityManager)
+        => string.IsNullOrEmpty(runSettingsPath) && projectCapabilityManager.HasCapability(projectId, TestingPlatformServerCapability);
 
     /// <summary>
     /// Format a timespan as a string similar to '5m 2s', omitting any value that is not present.
@@ -119,7 +152,7 @@ internal sealed class RunTestsHandler(DotnetCliHelper dotnetCliHelper, TestDisco
     /// However if we don't do a build it is likely the user code is very different from what they last built
     /// which results in a confusing experience.
     /// </summary>
-    private async Task BuildAsync(Document document, BufferedProgress<RunTestsPartialResult> progress, CancellationToken cancellationToken)
+    private async Task BuildAsync(Document document, BufferedProgress<RunTestsPartialResult> progress, DotnetCliHelper dotnetCliHelper, CancellationToken cancellationToken)
     {
         var workingDirectory = Path.GetDirectoryName(document.Project.FilePath);
         Contract.ThrowIfNull(workingDirectory, $"Unable to get working directory for project {document.Project.Name}");
@@ -153,21 +186,7 @@ internal sealed class RunTestsHandler(DotnetCliHelper dotnetCliHelper, TestDisco
         }
     }
 
-    private static TraceLevel GetTraceLevel(ServerConfiguration serverConfiguration)
-    {
-        var level = serverConfiguration.LogConfiguration.GetLogLevel();
-        return level switch
-        {
-            Microsoft.Extensions.Logging.LogLevel.Trace or Microsoft.Extensions.Logging.LogLevel.Debug => TraceLevel.Verbose,
-            Microsoft.Extensions.Logging.LogLevel.Information => TraceLevel.Info,
-            Microsoft.Extensions.Logging.LogLevel.Warning => TraceLevel.Warning,
-            Microsoft.Extensions.Logging.LogLevel.Error or Microsoft.Extensions.Logging.LogLevel.Critical => TraceLevel.Error,
-            Microsoft.Extensions.Logging.LogLevel.None => TraceLevel.Off,
-            _ => throw new InvalidOperationException($"Unexpected log level {level}"),
-        };
-    }
-
-    private async Task<string?> GetRunSettingsAsync(string? runSettingsPath, BufferedProgress<RunTestsPartialResult> progress, CancellationToken cancellationToken)
+    private async Task<string?> GetRunSettingsAsync(string? runSettingsPath, BufferedProgress<RunTestsPartialResult> progress, RequestContext context, CancellationToken cancellationToken)
     {
         if (string.IsNullOrEmpty(runSettingsPath))
         {
@@ -179,7 +198,7 @@ internal sealed class RunTestsHandler(DotnetCliHelper dotnetCliHelper, TestDisco
             var contents = await File.ReadAllTextAsync(runSettingsPath, cancellationToken);
             var message = string.Format(LanguageServerResources.Using_runsettings_file_at_0, runSettingsPath);
             progress.Report(new(LanguageServerResources.Discovering_tests, message, Progress: null));
-            _logger.LogTrace($".runsettings:{Environment.NewLine}{contents}");
+            context.TraceDebug($".runsettings:{Environment.NewLine}{contents}");
             return contents;
         }
         catch (FileNotFoundException)

@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                   MakeModifiersAndFlags(
                       containingType, syntax, methodKind, isNullableAnalysisEnabled, syntax.Initializer?.Kind() == SyntaxKind.ThisConstructorInitializer, location, diagnostics, out bool modifierErrors, out bool report_ERR_StaticConstructorWithAccessModifiers))
         {
-            this.CheckUnsafeModifier(DeclarationModifiers, diagnostics);
+            this.CheckUnsafeOptionForModifiers(DeclarationModifiers, diagnostics, syntax.Modifiers);
 
             if (report_ERR_StaticConstructorWithAccessModifiers)
             {
@@ -149,7 +149,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 DeclarationModifiers.AccessibilityMask |
                 DeclarationModifiers.Static |
                 DeclarationModifiers.Extern |
-                DeclarationModifiers.Unsafe;
+                DeclarationModifiers.Unsafe |
+                DeclarationModifiers.Safe;
 
             if (methodKind == MethodKind.Constructor)
             {
@@ -157,7 +158,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             bool isInterface = containingType.IsInterface;
-            var mods = ModifierUtils.MakeAndCheckNonTypeMemberModifiers(isOrdinaryMethod: false, isForInterfaceMember: isInterface, syntax.Modifiers, defaultAccess, allowedModifiers, location, diagnostics, out modifierErrors, out hasExplicitAccessModifier);
+            var mods = ModifierUtils.MakeAndCheckNonTypeMemberModifiers(isForInterfaceMember: isInterface, syntax.Modifiers, defaultAccess, allowedModifiers, location, diagnostics, out modifierErrors, out hasExplicitAccessModifier);
 
             report_ERR_StaticConstructorWithAccessModifiers = false;
             if (methodKind == MethodKind.StaticConstructor)
@@ -180,6 +181,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     ModifierUtils.ReportDefaultInterfaceImplementationModifiers(hasBody, mods,
                                                                                 DeclarationModifiers.Extern,
                                                                                 location, diagnostics);
+                }
+
+                if ((mods & DeclarationModifiers.Unsafe) == DeclarationModifiers.Unsafe &&
+                    containingType.ContainingModule.UseUpdatedMemorySafetyRules)
+                {
+                    diagnostics.Add(ErrorCode.ERR_UnsafeMeaningless,
+                        syntax.Modifiers.GetModifierLocation(SyntaxKind.UnsafeKeyword, location));
                 }
             }
 
@@ -244,6 +252,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 ? flags.IsNullableAnalysisEnabled
                 : ((SourceMemberContainerTypeSymbol)ContainingType).IsNullableEnabledForConstructorsAndInitializers(IsStatic);
 
+        internal sealed override bool HasUnsafeModifier => (DeclarationModifiers & DeclarationModifiers.Unsafe) != 0;
+        internal sealed override bool HasSafeModifier => (DeclarationModifiers & DeclarationModifiers.Safe) != 0;
+        internal sealed override bool CanRequireUnsafe => MethodKind != MethodKind.StaticConstructor;
+
         protected override bool AllowRefOrOut
         {
             get
@@ -271,10 +283,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
 #nullable enable
-        internal sealed override void ForceComplete(SourceLocation? locationOpt, Predicate<Symbol>? filter, CancellationToken cancellationToken)
+        protected override void LazyAsyncMethodChecks(CancellationToken cancellationToken)
         {
-            SourcePartialImplementationPart?.ForceComplete(locationOpt, filter, cancellationToken);
-            base.ForceComplete(locationOpt, filter, cancellationToken);
+            if (state.NotePartComplete(CompletionPart.StartAsyncMethodChecks))
+            {
+                if (IsPartialDefinition)
+                {
+                    DeclaringCompilation.SymbolDeclaredEvent(this);
+                }
+
+                state.NotePartComplete(CompletionPart.FinishAsyncMethodChecks);
+            }
+            else
+            {
+                state.SpinWaitComplete(CompletionPart.FinishAsyncMethodChecks, cancellationToken);
+            }
         }
 
         protected override void PartialConstructorChecks(BindingDiagnosticBag diagnostics)
@@ -303,9 +326,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     new FormattedSymbol(implementation, SymbolDisplayFormat.MinimallyQualifiedFormat));
             }
 
-            if (IsUnsafe != implementation.IsUnsafe && this.CompilationAllowsUnsafe())
+            if (HasUnsafeModifier != implementation.HasUnsafeModifier && this.CompilationAllowsUnsafe())
             {
                 diagnostics.Add(ErrorCode.ERR_PartialMemberUnsafeDifference, implementation.GetFirstLocation());
+            }
+
+            if (HasSafeModifier != implementation.HasSafeModifier)
+            {
+                diagnostics.Add(ErrorCode.ERR_PartialMemberSafeDifference, implementation.GetFirstLocation());
             }
 
             if (this.IsParams() != implementation.IsParams())

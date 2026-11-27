@@ -19,7 +19,7 @@ using Xunit.Abstractions;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.GenerateConstructor;
 
 [Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
-public sealed class GenerateConstructorTests(ITestOutputHelper logger)
+public sealed partial class GenerateConstructorTests(ITestOutputHelper logger)
     : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest_NoEditor(logger)
 {
     internal override (DiagnosticAnalyzer?, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
@@ -3753,7 +3753,8 @@ class C
             }
             """);
 
-    [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/22293")]
+    [ConditionalTheory(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/83159")]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/22293")]
     [InlineData("void")]
     [InlineData("int")]
     public Task TestMethodGroupWithMissingSystemActionAndFunc(string returnType)
@@ -4649,7 +4650,8 @@ unsafe class C
             }
             """);
 
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/50765")]
+    [ConditionalFact(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/83159")]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/50765")]
     public Task TestDelegateConstructorWithMissingType()
         => TestAsync("""
             <Workspace>
@@ -4697,6 +4699,51 @@ unsafe class C
                 }
             }
             """, new(parseOptions: TestOptions.Regular));
+
+    [ConditionalTheory(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/83159")]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/82157")]
+    [InlineData("=> 0;")]
+    [InlineData("{ get { return 0; } }")]
+    public Task TestWithExistingReadOnlyPropertyInReferencedProject(string propertyBody)
+        => TestAsync(
+            $$"""
+            <Workspace>
+                <Project Language="C#" Name="Library" CommonReferences="true">
+                    <Document>
+            public class C
+            {
+                public int Value {{propertyBody}}
+            }</Document>
+                </Project>
+                <Project Language="C#" CommonReferences="true">
+                    <ProjectReference>Library</ProjectReference>
+                    <Document>
+            class D
+            {
+                void M(int value)
+                {
+                    new [|C|](value);
+                }
+            }
+                    </Document>
+                </Project>
+            </Workspace>
+            """,
+            $$"""
+
+            public class C
+            {
+                private int value;
+
+                public C(int value)
+                {
+                    this.value = value;
+                }
+
+                public int Value {{propertyBody}}
+            }
+            """,
+            new(parseOptions: TestOptions.Regular));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/38822")]
     public Task TestMissingInLambdaWithCallToExistingConstructor()

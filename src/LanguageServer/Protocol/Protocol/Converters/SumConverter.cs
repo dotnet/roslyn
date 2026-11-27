@@ -10,12 +10,17 @@ using System.Linq.Expressions;
 using System.Reflection;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.LanguageServer;
 
 namespace Roslyn.LanguageServer.Protocol;
 
 internal sealed class SumConverter : JsonConverterFactory
 {
+    // This cache is defined on the non-generic class so it is shared across all
+    // SumConverter<T> instantiations rather than duplicated per generic type argument.
+    internal static readonly ConcurrentDictionary<Type, SumTypeInfoCache> SumTypeCache = new();
+
     public override bool CanConvert(Type typeToConvert)
     {
         return typeof(ISumType).IsAssignableFrom(typeToConvert);
@@ -182,7 +187,6 @@ internal sealed class SumConverter : JsonConverterFactory
 internal sealed class SumConverter<T> : JsonConverter<T>
     where T : struct, ISumType
 {
-    private static readonly ConcurrentDictionary<Type, SumConverter.SumTypeInfoCache> SumTypeCache = new();
 
     /// <inheritdoc/>
     public override T Read(ref Utf8JsonReader reader, Type objectType, JsonSerializerOptions options)
@@ -195,7 +199,7 @@ internal sealed class SumConverter<T> : JsonConverter<T>
 
         // objectType will be one of the various SumType variants. In order for this converter to work with all SumTypes it has to use reflection.
         // This method works by attempting to deserialize the json into each of the type parameters to a SumType and stops at the first success.
-        var sumTypeInfoCache = SumTypeCache.GetOrAdd(objectType, (t) => new SumConverter.SumTypeInfoCache(t));
+        var sumTypeInfoCache = SumConverter.SumTypeCache.GetOrAdd(objectType, (t) => new SumConverter.SumTypeInfoCache(t));
 
         var applicableUnionTypeInfos = sumTypeInfoCache.GetApplicableInfos(reader.TokenType);
         if (applicableUnionTypeInfos.Count > 0)
@@ -225,29 +229,39 @@ internal sealed class SumConverter<T> : JsonConverter<T>
                 }
             }
 
+            // Track which arms were skipped by token filtering so pass 2 only retries those.
+            using var _ = ArrayBuilder<SumConverter.SumTypeInfoCache.UnionTypeInfo>.GetInstance(out var untestedArms);
+
+            // Pass 1: Try only token-compatible arms (avoids costly exception-based probing)
             for (var i = 0; i < applicableUnionTypeInfos.Count; i++)
             {
                 var unionTypeInfo = applicableUnionTypeInfos[i];
-
-                if (!IsTokenCompatibleWithType(ref reader, unionTypeInfo))
-                {
-                    continue;
-                }
 
                 if (unionTypeInfo.KindAttribute != null)
                 {
                     continue;
                 }
 
-                try
+                if (!IsTokenCompatibleWithType(ref reader, unionTypeInfo))
                 {
-                    var result = ((SumConverter.SumTypeInfoCache.UnionTypeInfo.StjReader<T>)unionTypeInfo.StjReaderFunction).Invoke(ref reader, options);
+                    untestedArms.Add(unionTypeInfo);
+                    continue;
+                }
+
+                if (TryDeserializeArm(ref reader, backupReader, unionTypeInfo, options, out var result))
+                {
                     return result;
                 }
-                catch
+            }
+
+            // Pass 2: If no token-compatible arm succeeded, fall back to trying untested arms.
+            // This handles types whose converters accept unexpected token types (e.g.,
+            // converters registered at the property level or via JsonSerializerOptions).
+            for (var i = 0; i < untestedArms.Count; i++)
+            {
+                if (TryDeserializeArm(ref reader, backupReader, untestedArms[i], options, out var result))
                 {
-                    reader = backupReader;
-                    continue;
+                    return result;
                 }
             }
         }
@@ -280,35 +294,99 @@ internal sealed class SumConverter<T> : JsonConverter<T>
         }
     }
 
+    private static bool TryDeserializeArm(ref Utf8JsonReader reader, Utf8JsonReader backupReader, SumConverter.SumTypeInfoCache.UnionTypeInfo unionTypeInfo, JsonSerializerOptions options, out T result)
+    {
+        try
+        {
+            result = ((SumConverter.SumTypeInfoCache.UnionTypeInfo.StjReader<T>)unionTypeInfo.StjReaderFunction).Invoke(ref reader, options);
+            return true;
+        }
+        catch
+        {
+            reader = backupReader;
+            result = default!;
+            return false;
+        }
+    }
+
     private static bool IsTokenCompatibleWithType(ref Utf8JsonReader reader, SumConverter.SumTypeInfoCache.UnionTypeInfo unionTypeInfo)
     {
-        var isCompatible = true;
-        switch (reader.TokenType)
+        return IsTokenCompatibleWithType(ref reader, unionTypeInfo.Type);
+    }
+
+    private static bool IsTokenCompatibleWithType(ref Utf8JsonReader reader, Type type)
+    {
+        return reader.TokenType switch
         {
-            case JsonTokenType.True:
-            case JsonTokenType.False:
-                isCompatible = unionTypeInfo.Type == typeof(bool);
-                break;
-            case JsonTokenType.Number:
-                isCompatible = unionTypeInfo.Type == typeof(int) ||
-                               unionTypeInfo.Type == typeof(uint) ||
-                               unionTypeInfo.Type == typeof(long) ||
-                               unionTypeInfo.Type == typeof(ulong) ||
-                               unionTypeInfo.Type == typeof(short) ||
-                               unionTypeInfo.Type == typeof(ushort) ||
-                               unionTypeInfo.Type == typeof(byte) ||
-                               unionTypeInfo.Type == typeof(sbyte) ||
-                               unionTypeInfo.Type == typeof(double) ||
-                               unionTypeInfo.Type == typeof(float);
-                break;
-            case JsonTokenType.String:
-                isCompatible = unionTypeInfo.Type == typeof(string) ||
-                               unionTypeInfo.Type == typeof(Uri) ||
-                               unionTypeInfo.Type == typeof(DocumentUri) ||
-                               typeof(IStringEnum).IsAssignableFrom(unionTypeInfo.Type);
-                break;
+            JsonTokenType.True or JsonTokenType.False => IsBooleanType(type),
+            JsonTokenType.Number => IsNumericType(type),
+            JsonTokenType.String => IsStringLikeType(type),
+            JsonTokenType.StartObject => !IsSerializedAsJsonPrimitiveType(type) && !type.IsArray,
+            JsonTokenType.StartArray => IsArrayElementCompatible(ref reader, type),
+            _ => true,
+        };
+    }
+
+    /// <summary>
+    /// Returns true for types that are serialized as JSON primitives (strings, numbers, booleans)
+    /// rather than JSON objects. Used to reject incompatible types for StartObject tokens.
+    /// </summary>
+    private static bool IsSerializedAsJsonPrimitiveType(Type type)
+    {
+        return IsBooleanType(type) || IsStringLikeType(type) || IsNumericType(type);
+    }
+
+    private static bool IsBooleanType(Type type)
+    {
+        return type == typeof(bool);
+    }
+
+    private static bool IsStringLikeType(Type type)
+    {
+        return type == typeof(string) ||
+               type == typeof(Uri) ||
+               type == typeof(DocumentUri) ||
+               typeof(IStringEnum).IsAssignableFrom(type);
+    }
+
+    private static bool IsNumericType(Type type)
+    {
+        return type == typeof(int) || type == typeof(uint) ||
+               type == typeof(long) || type == typeof(ulong) ||
+               type == typeof(short) || type == typeof(ushort) ||
+               type == typeof(byte) || type == typeof(sbyte) ||
+               type == typeof(double) || type == typeof(float) ||
+               type == typeof(decimal);
+    }
+
+    /// <summary>
+    /// For array SumType variants, peeks at the first array element to determine compatibility.
+    /// This avoids costly exception-based type probing (e.g., trying to deserialize
+    /// VSInternalCommitCharacter[] as string[] which throws InvalidOperationException per attempt).
+    /// </summary>
+    private static bool IsArrayElementCompatible(ref Utf8JsonReader reader, Type arrayType)
+    {
+        if (!arrayType.IsArray)
+        {
+            return false;
         }
 
-        return isCompatible;
+        var elementType = arrayType.GetElementType()!;
+
+        // Peek at first array element to disambiguate array types.
+        var peekReader = reader;
+        if (!peekReader.Read())
+        {
+            // Can't read into the array, let the normal try/catch handle it.
+            return true;
+        }
+
+        // Empty array is compatible with any array type.
+        if (peekReader.TokenType == JsonTokenType.EndArray)
+        {
+            return true;
+        }
+
+        return IsTokenCompatibleWithType(ref peekReader, elementType);
     }
 }

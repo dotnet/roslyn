@@ -13,10 +13,36 @@ namespace Microsoft.CodeAnalysis.Host;
 
 internal abstract partial class AbstractSyntaxTreeFactoryService : ISyntaxTreeFactoryService
 {
+    private readonly ISyntaxTreeCacheService _syntaxTreeCache;
+
+    protected AbstractSyntaxTreeFactoryService(ISyntaxTreeCacheService syntaxTreeCache)
+    {
+        _syntaxTreeCache = syntaxTreeCache;
+    }
+
     public abstract ParseOptions GetDefaultParseOptions();
     public abstract ParseOptions GetDefaultParseOptionsWithLatestLanguageVersion();
     public abstract bool OptionsDifferOnlyByPreprocessorDirectives(ParseOptions options1, ParseOptions options2);
     public abstract ParseOptions TryParsePdbParseOptions(IReadOnlyDictionary<string, string> metadata);
     public abstract SyntaxTree CreateSyntaxTree(string filePath, ParseOptions options, SourceText text, Encoding encoding, SourceHashAlgorithm checksumAlgorithm, SyntaxNode root);
-    public abstract SyntaxTree ParseSyntaxTree(string filePath, ParseOptions options, SourceText text, CancellationToken cancellationToken);
+
+    public SyntaxTree ParseSyntaxTree(string filePath, ParseOptions options, SourceText text, CancellationToken cancellationToken)
+    {
+        options ??= GetDefaultParseOptions();
+
+        if (_syntaxTreeCache is null)
+            return ParseSyntaxTreeCore(filePath, options, text, cancellationToken);
+
+        return _syntaxTreeCache.GetOrCreateSyntaxTree(
+            text,
+            options,
+            static (state, cancellationToken) => state.service.ParseSyntaxTreeCore(
+                state.filePath, state.options, state.text, cancellationToken),
+            static (root, state) => state.service.CreateSyntaxTree(
+                state.filePath, state.options, state.text, state.text.Encoding, state.text.ChecksumAlgorithm, root),
+            (service: this, filePath, options, text),
+            cancellationToken);
+    }
+
+    protected abstract SyntaxTree ParseSyntaxTreeCore(string filePath, ParseOptions options, SourceText text, CancellationToken cancellationToken);
 }

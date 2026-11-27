@@ -512,27 +512,51 @@ class Program
 
             var comp = CompileAndVerify(text, parseOptions: TestOptions.Regular, verify: Verification.Passes, expectedOutput: @"Program+S1Program+S1");
 
-            // We may be able to optimize this case (ie. avoid defensive copy) since the struct and the caller are in the same module
-            // Tracked by https://github.com/dotnet/roslyn/issues/66365
             comp.VerifyIL("Program.S1.Test()", @"
 {
-  // Code size       47 (0x2f)
+  // Code size       39 (0x27)
   .maxstack  1
-  .locals init (Program.S1 V_0)
   IL_0000:  ldarg.0
   IL_0001:  ldobj      ""Program.S1""
   IL_0006:  box        ""Program.S1""
   IL_000b:  call       ""System.Type object.GetType()""
   IL_0010:  call       ""void System.Console.Write(object)""
   IL_0015:  ldarg.0
-  IL_0016:  ldobj      ""Program.S1""
-  IL_001b:  stloc.0
-  IL_001c:  ldloca.s   V_0
-  IL_001e:  constrained. ""Program.S1""
-  IL_0024:  callvirt   ""string object.ToString()""
-  IL_0029:  call       ""void System.Console.Write(string)""
-  IL_002e:  ret
+  IL_0016:  constrained. ""Program.S1""
+  IL_001c:  callvirt   ""string object.ToString()""
+  IL_0021:  call       ""void System.Console.Write(string)""
+  IL_0026:  ret
 }");
+        }
+
+        [Fact, WorkItem(76288, "https://github.com/dotnet/roslyn/issues/76288")]
+        public void NoDefensiveCopy_ReadonlyStructField_ConstrainedCall()
+        {
+            var text = @"
+#pragma warning disable CS0649 // Field is never assigned to
+struct X
+{
+    private Y a;
+    public readonly string W() => a.ToString();
+}
+
+readonly struct Y
+{
+}
+";
+            var comp = CompileAndVerify(text, options: TestOptions.ReleaseDll, verify: Verification.Passes);
+            comp.VerifyDiagnostics();
+            comp.VerifyIL("X.W()", @"
+{
+  // Code size       18 (0x12)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  ldflda     ""Y X.a""
+  IL_0006:  constrained. ""Y""
+  IL_000c:  callvirt   ""string object.ToString()""
+  IL_0011:  ret
+}
+");
         }
 
         [Fact]

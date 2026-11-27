@@ -1,0 +1,33 @@
+﻿RazorDocument - [0..36)::36 - [ @{ var validationMessage = new { @@]
+    MarkupBlock - [0..36)::36
+        MarkupTextLiteral - [0..0)::0 - [] - Gen<Markup>
+            Marker;[];
+        CSharpCodeBlock - [0..36)::36
+            CSharpStatementLiteral - [0..1)::1 - [ ] - Gen<Stmt>
+                Whitespace;[ ];
+            CSharpStatement - [1..36)::35
+                CSharpTransition - [1..2)::1 - Gen<None>
+                    Transition;[@];
+                CSharpStatementBody - [2..36)::34
+                    RazorMetaCode - [2..3)::1 - Gen<None>
+                        LeftBrace;[{];
+                    CSharpCodeBlock - [3..36)::33
+                        CSharpStatementLiteral - [3..34)::31 - [ var validationMessage = new { ] - Gen<Stmt>
+                            Whitespace;[ ];
+                            Keyword;[var];
+                            Whitespace;[ ];
+                            Identifier;[validationMessage];
+                            Whitespace;[ ];
+                            Assign;[=];
+                            Whitespace;[ ];
+                            Keyword;[new];
+                            Whitespace;[ ];
+                            LeftBrace;[{];
+                            Whitespace;[ ];
+                        CSharpEphemeralTextLiteral - [34..35)::1 - [@] - Gen<None>
+                            Transition;[@];
+                        CSharpStatementLiteral - [35..36)::1 - [@] - Gen<Stmt>
+                            Transition;[@];
+                    RazorMetaCode - [36..36)::0 - Gen<None>
+                        RightBrace;[<Missing>];
+    EndOfFile;[];

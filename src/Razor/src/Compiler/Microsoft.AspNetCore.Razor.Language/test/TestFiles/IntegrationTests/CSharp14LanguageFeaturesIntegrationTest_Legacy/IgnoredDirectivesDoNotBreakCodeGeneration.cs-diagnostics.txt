@@ -1,0 +1,6 @@
+﻿// TestFiles\IntegrationTests\CSharp14LanguageFeaturesIntegrationTest_Legacy\TestView.cshtml(4,6): error CS9298: '#:' directives can be only used in file-based programs ('-features:FileBasedProgram')
+//     #:package Newtonsoft.Json@13.0.3
+Diagnostic(ErrorCode.ERR_PPIgnoredNeedsFileBasedProgram, ":").WithLocation(4, 6),
+// TestFiles\IntegrationTests\CSharp14LanguageFeaturesIntegrationTest_Legacy\TestView.cshtml(4,6): error CS9297: '#:' directives cannot be after first token in file
+//     #:package Newtonsoft.Json@13.0.3
+Diagnostic(ErrorCode.ERR_PPIgnoredFollowsToken, ":").WithLocation(4, 6)

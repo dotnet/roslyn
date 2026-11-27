@@ -4109,6 +4109,92 @@ public static class E
 """);
         }
 
+        [Fact]
+        public void UnionDeclaration_01()
+        {
+            string source = """
+_ = (TestUnion)123;
+Microsoft.CodeAnalysis.Runtime.Instrumentation.FlushPayload();
+
+public union TestUnion(string, int);
+""" + InstrumentationHelperSource;
+
+            var checker = new CSharpInstrumentationChecker();
+            checker.Method(7, 1, snippet: "", expectBodySpan: false)
+                .True("_ = (TestUnion)123;")
+                .True("Microsoft.CodeAnalysis.Runtime.Instrumentation.FlushPayload();");
+
+            var verifier = CompileAndVerify([source, UnionAttributeSource, IUnionSource], options: TestOptions.ReleaseExe);
+            checker.CompleteCheck(verifier.Compilation, source);
+            verifier.VerifyDiagnostics();
+
+            AssertNotInstrumented(verifier, "TestUnion.Value.get");
+            AssertInstrumented(verifier, "TestUnion..ctor(int)");
+            AssertInstrumented(verifier, "TestUnion..ctor(string)");
+
+            verifier.VerifyIL("TestUnion..ctor(int)", """
+{
+  // Code size       63 (0x3f)
+  .maxstack  5
+  IL_0000:  ldsfld     "bool[][] <PrivateImplementationDetails>.PayloadRoot0"
+  IL_0005:  ldtoken    "TestUnion..ctor(int)"
+  IL_000a:  ldelem.ref
+  IL_000b:  brtrue.s   IL_0032
+  IL_000d:  ldsfld     "System.Guid <PrivateImplementationDetails>.MVID"
+  IL_0012:  ldtoken    "TestUnion..ctor(int)"
+  IL_0017:  ldtoken    Source Document 0
+  IL_001c:  ldsfld     "bool[][] <PrivateImplementationDetails>.PayloadRoot0"
+  IL_0021:  ldtoken    "TestUnion..ctor(int)"
+  IL_0026:  ldelema    "bool[]"
+  IL_002b:  ldc.i4.0
+  IL_002c:  call       "bool[] Microsoft.CodeAnalysis.Runtime.Instrumentation.CreatePayload(System.Guid, int, int, ref bool[], int)"
+  IL_0031:  pop
+  IL_0032:  ldarg.0
+  IL_0033:  ldarg.1
+  IL_0034:  box        "int"
+  IL_0039:  stfld      "object TestUnion.<Value>k__BackingField"
+  IL_003e:  ret
+}
+""");
+
+            verifier = CompileAndVerify([source, UnionAttributeSource, IUnionSource], options: TestOptions.DebugExe);
+            checker.CompleteCheck(verifier.Compilation, source);
+            verifier.VerifyDiagnostics();
+
+            AssertNotInstrumented(verifier, "TestUnion.Value.get");
+            AssertInstrumented(verifier, "TestUnion..ctor(int)");
+            AssertInstrumented(verifier, "TestUnion..ctor(string)");
+
+            verifier.VerifyIL("TestUnion..ctor(int)", """
+{
+  // Code size       66 (0x42)
+  .maxstack  5
+  .locals init (bool[] V_0)
+  IL_0000:  ldsfld     "bool[][] <PrivateImplementationDetails>.PayloadRoot0"
+  IL_0005:  ldtoken    "TestUnion..ctor(int)"
+  IL_000a:  ldelem.ref
+  IL_000b:  stloc.0
+  IL_000c:  ldloc.0
+  IL_000d:  brtrue.s   IL_0034
+  IL_000f:  ldsfld     "System.Guid <PrivateImplementationDetails>.MVID"
+  IL_0014:  ldtoken    "TestUnion..ctor(int)"
+  IL_0019:  ldtoken    Source Document 0
+  IL_001e:  ldsfld     "bool[][] <PrivateImplementationDetails>.PayloadRoot0"
+  IL_0023:  ldtoken    "TestUnion..ctor(int)"
+  IL_0028:  ldelema    "bool[]"
+  IL_002d:  ldc.i4.0
+  IL_002e:  call       "bool[] Microsoft.CodeAnalysis.Runtime.Instrumentation.CreatePayload(System.Guid, int, int, ref bool[], int)"
+  IL_0033:  stloc.0
+  IL_0034:  ldarg.0
+  IL_0035:  ldarg.1
+  IL_0036:  box        "int"
+  IL_003b:  stfld      "object TestUnion.<Value>k__BackingField"
+  IL_0040:  nop
+  IL_0041:  ret
+}
+""");
+        }
+
         private static void AssertNotInstrumented(CompilationVerifier verifier, string qualifiedMethodName)
             => AssertInstrumented(verifier, qualifiedMethodName, expected: false);
 
@@ -4123,7 +4209,7 @@ public static class E
             Assert.True(expected == instrumented, $"Method '{qualifiedMethodName}' should {(expected ? "be" : "not be")} instrumented. Actual IL:{Environment.NewLine}{il}");
         }
 
-        private CompilationVerifier CompileAndVerify(string source, string expectedOutput = null, CSharpCompilationOptions options = null, CSharpParseOptions parseOptions = null, Verification verify = default)
+        private CompilationVerifier CompileAndVerify(CSharpTestSource source, string expectedOutput = null, CSharpCompilationOptions options = null, CSharpParseOptions parseOptions = null, Verification verify = default)
         {
             return base.CompileAndVerify(
                 source,

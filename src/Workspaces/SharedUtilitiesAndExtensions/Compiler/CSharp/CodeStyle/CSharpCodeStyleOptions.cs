@@ -166,6 +166,9 @@ internal static partial class CSharpCodeStyleOptions
         SyntaxKind.NewKeyword,
         SyntaxKind.VirtualKeyword,
         SyntaxKind.AbstractKeyword,
+    #if !OLDER_ROSLYN
+        SyntaxKind.ClosedKeyword,
+    #endif
         SyntaxKind.SealedKeyword,
         SyntaxKind.OverrideKeyword,
         SyntaxKind.ReadOnlyKeyword,
@@ -213,6 +216,11 @@ internal static partial class CSharpCodeStyleOptions
     public static readonly Option2<CodeStyleOption2<bool>> PreferSystemThreadingLock = CreateOption(
         CSharpCodeStyleOptionGroups.CodeBlockPreferences,
         "csharp_prefer_system_threading_lock",
+        defaultValue: CodeStyleOption2.TrueWithSuggestionEnforcement);
+
+    public static readonly Option2<CodeStyleOption2<bool>> PreferLabeledJumpStatements = CreateOption(
+        CSharpCodeStyleOptionGroups.CodeBlockPreferences,
+        "csharp_style_prefer_labeled_jump_statements",
         defaultValue: CodeStyleOption2.TrueWithSuggestionEnforcement);
 
     public static readonly Option2<CodeStyleOption2<bool>> PreferTupleSwap = CreateOption(

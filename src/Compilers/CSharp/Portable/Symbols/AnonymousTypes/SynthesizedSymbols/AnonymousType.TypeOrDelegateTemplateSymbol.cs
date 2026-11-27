@@ -123,6 +123,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             internal sealed override bool HasCompilerLoweringPreserveAttribute => false;
 
+            internal override bool IsUnionTypeCore => false;
+
             internal sealed override bool IsInterpolatedStringHandlerType => false;
 
             internal sealed override ParameterSymbol? ExtensionParameter => null;
@@ -181,7 +183,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 get { return true; }
             }
 
-            public sealed override bool MightContainExtensionMethods
+            public sealed override bool MightContainExtensions
             {
                 get { return false; }
             }

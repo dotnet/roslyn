@@ -1,0 +1,15 @@
+﻿Source Location: (1:0,1 [32] x:\dir\subdir\Test\TestComponent.cshtml)
+|using static Test2.SomeComponent|
+Generated Location: (372:12,0 [32] )
+|using static Test2.SomeComponent|
+
+Source Location: (36:1,1 [17] x:\dir\subdir\Test\TestComponent.cshtml)
+|using Foo = Test3|
+Generated Location: (515:18,0 [17] )
+|using Foo = Test3|
+
+Source Location: (56:2,1 [11] x:\dir\subdir\Test\TestComponent.cshtml)
+|MyComponent|
+Generated Location: (974:31,49 [11] )
+|MyComponent|
+

@@ -5,7 +5,6 @@
     <OutputType>Exe</OutputType>
     <TargetFrameworks>$(NetRoslynSourceBuild);net472</TargetFrameworks>
     <IsSymbolPublishingPackage>true</IsSymbolPublishingPackage>
-    <TieredCompilation>false</TieredCompilation>
   </PropertyGroup>
   <Import Project="..\VBCSCompilerCommandLine.projitems" Label="Shared" />
 </Project>

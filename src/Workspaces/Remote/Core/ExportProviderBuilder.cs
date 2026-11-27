@@ -59,7 +59,7 @@ internal abstract class ExportProviderBuilder(
 
                 CachedComposition cachedComposition = new();
                 using FileStream cacheStream = new(compositionCacheFile, FileMode.Open, FileAccess.Read, FileShare.Read, bufferSize: 4096, useAsync: true);
-                var exportProviderFactory = await cachedComposition.LoadExportProviderFactoryAsync(cacheStream, Resolver, cancellationToken).ConfigureAwait(false);
+                var exportProviderFactory = await cachedComposition.LoadExportProviderFactoryAsync(cacheStream, Resolver, joinableTaskFactory: null, cancellationToken).ConfigureAwait(false);
 
                 return exportProviderFactory;
             }
@@ -79,9 +79,6 @@ internal abstract class ExportProviderBuilder(
 
         var parts = await discovery.CreatePartsAsync(AssemblyPaths, progress: null, cancellationToken).ConfigureAwait(false);
 
-        // Work around https://github.com/microsoft/vs-mef/issues/620 -- parts might be incomplete if the cancellationToken was cancelled
-        cancellationToken.ThrowIfCancellationRequested();
-
         var catalog = ComposableCatalog.Create(Resolver)
             .AddParts(parts)
             .WithCompositionService(); // Makes an ICompositionService export available to MEF parts to import
@@ -98,7 +95,7 @@ internal abstract class ExportProviderBuilder(
         }
 
         // Prepare an ExportProvider factory based on this graph.
-        return config.CreateExportProviderFactory();
+        return config.CreateExportProviderFactory(joinableTaskFactory: null);
     }
 
     /// <summary>

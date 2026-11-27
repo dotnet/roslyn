@@ -53,6 +53,30 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             CompileAndVerify(comp, symbolValidator: m => AssertRefSafetyRulesAttribute(m, includesAttributeDefinition: false, includesAttributeUse: true, publicDefinition: true));
         }
 
+        [Theory]
+        [CombinatorialData]
+        public void ExplicitAttribute_FromMetadata_Multiple(bool useCompilationReference)
+        {
+            var comp = CreateCompilation(RefSafetyRulesAttributeDefinition, parseOptions: TestOptions.Regular10);
+            var ref1 = AsReference(comp, useCompilationReference);
+
+            comp = CreateCompilation(RefSafetyRulesAttributeDefinition, parseOptions: TestOptions.Regular10);
+            var ref2 = AsReference(comp, useCompilationReference);
+
+            var source =
+@"public class A
+{
+    public static ref T F<T>(out T t) => throw null;
+}";
+
+            comp = CreateCompilation(source, references: new[] { ref1, ref2 }, parseOptions: TestOptions.Regular10);
+            CompileAndVerify(comp, symbolValidator: m => AssertRefSafetyRulesAttribute(m, includesAttributeDefinition: false, includesAttributeUse: false, publicDefinition: false));
+
+            // Ambiguous attribute definitions from references => synthesize our own.
+            comp = CreateCompilation(source, references: new[] { ref1, ref2 });
+            CompileAndVerify(comp, symbolValidator: m => AssertRefSafetyRulesAttribute(m, includesAttributeDefinition: true, includesAttributeUse: true, publicDefinition: false));
+        }
+
         [Fact]
         public void ExplicitAttribute_MissingConstructor()
         {

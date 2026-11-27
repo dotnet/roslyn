@@ -10,6 +10,7 @@ using System.Runtime.CompilerServices;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
@@ -49,9 +50,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public sealed override bool IsAbstract => false;
         public sealed override bool IsSealed => false;
 
-        internal sealed override bool IsMetadataVirtual(IsMetadataVirtualOption option = IsMetadataVirtualOption.None) => false;
+        internal sealed override bool IsMetadataVirtual(ModuleSymbol? context, bool ignoreInterfaceImplementationChanges = false) => false;
         internal sealed override bool IsMetadataFinal => false;
-        internal sealed override bool IsMetadataNewSlot(bool ignoreInterfaceImplementationChanges = false) => false;
+        internal sealed override bool IsMetadataNewSlot(ModuleSymbol? context, bool ignoreInterfaceImplementationChanges = false) => false;
 
         internal sealed override bool IsAccessCheckedOnOverride => false;
 
@@ -65,12 +66,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal sealed override void AddSynthesizedAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<CSharpAttributeData> attributes)
         {
-            // Copy ORPA from the property onto the implementation accessors
+            // Copy some attributes from the property onto the implementation accessors
             if (_originalMethod is SourcePropertyAccessorSymbol { AssociatedSymbol: SourcePropertySymbolBase extensionProperty })
             {
                 foreach (CSharpAttributeData attr in extensionProperty.GetAttributes())
                 {
-                    if (attr.IsTargetAttribute(AttributeDescription.OverloadResolutionPriorityAttribute))
+                    if (attr.IsTargetAttribute(AttributeDescription.OverloadResolutionPriorityAttribute) ||
+                        attr.IsTargetAttribute(AttributeDescription.RequiresUnsafeAttribute))
                     {
                         AddSynthesizedAttribute(ref attributes, attr);
                     }
@@ -180,6 +182,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             return result;
         }
+
+        internal override RequiresUnsafeMode GetRequiresUnsafeMode(ConsList<FieldSymbol> fieldsBeingBound) => UnderlyingMethod.GetRequiresUnsafeMode(fieldsBeingBound);
 
         private sealed class ExtensionMetadataMethodParameterSymbol : RewrittenMethodParameterSymbolBase
         {

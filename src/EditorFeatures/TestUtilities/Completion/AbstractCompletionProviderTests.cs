@@ -14,6 +14,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Completion;
+using Microsoft.CodeAnalysis.Completion.Providers;
 using Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncCompletion;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
@@ -44,6 +45,7 @@ public abstract class AbstractCompletionProviderTests<TWorkspaceFixture> : TestB
 
     protected bool? ShowTargetTypedCompletionFilter { get; set; }
     protected bool? ShowImportCompletionItemsOptionValue { get; set; }
+    internal ImportCompletionCommitBehavior? ImportCompletionCommitBehaviorValue { get; set; }
     protected bool? ForceExpandedCompletionIndexCreation { get; set; }
     protected bool? HideAdvancedMembers { get; set; }
     protected bool? ShowNameSuggestions { get; set; }
@@ -65,8 +67,10 @@ public abstract class AbstractCompletionProviderTests<TWorkspaceFixture> : TestB
         if (ShowTargetTypedCompletionFilter.HasValue)
             options = options with { TargetTypedCompletionFilter = ShowTargetTypedCompletionFilter.Value };
 
-        if (ShowImportCompletionItemsOptionValue.HasValue)
-            options = options with { ShowItemsFromUnimportedNamespaces = ShowImportCompletionItemsOptionValue.Value };
+        options = options with { ShowItemsFromUnimportedNamespaces = ShowImportCompletionItemsOptionValue };
+
+        if (ImportCompletionCommitBehaviorValue.HasValue)
+            options = options with { ImportCompletionCommitBehavior = ImportCompletionCommitBehaviorValue.Value };
 
         if (ForceExpandedCompletionIndexCreation.HasValue)
             options = options with { ForceExpandedCompletionIndexCreation = ForceExpandedCompletionIndexCreation.Value };

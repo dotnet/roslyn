@@ -174,17 +174,17 @@
       </trans-unit>
       <trans-unit id="DoNotUseFileTypesForAnalyzersOrGeneratorsDescription">
         <source>Using a 'file' type is not allowed for implementing analyzers, generators, or code fixers. This can break analyzer loading on some platforms.</source>
-        <target state="new">Using a 'file' type is not allowed for implementing analyzers, generators, or code fixers. This can break analyzer loading on some platforms.</target>
+        <target state="translated">Die Verwendung eines „Datei“-Typs ist für die Implementierung von Analysetools, Generatoren oder Codekorrekturen nicht zulässig. Dies kann das Laden von Analysetools auf einigen Plattformen unterbrechen.</target>
         <note />
       </trans-unit>
       <trans-unit id="DoNotUseFileTypesForAnalyzersOrGeneratorsMessage">
         <source>Type '{0}' should not be marked with 'file'</source>
-        <target state="new">Type '{0}' should not be marked with 'file'</target>
+        <target state="translated">Der Typ „{0}“ darf nicht mit „Datei“ gekennzeichnet werden.</target>
         <note />
       </trans-unit>
       <trans-unit id="DoNotUseFileTypesForAnalyzersOrGeneratorsTitle">
         <source>Do not use file types for implementing analyzers, generators, and code fixers</source>
-        <target state="new">Do not use file types for implementing analyzers, generators, and code fixers</target>
+        <target state="translated">Verwenden Sie keine Dateitypen zum Implementieren von Analysetools, Generatoren und Codefixern.</target>
         <note />
       </trans-unit>
       <trans-unit id="DoNotUseReservedDiagnosticIdDescription">
@@ -204,7 +204,7 @@
       </trans-unit>
       <trans-unit id="EnableAnalyzerReleaseTrackingRuleDescription">
         <source>Enabling release tracking for analyzer packages helps in tracking and documenting the analyzer diagnostics that ship and/or change with each analyzer release. See details at https://github.com/dotnet/roslyn/blob/main/src/RoslynAnalyzers/Microsoft.CodeAnalysis.Analyzers/ReleaseTrackingAnalyzers.Help.md.</source>
-        <target state="translated">Das Aktivieren der Versionsnachverfolgung für Analysepakete unterstützt Sie beim Nachverfolgen und Dokumentieren der Analysediagnose, die mit den einzelnen Analysereleases ausgeliefert und/oder geändert wird. Details finden Sie unter https://github.com/dotnet/roslyn/blob/main/src/RoslynAnalyzers/Microsoft.CodeAnalysis.Analyzers/ReleaseTrackingAnalyzers.Help.md.</target>
+        <target state="translated">Das Aktivieren der Versionsnachverfolgung für Analysepakete unterstützt Sie beim Nachverfolgen und Dokumentieren der Analysediagnose, die mit den einzelnen Analysereleases ausgeliefert und/oder geändert wird. Weitere Informationen finden Sie unter https://github.com/dotnet/roslyn/blob/main/src/RoslynAnalyzers/Microsoft.CodeAnalysis.Analyzers/ReleaseTrackingAnalyzers.Help.md.</target>
         <note />
       </trans-unit>
       <trans-unit id="EnableAnalyzerReleaseTrackingRuleMessage">
@@ -234,17 +234,17 @@
       </trans-unit>
       <trans-unit id="ImplementationIsObsoleteDescription">
         <source>The author of this interface has deprecated implementing this interface.</source>
-        <target state="new">The author of this interface has deprecated implementing this interface.</target>
+        <target state="translated">Der Autor dieser Schnittstelle hat die Implementierung dieser Schnittstelle als veraltet markiert.</target>
         <note />
       </trans-unit>
       <trans-unit id="ImplementationIsObsoleteMessage">
         <source>Type {0} cannot implement interface {1} because {1} is obsolete for implementation. See {2} for more details.</source>
-        <target state="new">Type {0} cannot implement interface {1} because {1} is obsolete for implementation. See {2} for more details.</target>
+        <target state="translated">Der Typ „{0}“ kann die Schnittstelle „{1}“ nicht implementieren, da {1} für die Implementierung veraltet ist. Weitere Informationen finden Sie unter {2}.</target>
         <note />
       </trans-unit>
       <trans-unit id="ImplementationIsObsoleteTitle">
         <source>Implementations of this interface are not allowed</source>
-        <target state="new">Implementations of this interface are not allowed</target>
+        <target state="translated">Implementierungen dieser Schnittstelle sind nicht erlaubt.</target>
         <note />
       </trans-unit>
       <trans-unit id="InvalidEntryInAnalyzerReleasesFileRuleDescription">

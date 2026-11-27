@@ -25,10 +25,11 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers;
 
-[ExportCompletionProvider(nameof(NamedParameterCompletionProvider), LanguageNames.CSharp)]
+[ExportCompletionProvider(nameof(NamedParameterCompletionProvider), LanguageNames.CSharp), Shared]
 [ExtensionOrder(After = nameof(AttributeNamedParameterCompletionProvider))]
-[Shared]
-internal sealed partial class NamedParameterCompletionProvider : LSPCompletionProvider, IEqualityComparer<IParameterSymbol>
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal sealed partial class NamedParameterCompletionProvider() : LSPCompletionProvider, IEqualityComparer<IParameterSymbol>
 {
     private const string ColonString = ":";
 
@@ -36,12 +37,6 @@ internal sealed partial class NamedParameterCompletionProvider : LSPCompletionPr
     // any character that appears in DisplayText gets treated as a filter char.
     private static readonly CompletionItemRules s_rules = CompletionItemRules.Default
         .WithFilterCharacterRule(CharacterSetModificationRule.Create(CharacterSetModificationKind.Remove, ':'));
-
-    [ImportingConstructor]
-    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public NamedParameterCompletionProvider()
-    {
-    }
 
     internal override string Language => LanguageNames.CSharp;
 
@@ -60,42 +55,34 @@ internal sealed partial class NamedParameterCompletionProvider : LSPCompletionPr
 
             var syntaxTree = await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
             if (syntaxTree.IsInNonUserCode(position, cancellationToken))
-            {
                 return;
-            }
 
             var token = syntaxTree
                 .FindTokenOnLeftOfPosition(position, cancellationToken)
                 .GetPreviousTokenIfTouchingWord(position);
 
             if (token.Kind() is not (SyntaxKind.OpenParenToken or SyntaxKind.OpenBracketToken or SyntaxKind.CommaToken))
-            {
                 return;
-            }
 
             if (token.Parent is not BaseArgumentListSyntax argumentList)
-            {
                 return;
-            }
 
             var semanticModel = await document.ReuseExistingSpeculativeModelAsync(argumentList, cancellationToken).ConfigureAwait(false);
             var parameterLists = GetParameterLists(semanticModel, position, argumentList.Parent!, cancellationToken);
             if (parameterLists == null)
-            {
                 return;
-            }
 
             var existingNamedParameters = GetExistingNamedParameters(argumentList, position);
-            parameterLists = parameterLists.Where(pl => IsValid(pl, existingNamedParameters));
 
-            var unspecifiedParameters = parameterLists.SelectMany(pl => pl)
-                                                      .Where(p => !existingNamedParameters.Contains(p.Name))
-                                                      .Distinct(this);
+            var unspecifiedParameters = parameterLists
+                .Where(pl => IsValid(pl, existingNamedParameters))
+                .SelectMany(pl => pl)
+                .Where(p => !existingNamedParameters.Contains(p.Name))
+                .Distinct(this)
+                .ToImmutableArray();
 
-            if (!unspecifiedParameters.Any())
-            {
+            if (unspecifiedParameters.IsEmpty)
                 return;
-            }
 
             // Consider refining this logic to mandate completion with an argument name, if preceded by an out-of-position name
             // See https://github.com/dotnet/roslyn/issues/20657
@@ -104,8 +91,6 @@ internal sealed partial class NamedParameterCompletionProvider : LSPCompletionPr
             {
                 context.IsExclusive = true;
             }
-
-            var text = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
 
             foreach (var parameter in unspecifiedParameters)
             {
@@ -140,29 +125,23 @@ internal sealed partial class NamedParameterCompletionProvider : LSPCompletionPr
     }
 
     private static ISet<string> GetExistingNamedParameters(BaseArgumentListSyntax argumentList, int position)
-    {
-        var existingArguments = argumentList.Arguments.Where(a => a.Span.End <= position && a.NameColon != null)
-                                                      .Select(a => a.NameColon!.Name.Identifier.ValueText);
-
-        return existingArguments.ToSet();
-    }
+        => argumentList.Arguments
+            .Where(a => a.Span.End <= position && a.NameColon != null)
+            .Select(a => a.NameColon!.Name.Identifier.ValueText)
+            .ToSet();
 
     private static IEnumerable<ImmutableArray<IParameterSymbol>>? GetParameterLists(
-        SemanticModel semanticModel,
-        int position,
-        SyntaxNode invocableNode,
-        CancellationToken cancellationToken)
-    {
-        return invocableNode switch
+        SemanticModel semanticModel, int position, SyntaxNode invocableNode, CancellationToken cancellationToken)
+        => invocableNode switch
         {
             InvocationExpressionSyntax invocationExpression => GetInvocationExpressionParameterLists(semanticModel, position, invocationExpression, cancellationToken),
             ConstructorInitializerSyntax constructorInitializer => GetConstructorInitializerParameterLists(semanticModel, position, constructorInitializer, cancellationToken),
             ElementAccessExpressionSyntax elementAccessExpression => GetElementAccessExpressionParameterLists(semanticModel, position, elementAccessExpression, cancellationToken),
             BaseObjectCreationExpressionSyntax objectCreationExpression => GetObjectCreationExpressionParameterLists(semanticModel, position, objectCreationExpression, cancellationToken),
             PrimaryConstructorBaseTypeSyntax baseType => GetPrimaryConstructorParameterLists(semanticModel, baseType, cancellationToken),
+            WithElementSyntax withElement => GetWithElementParameterLists(semanticModel, withElement, cancellationToken),
             _ => null,
         };
-    }
 
     private static IEnumerable<ImmutableArray<IParameterSymbol>>? GetObjectCreationExpressionParameterLists(
         SemanticModel semanticModel,
@@ -171,13 +150,14 @@ internal sealed partial class NamedParameterCompletionProvider : LSPCompletionPr
         CancellationToken cancellationToken)
     {
         var within = semanticModel.GetEnclosingNamedType(position, cancellationToken);
-        if (semanticModel.GetTypeInfo(objectCreationExpression, cancellationToken).Type is INamedTypeSymbol type && within != null && type.TypeKind != TypeKind.Delegate)
-        {
-            return type.InstanceConstructors.Where(c => c.IsAccessibleWithin(within))
-                                            .Select(c => c.Parameters);
-        }
+        if (within is null)
+            return null;
 
-        return null;
+        if (semanticModel.GetTypeInfo(objectCreationExpression, cancellationToken).Type is not INamedTypeSymbol { TypeKind: not TypeKind.Delegate } type)
+            return null;
+
+        return type.InstanceConstructors.Where(c => c.IsAccessibleWithin(within))
+                                        .Select(c => c.Parameters);
     }
 
     private static IEnumerable<ImmutableArray<IParameterSymbol>>? GetElementAccessExpressionParameterLists(
@@ -189,18 +169,16 @@ internal sealed partial class NamedParameterCompletionProvider : LSPCompletionPr
         var expressionSymbol = semanticModel.GetSymbolInfo(elementAccessExpression.Expression, cancellationToken).GetAnySymbol();
         var expressionType = semanticModel.GetTypeInfo(elementAccessExpression.Expression, cancellationToken).Type;
 
-        if (expressionSymbol != null && expressionType != null)
-        {
-            var indexers = semanticModel.LookupSymbols(position, expressionType, WellKnownMemberNames.Indexer).OfType<IPropertySymbol>();
-            var within = semanticModel.GetEnclosingNamedTypeOrAssembly(position, cancellationToken);
-            if (within != null)
-            {
-                return indexers.Where(i => i.IsAccessibleWithin(within, throughType: expressionType))
-                               .Select(i => i.Parameters);
-            }
-        }
+        if (expressionSymbol is null || expressionType is null)
+            return null;
 
-        return null;
+        var within = semanticModel.GetEnclosingNamedTypeOrAssembly(position, cancellationToken);
+        if (within is null)
+            return null;
+
+        var indexers = semanticModel.LookupSymbols(position, expressionType, WellKnownMemberNames.Indexer).OfType<IPropertySymbol>();
+        return indexers.Where(i => i.IsAccessibleWithin(within, throughType: expressionType))
+                       .Select(i => i.Parameters);
     }
 
     private static IEnumerable<ImmutableArray<IParameterSymbol>>? GetConstructorInitializerParameterLists(
@@ -210,20 +188,15 @@ internal sealed partial class NamedParameterCompletionProvider : LSPCompletionPr
         CancellationToken cancellationToken)
     {
         var within = semanticModel.GetEnclosingNamedType(position, cancellationToken);
-        if (within is { TypeKind: TypeKind.Struct or TypeKind.Class })
-        {
-            var type = constructorInitializer.Kind() == SyntaxKind.BaseConstructorInitializer
-                ? within.BaseType
-                : within;
+        if (within is not { TypeKind: TypeKind.Struct or TypeKind.Class })
+            return null;
 
-            if (type != null)
-            {
-                return type.InstanceConstructors.Where(c => c.IsAccessibleWithin(within))
-                                                .Select(c => c.Parameters);
-            }
-        }
+        var type = constructorInitializer.Kind() == SyntaxKind.BaseConstructorInitializer
+            ? within.BaseType
+            : within;
 
-        return null;
+        return type?.InstanceConstructors.Where(c => c.IsAccessibleWithin(within))
+                                         .Select(c => c.Parameters);
     }
 
     private static IEnumerable<ImmutableArray<IParameterSymbol>>? GetPrimaryConstructorParameterLists(
@@ -269,6 +242,15 @@ internal sealed partial class NamedParameterCompletionProvider : LSPCompletionPr
         }
 
         return null;
+    }
+
+    private static IEnumerable<ImmutableArray<IParameterSymbol>> GetWithElementParameterLists(
+        SemanticModel semanticModel,
+        WithElementSyntax withElement,
+        CancellationToken cancellationToken)
+    {
+        var creationMethods = withElement.GetCreationMethods(semanticModel, cancellationToken);
+        return creationMethods.Select(m => m.Parameters);
     }
 
     bool IEqualityComparer<IParameterSymbol>.Equals(IParameterSymbol? x, IParameterSymbol? y)

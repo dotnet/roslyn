@@ -13,6 +13,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Build.Framework;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.FileBasedPrograms;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -30,19 +31,16 @@ public sealed class MSBuildWorkspace : Workspace
     private readonly NonReentrantLock _serializationLock = new();
 
     private readonly MSBuildProjectLoader _loader;
-    private readonly Microsoft.Extensions.Logging.ILoggerFactory _loggerFactory;
-    private readonly ProjectFileExtensionRegistry _projectFileExtensionRegistry;
-    private readonly DiagnosticReporter _reporter;
+
+    private readonly ImmutableArray<string> _knownCommandLineParserLanguages;
 
     private MSBuildWorkspace(
         HostServices hostServices,
         ImmutableDictionary<string, string> properties)
         : base(hostServices, WorkspaceKind.MSBuild)
     {
-        _reporter = new DiagnosticReporter(this);
-        _projectFileExtensionRegistry = new ProjectFileExtensionRegistry(Services.SolutionServices, _reporter);
-        _loggerFactory = new Microsoft.Extensions.Logging.LoggerFactory([new DiagnosticReporterLoggerProvider(_reporter)]);
-        _loader = new MSBuildProjectLoader(Services.SolutionServices, _reporter, _loggerFactory, _projectFileExtensionRegistry, properties);
+        _loader = new MSBuildProjectLoader(this, properties);
+        _knownCommandLineParserLanguages = Services.SolutionServices.GetSupportedLanguages<ICommandLineParserService>();
     }
 
     /// <summary>
@@ -93,7 +91,27 @@ public sealed class MSBuildWorkspace : Workspace
         return new MSBuildWorkspace(hostServices, properties.ToImmutableDictionary());
     }
 
-    internal void AddLoggerProvider(Microsoft.Extensions.Logging.ILoggerProvider loggerProvider) => _loggerFactory.AddProvider(loggerProvider);
+    private DiagnosticReporter Reporter
+        => _loader.Reporter;
+
+    internal void AddLoggerProvider(Microsoft.Extensions.Logging.ILoggerProvider loggerProvider)
+        => _loader.LoggerFactory.AddProvider(loggerProvider);
+
+    internal TestAccessor GetTestAccessor()
+        => new(this);
+
+    internal readonly struct TestAccessor(MSBuildWorkspace workspace)
+    {
+        public void SetBeforeKillHungBuildHostProcess(Action<Process>? beforeKillHungBuildHostProcess)
+            => workspace._loader.GetTestAccessor().SetBeforeKillHungBuildHostProcess(beforeKillHungBuildHostProcess);
+    }
+
+    protected override void Dispose(bool finalize)
+    {
+        // Dispose the LoggerFactory to ensure any logger providers added via AddLoggerProvider are disposed.
+        _loader.LoggerFactory.Dispose();
+        base.Dispose(finalize);
+    }
 
     /// <summary>
     /// The MSBuild properties used when interpreting project files.
@@ -104,11 +122,11 @@ public sealed class MSBuildWorkspace : Workspace
     /// <summary>
     /// Diagnostics logged while opening solutions, projects and documents.
     /// </summary>
-    public ImmutableList<WorkspaceDiagnostic> Diagnostics => _reporter.Diagnostics;
+    public ImmutableList<WorkspaceDiagnostic> Diagnostics => Reporter.Diagnostics;
 
     protected internal override void OnWorkspaceFailed(WorkspaceDiagnostic diagnostic)
     {
-        _reporter.AddDiagnostic(diagnostic);
+        Reporter.AddDiagnostic(diagnostic);
         base.OnWorkspaceFailed(diagnostic);
     }
 
@@ -129,8 +147,7 @@ public sealed class MSBuildWorkspace : Workspace
     /// An project is unrecognized if it either has 
     ///   a) an invalid file path, 
     ///   b) a non-existent project file,
-    ///   c) has an unrecognized file extension or 
-    ///   d) a file extension associated with an unsupported language.
+    ///   c) has an unrecognized file extension
     /// 
     /// If unrecognized projects cannot be skipped a corresponding exception is thrown.
     /// </summary>
@@ -213,13 +230,7 @@ public sealed class MSBuildWorkspace : Workspace
         return this.CurrentSolution;
     }
 
-    /// <summary>
-    /// Open a project file and all referenced projects.
-    /// </summary>
-    /// <param name="projectFilePath">The path to the project file to be opened. This may be an absolute path or a path relative to the
-    /// current working directory.</param>
-    /// <param name="progress">An optional <see cref="IProgress{T}"/> that will receive updates as the project is opened.</param>
-    /// <param name="cancellationToken">An optional <see cref="CancellationToken"/> to allow cancellation of this operation.</param>
+    /// <inheritdoc cref="OpenProjectAsync(string, ILogger, IProgress{ProjectLoadProgress}, CancellationToken)"/>
 #pragma warning disable RS0026 // Special case to avoid ILogger type getting loaded in downstream clients
     public Task<Project> OpenProjectAsync(
 #pragma warning restore RS0026
@@ -234,8 +245,13 @@ public sealed class MSBuildWorkspace : Workspace
     /// <param name="projectFilePath">The path to the project file to be opened. This may be an absolute path or a path relative to the
     /// current working directory.</param>
     /// <param name="progress">An optional <see cref="IProgress{T}"/> that will receive updates as the project is opened.</param>
-    /// <param name="msbuildLogger">An optional <see cref="ILogger"/> that will log msbuild results..</param>
+    /// <param name="msbuildLogger">An optional <see cref="ILogger"/> that will log msbuild results.</param>
     /// <param name="cancellationToken">An optional <see cref="CancellationToken"/> to allow cancellation of this operation.</param>
+    /// <remarks>
+    /// Supports file-based apps too (just pass the path to the entry point C# file as <paramref name="projectFilePath"/>).
+    /// <paramref name="projectFilePath"/> is treated as a file-based app only if it does not have a recognized project file extension (see also <see cref="AssociateFileExtensionWithLanguage"/>),
+    /// it is a file that exists, and has either the <c>.cs</c> extension, or has the bytes <c>#!</c> (shebang) as the first two bytes of its content.
+    /// </remarks>
 #pragma warning disable RS0026 // Special case to avoid ILogger type getting loaded in downstream clients
     public async Task<Project> OpenProjectAsync(
 #pragma warning restore RS0026
@@ -315,7 +331,7 @@ public sealed class MSBuildWorkspace : Workspace
             try
             {
                 Debug.Assert(_applyChangesBuildHostProcessManager == null);
-                _applyChangesBuildHostProcessManager = new BuildHostProcessManager(Properties, loggerFactory: _loggerFactory);
+                _applyChangesBuildHostProcessManager = new BuildHostProcessManager(_knownCommandLineParserLanguages, Properties, loggerFactory: _loader.LoggerFactory);
 
                 return base.TryApplyChanges(newSolution, progressTracker);
             }
@@ -342,14 +358,22 @@ public sealed class MSBuildWorkspace : Workspace
                 var projectPath = project.FilePath;
                 if (projectPath is null)
                 {
-                    _reporter.Report(new ProjectDiagnostic(WorkspaceDiagnosticKind.Failure,
+                    Reporter.Report(new ProjectDiagnostic(WorkspaceDiagnosticKind.Failure,
                                                            string.Format(WorkspaceMSBuildResources.Project_path_for_0_was_null, project.Name),
                                                            projectChanges.ProjectId));
                     return;
                 }
 
-                if (_projectFileExtensionRegistry.TryGetLanguageNameFromProjectPath(projectPath, DiagnosticReportingMode.Log, out var languageName))
+                if (_loader.ProjectFileExtensionRegistry.TryGetLanguageNameFromProjectPath(projectPath, DiagnosticReportingMode.Log, out var languageName, out var isFileBasedApp))
                 {
+                    if (isFileBasedApp)
+                    {
+                        Reporter.Report(new ProjectDiagnostic(WorkspaceDiagnosticKind.Failure,
+                            string.Format(WorkspaceMSBuildResources.Applying_updates_to_file_based_apps_is_not_supported_0, projectPath),
+                            projectChanges.ProjectId));
+                        return;
+                    }
+
                     try
                     {
                         var buildHost = _applyChangesBuildHostProcessManager.GetBuildHostWithFallbackAsync(projectPath, CancellationToken.None).Result;
@@ -357,7 +381,7 @@ public sealed class MSBuildWorkspace : Workspace
                     }
                     catch (IOException exception)
                     {
-                        _reporter.Report(new ProjectDiagnostic(WorkspaceDiagnosticKind.Failure, exception.Message, projectChanges.ProjectId));
+                        Reporter.Report(new ProjectDiagnostic(WorkspaceDiagnosticKind.Failure, exception.Message, projectChanges.ProjectId));
                     }
                 }
             }
@@ -374,12 +398,22 @@ public sealed class MSBuildWorkspace : Workspace
                 }
                 catch (IOException exception)
                 {
-                    _reporter.Report(new ProjectDiagnostic(WorkspaceDiagnosticKind.Failure, exception.Message, projectChanges.ProjectId));
+                    Reporter.Report(new ProjectDiagnostic(WorkspaceDiagnosticKind.Failure, exception.Message, projectChanges.ProjectId));
                 }
             }
         }
         finally
         {
+            // Ensure that even if we have an issue with disposal that we still null out the field.
+            try
+            {
+                _applyChangesProjectFile?.DisposeAsync().AsTask().GetAwaiter().GetResult();
+            }
+            catch (Exception exception)
+            {
+                Reporter.Report(new ProjectDiagnostic(WorkspaceDiagnosticKind.Failure, exception.Message, projectChanges.ProjectId));
+            }
+
             _applyChangesProjectFile = null;
         }
     }
@@ -393,7 +427,7 @@ public sealed class MSBuildWorkspace : Workspace
             if (document.FilePath is null)
             {
                 var message = string.Format(WorkspaceMSBuildResources.Path_for_document_0_was_null, document.Name);
-                _reporter.Report(new DocumentDiagnostic(WorkspaceDiagnosticKind.Failure, message, document.Id));
+                Reporter.Report(new DocumentDiagnostic(WorkspaceDiagnosticKind.Failure, message, document.Id));
                 return;
             }
 
@@ -411,7 +445,7 @@ public sealed class MSBuildWorkspace : Workspace
             if (document.FilePath is null)
             {
                 var message = string.Format(WorkspaceMSBuildResources.Path_for_additional_document_0_was_null, document.Name);
-                _reporter.Report(new DocumentDiagnostic(WorkspaceDiagnosticKind.Failure, message, document.Id));
+                Reporter.Report(new DocumentDiagnostic(WorkspaceDiagnosticKind.Failure, message, document.Id));
                 return;
             }
 
@@ -504,7 +538,7 @@ public sealed class MSBuildWorkspace : Workspace
         }
         catch (IOException exception)
         {
-            _reporter.Report(new DocumentDiagnostic(WorkspaceDiagnosticKind.Failure, exception.Message, id));
+            Reporter.Report(new DocumentDiagnostic(WorkspaceDiagnosticKind.Failure, exception.Message, id));
         }
     }
 
@@ -532,15 +566,15 @@ public sealed class MSBuildWorkspace : Workspace
         }
         catch (IOException exception)
         {
-            _reporter.Report(new DocumentDiagnostic(WorkspaceDiagnosticKind.Failure, exception.Message, documentId));
+            Reporter.Report(new DocumentDiagnostic(WorkspaceDiagnosticKind.Failure, exception.Message, documentId));
         }
         catch (NotSupportedException exception)
         {
-            _reporter.Report(new DocumentDiagnostic(WorkspaceDiagnosticKind.Failure, exception.Message, documentId));
+            Reporter.Report(new DocumentDiagnostic(WorkspaceDiagnosticKind.Failure, exception.Message, documentId));
         }
         catch (UnauthorizedAccessException exception)
         {
-            _reporter.Report(new DocumentDiagnostic(WorkspaceDiagnosticKind.Failure, exception.Message, documentId));
+            Reporter.Report(new DocumentDiagnostic(WorkspaceDiagnosticKind.Failure, exception.Message, documentId));
         }
     }
 
@@ -576,7 +610,7 @@ public sealed class MSBuildWorkspace : Workspace
         if (identity is null)
         {
             var message = string.Format(WorkspaceMSBuildResources.Unable_to_add_metadata_reference_0, metadataReference.Display);
-            _reporter.Report(new ProjectDiagnostic(WorkspaceDiagnosticKind.Failure, message, projectId));
+            Reporter.Report(new ProjectDiagnostic(WorkspaceDiagnosticKind.Failure, message, projectId));
             return;
         }
 
@@ -586,19 +620,19 @@ public sealed class MSBuildWorkspace : Workspace
             {
                 // Since the location of the reference is in GAC, need to use full identity name to find it again.
                 // This typically happens when you base the reference off of a reflection assembly location.
-                _applyChangesProjectFile.AddMetadataReferenceAsync(identity.GetDisplayName(), metadataReference.Properties.Aliases, hintPath: null, CancellationToken.None).Wait();
+                _applyChangesProjectFile.AddMetadataReferenceAsync(identity.GetDisplayName(), [.. metadataReference.Properties.Aliases], hintPath: null, CancellationToken.None).Wait();
             }
             else if (IsFrameworkReferenceAssembly(peRef.FilePath))
             {
                 // just use short name since this will be resolved by msbuild relative to the known framework reference assemblies.
                 var fileName = identity != null ? identity.Name : Path.GetFileNameWithoutExtension(peRef.FilePath);
-                _applyChangesProjectFile.AddMetadataReferenceAsync(fileName, metadataReference.Properties.Aliases, hintPath: null, CancellationToken.None).Wait();
+                _applyChangesProjectFile.AddMetadataReferenceAsync(fileName, [.. metadataReference.Properties.Aliases], hintPath: null, CancellationToken.None).Wait();
             }
             else // other location -- need hint to find correct assembly
             {
                 var relativePath = PathUtilities.GetRelativePath(Path.GetDirectoryName(CurrentSolution.GetRequiredProject(projectId).FilePath)!, peRef.FilePath);
                 var fileName = Path.GetFileNameWithoutExtension(peRef.FilePath);
-                _applyChangesProjectFile.AddMetadataReferenceAsync(fileName, metadataReference.Properties.Aliases, relativePath, CancellationToken.None).Wait();
+                _applyChangesProjectFile.AddMetadataReferenceAsync(fileName, [.. metadataReference.Properties.Aliases], relativePath, CancellationToken.None).Wait();
             }
         }
 
@@ -612,7 +646,7 @@ public sealed class MSBuildWorkspace : Workspace
         if (identity is null)
         {
             var message = string.Format(WorkspaceMSBuildResources.Unable_to_remove_metadata_reference_0, metadataReference.Display);
-            _reporter.Report(new ProjectDiagnostic(WorkspaceDiagnosticKind.Failure, message, projectId));
+            Reporter.Report(new ProjectDiagnostic(WorkspaceDiagnosticKind.Failure, message, projectId));
             return;
         }
 
@@ -655,7 +689,7 @@ public sealed class MSBuildWorkspace : Workspace
         if (project?.FilePath is not null)
         {
             // Only "ReferenceOutputAssembly=true" project references are represented in the workspace:
-            var reference = new ProjectFileReference(project.FilePath, projectReference.Aliases, referenceOutputAssembly: true);
+            var reference = new ProjectFileReference(project.FilePath, [.. projectReference.Aliases], referenceOutputAssembly: true);
             _applyChangesProjectFile.AddProjectReferenceAsync(project.Name, reference, CancellationToken.None).Wait();
         }
 
@@ -732,4 +766,3 @@ public sealed class MSBuildWorkspace : Workspace
     }
     #endregion
 }
-

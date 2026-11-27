@@ -1,0 +1,44 @@
+﻿RazorDocument - [0..65)::65 - [@{LF    var val = 0 usingLF    {LF        0 => "value"LF    };LF}]
+    MarkupBlock - [0..65)::65
+        MarkupTextLiteral - [0..0)::0 - [] - Gen<Markup>
+            Marker;[];
+        CSharpCodeBlock - [0..65)::65
+            CSharpStatement - [0..65)::65
+                CSharpTransition - [0..1)::1 - Gen<None>
+                    Transition;[@];
+                CSharpStatementBody - [1..65)::64
+                    RazorMetaCode - [1..2)::1 - Gen<None>
+                        LeftBrace;[{];
+                    CSharpCodeBlock - [2..64)::62
+                        CSharpStatementLiteral - [2..64)::62 - [LF    var val = 0 usingLF    {LF        0 => "value"LF    };LF] - Gen<Stmt>
+                            NewLine;[LF];
+                            Whitespace;[    ];
+                            Keyword;[var];
+                            Whitespace;[ ];
+                            Identifier;[val];
+                            Whitespace;[ ];
+                            Assign;[=];
+                            Whitespace;[ ];
+                            NumericLiteral;[0];
+                            Whitespace;[ ];
+                            Keyword;[using];
+                            NewLine;[LF];
+                            Whitespace;[    ];
+                            LeftBrace;[{];
+                            NewLine;[LF];
+                            Whitespace;[        ];
+                            NumericLiteral;[0];
+                            Whitespace;[ ];
+                            CSharpOperator;[=>];
+                            Whitespace;[ ];
+                            StringLiteral;["value"];
+                            NewLine;[LF];
+                            Whitespace;[    ];
+                            RightBrace;[}];
+                            Semicolon;[;];
+                            NewLine;[LF];
+                    RazorMetaCode - [64..65)::1 - Gen<None>
+                        RightBrace;[}];
+        MarkupTextLiteral - [65..65)::0 - [] - Gen<Markup>
+            Marker;[];
+    EndOfFile;[];

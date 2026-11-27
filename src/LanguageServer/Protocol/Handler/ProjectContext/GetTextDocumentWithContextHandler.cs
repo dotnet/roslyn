@@ -5,13 +5,14 @@
 using System;
 using System.Collections.Generic;
 using System.Composition;
+using System.IO.Hashing;
 using System.Linq;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.LanguageServer.Protocol;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler;
 
@@ -26,25 +27,25 @@ internal class GetTextDocumentWithContextHandler() : ILspServiceDocumentRequestH
 
     public TextDocumentIdentifier GetTextDocumentIdentifier(VSGetProjectContextsParams request) => new() { DocumentUri = request.TextDocument.DocumentUri };
 
-    public Task<VSProjectContextList?> HandleRequestAsync(VSGetProjectContextsParams request, RequestContext context, CancellationToken cancellationToken)
+    public async Task<VSProjectContextList?> HandleRequestAsync(VSGetProjectContextsParams request, RequestContext context, CancellationToken cancellationToken)
     {
-        Contract.ThrowIfNull(context.Workspace);
-        Contract.ThrowIfNull(context.Solution);
+        var workspace = await context.GetRequiredWorkspaceAsync(cancellationToken).ConfigureAwait(false);
+        var solution = await context.GetRequiredSolutionAsync(cancellationToken).ConfigureAwait(false);
 
-        // We specifically don't use context.Document here because we want multiple. We also don't need
+        // We specifically don't use the request document here because we want multiple. We also don't need
         // all of the document info, just the Id is enough
-        var documentIds = context.Solution.GetDocumentIds(request.TextDocument.DocumentUri);
+        var documentIds = solution.GetDocumentIds(request.TextDocument.DocumentUri);
 
         if (!documentIds.Any())
         {
-            return SpecializedTasks.Null<VSProjectContextList>();
+            return null;
         }
 
         var contexts = new List<VSProjectContext>();
 
         foreach (var documentId in documentIds)
         {
-            var project = context.Solution.GetRequiredProject(documentId.ProjectId);
+            var project = solution.GetRequiredProject(documentId.ProjectId);
             var projectContext = ProtocolConversions.ProjectToProjectContext(project);
             contexts.Add(projectContext);
         }
@@ -55,12 +56,19 @@ internal class GetTextDocumentWithContextHandler() : ILspServiceDocumentRequestH
         // ID in GetDocumentIdsWithFilePath, but there's really nothing we can do since we don't have contexts for
         // close documents anyways.
         var openDocumentId = documentIds.First();
-        var currentContextDocumentId = context.Workspace.GetDocumentIdInCurrentContext(openDocumentId);
+        var currentContextDocumentId = workspace.GetDocumentIdInCurrentContext(openDocumentId);
 
-        return Task.FromResult<VSProjectContextList?>(new VSProjectContextList
+        // Create a key that uniquely identifies this set of contexts. The client side stores the preferred context
+        // against this key on the client side so we can restore the active context across different documents.
+        var keyString = string.Join(";", contexts.Select(c => c.Label).OrderBy(l => l));
+        var keyHash = XxHash128.Hash(Encoding.Unicode.GetBytes(keyString));
+        var key = Convert.ToBase64String(keyHash);
+
+        return new VSProjectContextList
         {
+            Key = key,
             ProjectContexts = [.. contexts],
             DefaultIndex = documentIds.IndexOf(d => d == currentContextDocumentId)
-        });
+        };
     }
 }

@@ -1,0 +1,28 @@
+﻿RazorDocument - [0..115)::115 - [@{LF#define SYMBOLLF#if SYMBOLLF#undef SYMBOLLF#if SYMBOLLF    var x = 1;LF#endifLF#elseLF    var x = 1;LF#endifLF}]
+    MarkupBlock - [0..115)::115
+        MarkupTextLiteral - [0..0)::0 - [] - Gen<Markup>
+            Marker;[];
+        CSharpCodeBlock - [0..115)::115
+            CSharpStatement - [0..115)::115
+                CSharpTransition - [0..1)::1 - Gen<None>
+                    Transition;[@];
+                CSharpStatementBody - [1..115)::114
+                    RazorMetaCode - [1..2)::1 - Gen<None>
+                        LeftBrace;[{];
+                    CSharpCodeBlock - [2..114)::112
+                        CSharpStatementLiteral - [2..114)::112 - [LF#define SYMBOLLF#if SYMBOLLF#undef SYMBOLLF#if SYMBOLLF    var x = 1;LF#endifLF#elseLF    var x = 1;LF#endifLF] - Gen<Stmt>
+                            NewLine;[LF];
+                            CSharpDirective;[#define SYMBOLLF];RZ1045(4:1,0 [16] )
+                            CSharpDirective;[#if SYMBOLLF];
+                            CSharpDirective;[#undef SYMBOLLF];RZ1045(32:3,0 [15] )
+                            CSharpDirective;[#if SYMBOLLF];
+                            CSharpDisabledText;[    var x = 1;LF];
+                            CSharpDirective;[#endifLF];
+                            CSharpDirective;[#elseLF];
+                            CSharpDisabledText;[    var x = 1;LF];
+                            CSharpDirective;[#endifLF];
+                    RazorMetaCode - [114..115)::1 - Gen<None>
+                        RightBrace;[}];
+        MarkupTextLiteral - [115..115)::0 - [] - Gen<Markup>
+            Marker;[];
+    EndOfFile;[];

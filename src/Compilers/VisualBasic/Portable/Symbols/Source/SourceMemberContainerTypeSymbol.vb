@@ -61,6 +61,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             ReportedBaseClassConstraintsDiagnostics = &H4    ' Set if base class constraints diagnostics have been reported.
             ReportedInterfacesConstraintsDiagnostics = &H8    ' Set if constraints diagnostics for base/implemented interfaces have been reported.
             ReportedCodeAnalysisEmbeddedAttributeDiagnostics = &H10 ' Set if the symbol has been checked for Microsoft.CodeAnalysis.EmbeddedAttribute definition diagnostics.
+            ReportedLayoutAttributeDiagnostics = &H20 ' Set if the symbol has been checked for both StructLayout and ExtendedLayout attributes.
         End Enum
 
         ' Containing symbol
@@ -327,7 +328,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Sub
 
         Private Sub GenerateVarianceDiagnostics()
-            If (m_lazyState And StateFlags.ReportedVarianceDiagnostics) <> 0 Then
+            If (Volatile.Read(m_lazyState) And StateFlags.ReportedVarianceDiagnostics) <> 0 Then
                 Return
             End If
 
@@ -1660,11 +1661,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Property
 
         Private Function GetMembersAndInitializers() As MembersAndInitializers
-            If _lazyMembersAndInitializers Is Nothing Then
+            If Volatile.Read(_lazyMembersAndInitializers) Is Nothing Then
                 Dim diagBag = BindingDiagnosticBag.GetInstance()
                 Dim membersAndInitializers = BuildMembersAndInitializers(diagBag)
                 m_containingModule.AtomicStoreReferenceAndDiagnostics(_lazyMembersAndInitializers, membersAndInitializers, diagBag)
-                Debug.Assert(_lazyMembersAndInitializers IsNot Nothing)
+                Debug.Assert(Volatile.Read(_lazyMembersAndInitializers) IsNot Nothing)
                 diagBag.Free()
 
                 Dim unused = Me.KnownCircularStruct
@@ -1674,7 +1675,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 #End If
             End If
 
-            Return _lazyMembersAndInitializers
+            Return Volatile.Read(_lazyMembersAndInitializers)
         End Function
 
 #If DEBUG Then
@@ -1684,7 +1685,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Friend ReadOnly Property MembersHaveBeenCreated As Boolean
             Get
-                Return _lazyMembersAndInitializers IsNot Nothing
+                Return Volatile.Read(_lazyMembersAndInitializers) IsNot Nothing
             End Get
         End Property
 
@@ -3151,7 +3152,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Function
 
         Public Overloads Overrides Function GetMembers() As ImmutableArray(Of Symbol)
-            If (m_lazyState And StateFlags.FlattenedMembersIsSortedMask) <> 0 Then
+            If (Volatile.Read(m_lazyState) And StateFlags.FlattenedMembersIsSortedMask) <> 0 Then
                 Return _lazyMembersFlattened
 
             Else
@@ -3180,7 +3181,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Function
 
         Friend Overrides Function GetSimpleNonTypeMembers(name As String) As ImmutableArray(Of Symbol)
-            If _lazyMembersAndInitializers IsNot Nothing OrElse MemberNames.Contains(name, IdentifierComparison.Comparer) Then
+            If Volatile.Read(_lazyMembersAndInitializers) IsNot Nothing OrElse MemberNames.Contains(name, IdentifierComparison.Comparer) Then
                 Return GetMembers(name)
             End If
 
@@ -4088,4 +4089,3 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
     End Class
 
 End Namespace
-

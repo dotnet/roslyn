@@ -14,6 +14,7 @@ using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
 using System.Text;
 using System.Threading;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
@@ -2662,6 +2663,175 @@ class C
                 .Verify();
         }
 
+        /// <summary>
+        /// Verifies that deleting one of two previously emitted lambdas after a compilation-only advance
+        /// leaves a throwing body for the deleted lambda and reuses the retained lambda's handle.
+        /// </summary>
+        [Fact]
+        public void Lambda_Delete_OldSymbolFromCompilationNewerThanBaseline()
+        {
+            using var _ = new EditAndContinueTest()
+                .AddBaseline(
+                    source: """
+                        using System;
+
+                        class C
+                        {
+                            void F() { }
+                        }
+                        """,
+                    validator: g =>
+                    {
+                    })
+                .AddGeneration(
+                    source: """
+                        using System;
+
+                        class C
+                        {
+                            void F()
+                            {
+                                _ = new Action(() => Console.WriteLine(1));
+                                _ = new Action(<N:0>() => Console.WriteLine(2)</N:0>);
+                            }
+                        }
+                        """,
+                    edits:
+                    [
+                        Edit(SemanticEditKind.Update, c => c.GetMember("C.F"), preserveLocalVariables: true),
+                    ],
+                    validator: g =>
+                    {
+                        g.VerifyMethodDefNames("F", ".cctor", ".ctor", "<F>b__0#1_0#1", "<F>b__0#1_1#1");
+                        g.VerifyEncLogDefinitions(
+                        [
+                            Row(3, TableIndex.TypeDef, EditAndContinueOperation.Default),
+                            Row(3, TableIndex.TypeDef, EditAndContinueOperation.AddField),
+                            Row(1, TableIndex.Field, EditAndContinueOperation.Default),
+                            Row(3, TableIndex.TypeDef, EditAndContinueOperation.AddField),
+                            Row(2, TableIndex.Field, EditAndContinueOperation.Default),
+                            Row(3, TableIndex.TypeDef, EditAndContinueOperation.AddField),
+                            Row(3, TableIndex.Field, EditAndContinueOperation.Default),
+                            Row(1, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                            Row(3, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),
+                            Row(3, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                            Row(3, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),
+                            Row(4, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                            Row(3, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),
+                            Row(5, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                            Row(3, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),
+                            Row(6, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                            Row(4, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                            Row(1, TableIndex.NestedClass, EditAndContinueOperation.Default)
+                        ]);
+                        g.VerifyEncMapDefinitions(
+                        [
+                            Handle(3, TableIndex.TypeDef),
+                            Handle(1, TableIndex.Field),
+                            Handle(2, TableIndex.Field),
+                            Handle(3, TableIndex.Field),
+                            Handle(1, TableIndex.MethodDef),
+                            Handle(3, TableIndex.MethodDef),
+                            Handle(4, TableIndex.MethodDef),
+                            Handle(5, TableIndex.MethodDef),
+                            Handle(6, TableIndex.MethodDef),
+                            Handle(4, TableIndex.CustomAttribute),
+                            Handle(1, TableIndex.NestedClass)
+                        ]);
+                    })
+                .AddCompilationWithoutDelta()
+                .AddGeneration(
+                    source: """
+                        using System;
+
+                        class C
+                        {
+                            void F()
+                            {
+                                _ = new Action(<N:0>() => Console.WriteLine(2)</N:0>);
+                            }
+                        }
+                        """,
+                    edits:
+                    [
+                        Edit(SemanticEditKind.Update, c => c.GetMember("C.F"), preserveLocalVariables: true),
+                    ],
+                    validator: g =>
+                    {
+                        g.VerifyMethodDefNames("F", "<F>b__0#1_0#1", "<F>b__0#1_1#1", ".ctor");
+                        g.VerifyEncLogDefinitions(
+                        [
+                            Row(1, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
+                            Row(4, TableIndex.TypeDef, EditAndContinueOperation.Default),
+                            Row(4, TableIndex.TypeDef, EditAndContinueOperation.AddField),
+                            Row(4, TableIndex.Field, EditAndContinueOperation.Default),
+                            Row(4, TableIndex.TypeDef, EditAndContinueOperation.AddField),
+                            Row(5, TableIndex.Field, EditAndContinueOperation.Default),
+                            Row(1, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                            Row(5, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                            Row(6, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                            Row(4, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),
+                            Row(7, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                            Row(5, TableIndex.CustomAttribute, EditAndContinueOperation.Default)
+                        ]);
+                        g.VerifyIL("""
+                            F
+                            {
+                              // Code size       30 (0x1e)
+                              .maxstack  8
+                              IL_0000:  nop
+                              IL_0001:  ldsfld     0x04000003
+                              IL_0006:  brtrue.s   IL_001d
+                              IL_0008:  ldsfld     0x04000001
+                              IL_000d:  ldftn      0x06000006
+                              IL_0013:  newobj     0x0A00000A
+                              IL_0018:  stsfld     0x04000003
+                              IL_001d:  ret
+                            }
+                            <F>b__0#1_0#1
+                            {
+                              // Code size       12 (0xc)
+                              .maxstack  8
+                              IL_0000:  ldstr      0x70000009
+                              IL_0005:  ldc.i4.m1
+                              IL_0006:  newobj     0x06000007
+                              IL_000b:  throw
+                            }
+                            <F>b__0#1_1#1
+                            {
+                              // Code size        8 (0x8)
+                              .maxstack  8
+                              IL_0000:  ldc.i4.2
+                              IL_0001:  call       0x0A00000B
+                              IL_0006:  nop
+                              IL_0007:  ret
+                            }
+                            .ctor
+                            {
+                              // Code size       33 (0x21)
+                              .maxstack  2
+                              IL_0000:  ldarg.0
+                              IL_0001:  ldarg.1
+                              IL_0002:  call       0x0A00000C
+                              IL_0007:  nop
+                              IL_0008:  ldarg.0
+                              IL_0009:  ldarg.2
+                              IL_000a:  stfld      0x04000004
+                              IL_000f:  ldsfld     0x04000005
+                              IL_0014:  dup
+                              IL_0015:  stloc.0
+                              IL_0016:  brfalse.s  IL_0020
+                              IL_0018:  ldloc.0
+                              IL_0019:  ldarg.0
+                              IL_001a:  callvirt   0x0A00000D
+                              IL_001f:  nop
+                              IL_0020:  ret
+                            }
+                            """);
+                    })
+                .Verify();
+        }
+
         [Fact]
         [WorkItem("https://github.com/dotnet/roslyn/issues/67243")]
         public void SynthesizedDelegates_Ordering()
@@ -4627,7 +4797,7 @@ class C
                 .Verify();
         }
 
-        [Fact]
+        [ConditionalFact(typeof(IsEnglishLocal))]
         public void Property_DeleteAndAdd_WithAccessorBodies()
         {
             using var _ = new EditAndContinueTest()
@@ -4786,7 +4956,7 @@ class C
                 .Verify();
         }
 
-        [Fact]
+        [ConditionalFact(typeof(IsEnglishLocal))]
         public void Property_DeleteAndAdd_OneAccessor()
         {
             using var _ = new EditAndContinueTest()
@@ -5198,7 +5368,7 @@ class C
                 .Verify();
         }
 
-        [Fact]
+        [ConditionalFact(typeof(IsEnglishLocal))]
         public void Property_ChangeReturnType()
         {
             using var _ = new EditAndContinueTest()
@@ -5441,7 +5611,7 @@ class C
                 .Verify();
         }
 
-        [Fact]
+        [ConditionalFact(typeof(IsEnglishLocal))]
         public void Property_Rename()
         {
             using var _ = new EditAndContinueTest()
@@ -5811,7 +5981,7 @@ class C
                 .Verify();
         }
 
-        [Fact]
+        [ConditionalFact(typeof(IsEnglishLocal))]
         public void Indexer_ChangeParameterType()
         {
             using var _ = new EditAndContinueTest()
@@ -6494,7 +6664,7 @@ class C
                 .Verify();
         }
 
-        [Fact]
+        [ConditionalFact(typeof(IsEnglishLocal))]
         public void Event_Rename()
         {
             using var _ = new EditAndContinueTest()
@@ -13792,6 +13962,7 @@ public class C
         }
 
         [Fact]
+        [ValidatePooledObjects(LeakReason = "PDB error exception path leaks pooled objects")]
         public void PdbReadingErrors_PassThruExceptions()
         {
             var source0 = MarkedSource(@"
@@ -17161,7 +17332,7 @@ class C
                     expectedErrors:
                     [
                         // error CS7043: Cannot emit update; constructor 'System.Exception..ctor(string)' is missing.
-                        Diagnostic(ErrorCode.ERR_EncUpdateFailedMissingSymbol).WithArguments("constructor", "System.Exception..ctor(string)").WithLocation(1, 1)
+                        Diagnostic(ErrorCode.ERR_EncUpdateFailedMissingSymbol).WithArguments(CodeAnalysisResources.Constructor, "System.Exception..ctor(string)").WithLocation(1, 1)
                     ])
                 .Verify();
         }
@@ -17212,7 +17383,7 @@ class C
                     expectedErrors:
                     [
                         // error CS7043: Cannot emit update; method 'void System.Action<T>.Invoke(T arg)' is missing.
-                        Diagnostic(ErrorCode.ERR_EncUpdateFailedMissingSymbol).WithArguments("method", "void System.Action<T>.Invoke(T arg)").WithLocation(1, 1)
+                        Diagnostic(ErrorCode.ERR_EncUpdateFailedMissingSymbol).WithArguments(CodeAnalysisResources.Method, "void System.Action<T>.Invoke(T arg)").WithLocation(1, 1)
                     ])
                 .Verify();
         }
@@ -17295,7 +17466,7 @@ class C
                 .Verify();
         }
 
-        [Fact]
+        [ConditionalFact(typeof(IsEnglishLocal))]
         public void Method_Delete_PredefinedHotReloadException()
         {
             var exceptionSource = """
@@ -17379,7 +17550,7 @@ class C
                 .Verify();
         }
 
-        [Fact]
+        [ConditionalFact(typeof(IsEnglishLocal))]
         public void Method_Delete_PredefinedHotReloadException_Inserted()
         {
             var exceptionSource = """
@@ -17518,10 +17689,10 @@ class C
                 .Verify();
         }
 
-        [Fact]
+        [ConditionalFact(typeof(IsEnglishLocal))]
         public void Method_Delete_PredefinedHotReloadException_DataSectionLiterals()
         {
-            var parseOptions = TestOptions.Regular.WithFeature("experimental-data-section-string-literals", "0");
+            var parseOptions = TestOptions.Regular.WithFeature(Feature.ExperimentalDataSectionStringLiterals, "0");
 
             var exceptionSource = """
                 namespace System.Runtime.CompilerServices
@@ -18069,6 +18240,96 @@ class C
                 .Verify();
         }
 
+        /// <summary>
+        /// The emit baseline of a project is not updated when the project has no changes to emit,
+        /// but the solution snapshot might move forward, e.g. when a dependency of the project is updated.
+        /// The old symbols of the next edits to the project then belong to a compilation that is newer than
+        /// the compilation associated with the baseline. Here, the baseline is associated with generation 1
+        /// compilation, while the old symbols of generation 2 edits come from a newer compilation of the same source.
+        /// Deleting the method added in generation 1 requires its handle to be found in the baseline.
+        /// </summary>
+        [Fact]
+        public void Method_DeleteAdded_OldSymbolFromCompilationNewerThanBaseline()
+        {
+            using var _ = new EditAndContinueTest()
+                .AddBaseline(
+                    source: """
+                        class C
+                        {
+                            void N() { System.Console.WriteLine(0); }
+                        }
+                        """,
+                    validator: g =>
+                    {
+                        g.VerifyTypeDefNames("<Module>", "C");
+                        g.VerifyMethodDefNames("N", ".ctor");
+                    })
+
+                .AddGeneration(
+                    source: """
+                        class C
+                        {
+                            void N() { System.Console.WriteLine(0); }
+                            void M() { }
+                        }
+                        """,
+                    edits:
+                    [
+                        Edit(SemanticEditKind.Insert, symbolProvider: c => c.GetMember("C.M")),
+                    ],
+                    validator: g =>
+                    {
+                        g.VerifyTypeDefNames();
+                        g.VerifyMethodDefNames("M");
+                    })
+
+                .AddCompilationWithoutDelta()
+
+                .AddGeneration(
+                    source: """
+                        class C
+                        {
+                            void N() { System.Console.WriteLine(2); }
+                        }
+                        """,
+                    edits:
+                    [
+                        Edit(SemanticEditKind.Delete, symbolProvider: c => c.GetMember("C.M"), newSymbolProvider: c => c.GetMember("C")),
+                        Edit(SemanticEditKind.Update, symbolProvider: c => c.GetMember("C.N")),
+                    ],
+                    validator: g =>
+                    {
+                        g.VerifyTypeDefNames("HotReloadException");
+                        g.VerifyMethodDefNames("N", "M", ".ctor");
+                        g.VerifyEncLogDefinitions(
+                        [
+                            Row(1, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
+                            Row(3, TableIndex.TypeDef, EditAndContinueOperation.Default),
+                            Row(3, TableIndex.TypeDef, EditAndContinueOperation.AddField),
+                            Row(1, TableIndex.Field, EditAndContinueOperation.Default),
+                            Row(3, TableIndex.TypeDef, EditAndContinueOperation.AddField),
+                            Row(2, TableIndex.Field, EditAndContinueOperation.Default),
+                            Row(1, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                            Row(3, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                            Row(3, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),
+                            Row(4, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                            Row(4, TableIndex.CustomAttribute, EditAndContinueOperation.Default)
+                        ]);
+                        g.VerifyEncMapDefinitions(
+                        [
+                            Handle(3, TableIndex.TypeDef),
+                            Handle(1, TableIndex.Field),
+                            Handle(2, TableIndex.Field),
+                            Handle(1, TableIndex.MethodDef),
+                            Handle(3, TableIndex.MethodDef),
+                            Handle(4, TableIndex.MethodDef),
+                            Handle(4, TableIndex.CustomAttribute),
+                            Handle(1, TableIndex.StandAloneSig)
+                        ]);
+                    })
+                .Verify();
+        }
+
         [Fact]
         public void Method_DeleteThenAdd_WithAttributes()
         {
@@ -18430,7 +18691,7 @@ class C
                 .Verify();
         }
 
-        [Fact]
+        [ConditionalFact(typeof(IsEnglishLocal))]
         public void Method_Delete_WithLambda()
         {
             using var _ = new EditAndContinueTest()
@@ -18679,7 +18940,7 @@ class C
                 .Verify();
         }
 
-        [Fact]
+        [ConditionalFact(typeof(IsEnglishLocal))]
         public void Method_Delete_WithLambda_AddedMethod()
         {
             using var _ = new EditAndContinueTest()
@@ -18816,7 +19077,7 @@ class C
                 .Verify();
         }
 
-        [Fact]
+        [ConditionalFact(typeof(IsEnglishLocal))]
         public void Method_Delete_WithLambda_MultipleGenerations()
         {
             var common = """
@@ -19146,7 +19407,7 @@ class C
                 .Verify();
         }
 
-        [Fact]
+        [ConditionalFact(typeof(IsEnglishLocal))]
         public void Method_Delete_WithLocalFunction_MultipleGenerations()
         {
             var common = """
@@ -19369,7 +19630,7 @@ class C
                         g.VerifyIL("""
                             F
                             {
-                              // Code size       29 (0x1d)
+                              // Code size       34 (0x22)
                               .maxstack  2
                               IL_0000:  newobj     0x0A000011
                               IL_0005:  stloc.0
@@ -19382,8 +19643,9 @@ class C
                               IL_0010:  ldloc.0
                               IL_0011:  ldflda     0x0A000012
                               IL_0016:  callvirt   0x0A000013
-                              IL_001b:  pop
-                              IL_001c:  ret
+                              IL_001b:  ldobj      0x1B000005
+                              IL_0020:  pop
+                              IL_0021:  ret
                             }
                             <F>g__N|0#3_1#3
                             {
@@ -19556,7 +19818,7 @@ class C
             test.Verify();
         }
 
-        [Fact]
+        [ConditionalFact(typeof(IsEnglishLocal))]
         public void Method_ChangeParameterType()
         {
             using var _ = new EditAndContinueTest()
@@ -19720,7 +19982,7 @@ class C
                 .Verify();
         }
 
-        [Fact]
+        [ConditionalFact(typeof(IsEnglishLocal))]
         public void Method_ChangeReturnType()
         {
             using var _ = new EditAndContinueTest()
@@ -19892,7 +20154,7 @@ class C
                 .Verify();
         }
 
-        [Fact]
+        [ConditionalFact(typeof(IsEnglishLocal))]
         public void Method_InsertAndDeleteParameter()
         {
             using var _ = new EditAndContinueTest()
@@ -21047,7 +21309,7 @@ file class C
         [WorkItem("https://github.com/dotnet/roslyn/issues/69480")]
         public void PrivateImplDetails_DataSectionStringLiterals_FieldRvaSupported()
         {
-            var parseOptions = TestOptions.Regular.WithFeature("experimental-data-section-string-literals", "0");
+            var parseOptions = TestOptions.Regular.WithFeature(Feature.ExperimentalDataSectionStringLiterals, "0");
 
             using var _ = new EditAndContinueTest(targetFramework: TargetFramework.Net90, verification: Verification.Skipped, parseOptions: parseOptions)
                 .AddBaseline(
@@ -21146,7 +21408,7 @@ file class C
         [WorkItem("https://github.com/dotnet/roslyn/issues/69480")]
         public void PrivateImplDetails_DataSectionStringLiterals_FieldRvaNotSupported()
         {
-            var parseOptions = TestOptions.Regular.WithFeature("experimental-data-section-string-literals", "0");
+            var parseOptions = TestOptions.Regular.WithFeature(Feature.ExperimentalDataSectionStringLiterals, "0");
 
             using var _ = new EditAndContinueTest(targetFramework: TargetFramework.Net90, verification: Verification.Skipped, parseOptions: parseOptions)
                 .AddBaseline(
@@ -21603,7 +21865,11 @@ file class C
         [WorkItem("https://github.com/dotnet/roslyn/issues/69398")]
         public void PrivateImplDetails_InlineArray()
         {
-            using var _ = new EditAndContinueTest(targetFramework: TargetFramework.Net80)
+            using var _ = new EditAndContinueTest(targetFramework: TargetFramework.Net80,
+                verification: Verification.Fails with
+                {
+                    ILVerifyMessage = "[InlineArrayFirstElementRef]: Unexpected type on the stack. { Offset = 0x1, Found = value 'TBuffer', Expected = Byte }"
+                })
                 .AddBaseline(
                     source: $$"""
                         using System.Runtime.CompilerServices;
@@ -21913,8 +22179,8 @@ file class C
                 .Verify();
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
-        public void PrivateImplDetails_CollectionExpressions_ReadOnlyListTypes()
+        [Fact]
+        public void PrivateImplDetails_CollectionExpressions_ReadOnlyListTypes_MethodImplSupported()
         {
             using var _ = new EditAndContinueTest(targetFramework: TargetFramework.Net80, verification: Verification.Skipped)
                 .AddBaseline(
@@ -22074,6 +22340,82 @@ file class C
 
                         // Many EncLog and EncMap entries added.
                     })
+                .Verify();
+        }
+
+        [Fact]
+        [WorkItem("https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems/edit/2631743")]
+        public void PrivateImplDetails_CollectionExpressions_ReadOnlyListTypes_MethodImplNotSupported()
+        {
+            using var _ = new EditAndContinueTest(targetFramework: TargetFramework.NetFramework, verification: Verification.Skipped)
+                .AddBaseline(
+                    source: """
+                        using System.Collections.Generic;
+                        class C
+                        {
+                            static IEnumerable<int> F(int x, int y, IEnumerable<int> e) => [x, y];
+                        }
+                        """)
+
+                .AddGeneration(
+                    """
+                    using System.Collections.Generic;
+                    class C
+                    {
+                        static IEnumerable<int> F(int x, int y, IEnumerable<int> e) => [x, y, default];
+                    }
+                    """,
+                    edits:
+                    [
+                        Edit(SemanticEditKind.Update, symbolProvider: c => c.GetMember("C.F")),
+                    ],
+                    options: new EmitDifferenceOptions()
+                    {
+                        MethodImplEntriesSupported = false
+                    },
+                    expectedErrors:
+                    [
+                        Diagnostic(ErrorCode.ERR_EncUpdateRequiresEmittingExplicitInterfaceImplementationNotSupportedByTheRuntime)
+                    ])
+                .Verify();
+        }
+
+        [Fact]
+        [WorkItem("https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems/edit/2631743")]
+        public void ExplicitInterfaceImplementation_MethodImplNotSupported()
+        {
+            using var _ = new EditAndContinueTest(targetFramework: TargetFramework.NetFramework, verification: Verification.Skipped)
+                .AddBaseline(
+                    source: """
+                    interface I 
+                    {
+                        void M();
+                    }
+                    """)
+
+                .AddGeneration(
+                    """
+                    interface I 
+                    {
+                        void M();
+                    }
+                    class C : I
+                    {
+                        void I.M() { }
+                    }
+                    """,
+                    edits:
+                    [
+                        Edit(SemanticEditKind.Insert, symbolProvider: c => c.GetMember("C")),
+                    ],
+                    options: new EmitDifferenceOptions()
+                    {
+                        MethodImplEntriesSupported = false
+                    },
+                    expectedErrors:
+                    [
+                        Diagnostic(ErrorCode.ERR_EncUpdateRequiresEmittingExplicitInterfaceImplementationNotSupportedByTheRuntime)
+                    ])
                 .Verify();
         }
     }

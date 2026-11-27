@@ -7,6 +7,7 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities.SolutionExplorer;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SolutionExplorer;
@@ -25,6 +26,18 @@ public sealed class CSharpSolutionExplorerSymbolTreeItemProviderTests
         string code, string expected)
     {
         return TestNode<CompilationUnitSyntax>(code, expected);
+    }
+
+    private Task TestCompilationUnitWithNamespaces(
+        string code, string expected)
+    {
+        return TestNode<CompilationUnitSyntax>(code, expected, returnNamespaces: true);
+    }
+
+    private Task TestNamespaceDeclaration(
+        string code, string expected)
+    {
+        return TestNode<BaseNamespaceDeclarationSyntax>(code, expected, returnNamespaces: true);
     }
 
     [Fact]
@@ -279,4 +292,403 @@ public sealed class CSharpSolutionExplorerSymbolTreeItemProviderTests
             """, """
             Name="M() : void" Glyph=ExtensionMethodPublic HasItems=False
             """);
+
+    [Fact]
+    public Task TestMemberSetsHasItemsForLocalFunction()
+        => TestNode<ClassDeclarationSyntax>("""
+            class C
+            {
+                private void [|M|]()
+                {
+                    void MethodLocal() { }
+                }
+            }
+            """, """
+            Name="M() : void" Glyph=MethodPrivate HasItems=True
+            """);
+
+    [Fact]
+    public Task TestLocalFunctionSetsHasItemsForNestedLocalFunction()
+        => TestNode<MethodDeclarationSyntax>("""
+            class C
+            {
+                private void M()
+                {
+                    void [|MethodLocal|]()
+                    {
+                        void NestedLocal() { }
+                    }
+                }
+            }
+            """, """
+            Name="MethodLocal() : void" Glyph=MethodPrivate HasItems=True
+            """);
+
+    [Fact]
+    public Task TestLocalFunctionReturnsNestedLocalFunction()
+        => TestNode<LocalFunctionStatementSyntax>("""
+            class C
+            {
+                void M()
+                {
+                    void MethodLocal()
+                    {
+                        void [|NestedLocal|]() { }
+                    }
+                }
+            }
+            """, """
+            Name="NestedLocal() : void" Glyph=MethodPrivate HasItems=False
+            """);
+
+    [Fact]
+    public Task TestPropertyReturnsLocalFunctions()
+        => TestNode<PropertyDeclarationSyntax>("""
+            class C
+            {
+                public P Prop
+                {
+                    get
+                    {
+                        void [|GetLocal|]() { }
+                        return default;
+                    }
+                    set
+                    {
+                        void [|SetLocal|]() { }
+                    }
+                }
+            }
+            """, """
+            Name="GetLocal() : void" Glyph=MethodPrivate HasItems=False
+            Name="SetLocal() : void" Glyph=MethodPrivate HasItems=False
+            """);
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/82421")]
+    public Task TestEventReturnsLocalFunctions()
+        => TestNode<EventDeclarationSyntax>("""
+            class C
+            {
+                public event Action E
+                {
+                    add
+                    {
+                        void [|AddLocal|]()
+                        {
+                            void NestedLocal() { }
+                        }
+                    }
+                    remove
+                    {
+                        void [|RemoveLocal|]() { }
+                    }
+                }
+            }
+            """, """
+            Name="AddLocal() : void" Glyph=MethodPrivate HasItems=True
+            Name="RemoveLocal() : void" Glyph=MethodPrivate HasItems=False
+            """);
+
+    [Theory, CombinatorialData]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/82421")]
+    public Task TestEventSetsHasItemsForLocalFunctions(bool addLocal, bool removeLocal)
+        => TestNode<ClassDeclarationSyntax>($$"""
+            class C
+            {
+                public event Action [|E|]
+                {
+                    add
+                    {
+                        {{(addLocal ? "void AddLocal() { }" : "")}}
+                    }
+                    remove
+                    {
+                        {{(removeLocal ? "void RemoveLocal() { }" : "")}}
+                    }
+                }
+            }
+            """, $$"""
+            Name="E : Action" Glyph=EventPublic HasItems={{addLocal || removeLocal}}
+            """);
+
+    [Fact]
+    public Task TestConstructorReturnsLocalFunction()
+        => TestNode<ConstructorDeclarationSyntax>("""
+            class C
+            {
+                internal C()
+                {
+                    void [|CtorLocal|]() { }
+                }
+            }
+            """, """
+            Name="CtorLocal() : void" Glyph=MethodPrivate HasItems=False
+            """);
+
+    [Fact]
+    public Task TestDestructorReturnsLocalFunction()
+        => TestNode<DestructorDeclarationSyntax>("""
+            class C
+            {
+                ~C()
+                {
+                    void [|DtorLocal|]() { }
+                }
+            }
+            """, """
+            Name="DtorLocal() : void" Glyph=MethodPrivate HasItems=False
+            """);
+
+    [Fact]
+    public Task TestMethodReturnsLocalFunction()
+        => TestNode<MethodDeclarationSyntax>("""
+            class C
+            {
+                void M<T>(int a)
+                {
+                    void [|MethodLocal|]()
+                    {
+                    }
+                }
+            }
+            """, """
+            Name="MethodLocal() : void" Glyph=MethodPrivate HasItems=False
+            """);
+
+    [Fact]
+    public Task TestOperatorReturnsLocalFunction()
+        => TestNode<OperatorDeclarationSyntax>("""
+            class C
+            {
+                public static C operator +(C c1, int a)
+                {
+                    void [|OperatorLocal|]() { }
+                    return default;
+                }
+            }
+            """, """
+            Name="OperatorLocal() : void" Glyph=MethodPrivate HasItems=False
+            """);
+
+    [Fact]
+    public Task TestConversionOperatorReturnsLocalFunction()
+        => TestNode<ConversionOperatorDeclarationSyntax>("""
+            class C
+            {
+                internal static implicit operator int(C c1)
+                {
+                    void [|ConversionLocal|]() { }
+                    return default;
+                }
+            }
+            """, """
+            Name="ConversionLocal() : void" Glyph=MethodPrivate HasItems=False
+            """);
+
+    [Fact]
+    public Task TestLocalFunctionWithParameters()
+        => TestNode<MethodDeclarationSyntax>("""
+            class C
+            {
+                void M<T>(int a)
+                {
+                    int [|MethodLocal|](string input)
+                    {
+                    }
+                }
+            }
+            """, """
+            Name="MethodLocal(string) : int" Glyph=MethodPrivate HasItems=False
+            """);
+
+    #region Namespace Tests (returnNamespaces: true)
+
+    [Fact]
+    public Task TestBlockNamespace()
+        => TestCompilationUnitWithNamespaces("""
+            namespace [|N|]
+            {
+                class C
+                {
+                }
+            }
+            """, """
+            Name="N" Glyph=Namespace HasItems=True
+            """);
+
+    [Fact]
+    public Task TestBlockNamespaceEmpty()
+        => TestCompilationUnitWithNamespaces("""
+            namespace [|N|]
+            {
+            }
+            """, """
+            Name="N" Glyph=Namespace HasItems=False
+            """);
+
+    [Fact]
+    public Task TestFileScopedNamespace()
+        => TestCompilationUnitWithNamespaces("""
+            namespace [|N|];
+
+            class C
+            {
+            }
+            """, """
+            Name="N" Glyph=Namespace HasItems=True
+            """);
+
+    [Fact]
+    public Task TestFileScopedNamespaceEmpty()
+        => TestCompilationUnitWithNamespaces("""
+            namespace [|N|];
+            """, """
+            Name="N" Glyph=Namespace HasItems=False
+            """);
+
+    [Fact]
+    public Task TestMultipleBlockNamespaces()
+        => TestCompilationUnitWithNamespaces("""
+            namespace [|N1|]
+            {
+                class C { }
+            }
+
+            namespace [|N2|]
+            {
+                class D { }
+            }
+            """, """
+            Name="N1" Glyph=Namespace HasItems=True
+            Name="N2" Glyph=Namespace HasItems=True
+            """);
+
+    [Fact]
+    public Task TestQualifiedNamespace()
+        => TestCompilationUnitWithNamespaces("""
+            namespace [|A|].B.C
+            {
+                class D { }
+            }
+            """, """
+            Name="A.B.C" Glyph=Namespace HasItems=True
+            """);
+
+    [Fact]
+    public Task TestNamespaceNextToTopLevelType()
+        => TestCompilationUnitWithNamespaces("""
+            class [|C|]
+            {
+            }
+
+            namespace [|N|]
+            {
+                class D { }
+            }
+            """, """
+            Name="C" Glyph=ClassInternal HasItems=False
+            Name="N" Glyph=Namespace HasItems=True
+            """);
+
+    [Fact]
+    public Task TestNestedBlockNamespaces()
+        => TestCompilationUnitWithNamespaces("""
+            namespace [|Outer|]
+            {
+                namespace Inner
+                {
+                    class C { }
+                }
+            }
+            """, """
+            Name="Outer" Glyph=Namespace HasItems=True
+            """);
+
+    [Fact]
+    public Task TestNestedNamespaceMembers()
+        => TestNamespaceDeclaration("""
+            namespace Outer
+            {
+                namespace [|Inner|]
+                {
+                    class C { }
+                }
+            }
+            """, """
+            Name="Inner" Glyph=Namespace HasItems=True
+            """);
+
+    [Fact]
+    public Task TestNamespaceMembersWithTypes()
+        => TestNamespaceDeclaration("""
+            namespace N
+            {
+                class [|C|]
+                {
+                }
+
+                struct [|S|]
+                {
+                }
+            }
+            """, """
+            Name="C" Glyph=ClassInternal HasItems=False
+            Name="S" Glyph=StructureInternal HasItems=False
+            """);
+
+    [Fact]
+    public Task TestNamespaceMembersWithNestedNamespaceAndTypes()
+        => TestNamespaceDeclaration("""
+            namespace N
+            {
+                class [|C|]
+                {
+                }
+
+                namespace [|Inner|]
+                {
+                    class D { }
+                }
+            }
+            """, """
+            Name="C" Glyph=ClassInternal HasItems=False
+            Name="Inner" Glyph=Namespace HasItems=True
+            """);
+
+    [Fact]
+    public Task TestFileScopedNamespaceMembers()
+        => TestNamespaceDeclaration("""
+            namespace N;
+
+            class [|C|]
+            {
+            }
+
+            enum [|E|]
+            {
+            }
+            """, """
+            Name="C" Glyph=ClassInternal HasItems=False
+            Name="E" Glyph=EnumInternal HasItems=False
+            """);
+
+    [Fact]
+    public Task TestNamespaceWithDelegateAndEnum()
+        => TestNamespaceDeclaration("""
+            namespace N
+            {
+                delegate void [|D|]();
+
+                enum [|E|]
+                {
+                    A
+                }
+            }
+            """, """
+            Name="D() : void" Glyph=DelegateInternal HasItems=False
+            Name="E" Glyph=EnumInternal HasItems=True
+            """);
+
+    #endregion
 }

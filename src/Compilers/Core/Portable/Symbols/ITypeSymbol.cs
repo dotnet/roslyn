@@ -5,8 +5,10 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using System.Threading;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -26,28 +28,34 @@ namespace Microsoft.CodeAnalysis
 
         /// <summary>
         /// The declared base type of this type, or null. The object type, interface types,
-        /// pointer types, and type parameters do not have a base type.
+        /// pointer types, function pointer types, and type parameters do not have a base type.
         /// </summary>
         INamedTypeSymbol? BaseType { get; }
 
         /// <summary>
         /// Gets the set of interfaces that this type directly implements. This set does not include
-        /// interfaces that are base interfaces of directly implemented interfaces. This does
-        /// include the interfaces declared as constraints on type parameters.
+        /// interfaces that are base interfaces of directly implemented interfaces or interfaces directly
+        /// implemented by base types, but not this type.
+        /// Returns an empty array for type parameters, regardless of their constraints.
+        /// Use <see cref="ITypeParameterSymbol.ConstraintTypes"/> to inspect a type parameter's constraints.
         /// </summary>
         ImmutableArray<INamedTypeSymbol> Interfaces { get; }
 
         /// <summary>
         /// The list of all interfaces of which this type is a declared subtype, excluding this type
         /// itself. This includes all declared base interfaces, all declared base interfaces of base
-        /// types, and all declared base interfaces of those results (recursively). This also is the effective
-        /// interface set of a type parameter. Each result
+        /// types, and all declared base interfaces of those results (recursively). Each result
         /// appears exactly once in the list. This list is topologically sorted by the inheritance
         /// relationship: if interface type A extends interface type B, then A precedes B in the
         /// list. This is not quite the same as "all interfaces of which this type is a proper
         /// subtype" because it does not take into account variance: AllInterfaces for
         /// IEnumerable&lt;string&gt; will not include IEnumerable&lt;object&gt;.
+        /// Returns an empty array for type parameters, regardless of their constraints.
         /// </summary>
+        /// <remarks>
+        /// To inspect interfaces implied by a type parameter's constraints, examine
+        /// <see cref="ITypeParameterSymbol.ConstraintTypes"/>.
+        /// </remarks>
         ImmutableArray<INamedTypeSymbol> AllInterfaces { get; }
 
         /// <summary>
@@ -80,10 +88,12 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         bool IsNativeIntegerType { get; }
 
-        [Obsolete($"This API will be removed in the future. Use {nameof(INamedTypeSymbol)}.{nameof(INamedTypeSymbol.IsExtension)} instead.")]
+        // 4.14 BACKCOMPAT OVERLOAD -- DO NOT TOUCH
+        [EditorBrowsable(EditorBrowsableState.Never)]
         bool IsExtension { get; }
 
-        [Obsolete($"This API will be removed in the future. Use {nameof(INamedTypeSymbol)}.{nameof(INamedTypeSymbol.ExtensionParameter)} instead.")]
+        // 4.14 BACKCOMPAT OVERLOAD -- DO NOT TOUCH
+        [EditorBrowsable(EditorBrowsableState.Never)]
         IParameterSymbol? ExtensionParameter { get; }
 
         /// <summary>
@@ -139,6 +149,33 @@ namespace Microsoft.CodeAnalysis
         /// Returns false for record structs in metadata since they don't have any distinctive marker.
         /// </remarks>
         bool IsRecord { get; }
+
+        /// <summary>
+        /// True if language treats the type as a Union.
+        /// </summary>
+        bool IsUnion
+        {
+            get;
+        }
+
+        /// <summary>
+        /// When <see cref="IsUnion"/> is true, returns the case types of the union. Otherwise, returns an empty array.
+        /// </summary>
+        ImmutableArray<ITypeSymbol> UnionCaseTypes
+        {
+            get;
+        }
+
+        /// <summary>
+        /// Indicates that the type is restricted from being inherited from outside its containing module.
+        /// </summary>
+        bool IsClosed { get; }
+
+        /// <summary>
+        /// Gets the direct derived types of a closed type.
+        /// </summary>
+        /// <exception cref="InvalidOperationException">If this is not a closed type.</exception>
+        ClosedDerivedTypeInfo GetClosedDerivedTypeInfo(CancellationToken cancellationToken);
 
         /// <summary>
         /// Converts an <c>ITypeSymbol</c> and a nullable flow state to a string representation.

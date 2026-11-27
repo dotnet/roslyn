@@ -50,6 +50,6 @@ public class KeywordRecommenderTests : RecommenderTests
         s_recommenderMap.TryGetValue(kind, out var recommender);
         Assert.NotNull(recommender);
 
-        RecommendKeywordsAsync = (position, context) => Task.FromResult(recommender.GetTestAccessor().RecommendKeywords(position, context));
+        RecommendKeywordsAsync = async (position, context) => recommender.GetTestAccessor().RecommendKeywords(position, context);
     }
 }

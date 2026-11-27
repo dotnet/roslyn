@@ -1,0 +1,96 @@
+﻿RazorDocument - [0..75)::75 - [@{ if(foo) { <p>Bar</p> } else if(bar) { <p>Baz</p> } else { <p>Boz</p> } }]
+    MarkupBlock - [0..75)::75
+        MarkupTextLiteral - [0..0)::0 - [] - Gen<Markup>
+            Marker;[];
+        CSharpCodeBlock - [0..75)::75
+            CSharpStatement - [0..75)::75
+                CSharpTransition - [0..1)::1 - Gen<None>
+                    Transition;[@];
+                CSharpStatementBody - [1..75)::74
+                    RazorMetaCode - [1..2)::1 - Gen<None>
+                        LeftBrace;[{];
+                    CSharpCodeBlock - [2..74)::72
+                        CSharpStatementLiteral - [2..12)::10 - [ if(foo) {] - Gen<Stmt>
+                            Whitespace;[ ];
+                            Keyword;[if];
+                            LeftParenthesis;[(];
+                            Identifier;[foo];
+                            RightParenthesis;[)];
+                            Whitespace;[ ];
+                            LeftBrace;[{];
+                        MarkupBlock - [12..24)::12
+                            MarkupTextLiteral - [12..13)::1 - [ ] - Gen<Markup>
+                                Whitespace;[ ];
+                            MarkupElement - [13..23)::10
+                                MarkupStartTag - [13..16)::3 - [<p>] - Gen<Markup>
+                                    OpenAngle;[<];
+                                    Text;[p];
+                                    CloseAngle;[>];
+                                MarkupTextLiteral - [16..19)::3 - [Bar] - Gen<Markup>
+                                    Text;[Bar];
+                                MarkupEndTag - [19..23)::4 - [</p>] - Gen<Markup>
+                                    OpenAngle;[<];
+                                    ForwardSlash;[/];
+                                    Text;[p];
+                                    CloseAngle;[>];
+                            MarkupTextLiteral - [23..24)::1 - [ ] - Gen<Markup>
+                                Whitespace;[ ];
+                        CSharpStatementLiteral - [24..40)::16 - [} else if(bar) {] - Gen<Stmt>
+                            RightBrace;[}];
+                            Whitespace;[ ];
+                            Keyword;[else];
+                            Whitespace;[ ];
+                            Keyword;[if];
+                            LeftParenthesis;[(];
+                            Identifier;[bar];
+                            RightParenthesis;[)];
+                            Whitespace;[ ];
+                            LeftBrace;[{];
+                        MarkupBlock - [40..52)::12
+                            MarkupTextLiteral - [40..41)::1 - [ ] - Gen<Markup>
+                                Whitespace;[ ];
+                            MarkupElement - [41..51)::10
+                                MarkupStartTag - [41..44)::3 - [<p>] - Gen<Markup>
+                                    OpenAngle;[<];
+                                    Text;[p];
+                                    CloseAngle;[>];
+                                MarkupTextLiteral - [44..47)::3 - [Baz] - Gen<Markup>
+                                    Text;[Baz];
+                                MarkupEndTag - [47..51)::4 - [</p>] - Gen<Markup>
+                                    OpenAngle;[<];
+                                    ForwardSlash;[/];
+                                    Text;[p];
+                                    CloseAngle;[>];
+                            MarkupTextLiteral - [51..52)::1 - [ ] - Gen<Markup>
+                                Whitespace;[ ];
+                        CSharpStatementLiteral - [52..60)::8 - [} else {] - Gen<Stmt>
+                            RightBrace;[}];
+                            Whitespace;[ ];
+                            Keyword;[else];
+                            Whitespace;[ ];
+                            LeftBrace;[{];
+                        MarkupBlock - [60..72)::12
+                            MarkupTextLiteral - [60..61)::1 - [ ] - Gen<Markup>
+                                Whitespace;[ ];
+                            MarkupElement - [61..71)::10
+                                MarkupStartTag - [61..64)::3 - [<p>] - Gen<Markup>
+                                    OpenAngle;[<];
+                                    Text;[p];
+                                    CloseAngle;[>];
+                                MarkupTextLiteral - [64..67)::3 - [Boz] - Gen<Markup>
+                                    Text;[Boz];
+                                MarkupEndTag - [67..71)::4 - [</p>] - Gen<Markup>
+                                    OpenAngle;[<];
+                                    ForwardSlash;[/];
+                                    Text;[p];
+                                    CloseAngle;[>];
+                            MarkupTextLiteral - [71..72)::1 - [ ] - Gen<Markup>
+                                Whitespace;[ ];
+                        CSharpStatementLiteral - [72..74)::2 - [} ] - Gen<Stmt>
+                            RightBrace;[}];
+                            Whitespace;[ ];
+                    RazorMetaCode - [74..75)::1 - Gen<None>
+                        RightBrace;[}];
+        MarkupTextLiteral - [75..75)::0 - [] - Gen<Markup>
+            Marker;[];
+    EndOfFile;[];

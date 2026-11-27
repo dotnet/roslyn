@@ -1,0 +1,11 @@
+﻿Source Location: (2:0,2 [80] x:\dir\subdir\Test\TestComponent.razor)
+|
+    using var stream = new System.IO.MemoryStream();
+    _ = stream.Length;
+|
+Generated Location: (733:21,0 [80] )
+|
+    using var stream = new System.IO.MemoryStream();
+    _ = stream.Length;
+|
+

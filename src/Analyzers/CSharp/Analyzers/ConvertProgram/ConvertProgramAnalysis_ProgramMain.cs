@@ -30,6 +30,11 @@ internal static partial class ConvertProgramAnalysis
         if (!root.IsTopLevelProgram())
             return false;
 
+        // File-based programs are built around top-level statements, so don't offer to convert to a
+        // 'Program.Main' style program.
+        if (root.SyntaxTree.IsFileBasedProgram())
+            return false;
+
         if (!CanOfferUseProgramMain(option, forAnalyzer))
             return false;
 
@@ -56,7 +61,7 @@ internal static partial class ConvertProgramAnalysis
     public static Location GetUseProgramMainDiagnosticLocation(CompilationUnitSyntax root, bool isHidden)
     {
         // if the diagnostic is hidden, show it anywhere from the top of the file through the end of the last global
-        // statement.  That way the user can make the change anywhere in teh top level code.  Otherwise, just put
+        // statement.  That way the user can make the change anywhere in the top level code.  Otherwise, just put
         // the diagnostic on the start of the first global statement.
         if (!isHidden)
             return root.Members.OfType<GlobalStatementSyntax>().First().GetFirstToken().GetLocation();

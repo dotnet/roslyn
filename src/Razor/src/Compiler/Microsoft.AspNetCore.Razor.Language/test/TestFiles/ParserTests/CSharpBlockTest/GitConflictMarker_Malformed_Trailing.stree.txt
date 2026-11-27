@@ -1,0 +1,36 @@
+﻿RazorDocument - [0..117)::117 - [@{LF<<<<<<< HEAD var x = 0;LF    var x = 1;LF======= var x = 3;LF    var x = 2;LF>>>>>>> feature-branch var x = 4;LF}]
+    MarkupBlock - [0..117)::117
+        MarkupTextLiteral - [0..0)::0 - [] - Gen<Markup>
+            Marker;[];
+        CSharpCodeBlock - [0..117)::117
+            CSharpStatement - [0..117)::117
+                CSharpTransition - [0..1)::1 - Gen<None>
+                    Transition;[@];
+                CSharpStatementBody - [1..117)::116
+                    RazorMetaCode - [1..2)::1 - Gen<None>
+                        LeftBrace;[{];
+                    CSharpCodeBlock - [2..116)::114
+                        CSharpStatementLiteral - [2..116)::114 - [LF<<<<<<< HEAD var x = 0;LF    var x = 1;LF======= var x = 3;LF    var x = 2;LF>>>>>>> feature-branch var x = 4;LF] - Gen<Stmt>
+                            NewLine;[LF];
+                            ConflictMarkerTrivia;[<<<<<<< HEAD var x = 0;];
+                            NewLine;[LF];
+                            Whitespace;[    ];
+                            Keyword;[var];
+                            Whitespace;[ ];
+                            Identifier;[x];
+                            Whitespace;[ ];
+                            Assign;[=];
+                            Whitespace;[ ];
+                            NumericLiteral;[1];
+                            Semicolon;[;];
+                            NewLine;[LF];
+                            ConflictMarkerTrivia;[======= var x = 3;];
+                            NewLine;[LF];
+                            CSharpDisabledText;[    var x = 2;LF];
+                            ConflictMarkerTrivia;[>>>>>>> feature-branch var x = 4;];
+                            NewLine;[LF];
+                    RazorMetaCode - [116..117)::1 - Gen<None>
+                        RightBrace;[}];
+        MarkupTextLiteral - [117..117)::0 - [] - Gen<Markup>
+            Marker;[];
+    EndOfFile;[];

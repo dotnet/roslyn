@@ -3,12 +3,15 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.ComponentModel.Composition;
 using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
+using Microsoft.CodeAnalysis.Workspaces.AnalyzerRedirecting;
 using Microsoft.Internal.VisualStudio.PlatformUI;
 using Microsoft.VisualStudio.ProjectSystem;
 using Microsoft.VisualStudio.ProjectSystem.Properties;
@@ -30,12 +33,14 @@ internal sealed class CpsDiagnosticItemSourceProvider(
     IThreadingContext threadingContext,
     [Import(typeof(AnalyzersCommandHandler))] IAnalyzersCommandHandler commandHandler,
     VisualStudioWorkspace workspace,
+    [ImportMany] IEnumerable<IAnalyzerAssemblyRedirector> analyzerAssemblyRedirectors,
     IAsynchronousOperationListenerProvider listenerProvider)
     : AttachedCollectionSourceProvider<IVsHierarchyItem>
 {
     private readonly IThreadingContext _threadingContext = threadingContext;
     private readonly IAnalyzersCommandHandler _commandHandler = commandHandler;
     private readonly Workspace _workspace = workspace;
+    private readonly ImmutableArray<IAnalyzerAssemblyRedirector> _analyzerAssemblyRedirectors = analyzerAssemblyRedirectors.AsImmutableOrEmpty();
     private readonly IAsynchronousOperationListenerProvider _listenerProvider = listenerProvider;
 
     private IHierarchyItemToProjectIdMap? _projectMap;
@@ -55,13 +60,8 @@ internal sealed class CpsDiagnosticItemSourceProvider(
                     if (hierarchyMapper != null &&
                         hierarchyMapper.TryGetProjectId(projectRootItem, targetFrameworkMoniker, out var projectId))
                     {
-                        var hierarchy = projectRootItem.HierarchyIdentity.NestedHierarchy;
-                        var itemId = projectRootItem.HierarchyIdentity.NestedItemID;
-                        if (hierarchy.GetCanonicalName(itemId, out var projectCanonicalName) == VSConstants.S_OK)
-                        {
-                            return new CpsDiagnosticItemSource(
-                                _threadingContext, _workspace, projectCanonicalName, projectId, item, _commandHandler, _listenerProvider);
-                        }
+                        return new CpsDiagnosticItemSource(
+                            _threadingContext, _workspace, _analyzerAssemblyRedirectors, projectId, item, _commandHandler, _listenerProvider);
                     }
                 }
             }

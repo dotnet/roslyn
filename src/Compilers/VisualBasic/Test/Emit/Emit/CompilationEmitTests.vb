@@ -2119,7 +2119,7 @@ End Module
             Assert.False(peHeaders.Requires64Bits)
             Assert.True(peHeaders.IsDll)
             Assert.False(peHeaders.IsExe)
-            Assert.True(peHeaders.CoffHeader.Characteristics.HasFlag(Characteristics.LargeAddressAware))
+            Assert.True((peHeaders.CoffHeader.Characteristics And Characteristics.LargeAddressAware) = Characteristics.LargeAddressAware)
 
             'interesting Optional PE header bits
             'We will use a range beginning with &H50 to identify the Roslyn VB compiler family.
@@ -2180,7 +2180,7 @@ End Module
             Assert.False(peHeaders.Requires64Bits)
             Assert.True(peHeaders.IsDll)
             Assert.False(peHeaders.IsExe)
-            Assert.True(peHeaders.CoffHeader.Characteristics.HasFlag(Characteristics.LargeAddressAware))
+            Assert.True((peHeaders.CoffHeader.Characteristics And Characteristics.LargeAddressAware) = Characteristics.LargeAddressAware)
 
             'interesting Optional PE header bits
             'We will use a range beginning with &H50 to identify the Roslyn VB compiler family.
@@ -2241,7 +2241,7 @@ End Module
             Assert.True(peHeaders.Requires64Bits)
             Assert.True(peHeaders.IsDll)
             Assert.False(peHeaders.IsExe)
-            Assert.True(peHeaders.CoffHeader.Characteristics.HasFlag(Characteristics.LargeAddressAware))
+            Assert.True((peHeaders.CoffHeader.Characteristics And Characteristics.LargeAddressAware) = Characteristics.LargeAddressAware)
 
             'interesting Optional PE header bits
             'We will use a range beginning with &H50 to identify the Roslyn VB compiler family.
@@ -2597,7 +2597,7 @@ Imports System
                 End If
             Next
 
-            AssertEx.Fail("Unable to find type:" + typeName)
+            Assert.Fail("Unable to find type:" + typeName)
             Return Nothing
         End Function
 
@@ -2613,7 +2613,7 @@ Imports System
                 End If
             Next
 
-            AssertEx.Fail("Unable to find method:" + methodName)
+            Assert.Fail("Unable to find method:" + methodName)
             Return Nothing
         End Function
 

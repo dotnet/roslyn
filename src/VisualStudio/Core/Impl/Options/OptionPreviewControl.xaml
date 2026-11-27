@@ -52,7 +52,7 @@
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
         <options:CodeStyleNoticeTextBlock Grid.Row="0" Margin="5 0 5 5"/>
-        <ContentControl x:Name="listViewContentControl" Grid.Row="1" Grid.Column="0"></ContentControl>
+        <ContentControl x:Name="listViewContentControl" Grid.Row="1" Grid.Column="0" IsTabStop="False"></ContentControl>
         <Border Grid.Row="2" BorderBrush="Gray" BorderThickness="1">
             <!-- The AutomationDelegatingListView is referenced from the .xaml.cs, so we just provide 
                  a container for it here. -->

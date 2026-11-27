@@ -44,7 +44,9 @@ internal sealed class TaggerMainThreadManager
         {
             if (cancellationToken.IsCancellationRequested)
             {
-                taskCompletionSource.TrySetCanceled(cancellationToken);
+                // Cancellation and 'no data' both mean there's no work for the caller to do. Returning null avoids
+                // the cost of throwing a TaskCanceledException from the await.
+                taskCompletionSource.TrySetResult(null);
                 return;
             }
 
@@ -67,7 +69,8 @@ internal sealed class TaggerMainThreadManager
 
     /// <summary>
     /// Adds the provided action to a queue that will run on the UI thread in the near future (batched with other
-    /// registered actions).  If the cancellation token is triggered before the action runs, it will not be run.
+    /// registered actions).  If <paramref name="cancellationToken"/> is triggered before the action runs, this
+    /// returns <see langword="null"/> without running it instead of returning a canceled task.
     /// </summary>
     public async ValueTask<TaggerUIData?> PerformWorkOnMainThreadAsync(Func<TaggerUIData?> action, CancellationToken cancellationToken)
     {
@@ -100,10 +103,11 @@ internal sealed class TaggerMainThreadManager
         var hasMainThreadWorkToDo = false;
         foreach (var (action, taskCompletionSource, cancellationToken) in list)
         {
-            // If the work was already canceled, then just transition the task to the canceled state without running the action.
+            // Already canceled: complete with 'no data' without running the action (see
+            // RunActionAndUpdateCompletionSource_NoThrow for why this doesn't cancel the task).
             if (cancellationToken.IsCancellationRequested)
             {
-                taskCompletionSource.TrySetCanceled(cancellationToken);
+                taskCompletionSource.TrySetResult(null);
                 continue;
             }
 

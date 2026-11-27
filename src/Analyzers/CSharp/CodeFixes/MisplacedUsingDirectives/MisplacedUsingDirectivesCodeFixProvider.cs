@@ -109,7 +109,7 @@ internal sealed class MisplacedUsingDirectivesCodeFixProvider() : CodeFixProvide
 
         foreach (var usingDirective in compilationUnit.Usings)
         {
-            // ignore global usings in teh compilation unit, they cannot be moved.
+            // ignore global usings in the compilation unit, they cannot be moved.
             if (usingDirective.GlobalKeyword == default)
                 result.Add(usingDirective);
         }

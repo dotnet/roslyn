@@ -118,6 +118,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
             }
         }
 
+        internal sealed override RequiresUnsafeMode GetRequiresUnsafeMode(ConsList<FieldSymbol> fieldsBeingBound) => _underlyingField.GetRequiresUnsafeMode(fieldsBeingBound);
+
         public override int TupleElementIndex => _underlyingField.TupleElementIndex;
 
         internal override UseSiteInfo<AssemblySymbol> GetUseSiteInfo()

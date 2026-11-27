@@ -3,29 +3,114 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Composition;
+using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Internal.Log;
+using Logger = Microsoft.CodeAnalysis.Internal.Log.Logger;
 
 namespace Microsoft.CodeAnalysis.LanguageServer;
 
-[ExportEventListener(
-    WellKnownEventListeners.Workspace,
-    WorkspaceKind.Host,
-    WorkspaceKind.MiscellaneousFiles,
-    WorkspaceKind.MetadataAsSource,
-    WorkspaceKind.Interactive,
-    WorkspaceKind.SemanticSearch), Shared]
-[method: ImportingConstructor]
-[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal sealed class LspWorkspaceRegistrationEventListener(LspWorkspaceRegistrationService lspWorkspaceRegistrationService) : IEventListener
+/// <summary>
+/// Process-wide singleton that learns about workspaces from the MEF
+/// <see cref="IEventListener"/> infrastructure and exposes them to
+/// per-server <see cref="LspWorkspaceRegistrationService"/> instances.
+/// <para>
+/// Abstract so each host composition chooses which workspace kinds are shared process-wide. The standalone
+/// language server only shares the global <see cref="WorkspaceKind.MetadataAsSource"/> workspace across the
+/// (daemon-mode) servers in the process and registers each server's own Host/MiscellaneousFiles workspaces
+/// directly with that server's <see cref="LspWorkspaceRegistrationService"/> (so they stay isolated per server);
+/// Visual Studio hosts one workspace per process and shares all of them. The
+/// <see cref="LspWorkspaceRegistrationService"/> imports whichever concrete subclass the active MEF composition
+/// provides.
+/// </para>
+/// </summary>
+internal abstract class LspWorkspaceRegistrationEventListener : IEventListener
 {
-    private readonly LspWorkspaceRegistrationService _lspWorkspaceRegistrationService = lspWorkspaceRegistrationService;
+    private readonly object _gate = new();
+    private ImmutableArray<Workspace> _registeredWorkspaces = [];
+    private ImmutableArray<Action<Workspace>> _onRegisteredHandlers = [];
+    private ImmutableArray<Action<Workspace>> _onDeregisteredHandlers = [];
+
+    /// <summary>
+    /// Returns the current set of workspaces tracked by this listener.
+    /// </summary>
+    public ImmutableArray<Workspace> GetRegisteredWorkspaces()
+    {
+        lock (_gate)
+        {
+            return _registeredWorkspaces;
+        }
+    }
+
+    /// <summary>
+    /// Atomically captures the current snapshot of registered workspaces and
+    /// adds the provided handlers. Workspaces present in the returned snapshot
+    /// will not also raise <paramref name="onRegistered"/>; future
+    /// registrations will. Future deregistrations raise
+    /// <paramref name="onDeregistered"/>.
+    /// </summary>
+    public ImmutableArray<Workspace> SubscribeAndGetRegisteredWorkspaces(
+        Action<Workspace> onRegistered,
+        Action<Workspace> onDeregistered)
+    {
+        lock (_gate)
+        {
+            _onRegisteredHandlers = _onRegisteredHandlers.Add(onRegistered);
+            _onDeregisteredHandlers = _onDeregisteredHandlers.Add(onDeregistered);
+            return _registeredWorkspaces;
+        }
+    }
+
+    public void Unsubscribe(
+        Action<Workspace> onRegistered,
+        Action<Workspace> onDeregistered)
+    {
+        lock (_gate)
+        {
+            _onRegisteredHandlers = _onRegisteredHandlers.Remove(onRegistered);
+            _onDeregisteredHandlers = _onDeregisteredHandlers.Remove(onDeregistered);
+        }
+    }
 
     public void StartListening(Workspace workspace)
-        => _lspWorkspaceRegistrationService.Register(workspace);
+    {
+        Logger.Log(FunctionId.RegisterWorkspace, KeyValueLogMessage.Create(LogType.Trace, static (m, workspace) =>
+        {
+            m["WorkspaceKind"] = workspace.Kind;
+            m["WorkspaceCanOpenDocuments"] = workspace.CanOpenDocuments;
+            m["WorkspaceCanChangeActiveContextDocument"] = workspace.CanChangeActiveContextDocument;
+            m["WorkspacePartialSemanticsEnabled"] = workspace.PartialSemanticsEnabled;
+        }, workspace));
+
+        ImmutableArray<Action<Workspace>> handlers;
+        lock (_gate)
+        {
+            if (_registeredWorkspaces.Contains(workspace))
+                return;
+
+            _registeredWorkspaces = _registeredWorkspaces.Add(workspace);
+            handlers = _onRegisteredHandlers;
+        }
+
+        foreach (var handler in handlers)
+            handler(workspace);
+    }
 
     public void StopListening(Workspace workspace)
-        => _lspWorkspaceRegistrationService.Deregister(workspace);
+    {
+        ImmutableArray<Action<Workspace>> handlers;
+        lock (_gate)
+        {
+            var index = _registeredWorkspaces.IndexOf(workspace);
+            if (index < 0)
+                return;
+
+            _registeredWorkspaces = _registeredWorkspaces.RemoveAt(index);
+            handlers = _onDeregisteredHandlers;
+        }
+
+        foreach (var handler in handlers)
+            handler(workspace);
+    }
 }
 

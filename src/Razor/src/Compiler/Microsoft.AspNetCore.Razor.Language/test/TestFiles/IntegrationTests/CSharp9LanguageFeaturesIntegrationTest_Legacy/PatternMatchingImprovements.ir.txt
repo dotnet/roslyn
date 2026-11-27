@@ -1,0 +1,36 @@
+﻿Document - 
+    RazorCompiledItemAttribute - 
+    NamespaceDeclaration -  - Razor
+        RazorSourceChecksumAttribute - 
+        ClassDeclaration -  - public - Template - global::LegacyTemplateBase - 
+            MethodDeclaration -  - public async override - global::System.Threading.Tasks.Task - ExecuteAsync
+                HtmlContent - (38:1,0 [2] TestFiles\IntegrationTests\CSharp9LanguageFeaturesIntegrationTest_Legacy\TestView.cshtml)
+                    LazyIntermediateToken - (38:1,0 [2] TestFiles\IntegrationTests\CSharp9LanguageFeaturesIntegrationTest_Legacy\TestView.cshtml) - Html - \n
+                CSharpCode - (42:2,2 [85] TestFiles\IntegrationTests\CSharp9LanguageFeaturesIntegrationTest_Legacy\TestView.cshtml)
+                    LazyIntermediateToken - (42:2,2 [85] TestFiles\IntegrationTests\CSharp9LanguageFeaturesIntegrationTest_Legacy\TestView.cshtml) - CSharp - \n    var value = 5;\n    _ = value is > 0 and < 10;\n    _ = value is < 0 or > 10;\n
+                HtmlContent - (130:7,0 [2] TestFiles\IntegrationTests\CSharp9LanguageFeaturesIntegrationTest_Legacy\TestView.cshtml)
+                    LazyIntermediateToken - (130:7,0 [2] TestFiles\IntegrationTests\CSharp9LanguageFeaturesIntegrationTest_Legacy\TestView.cshtml) - Html - \n
+                CSharpCode - (133:8,1 [31] TestFiles\IntegrationTests\CSharp9LanguageFeaturesIntegrationTest_Legacy\TestView.cshtml)
+                    LazyIntermediateToken - (133:8,1 [31] TestFiles\IntegrationTests\CSharp9LanguageFeaturesIntegrationTest_Legacy\TestView.cshtml) - CSharp - if (value is > 0 and < 10)\n{\n
+                HtmlContent - (164:10,0 [39] TestFiles\IntegrationTests\CSharp9LanguageFeaturesIntegrationTest_Legacy\TestView.cshtml)
+                    LazyIntermediateToken - (164:10,0 [4] TestFiles\IntegrationTests\CSharp9LanguageFeaturesIntegrationTest_Legacy\TestView.cshtml) - Html -     
+                    LazyIntermediateToken - (168:10,4 [2] TestFiles\IntegrationTests\CSharp9LanguageFeaturesIntegrationTest_Legacy\TestView.cshtml) - Html - <p
+                    LazyIntermediateToken - (170:10,6 [1] TestFiles\IntegrationTests\CSharp9LanguageFeaturesIntegrationTest_Legacy\TestView.cshtml) - Html - >
+                    LazyIntermediateToken - (171:10,7 [26] TestFiles\IntegrationTests\CSharp9LanguageFeaturesIntegrationTest_Legacy\TestView.cshtml) - Html - Value is between 0 and 10.
+                    LazyIntermediateToken - (197:10,33 [4] TestFiles\IntegrationTests\CSharp9LanguageFeaturesIntegrationTest_Legacy\TestView.cshtml) - Html - </p>
+                    LazyIntermediateToken - (201:10,37 [2] TestFiles\IntegrationTests\CSharp9LanguageFeaturesIntegrationTest_Legacy\TestView.cshtml) - Html - \n
+                CSharpCode - (203:11,0 [3] TestFiles\IntegrationTests\CSharp9LanguageFeaturesIntegrationTest_Legacy\TestView.cshtml)
+                    LazyIntermediateToken - (203:11,0 [3] TestFiles\IntegrationTests\CSharp9LanguageFeaturesIntegrationTest_Legacy\TestView.cshtml) - CSharp - }\n
+                HtmlContent - (206:12,0 [2] TestFiles\IntegrationTests\CSharp9LanguageFeaturesIntegrationTest_Legacy\TestView.cshtml)
+                    LazyIntermediateToken - (206:12,0 [2] TestFiles\IntegrationTests\CSharp9LanguageFeaturesIntegrationTest_Legacy\TestView.cshtml) - Html - \n
+                CSharpCode - (209:13,1 [30] TestFiles\IntegrationTests\CSharp9LanguageFeaturesIntegrationTest_Legacy\TestView.cshtml)
+                    LazyIntermediateToken - (209:13,1 [30] TestFiles\IntegrationTests\CSharp9LanguageFeaturesIntegrationTest_Legacy\TestView.cshtml) - CSharp - if (value is < 0 or > 10)\n{\n
+                HtmlContent - (239:15,0 [51] TestFiles\IntegrationTests\CSharp9LanguageFeaturesIntegrationTest_Legacy\TestView.cshtml)
+                    LazyIntermediateToken - (239:15,0 [4] TestFiles\IntegrationTests\CSharp9LanguageFeaturesIntegrationTest_Legacy\TestView.cshtml) - Html -     
+                    LazyIntermediateToken - (243:15,4 [2] TestFiles\IntegrationTests\CSharp9LanguageFeaturesIntegrationTest_Legacy\TestView.cshtml) - Html - <p
+                    LazyIntermediateToken - (245:15,6 [1] TestFiles\IntegrationTests\CSharp9LanguageFeaturesIntegrationTest_Legacy\TestView.cshtml) - Html - >
+                    LazyIntermediateToken - (246:15,7 [38] TestFiles\IntegrationTests\CSharp9LanguageFeaturesIntegrationTest_Legacy\TestView.cshtml) - Html - Value is outside the range of 0 to 10.
+                    LazyIntermediateToken - (284:15,45 [4] TestFiles\IntegrationTests\CSharp9LanguageFeaturesIntegrationTest_Legacy\TestView.cshtml) - Html - </p>
+                    LazyIntermediateToken - (288:15,49 [2] TestFiles\IntegrationTests\CSharp9LanguageFeaturesIntegrationTest_Legacy\TestView.cshtml) - Html - \n
+                CSharpCode - (290:16,0 [1] TestFiles\IntegrationTests\CSharp9LanguageFeaturesIntegrationTest_Legacy\TestView.cshtml)
+                    LazyIntermediateToken - (290:16,0 [1] TestFiles\IntegrationTests\CSharp9LanguageFeaturesIntegrationTest_Legacy\TestView.cshtml) - CSharp - }

@@ -13804,6 +13804,7 @@ End Class
 
         <ConditionalFact(GetType(NoIOperationValidation))>
         <WorkItem(5395, "https://github.com/dotnet/roslyn/issues/5395")>
+        <ValidatePooledObjects(LeakReason:="Deep binary expression tree overflows stack guard, leaking PendingBranch builder")>
         Public Sub EmitSequenceOfBinaryExpressions_04()
             Dim size = 8192
             Dim source =
@@ -13883,6 +13884,7 @@ End Class
         ' is to prevent regressions and single language should be sufficient here
         <ConditionalFact(GetType(NoIOperationValidation), GetType(WindowsOnly), GetType(IsEnglishLocal))>
         <WorkItem(5395, "https://github.com/dotnet/roslyn/issues/5395")>
+        <ValidatePooledObjects(LeakReason:="Deep binary expression tree overflows stack guard, leaking PendingBranch builder")>
         Public Sub EmitSequenceOfBinaryExpressions_06()
             Dim source =
 $"
@@ -13997,6 +13999,7 @@ End Module
         <WorkItem(33564, "https://github.com/dotnet/roslyn/issues/33564")>
         <WorkItem(7148, "https://github.com/dotnet/roslyn/issues/7148")>
         Public Sub Issue7148_1()
+            ' https://github.com/dotnet/roslyn/issues/85043: decimal representation changed in .NET 11
             Dim c = CompileAndVerify(
 <compilation>
     <file name="a.vb">
@@ -14016,7 +14019,7 @@ Public Class TestClass
 End Class
     </file>
 </compilation>, options:=TestOptions.ReleaseExe,
-                expectedOutput:="57.2957795130823")
+                expectedOutput:=If(Environment.Version.Major >= 11, "57.295779513082322864647721872", "57.2957795130823"))
 
             c.VerifyIL("TestClass.CalculateDimensions",
             <![CDATA[
@@ -14044,6 +14047,7 @@ End Class
         <WorkItem(33564, "https://github.com/dotnet/roslyn/issues/33564")>
         <WorkItem(7148, "https://github.com/dotnet/roslyn/issues/7148")>
         Public Sub Issue7148_2()
+            ' https://github.com/dotnet/roslyn/issues/85043: decimal representation changed in .NET 11
             Dim c = CompileAndVerify(
 <compilation>
     <file name="a.vb">
@@ -14066,7 +14070,7 @@ Public Class TestClass
 End Class
     </file>
 </compilation>, options:=TestOptions.ReleaseExe,
-                expectedOutput:="57.2957795130823")
+                expectedOutput:=If(Environment.Version.Major >= 11, "57.295779513082322864647721872", "57.2957795130823"))
 
             c.VerifyIL("TestClass.CalculateDimensions",
             <![CDATA[

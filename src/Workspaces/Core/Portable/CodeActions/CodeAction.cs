@@ -263,7 +263,7 @@ public abstract partial class CodeAction
     internal async Task<ImmutableArray<CodeActionOperation>> GetPreviewOperationsAsync(
         Solution originalSolution, CancellationToken cancellationToken)
     {
-        using var _ = TelemetryLogging.LogBlockTimeAggregatedHistogram(FunctionId.SuggestedAction_Preview_Summary, $"Total");
+        using var _ = RoslynTelemetry.Current.RecordBlockTime(FunctionId.SuggestedAction_Preview_Summary, $"Total");
 
         var operations = await this.ComputePreviewOperationsAsync(cancellationToken).ConfigureAwait(false);
 
@@ -752,8 +752,8 @@ public abstract partial class CodeAction
             CodeActionPriority priority = CodeActionPriority.Default)
             => new(title, equivalenceKey, priority, createdFromFactoryMethod: true);
 
-        protected sealed override Task<Solution?> GetChangedSolutionAsync(IProgress<CodeAnalysisProgress> progress, CancellationToken cancellationToken)
-             => SpecializedTasks.Null<Solution>();
+        protected sealed override async Task<Solution?> GetChangedSolutionAsync(IProgress<CodeAnalysisProgress> progress, CancellationToken cancellationToken)
+             => null;
     }
 
     #endregion

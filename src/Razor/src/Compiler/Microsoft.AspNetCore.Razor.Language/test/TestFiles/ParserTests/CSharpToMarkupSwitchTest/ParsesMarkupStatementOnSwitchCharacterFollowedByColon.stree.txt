@@ -1,0 +1,30 @@
+﻿RazorDocument - [0..24)::24 - [@if(foo) { @:BarLF} zoop]
+    MarkupBlock - [0..24)::24
+        MarkupTextLiteral - [0..0)::0 - [] - Gen<Markup>
+            Marker;[];
+        CSharpCodeBlock - [0..19)::19
+            CSharpTransition - [0..1)::1 - Gen<None>
+                Transition;[@];
+            CSharpStatementLiteral - [1..10)::9 - [if(foo) {] - Gen<Stmt>
+                Keyword;[if];
+                LeftParenthesis;[(];
+                Identifier;[foo];
+                RightParenthesis;[)];
+                Whitespace;[ ];
+                LeftBrace;[{];
+            MarkupBlock - [10..18)::8
+                MarkupTextLiteral - [10..11)::1 - [ ] - Gen<Markup>
+                    Whitespace;[ ];
+                MarkupTransition - [11..12)::1 - Gen<None>
+                    Transition;[@];
+                RazorMetaCode - [12..13)::1 - Gen<None>
+                    Colon;[:];
+                MarkupTextLiteral - [13..18)::5 - [BarLF] - Gen<Markup>
+                    Text;[Bar];
+                    NewLine;[LF];
+            CSharpStatementLiteral - [18..19)::1 - [}] - Gen<Stmt>
+                RightBrace;[}];
+        MarkupTextLiteral - [19..24)::5 - [ zoop] - Gen<Markup>
+            Whitespace;[ ];
+            Text;[zoop];
+    EndOfFile;[];

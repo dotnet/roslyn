@@ -180,17 +180,7 @@ internal sealed class MefWorkspaceServices : HostWorkspaceServices
             languageServices = ImmutableInterlocked.GetOrAdd(ref _languageServicesMap, languageName, static (languageName, self) => new MefLanguageServices(self, languageName), this);
         }
 
-        if (languageServices.HasServices)
-        {
-            return languageServices;
-        }
-        else
-        {
-            // throws exception
-#pragma warning disable RS0030 // Do not used banned API 'GetLanguageServices', use 'GetExtendedLanguageServices' instead - allowed in this context.
-            return base.GetLanguageServices(languageName);
-#pragma warning restore RS0030 // Do not used banned APIs
-        }
+        return languageServices;
     }
 
     public override IEnumerable<TLanguageService> FindLanguageServices<TLanguageService>(MetadataFilter filter)

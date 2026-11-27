@@ -11,6 +11,7 @@ using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Basic.CompilerLog.Util;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CommandLine;
 
 var options = ParseOptions(args);
@@ -127,10 +128,9 @@ static async Task<(TimeSpan BuildTime, TimeSpan TotalTime)> RunOneAsync(List<Com
         Directory.Delete(options.OutputDirectory, recursive: true);
     }
     Directory.CreateDirectory(options.OutputDirectory);
-    Directory.CreateDirectory(options.TempDirectory);
 
     using var compilerServerLogger = new CompilerServerLogger("replay", Path.Combine(options.OutputDirectory, "server.log"));
-    if (!BuildServerConnection.TryCreateServer(options.ClientDirectory, options.PipeName, compilerServerLogger, out int serverProcessId))
+    if (!BuildServerConnection.TryCreateServer(options.ClientDirectory, options.PipeName, StandardBuildEnvironment.Instance, compilerServerLogger, out int serverProcessId))
     {
         throw new Exception("Failed to create server");
     }
@@ -260,13 +260,13 @@ static async Task<BuildData> BuildAsync(
         compilerCall.IsCSharp ? RequestLanguage.CSharpCompile : RequestLanguage.VisualBasicCompile,
         args.ToList(),
         workingDirectory: compilerCall.ProjectDirectory,
-        tempDirectory: options.TempDirectory,
         keepAlive: null,
         libDirectory: null);
     var response = await BuildServerConnection.RunServerBuildRequestAsync(
         request,
         options.PipeName,
         options.ClientDirectory,
+        StandardBuildEnvironment.Instance,
         compilerServerLogger,
         cancellationToken).ConfigureAwait(false);
     return new BuildData(compilerCall, response);
@@ -339,7 +339,6 @@ internal sealed class ReplayOptions(
     internal string OutputDirectory { get; } = outputDirectory;
     internal string BinlogPath { get; } = binlogPath;
     internal int MaxParallel { get; } = maxParallel;
-    internal string TempDirectory { get; } = Path.Combine(outputDirectory, "temp");
     internal bool Wait { get; } = wait;
     internal int Iterations { get; } = iterations;
 }

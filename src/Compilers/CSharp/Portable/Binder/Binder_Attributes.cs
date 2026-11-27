@@ -155,7 +155,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private static BoundAttribute BindAttributeCore(Binder binder, AttributeSyntax node, NamedTypeSymbol attributeType, Symbol? attributedMember, BindingDiagnosticBag diagnostics)
         {
             Debug.Assert(binder.SkipSemanticModelBinder() == binder.GetRequiredBinder(node).SkipSemanticModelBinder());
-            binder = binder.WithAdditionalFlags(BinderFlags.AttributeArgument);
+            Debug.Assert(binder.InAttributeArgument);
 
             // If attribute name bound to an error type with a single named type
             // candidate symbol, we want to bind the attribute constructor
@@ -529,6 +529,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             LookupResultKind resultKind;
             Symbol namedArgumentNameSymbol = BindNamedAttributeArgumentName(namedArgument, attributeType, diagnostics, out wasError, out resultKind);
             ReportDiagnosticsIfObsolete(diagnostics, namedArgumentNameSymbol, namedArgument, hasBaseReceiver: false);
+            // Unsafe property access is checked on the accessor only to avoid duplicate diagnostics.
 
             if (namedArgumentNameSymbol.Kind == SymbolKind.Property)
             {
@@ -537,6 +538,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (setMethod != null)
                 {
                     ReportDiagnosticsIfObsolete(diagnostics, setMethod, namedArgument, hasBaseReceiver: false);
+                    ReportDiagnosticsIfUnsafeMemberAccess(diagnostics, setMethod, namedArgument);
 
                     if (setMethod.IsInitOnly && setMethod.DeclaringCompilation != this.Compilation)
                     {
@@ -544,6 +546,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                         CheckFeatureAvailability(namedArgument, MessageID.IDS_FeatureInitOnlySetters, diagnostics);
                     }
                 }
+            }
+            else
+            {
+                ReportDiagnosticsIfUnsafeMemberAccess(diagnostics, namedArgumentNameSymbol, namedArgument);
             }
 
             Debug.Assert(resultKind == LookupResultKind.Viable || wasError);

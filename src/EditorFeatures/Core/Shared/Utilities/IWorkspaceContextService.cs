@@ -18,11 +18,6 @@ internal interface IWorkspaceContextService : IWorkspaceService
     /// Used to disable non-LSP editor feature integration.
     /// </summary>
     bool IsInLspEditorContext();
-
-    /// <summary>
-    /// Determines if the VS instance is being as a cloud environment client.
-    /// </summary>
-    bool IsCloudEnvironmentClient();
 }
 
 [ExportWorkspaceService(typeof(IWorkspaceContextService), ServiceLayer.Default), Shared]
@@ -39,6 +34,4 @@ internal sealed class DefaultWorkspaceContextService(IGlobalOptionService global
     private readonly IGlobalOptionService _globalOptionsService = globalOptionsService;
 
     public bool IsInLspEditorContext() => _globalOptionsService.GetOption(LspOptionsStorage.LspEditorFeatureFlag);
-
-    public bool IsCloudEnvironmentClient() => false;
 }

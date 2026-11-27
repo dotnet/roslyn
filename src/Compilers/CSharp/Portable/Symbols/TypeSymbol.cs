@@ -36,6 +36,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         // TODO (tomat): Consider changing this to an empty name. This name shouldn't ever leak to the user in error messages.
         internal const string ImplicitTypeName = "<invalid-global-code>";
 
+        internal static readonly ObjectPool<PooledHashSet<TypeSymbol>> AllIgnoreOptionsSetPool = PooledHashSet<TypeSymbol>.CreatePool(SymbolEqualityComparer.AllIgnoreOptions);
+
         // InterfaceInfo for a common case of a type not implementing anything directly or indirectly.
         private static readonly InterfaceInfo s_noInterfaces = new InterfaceInfo();
 
@@ -334,7 +336,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// TypeSymbol.Interfaces as the source of edge data, which has had cycles and infinitely
         /// long dependency cycles removed. Consequently, it is possible (and we do) use the
         /// simplest version of Tarjan's topological sorting algorithm.
-        protected virtual ImmutableArray<NamedTypeSymbol> MakeAllInterfaces()
+        protected ImmutableArray<NamedTypeSymbol> MakeAllInterfaces()
         {
             var result = ArrayBuilder<NamedTypeSymbol>.GetInstance();
             var visited = new HashSet<NamedTypeSymbol>(SymbolEqualityComparer.ConsiderEverything);
@@ -590,7 +592,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
 #nullable enable
         /// <summary>
-        /// Is this type a managed type (false for everything but enum, pointer, and
+        /// Is this type a managed type (true for everything but enum, pointer, and
         /// some struct types).
         /// </summary>
         /// <remarks>
@@ -659,6 +661,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// Returns true if the type is a readonly struct
         /// </summary>
         public abstract bool IsReadOnly { get; }
+
+        internal sealed override RequiresUnsafeMode GetRequiresUnsafeMode(ConsList<FieldSymbol> fieldsBeingBound) => RequiresUnsafeMode.None;
 
         public string ToDisplayString(CodeAnalysis.NullableFlowState topLevelNullability, SymbolDisplayFormat format = null)
         {
@@ -1794,6 +1798,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                                                                         }
                                                                                     },
                                                                                     (implementingType, isExplicit));
+
+                    SourceMemberContainerTypeSymbol.CheckRequiresUnsafeMismatch(
+                        implementedEvent,
+                        implementingEvent,
+                        isExplicit ? ErrorCode.ERR_RequiresUnsafeExplicitlyImplementingSafe : ErrorCode.ERR_RequiresUnsafeImplicitlyImplementingSafe,
+                        (implementedEvent, implementingType, implementingEvent),
+                        static arg => GetImplicitImplementationDiagnosticLocation(arg.implementedEvent, arg.implementingType, arg.implementingEvent),
+                        diagnostics);
                 }
                 else
                 {
@@ -1880,6 +1892,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                 allowVariance: true,
                                 invokedAsExtensionMethod: false);
                         }
+
                         SourceMemberContainerTypeSymbol.CheckRefReadonlyInMismatch(
                             implementedMethod, implementingMethod, diagnostics,
                             static (diagnostics, implementedMethod, implementingMethod, implementingParameter, _, arg) =>
@@ -1891,6 +1904,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             },
                             implementingType,
                             invokedAsExtensionMethod: false);
+
+                        SourceMemberContainerTypeSymbol.CheckRequiresUnsafeMismatch(
+                            implementedMethod,
+                            implementingMethod,
+                            isExplicit ? ErrorCode.ERR_RequiresUnsafeExplicitlyImplementingSafe : ErrorCode.ERR_RequiresUnsafeImplicitlyImplementingSafe,
+                            (implementedMethod, implementingType, implementingMethod),
+                            static arg => GetImplicitImplementationDiagnosticLocation(arg.implementedMethod, arg.implementingType, arg.implementingMethod),
+                            diagnostics);
 
                         if (implementingMethod.HasUnscopedRefAttributeOnMethodOrProperty())
                         {

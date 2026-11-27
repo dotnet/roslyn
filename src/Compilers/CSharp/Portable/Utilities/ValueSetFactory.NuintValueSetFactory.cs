@@ -10,17 +10,17 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal static partial class ValueSetFactory
     {
-        private sealed class NuintValueSetFactory : IValueSetFactory<uint>, IValueSetFactory
+        private sealed class NuintValueSetFactory : IConstantValueSetFactory<uint>, IConstantValueSetFactory
         {
             public static readonly NuintValueSetFactory Instance = new NuintValueSetFactory();
 
             private NuintValueSetFactory() { }
 
-            IValueSet IValueSetFactory.AllValues => NuintValueSet.AllValues;
+            IConstantValueSet IConstantValueSetFactory.AllValues => NuintValueSet.AllValues;
 
-            IValueSet IValueSetFactory.NoValues => NuintValueSet.NoValues;
+            IConstantValueSet IConstantValueSetFactory.NoValues => NuintValueSet.NoValues;
 
-            public IValueSet<uint> Related(BinaryOperatorKind relation, uint value)
+            public IConstantValueSet<uint> Related(BinaryOperatorKind relation, uint value)
             {
                 return new NuintValueSet(
                     values: new NumericValueSetFactory<uint>(UIntTC.Instance).Related(relation, value),
@@ -28,22 +28,22 @@ namespace Microsoft.CodeAnalysis.CSharp
                     );
             }
 
-            IValueSet IValueSetFactory.Random(int expectedSize, Random random)
+            IConstantValueSet IConstantValueSetFactory.Random(int expectedSize, Random random)
             {
                 return new NuintValueSet(
-                    values: (IValueSet<uint>)new NumericValueSetFactory<uint>(UIntTC.Instance).Random(expectedSize, random),
+                    values: (IConstantValueSet<uint>)new NumericValueSetFactory<uint>(UIntTC.Instance).Random(expectedSize, random),
                     hasLarge: random.NextDouble() < 0.25
                     );
             }
 
-            ConstantValue IValueSetFactory.RandomValue(Random random) => ConstantValue.CreateNativeUInt(UIntTC.Instance.Random(random));
+            ConstantValue IConstantValueSetFactory.RandomValue(Random random) => ConstantValue.CreateNativeUInt(UIntTC.Instance.Random(random));
 
-            IValueSet IValueSetFactory.Related(BinaryOperatorKind relation, ConstantValue value)
+            IConstantValueSet IConstantValueSetFactory.Related(BinaryOperatorKind relation, ConstantValue value)
             {
                 return value.IsBad ? NuintValueSet.AllValues : Related(relation, UIntTC.Instance.FromConstantValue(value));
             }
 
-            bool IValueSetFactory.Related(BinaryOperatorKind relation, ConstantValue left, ConstantValue right)
+            bool IConstantValueSetFactory.Related(BinaryOperatorKind relation, ConstantValue left, ConstantValue right)
             {
                 var tc = UIntTC.Instance;
                 return tc.Related(relation, tc.FromConstantValue(left), tc.FromConstantValue(right));

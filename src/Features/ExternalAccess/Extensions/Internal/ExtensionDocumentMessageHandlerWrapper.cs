@@ -1,0 +1,20 @@
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+using System;
+using System.Reflection;
+using System.Threading;
+using System.Threading.Tasks;
+
+namespace Microsoft.CodeAnalysis.Extensions;
+
+internal sealed class ExtensionDocumentMessageHandlerWrapper(
+    object handler, Type customMessageHandlerInterface, string extensionIdentifier)
+    : ExtensionHandlerWrapper<TextDocument>(handler, customMessageHandlerInterface, extensionIdentifier)
+{
+    protected override Task ExecuteAsync(MethodInfo executeAsyncMethod, object handler, object? message, TextDocument argument, CancellationToken cancellationToken)
+#pragma warning disable RSEXPERIMENTAL008 // Internal implementation of experimental API
+        => (Task)executeAsyncMethod.Invoke(handler, [message, new ExtensionDocumentMessageContext(argument), cancellationToken])!;
+#pragma warning restore RSEXPERIMENTAL008
+}

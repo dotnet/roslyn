@@ -8386,6 +8386,76 @@ class C
             }
             """);
 
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/44100")]
+    public Task RefParameter_WrittenBeforeMethodThatThrows()
+        => new VerifyCS.Test
+        {
+            TestCode = """
+                using System;
+
+                class Program
+                {
+                    static void Write(ref int value)
+                    {
+                        value = 1;
+                        Throw();
+                        value = 2;
+                    }
+
+                    static void Throw() => throw new Exception();
+                }
+                """,
+            Options =
+            {
+                { CSharpCodeStyleOptions.UnusedValueAssignment, UnusedValuePreference.DiscardVariable, NotificationOption2.Suggestion },
+            },
+        }.RunAsync();
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/44100")]
+    public Task OutParameter_WrittenMultipleTimes()
+        => new VerifyCS.Test
+        {
+            TestCode = """
+                using System;
+
+                class C
+                {
+                    static void M(out int value)
+                    {
+                        value = 1;
+                        value = 2;
+                    }
+                }
+                """,
+            Options =
+            {
+                { CSharpCodeStyleOptions.UnusedValueAssignment, UnusedValuePreference.DiscardVariable, NotificationOption2.Suggestion },
+            },
+        }.RunAsync();
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/44100")]
+    public Task RefLocal_WrittenMultipleTimes()
+        => new VerifyCS.Test
+        {
+            TestCode = """
+                class C
+                {
+                    int _field;
+
+                    void M()
+                    {
+                        ref int r = ref _field;
+                        r = 1;
+                        r = 2;
+                    }
+                }
+                """,
+            Options =
+            {
+                { CSharpCodeStyleOptions.UnusedValueAssignment, UnusedValuePreference.DiscardVariable, NotificationOption2.Suggestion },
+            },
+        }.RunAsync();
+
     [Fact]
     public Task LocalFunction_OutParameter_UsedInCaller()
         => TestDiagnosticMissingAsync(
@@ -9369,6 +9439,29 @@ class C
             ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
 
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/81554")]
+    public Task TestWriteIntoExtensionRefReceiver()
+        => new VerifyCS.Test
+        {
+            TestCode = """
+                public static class E
+                {
+                    extension(ref double number)
+                    {
+                        public void M(double max)
+                        {
+                            number = max;
+                        }
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp14,
+            Options =
+            {
+                { CSharpCodeStyleOptions.UnusedValueAssignment, UnusedValuePreference.DiscardVariable, NotificationOption2.Suggestion },
+            },
+        }.RunAsync();
+
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/77258")]
     public Task TestWriteIntoStructIndexer()
         => new VerifyCS.Test
@@ -9399,4 +9492,24 @@ class C
                 OutputKind = OutputKind.ConsoleApplication,
             }
         }.RunAsync();
+
+    [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/44948")]
+    [InlineData(nameof(PreferDiscard))]
+    [InlineData(nameof(PreferUnusedLocal))]
+    public Task ConstUsedInStaticLocalFunction_DeclaredAfterCall(string optionName)
+        => TestMissingInRegularAndScriptAsync(
+            """
+            using System;
+
+            class C
+            {
+                void M()
+                {
+                    _ = FormatDate(DateTime.Now);
+
+                    const string [|DatePickerFormat|] = "MM/dd/yyyy hh:mm";
+                    static string FormatDate(DateTime? date) => date?.ToString(DatePickerFormat);
+                }
+            }
+            """, optionName);
 }

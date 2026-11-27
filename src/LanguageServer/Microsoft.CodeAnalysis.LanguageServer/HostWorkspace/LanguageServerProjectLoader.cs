@@ -2,37 +2,69 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections.Concurrent;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.LanguageServer.Handler.DebugConfiguration;
+using Microsoft.CodeAnalysis.LanguageServer.Handler;
+using Microsoft.CodeAnalysis.LanguageServer.Handler.Testing;
 using Microsoft.CodeAnalysis.LanguageServer.HostWorkspace.ProjectTelemetry;
-using Microsoft.CodeAnalysis.MSBuild;
 using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.ProjectSystem;
-using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Shared.Utilities;
-using Microsoft.CodeAnalysis.Threading;
 using Microsoft.CodeAnalysis.Workspaces.ProjectSystem;
+using Microsoft.CommonLanguageServerProtocol.Framework;
 using Microsoft.Extensions.Logging;
+using RoslynTelemetry = Microsoft.CodeAnalysis.Internal.Log.RoslynTelemetry;
 using Roslyn.Utilities;
-using static Microsoft.CodeAnalysis.MSBuild.BuildHostProcessManager;
 using LSP = Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
 
-internal abstract class LanguageServerProjectLoader
+internal abstract partial class LanguageServerProjectLoader : IAsyncDisposable
 {
-    private readonly AsyncBatchingWorkQueue<ProjectToLoad> _projectsToReload;
+    private static readonly string s_razorDesignTimePath = Path.Combine(AppContext.BaseDirectory, "Targets", "Microsoft.NET.Sdk.Razor.DesignTime.targets");
+
+    private readonly AsyncPriorityWorkQueue<ProjectLoadWorkItem> _projectsToReload;
+    internal enum ProjectReloadPriority
+    {
+        /// <summary>Refreshing a project whose state was already applied from the cache.</summary>
+        BackgroundRefresh = 0,
+
+        /// <summary>Loading or reloading a project in response to project or file changes.</summary>
+        RegularLoad = 1,
+
+        /// <summary>Loading a project a user is waiting on, such as for an opened file.</summary>
+        UserRequestedLoad = 2,
+
+        /// <summary>Loading a project's cached state, which we want to always happen first.</summary>
+        CacheLoad = 3,
+    }
+
+    private readonly record struct ProjectLoadWorkItem(string ProjectPath, bool LoadFromCache)
+    {
+        public bool Equals(ProjectLoadWorkItem other)
+            => LoadFromCache == other.LoadFromCache && PathUtilities.Comparer.Equals(ProjectPath, other.ProjectPath);
+
+        public override int GetHashCode()
+            => HashCode.Combine(PathUtilities.Comparer.GetHashCode(ProjectPath), LoadFromCache);
+    }
+
+    private bool _isDisposed;
 
     protected readonly LanguageServerWorkspaceFactory _workspaceFactory;
+    private readonly ProjectTargetFrameworkManager _projectTargetFrameworkManager;
+    private readonly ProjectCapabilityManager _projectCapabilityManager;
     private readonly IFileChangeWatcher _fileChangeWatcher;
+    private readonly IClientLanguageServerManager _clientLanguageServerManager;
+    private readonly WorkDoneProgressManager _workDoneProgressManager;
     protected readonly IGlobalOptionService GlobalOptionService;
     protected readonly ILoggerFactory LoggerFactory;
+    protected readonly IAsynchronousOperationListener Listener;
+    protected readonly RoslynTelemetry Telemetry;
     private readonly ILogger _logger;
     private readonly ProjectLoadTelemetryReporter _projectLoadTelemetryReporter;
     private readonly IBinLogPathProvider _binLogPathProvider;
@@ -40,84 +72,74 @@ internal abstract class LanguageServerProjectLoader
     protected readonly ImmutableDictionary<string, string> AdditionalProperties;
 
     /// <summary>
-    /// Guards access to <see cref="_loadedProjects"/>.
-    /// To keep the LSP queue responsive, <see cref="_gate"/> must not be held while performing design-time builds.
+    /// Guards access to <see cref="_loadedProjects"/>. Each <see cref="LoadedProject"/> in the map is expected to be thread safe, so the lock is only needed when initially fetching
+    /// the <see cref="LoadedProject"/>, or when creating new projects.
     /// </summary>
     private readonly SemaphoreSlim _gate = new(initialCount: 1);
 
     /// <summary>
     /// Maps the file path of a tracked project to the load state for the project.
     /// Absence of an entry indicates the project is not tracked, e.g. it was never loaded, or it was unloaded.
-    /// <see cref="_gate"/> must be held when modifying the dictionary or objects contained in it.
+    /// When a project is unloaded, the <see cref="LoadedProject"/> is disposed and removed from the map. Any further use of that
+    /// <see cref="LoadedProject"/> instance is expected to be a no-op, since it's possible we might have had some scheduled asynchronous work
+    /// (a design time build, a file change notification) that might have scheduled and could also be in flight.
     /// </summary>
-    private readonly Dictionary<string, ProjectLoadState> _loadedProjects = [];
-
-    /// <summary>
-    /// State transitions:
-    /// <see cref="Primordial"/> -> <see cref="LoadedTargets"/>
-    /// Any state -> unloaded (which is denoted by removing the <see cref="_loadedProjects"/> entry for the project)
-    /// </summary>
-    protected abstract record ProjectLoadState
-    {
-        private ProjectLoadState() { }
-
-        /// <summary>
-        /// Represents a project which has not yet had a design-time build performed for it,
-        /// and which has an associated "primordial project" in the workspace.
-        /// </summary>
-        /// <param name="PrimordialProjectFactory">
-        /// The project factory for the workspace that the primordial project lives within. This
-        /// factory was not used to create the project, but still needs to be used during removal to avoid locking issues.
-        /// </param>
-        /// <param name="PrimordialProjectId">
-        /// ID of the project which LSP uses to fulfill requests until the first design-time build is complete.
-        /// The project with this ID is removed from the workspace when unloading or when transitioning to <see cref="LoadedTargets"/> state.
-        /// </param>
-        public sealed record Primordial(ProjectSystemProjectFactory PrimordialProjectFactory, ProjectId PrimordialProjectId) : ProjectLoadState;
-
-        /// <summary>
-        /// Represents a project for which we have loaded zero or more targets.
-        /// Generally a project which has zero loaded targets has not had a design-time build completed for it yet.
-        /// Incrementally updated upon subsequent design-time builds.
-        /// The <see cref="LoadedProjectTargets"/> are disposed when unloading.
-        /// </summary>
-        /// <param name="LoadedProjectTargets">List of target frameworks which have been loaded for this project so far.</param>
-        public sealed record LoadedTargets(ImmutableArray<LoadedProject> LoadedProjectTargets) : ProjectLoadState;
-    }
+    private readonly Dictionary<string, LoadedProject> _loadedProjects = new(PathUtilities.Comparer);
 
     /// <summary>
     /// Indicates whether loads should report UI progress to the client for this loader.
     /// </summary>
     protected virtual bool EnableProgressReporting => true;
 
+    /// <summary>
+    /// The max MSBuild node count to use for design-time builds.
+    /// </summary>
+    protected virtual int MaxNodeCount
+        // Don't overload the machine, so leave some CPU cores open. This was chosen without much supporting evidence, other than that it's still pretty close to max.
+        => Math.Max(Environment.ProcessorCount / 2, 1);
+
+    /// <summary>
+    /// Maps the set of project file paths that were determined to need a NuGet restore to the set of paths that restore
+    /// should actually be invoked on. The base implementation restores each project individually. Derived loaders may
+    /// override this to coalesce the work, e.g. restoring an entire solution at once instead of restoring each contained
+    /// project one at a time. This is invoked at restore time (rather than cached) so overrides can consult current,
+    /// possibly-changed state such as the on-disk contents of the open solution.
+    /// </summary>
+    protected virtual ValueTask<ImmutableArray<string>> GetPathsToRestoreAsync(ImmutableArray<string> projectsThatNeedRestore, CancellationToken cancellationToken)
+        => new(projectsThatNeedRestore);
+
     protected LanguageServerProjectLoader(
-        LanguageServerWorkspaceFactory workspaceFactory,
-        IFileChangeWatcher fileChangeWatcher,
+        ILspServices lspServices,
         IGlobalOptionService globalOptionService,
         ILoggerFactory loggerFactory,
         IAsynchronousOperationListenerProvider listenerProvider,
-        ProjectLoadTelemetryReporter projectLoadTelemetry,
         ServerConfigurationFactory serverConfigurationFactory,
         IBinLogPathProvider binLogPathProvider,
         DotnetCliHelper dotnetCliHelper)
     {
-        _workspaceFactory = workspaceFactory;
-        _fileChangeWatcher = fileChangeWatcher;
+        _workspaceFactory = lspServices.GetRequiredService<LanguageServerWorkspaceFactory>();
+        _projectTargetFrameworkManager = lspServices.GetRequiredService<ProjectTargetFrameworkManager>();
+        _projectCapabilityManager = lspServices.GetRequiredService<ProjectCapabilityManager>();
+        _fileChangeWatcher = lspServices.GetRequiredService<IFileChangeWatcher>();
+        _clientLanguageServerManager = lspServices.GetRequiredService<IClientLanguageServerManager>();
+        _workDoneProgressManager = lspServices.GetRequiredService<WorkDoneProgressManager>();
         GlobalOptionService = globalOptionService;
         LoggerFactory = loggerFactory;
-        _logger = loggerFactory.CreateLogger(nameof(LanguageServerProjectLoader));
-        _projectLoadTelemetryReporter = projectLoadTelemetry;
+        Listener = listenerProvider.GetListener(FeatureAttribute.Workspace);
+        Telemetry = RoslynTelemetry.Current;
+        _logger = loggerFactory.CreateLogger(this.GetTypeDisplayName());
+        _projectLoadTelemetryReporter = lspServices.GetRequiredService<ProjectLoadTelemetryReporter>();
         _binLogPathProvider = binLogPathProvider;
         _dotnetCliHelper = dotnetCliHelper;
 
         AdditionalProperties = BuildAdditionalProperties(serverConfigurationFactory.ServerConfiguration);
 
-        _projectsToReload = new AsyncBatchingWorkQueue<ProjectToLoad>(
+        _projectsToReload = new AsyncPriorityWorkQueue<ProjectLoadWorkItem>(
+            maximumPriority: (int)ProjectReloadPriority.CacheLoad,
             TimeSpan.FromMilliseconds(100),
             ReloadProjectsAsync,
-            ProjectToLoad.Comparer,
-            listenerProvider.GetListener(FeatureAttribute.Workspace),
-            CancellationToken.None); // TODO: do we need to introduce a shutdown cancellation token for this?
+            EqualityComparer<ProjectLoadWorkItem>.Default,
+            Listener);
     }
 
     private static ImmutableDictionary<string, string> BuildAdditionalProperties(ServerConfiguration? serverConfiguration)
@@ -129,10 +151,7 @@ internal abstract class LanguageServerProjectLoader
             return properties;
         }
 
-        if (serverConfiguration.RazorDesignTimePath is { } razorDesignTimePath)
-        {
-            properties = properties.Add("RazorDesignTimeTargets", razorDesignTimePath);
-        }
+        properties = properties.Add("RazorDesignTimeTargets", s_razorDesignTimePath);
 
         if (serverConfiguration.CSharpDesignTimePath is { } csharpDesignTimePath)
         {
@@ -142,7 +161,7 @@ internal abstract class LanguageServerProjectLoader
         return properties;
     }
 
-    private sealed class ToastErrorReporter
+    private sealed class ToastErrorReporter(IClientLanguageServerManager clientLanguageServerManager)
     {
         private int _displayedToast = 0;
 
@@ -152,197 +171,174 @@ internal abstract class LanguageServerProjectLoader
             var shouldShowToast = Interlocked.CompareExchange(ref _displayedToast, value: 1, comparand: 0) == 0;
             if (shouldShowToast)
             {
-                await ShowToastNotification.ShowToastNotificationAsync(errorKind, message, cancellationToken, ShowToastNotification.ShowCSharpLogsCommand);
+                await clientLanguageServerManager.ShowToastNotificationAsync(errorKind, message, cancellationToken, ShowToastNotification.ShowCSharpLogsCommand);
             }
         }
     }
 
-    private async ValueTask ReloadProjectsAsync(ImmutableSegmentedList<ProjectToLoad> projectsToLoadOrReload, CancellationToken cancellationToken)
+    private async ValueTask ReloadProjectsAsync(AsyncPriorityWorkQueue<ProjectLoadWorkItem>.WorkToProcess projectsToLoadOrReload, CancellationToken cancellationToken)
     {
-        var stopwatch = Stopwatch.StartNew();
+        // A batch runs on the context of whichever AddWork caller started it, which may be a file-change
+        // notification or other non-request caller that carries no ambient instance of its own.
+        using var _ = RoslynTelemetry.SetCurrent(Telemetry);
 
         // TODO: support configuration switching
-
-        await using var buildHostProcessManager = new BuildHostProcessManager(globalMSBuildProperties: AdditionalProperties, binaryLogPathProvider: _binLogPathProvider, loggerFactory: LoggerFactory);
-        var toastErrorReporter = new ToastErrorReporter();
+        var stopwatch = Stopwatch.StartNew();
+        var projectsThatNeedRestore = new ConcurrentBag<string>();
+        var totalReloads = 0;
 
         try
         {
-            var projectsThatNeedRestore = await ProducerConsumer<string>.RunParallelAsync(
-                source: projectsToLoadOrReload,
-                produceItems: static async (projectToLoad, produceItem, args, cancellationToken) =>
-                {
-                    var (@this, toastErrorReporter, buildHostProcessManager) = args;
-                    var projectNeedsRestore = await @this.ReloadProjectAsync(
-                        projectToLoad, toastErrorReporter, buildHostProcessManager, cancellationToken);
-
-                    if (projectNeedsRestore)
-                        produceItem(projectToLoad.Path);
-                },
-                args: (@this: this, toastErrorReporter, buildHostProcessManager),
-                cancellationToken).ConfigureAwait(false);
-
-            if (GlobalOptionService.GetOption(LanguageServerProjectSystemOptionsStorage.EnableAutomaticRestore) && projectsThatNeedRestore.Any())
+            // Disposing of this BuildHostProcessManager will shut down any processes; so be explicit about the scope so we don't hold onto it longer than
+            // needed.
+            await using (var buildHostProcessManager = new BuildHostProcessManager(
+                knownCommandLineParserLanguages: _workspaceFactory.HostWorkspace.Services.SolutionServices.GetSupportedLanguages<ICommandLineParserService>(),
+                globalMSBuildProperties: AdditionalProperties,
+                binaryLogPathProvider: _binLogPathProvider,
+                maxNodeCount: MaxNodeCount,
+                loggerFactory: LoggerFactory))
             {
-                // This request blocks to ensure we aren't trying to run a design time build at the same time as a restore.
-                await ProjectDependencyHelper.RestoreProjectsAsync(projectsThatNeedRestore, EnableProgressReporting, _dotnetCliHelper, _logger, cancellationToken);
+                var toastErrorReporter = new ToastErrorReporter(_clientLanguageServerManager);
+
+                // Kick off a bunch of tasks in parallel to do the reloading; since our priority queue isn't a standard enumerator we can't use the built-in parallel helpers
+                var parallelTasks = new Task[MaxNodeCount];
+                for (int i = 0; i < parallelTasks.Length; i++)
+                {
+                    parallelTasks[i] = Task.Run(async () =>
+                    {
+                        while (await projectsToLoadOrReload.TryProcessNextItemAsync(async workItem =>
+                        {
+                            if (workItem.LoadFromCache)
+                            {
+                                if (await TryApplyCachedProjectInfoAsync(workItem.ProjectPath, cancellationToken))
+                                {
+                                    // The cached state is enough for now, so the design-time build is only a background refresh.
+                                    _projectsToReload.LowerWorkPriorityIfScheduled(
+                                        new(workItem.ProjectPath, LoadFromCache: false), (int)ProjectReloadPriority.BackgroundRefresh);
+                                }
+                            }
+                            else
+                            {
+                                var projectToRestorePath = await ReloadProjectAsync(
+                                    workItem.ProjectPath, toastErrorReporter, buildHostProcessManager, cancellationToken);
+
+                                if (projectToRestorePath is not null)
+                                    projectsThatNeedRestore.Add(projectToRestorePath);
+
+                                Interlocked.Increment(ref totalReloads);
+                            }
+                        }))
+                        {
+                        }
+                    }, cancellationToken);
+                }
+
+                await Task.WhenAll(parallelTasks);
             }
         }
         finally
         {
-            _logger.LogInformation(string.Format(LanguageServerResources.Completed_reload_of_all_projects_in_0, stopwatch.Elapsed));
+            _logger.LogInformation(string.Format(LanguageServerResources.Completed_reload_of_0_projects_in_1, totalReloads, stopwatch.Elapsed));
+        }
+
+        if (GlobalOptionService.GetOption(LanguageServerProjectSystemOptionsStorage.EnableAutomaticRestore) && !projectsThatNeedRestore.IsEmpty)
+        {
+            var pathsToRestore = await GetPathsToRestoreAsync(projectsThatNeedRestore.Distinct(PathUtilities.Comparer).AsImmutable(), cancellationToken);
+
+            // This request blocks to ensure we aren't trying to run a design time build at the same time as a restore.
+            await ProjectDependencyHelper.RestoreProjectsAsync(_workDoneProgressManager, pathsToRestore, EnableProgressReporting, _dotnetCliHelper, _logger, cancellationToken);
         }
     }
 
     internal sealed record RemoteProjectLoadResult
     {
-        public required RemoteProjectFile ProjectFile { get; init; }
+        public required ImmutableArray<ProjectFileInfo> ProjectFileInfos { get; init; }
+        public required ImmutableArray<DiagnosticLogItem> DiagnosticLogItems { get; init; }
+        public required string? ProjectRestorePath { get; init; }
         public required ProjectSystemProjectFactory ProjectFactory { get; init; }
         public required bool IsFileBasedProgram { get; init; }
         public required bool IsMiscellaneousFile { get; init; }
+        public required bool HasFileBasedAppDirectives { get; init; }
+        public required bool HasAllInformation { get; init; }
         public required BuildHostProcessKind PreferredBuildHostKind { get; init; }
         public required BuildHostProcessKind ActualBuildHostKind { get; init; }
     }
 
     /// <summary>Loads a project in the MSBuild host.</summary>
+    /// <returns>
+    /// The load result, or null if the project should not be loaded. Implementations that return null are responsible for logging why.
+    /// </returns>
     /// <remarks>Caller needs to catch exceptions to avoid bringing down the project loader queue.</remarks>
     protected abstract Task<RemoteProjectLoadResult?> TryLoadProjectInMSBuildHostAsync(
         BuildHostProcessManager buildHostProcessManager, string projectPath, CancellationToken cancellationToken);
 
-    /// <summary>Called after a project is unloaded to allow the subtype to clean up any resources associated with the project.</summary>
-    /// <remarks>
-    /// Note that this refers to unloading of the project on the project-system level.
-    /// So, for example, changing the target frameworks of a project, or transitioning between
-    /// "file-based program" and "true miscellaneous file", will not result in this being called.
-    /// </remarks>
-    protected abstract ValueTask OnProjectUnloadedAsync(string projectFilePath);
+    protected virtual async Task<(ImmutableArray<ProjectFileInfo>, ProjectSystemProjectFactory)?> TryLoadProjectFromCacheAsync(string projectPath, CancellationToken cancellationToken)
+        => null;
 
-    /// <summary>
-    /// Called when transitioning from a primordial project to loaded targets.
-    /// Subclasses can override this to transfer documents or perform other operations before the primordial project is removed.
-    /// </summary>
-    protected abstract ValueTask TransitionPrimordialProjectToLoaded_NoLockAsync(
-        string projectPath,
-        ProjectSystemProjectFactory primordialProjectFactory,
-        ProjectId primordialProjectId,
-        CancellationToken cancellationToken);
-
-    /// <returns>True if the project needs a NuGet restore, false otherwise.</returns>
-    private async Task<bool> ReloadProjectAsync(ProjectToLoad projectToLoad, ToastErrorReporter toastErrorReporter, BuildHostProcessManager buildHostProcessManager, CancellationToken cancellationToken)
+    /// <returns>The project file path that needs a NuGet restore, if any.</returns>
+    private async Task<string?> ReloadProjectAsync(string projectPath, ToastErrorReporter toastErrorReporter, BuildHostProcessManager buildHostProcessManager, CancellationToken cancellationToken)
     {
         BuildHostProcessKind? preferredBuildHostKindThatWeDidNotGet = null;
-        var projectPath = projectToLoad.Path;
-        Contract.ThrowIfFalse(PathUtilities.IsAbsolute(projectPath));
+        LoadedProject? loadedProject;
 
-        // Before doing any work, check if the project has already been unloaded.
+        // Before doing any work, check if the project has already been unloaded
         using (await _gate.DisposableWaitAsync(cancellationToken))
         {
-            if (!_loadedProjects.ContainsKey(projectPath))
-            {
-                return false;
-            }
+            cancellationToken.ThrowIfCancellationRequested();
+            if (!_loadedProjects.TryGetValue(projectPath, out loadedProject))
+                return null;
         }
 
         try
         {
             var remoteProjectLoadResult = await TryLoadProjectInMSBuildHostAsync(buildHostProcessManager, projectPath, cancellationToken);
             if (remoteProjectLoadResult is null)
-            {
-                // Note that this is a fairly common condition, e.g. for VB projects.
-                // In the file-based programs primordial case, no 'LoadedProject' is produced for the project,
-                // and therefore no reloading is performed for it after failing to load it once (in this code path).
-                _logger.LogWarning($"Unable to load project '{projectPath}'.");
-                return false;
-            }
+                return null;
 
-            var remoteProjectFile = remoteProjectLoadResult.ProjectFile;
             var projectFactory = remoteProjectLoadResult.ProjectFactory;
-            var isMiscellaneousFile = remoteProjectLoadResult.IsMiscellaneousFile;
             var preferredBuildHostKind = remoteProjectLoadResult.PreferredBuildHostKind;
             if (preferredBuildHostKind != remoteProjectLoadResult.ActualBuildHostKind)
                 preferredBuildHostKindThatWeDidNotGet = preferredBuildHostKind;
 
-            var diagnosticLogItems = await remoteProjectFile.GetDiagnosticLogItemsAsync(cancellationToken);
+            var diagnosticLogItems = remoteProjectLoadResult.DiagnosticLogItems;
             if (diagnosticLogItems.Any(item => item.Kind is DiagnosticLogItemKind.Error))
             {
                 await LogDiagnosticsAsync(diagnosticLogItems);
                 // We have total failures in evaluation, no point in continuing.
-                return false;
+                return null;
             }
 
-            var loadedProjectInfos = await remoteProjectFile.GetProjectFileInfosAsync(cancellationToken);
+            var loadedProjectInfos = remoteProjectLoadResult.ProjectFileInfos;
 
             // The out-of-proc build host supports more languages than we may actually have Workspace binaries for, so ensure we can actually process that
             // language in-process.
             var projectLanguage = loadedProjectInfos.FirstOrDefault()?.Language;
             if (projectLanguage != null && projectFactory.Workspace.Services.GetLanguageService<ICommandLineParserService>(projectLanguage) == null)
-            {
-                return false;
-            }
+                return null;
 
-            Dictionary<ProjectFileInfo, ProjectLoadTelemetryReporter.TelemetryInfo> telemetryInfos = [];
-            var needsRestore = false;
+            var applied = await loadedProject.TryApplyLoadedProjectInfosAsync(
+                loadedProjectInfos,
+                isMiscellaneousFile: remoteProjectLoadResult.IsMiscellaneousFile,
+                hasAllInformation: remoteProjectLoadResult.HasAllInformation,
+                projectFactory,
+                _projectTargetFrameworkManager,
+                _projectCapabilityManager,
+                _workspaceFactory,
+                _logger,
+                cancellationToken);
 
-            using (await _gate.DisposableWaitAsync(cancellationToken))
-            {
-                if (!_loadedProjects.TryGetValue(projectPath, out var currentLoadState))
-                {
-                    // Project was unloaded. Do not proceed with reloading it.
-                    return false;
-                }
+            // We might have unloaded in the mean time, just skip
+            if (!applied)
+                return null;
 
-                var previousProjectTargets = currentLoadState is ProjectLoadState.LoadedTargets loaded ? loaded.LoadedProjectTargets : [];
-                var newProjectTargetsBuilder = ArrayBuilder<LoadedProject>.GetInstance(loadedProjectInfos.Length);
-                foreach (var loadedProjectInfo in loadedProjectInfos)
-                {
-                    var (target, targetAlreadyExists) = await GetOrCreateProjectTargetAsync(previousProjectTargets, projectFactory, loadedProjectInfo);
-                    newProjectTargetsBuilder.Add(target);
+            await loadedProject.ReportTelemetryIfNotPreviouslyReportedAsync(
+                _projectLoadTelemetryReporter,
+                isSdkStyle: preferredBuildHostKind == BuildHostProcessKind.NetCore,
+                solutionPath: projectFactory.Workspace.CurrentSolution.FilePath,
+                isMiscellaneousFile: remoteProjectLoadResult.IsMiscellaneousFile,
+                isFileBasedProgram: remoteProjectLoadResult.IsFileBasedProgram,
+                hasFileBasedAppDirectives: remoteProjectLoadResult.HasFileBasedAppDirectives);
 
-                    var (outputKind, metadataReferences, targetNeedsRestore) = await target.UpdateWithNewProjectInfoAsync(loadedProjectInfo, isMiscellaneousFile, _logger);
-                    needsRestore |= targetNeedsRestore;
-                    if (!targetAlreadyExists)
-                    {
-                        telemetryInfos[loadedProjectInfo] = new ProjectLoadTelemetryReporter.TelemetryInfo
-                        {
-                            OutputKind = outputKind,
-                            MetadataReferences = metadataReferences,
-                            IsSdkStyle = preferredBuildHostKind == BuildHostProcessKind.NetCore,
-                            HasSolutionFile = _workspaceFactory.HostProjectFactory.SolutionPath is not null,
-                            IsMiscellaneousFile = isMiscellaneousFile,
-                            IsFileBasedProgram = remoteProjectLoadResult.IsFileBasedProgram,
-                        };
-                    }
-                }
-
-                var newProjectTargets = newProjectTargetsBuilder.ToImmutableAndFree();
-                foreach (var target in previousProjectTargets)
-                {
-                    // Unload targets which were present in a past design-time build, but absent in the current one.
-                    if (!newProjectTargets.Contains(target))
-                    {
-                        target.Dispose();
-                    }
-                }
-
-                if (projectToLoad.ReportTelemetry)
-                {
-                    await _projectLoadTelemetryReporter.ReportProjectLoadTelemetryAsync(telemetryInfos, projectToLoad, cancellationToken);
-                }
-
-                if (currentLoadState is ProjectLoadState.Primordial(var primordialProjectFactory, var projectId))
-                {
-                    // Transition from primordial to loaded state
-                    await TransitionPrimordialProjectToLoaded_NoLockAsync(projectPath, primordialProjectFactory, projectId, cancellationToken);
-                }
-
-                // At this point we expect that all the loaded projects are now in the project factory returned, and any previous ones have been removed.
-                // this is a Debug.Assert() because if this expectation fails, the user's probably still in a state where things will work just fine;
-                // throwing here would mean we don't remember the LoadedProjects we created, and the next update will create more and things will get really broken.
-                Debug.Assert(newProjectTargets.All(target => target.ProjectFactory == projectFactory));
-                _loadedProjects[projectPath] = new ProjectLoadState.LoadedTargets(newProjectTargets);
-            }
-
-            diagnosticLogItems = await remoteProjectFile.GetDiagnosticLogItemsAsync(cancellationToken);
             if (diagnosticLogItems.Any())
             {
                 await LogDiagnosticsAsync(diagnosticLogItems);
@@ -352,46 +348,20 @@ internal abstract class LanguageServerProjectLoader
                 _logger.LogInformation(string.Format(LanguageServerResources.Successfully_completed_load_of_0, projectPath));
             }
 
-            return needsRestore;
+            return await loadedProject.NeedsRestoreAsync() ? remoteProjectLoadResult.ProjectRestorePath : null;
         }
-        catch (Exception e)
+        catch (Exception e) when (!ExceptionUtilities.IsCurrentOperationBeingCancelled(e, cancellationToken)) // Cancellation is only expected when we're shutting down, in which case there's no reason to do a report.
         {
             // Since our LogDiagnosticsAsync helper takes DiagnosticLogItems, let's just make one for this
             var message = string.Format(LanguageServerResources.Exception_thrown_0, e);
             var diagnosticLogItem = new DiagnosticLogItem(DiagnosticLogItemKind.Error, message, projectPath);
             await LogDiagnosticsAsync([diagnosticLogItem]);
 
-            return false;
+            return null;
         }
-
-        async Task<(LoadedProject, bool alreadyExists)> GetOrCreateProjectTargetAsync(ImmutableArray<LoadedProject> previousProjectTargets, ProjectSystemProjectFactory projectFactory, ProjectFileInfo loadedProjectInfo)
+        finally
         {
-            var existingProject = previousProjectTargets.FirstOrDefault(p => p.GetTargetFramework() == loadedProjectInfo.TargetFramework && p.ProjectFactory == projectFactory);
-            if (existingProject != null)
-            {
-                return (existingProject, alreadyExists: true);
-            }
-
-            var targetFramework = loadedProjectInfo.TargetFramework;
-            var projectSystemName = targetFramework is null ? projectPath : $"{projectPath} (${targetFramework})";
-
-            var projectCreationInfo = new ProjectSystemProjectCreationInfo
-            {
-                AssemblyName = projectSystemName,
-                FilePath = projectPath,
-                CompilationOutputAssemblyFilePath = loadedProjectInfo.IntermediateOutputFilePath,
-            };
-
-            var projectSystemProject = await projectFactory.CreateAndAddToWorkspaceAsync(
-                projectSystemName,
-                loadedProjectInfo.Language,
-                projectCreationInfo,
-                _workspaceFactory.ProjectSystemHostInfo);
-
-            var loadedProject = new LoadedProject(projectSystemProject, projectFactory, _fileChangeWatcher, _workspaceFactory.TargetFrameworkManager);
-            loadedProject.NeedsReload += (_, _) =>
-                _projectsToReload.AddWork(projectToLoad with { ReportTelemetry = false });
-            return (loadedProject, alreadyExists: false);
+            loadedProject.CompleteInitialLoad();
         }
 
         async Task LogDiagnosticsAsync(ImmutableArray<DiagnosticLogItem> diagnosticLogItems)
@@ -417,109 +387,230 @@ internal abstract class LanguageServerProjectLoader
         }
     }
 
-    protected async ValueTask<bool> IsProjectLoadedAsync(string projectPath, CancellationToken cancellationToken)
+    protected async ValueTask<ImmutableArray<Project>> GetOrLoadProjectAsync(string projectPath, ProjectSystemProjectFactory primordialProjectFactory, Func<ProjectSystemProjectFactory, string, ProjectInfo> createPrimordialProjectInfo, bool doDesignTimeBuild)
     {
-        using (await _gate.DisposableWaitAsync(cancellationToken))
-        {
-            return _loadedProjects.ContainsKey(projectPath);
-        }
-    }
-
-    /// <summary>
-    /// Executes an async action with access to the loaded project state under the _gate.
-    /// This allows subclasses to safely query or modify project state.
-    /// </summary>
-    protected async ValueTask<T> ExecuteUnderGateAsync<T>(Func<Dictionary<string, ProjectLoadState>, ValueTask<T>> action, CancellationToken cancellationToken)
-    {
-        using (await _gate.DisposableWaitAsync(cancellationToken))
-        {
-            return await action(_loadedProjects);
-        }
-    }
-
-    /// <inheritdoc cref="BeginLoadingProjectWithPrimordial_NoLock"/>
-    protected async ValueTask BeginLoadingProjectWithPrimordialAsync(string projectPath, ProjectSystemProjectFactory primordialProjectFactory, ProjectId primordialProjectId, bool doDesignTimeBuild)
-    {
+        projectPath = NormalizeProjectPath(projectPath);
         using (await _gate.DisposableWaitAsync(CancellationToken.None))
         {
-            BeginLoadingProjectWithPrimordial_NoLock(projectPath, primordialProjectFactory, primordialProjectId, doDesignTimeBuild);
-        }
-    }
+            Contract.ThrowIfTrue(_isDisposed, "Project loader is already disposed");
 
-    /// <summary>
-    /// Begins loading a project with an associated primordial project. Must not be called for a project which has already begun loading.
-    /// </summary>
-    /// <param name="doDesignTimeBuild">
-    /// If <see langword="true"/>, initiates a design-time build now, and starts file watchers to repeat the design-time build on relevant changes.
-    /// If <see langword="false"/>, only tracks the primordial project.
-    /// </param>
-    protected void BeginLoadingProjectWithPrimordial_NoLock(string projectPath, ProjectSystemProjectFactory primordialProjectFactory, ProjectId primordialProjectId, bool doDesignTimeBuild)
-    {
-        // If this project has already begun loading, we need to throw.
-        // This is because we can't ensure that the workspace and project system will remain in a consistent state after this call.
-        // For example, there could be a need for the project system to track both a primordial project and list of loaded targets, which we don't support.
-        if (_loadedProjects.ContainsKey(projectPath))
-        {
-            Contract.Fail($"Cannot begin loading project '{projectPath}' because it has already begun loading.");
-        }
+            if (_loadedProjects.TryGetValue(projectPath, out var existingLoadedProject))
+                return await existingLoadedProject.GetExistingProjectsAsync();
 
-        _loadedProjects.Add(projectPath, new ProjectLoadState.Primordial(primordialProjectFactory, primordialProjectId));
-        if (doDesignTimeBuild)
-        {
-            _projectsToReload.AddWork(new ProjectToLoad(projectPath, ProjectGuid: null, ReportTelemetry: true));
-        }
-    }
+            var primordialProjectInfo = createPrimordialProjectInfo(primordialProjectFactory, projectPath);
 
-    /// <summary>
-    /// Begins loading a project. If the project has already begun loading, returns without doing any additional work.
-    /// </summary>
-    protected async Task BeginLoadingProjectAsync(string projectPath, string? projectGuid)
-    {
-        using (await _gate.DisposableWaitAsync(CancellationToken.None))
-        {
-            // If project has already begun loading, no need to do any further work.
-            if (_loadedProjects.ContainsKey(projectPath))
+            var newLoadedProject = new LoadedProject(projectPath, _fileChangeWatcher);
+            _loadedProjects.Add(projectPath, newLoadedProject);
+            var newProject = await newLoadedProject.CreatePrimordialProjectAsync(primordialProjectFactory, primordialProjectInfo);
+
+            if (doDesignTimeBuild)
             {
-                return;
+                newLoadedProject.NeedsReload += LoadedProject_NeedsReload;
+                _projectsToReload.AddWork(new(newLoadedProject.ProjectFilePath, LoadFromCache: false), priority: (int)ProjectReloadPriority.RegularLoad);
+            }
+            else
+            {
+                newLoadedProject.CompleteInitialLoad();
             }
 
-            _loadedProjects.Add(projectPath, new ProjectLoadState.LoadedTargets(LoadedProjectTargets: []));
-            _projectsToReload.AddWork(new ProjectToLoad(Path: projectPath, ProjectGuid: projectGuid, ReportTelemetry: true));
+            return [newProject];
         }
     }
 
-    protected Task WaitForProjectsToFinishLoadingAsync() => _projectsToReload.WaitUntilCurrentBatchCompletesAsync();
+    /// <summary>
+    /// Begins loading a project. If the project has already begun loading, raises its scheduled priority if needed.
+    /// </summary>
+    internal async Task<LoadedProject> BeginLoadingProjectAsync(
+        string projectPath,
+        ProjectReloadPriority reloadPriority = ProjectReloadPriority.RegularLoad)
+    {
+        projectPath = NormalizeProjectPath(projectPath);
+        LoadedProject? loadedProject;
 
-    protected async ValueTask<bool> TryUnloadProjectAsync(string projectPath)
+        using (await _gate.DisposableWaitAsync(CancellationToken.None))
+        {
+            Contract.ThrowIfTrue(_isDisposed, "Project loader is already disposed");
+
+            if (_loadedProjects.TryGetValue(projectPath, out loadedProject))
+            {
+                _projectsToReload.RaiseWorkPriorityIfScheduled(new(loadedProject.ProjectFilePath, LoadFromCache: false), (int)reloadPriority);
+                return loadedProject;
+            }
+
+            loadedProject = new LoadedProject(projectPath, _fileChangeWatcher);
+            _loadedProjects.Add(projectPath, loadedProject);
+
+            loadedProject.NeedsReload += LoadedProject_NeedsReload;
+
+            _projectsToReload.AddWork(
+                new(projectPath, LoadFromCache: true),
+                priority: (int)ProjectReloadPriority.CacheLoad);
+            _projectsToReload.AddWork(
+                new(projectPath, LoadFromCache: false),
+                priority: (int)reloadPriority);
+
+            return loadedProject;
+        }
+    }
+
+    private async Task<bool> TryApplyCachedProjectInfoAsync(string projectPath, CancellationToken cancellationToken)
+    {
+        LoadedProject? loadedProject;
+
+        // The project may have been unloaded since the cache load was queued
+        using (await _gate.DisposableWaitAsync(cancellationToken))
+        {
+            if (!_loadedProjects.TryGetValue(projectPath, out loadedProject))
+                return false;
+        }
+
+        try
+        {
+            var cachedProjectStateAndFactory = await TryLoadProjectFromCacheAsync(projectPath, cancellationToken);
+
+            if (cachedProjectStateAndFactory is not null)
+            {
+                var (cachedProjectState, projectFactory) = cachedProjectStateAndFactory.Value;
+
+                var applied = await loadedProject.TryApplyLoadedProjectInfosAsync(
+                    cachedProjectState,
+                    isMiscellaneousFile: false,
+                    hasAllInformation: true,
+                    projectFactory,
+                    _projectTargetFrameworkManager,
+                    _projectCapabilityManager,
+                    _workspaceFactory,
+                    _logger,
+                    cancellationToken,
+                    onlyIfNoTargets: true);
+
+                if (applied)
+                {
+                    // We'll count the cached load as sufficient for this project being fully loaded
+                    loadedProject.CompleteInitialLoad();
+                    return true;
+                }
+            }
+        }
+        catch (Exception e) when (!ExceptionUtilities.IsCurrentOperationBeingCancelled(e, cancellationToken))
+        {
+            _logger.LogWarning(e, "Exception encountered while trying to load cached state for {ProjectPath}", projectPath);
+        }
+
+        return false;
+    }
+
+    protected void LoadedProject_NeedsReload(object? sender, string triggeringFilePath)
+    {
+        var loadedProject = (LoadedProject)sender!;
+
+        _logger.LogTrace("Project {ProjectPath} needs reload due to change in {TriggeringFilePath}", loadedProject.ProjectFilePath, triggeringFilePath);
+        _projectsToReload.AddWork(new(loadedProject.ProjectFilePath, LoadFromCache: false), priority: (int)ProjectReloadPriority.RegularLoad);
+    }
+
+    internal static async Task WaitForProjectLoadsAsync(
+        ImmutableArray<LoadedProject> loadedProjects,
+        WorkDoneProgressTracker? progressTracker = null,
+        CancellationToken cancellationToken = default)
+    {
+        await Task.WhenAll(loadedProjects.SelectAsArray(async loadedProject =>
+        {
+            try
+            {
+                await loadedProject.WaitForLoadAsync(cancellationToken);
+            }
+            finally
+            {
+                progressTracker?.OnItemProcessed();
+            }
+        }));
+    }
+
+    internal async Task WaitForCurrentProjectLoadsAsync(CancellationToken cancellationToken)
+    {
+        var currentProjectLoads = await CaptureCurrentProjectLoadsAsync(cancellationToken);
+        await currentProjectLoads;
+    }
+
+    /// <summary>
+    /// Captures tracked project loads under the loader gate without waiting for their completion.
+    /// </summary>
+    internal async ValueTask<Task> CaptureCurrentProjectLoadsAsync(CancellationToken cancellationToken)
+    {
+        ImmutableArray<LoadedProject> loadedProjects;
+        using (await _gate.DisposableWaitAsync(cancellationToken))
+        {
+            loadedProjects = [.. _loadedProjects.Values];
+        }
+
+        return WaitForProjectLoadsAsync(loadedProjects, cancellationToken: cancellationToken);
+    }
+
+    /// <summary>Unloads all projects associated with this project loader.</summary>
+    internal async ValueTask UnloadAllProjectsAsync()
     {
         using (await _gate.DisposableWaitAsync(CancellationToken.None))
         {
-            if (!_loadedProjects.Remove(projectPath, out var loadState))
+            foreach (var loadedProject in _loadedProjects.Values)
+                await loadedProject.DisposeAsync();
+
+            _loadedProjects.Clear();
+        }
+    }
+
+    public virtual async ValueTask DisposeAsync()
+    {
+        using (await _gate.DisposableWaitAsync(CancellationToken.None))
+        {
+            if (_isDisposed)
+                return;
+
+            _isDisposed = true;
+            _projectsToReload.Dispose();
+
+            foreach (var (_, project) in _loadedProjects)
+                await project.DisposeAsync();
+
+            _loadedProjects.Clear();
+        }
+    }
+
+    internal async ValueTask<bool> TryUnloadProjectAsync(string projectPath, ProjectSystemProjectFactory? fromProjectFactory = null)
+    {
+        projectPath = NormalizeProjectPath(projectPath);
+        using (await _gate.DisposableWaitAsync(CancellationToken.None))
+        {
+            if (!_loadedProjects.TryGetValue(projectPath, out var loadedProject))
             {
                 // It is common to be called with a path to a project which is already not loaded.
                 // In this case, we should do nothing.
                 return false;
             }
 
-            if (loadState is ProjectLoadState.Primordial(var projectFactory, var projectId))
+            // Caller can specify to only unload a project if it uses a specific project factory.
+            if (fromProjectFactory != null && !await loadedProject.UsesProjectFactoryAsync(fromProjectFactory))
+                return false;
+
+            await loadedProject.DisposeAsync();
+            Contract.ThrowIfFalse(_loadedProjects.Remove(projectPath));
+
+            return true;
+        }
+    }
+
+    protected static string NormalizeProjectPath(string projectPath)
+        => PathUtilities.IsAbsolute(projectPath) ? IOUtilities.PerformIO(() => Path.GetFullPath(projectPath), projectPath) : projectPath;
+
+    internal TestAccessor GetTestAccessor() => new(this);
+
+    internal readonly struct TestAccessor(LanguageServerProjectLoader loader)
+    {
+        public async ValueTask<ImmutableArray<string>> GetLoadedProjectPathsAsync()
+        {
+            using (await loader._gate.DisposableWaitAsync(CancellationToken.None))
             {
-                await projectFactory.ApplyChangeToWorkspaceAsync(workspace => workspace.OnProjectRemoved(projectId));
-            }
-            else if (loadState is ProjectLoadState.LoadedTargets(var existingProjects))
-            {
-                foreach (var existingProject in existingProjects)
-                {
-                    // Disposing a LoadedProject unloads it and removes it from the workspace.
-                    existingProject.Dispose();
-                }
-            }
-            else
-            {
-                throw ExceptionUtilities.UnexpectedValue(loadState);
+                return [.. loader._loadedProjects.Keys];
             }
         }
-
-        await OnProjectUnloadedAsync(projectPath);
-        return true;
     }
 }

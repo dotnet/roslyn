@@ -109,7 +109,7 @@ internal sealed class SymbolTreeItem : BaseItem,
             // are already expanded, then recompute our children which will recursively push the change
             // down further.
             var items = this.ItemProvider.GetItems(
-                this.ItemKey.DocumentId, _itemSyntax.DeclarationNode, this.RootProvider.ThreadingContext.DisposalToken);
+                this.ItemKey.DocumentId, _itemSyntax.DeclarationNode, includeNamespaces: false, this.RootProvider.ThreadingContext.DisposalToken);
             _childCollection.SetItemsAndMarkComputed_OnMainThread(this.ItemProvider, items);
         }
         else

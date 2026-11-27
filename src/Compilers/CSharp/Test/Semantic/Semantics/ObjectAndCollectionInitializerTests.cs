@@ -1893,6 +1893,36 @@ IObjectCreationOperation (Constructor: MemberInitializerTest..ctor()) (Operation
             VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [Fact]
+        public void CS0176ERR_ObjectProhibited_ImplicitIndexerArgumentInObjectInitializer()
+        {
+            var source = """
+                class C
+                {
+                    public int this[int i]
+                    {
+                        get => 0;
+                        set { }
+                    }
+
+                    public static int P => 0;
+                }
+
+                class Program
+                {
+                    static void Main()
+                    {
+                        _ = new C { [new C().P] = 1 };
+                    }
+                }
+                """;
+
+            CreateCompilation(source).VerifyDiagnostics(
+                // CS0176: Member 'C.P' cannot be accessed with an instance reference; qualify it with a type name instead
+                //         _ = new C { [new C().P] = 1 };
+                Diagnostic(ErrorCode.ERR_ObjectProhibited, "new C().P").WithArguments("C.P").WithLocation(16, 22));
+        }
+
         [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void CS1917ERR_ReadonlyValueTypeInObjectInitializer()
@@ -4021,7 +4051,7 @@ class X
             {
                 Assert.Equal("List<string>", name.ToString());
                 Assert.Equal("System.Collections.Generic.List<System.String>", semanticModel.GetSymbolInfo(name).Symbol.ToTestDisplayString());
-                Assert.Null(semanticModel.GetTypeInfo(name).Type);
+                Assert.Equal("System.Collections.Generic.List<System.String>", semanticModel.GetTypeInfo(name).Type.ToTestDisplayString());
             }
         }
 

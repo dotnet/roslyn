@@ -1,0 +1,49 @@
+﻿RazorDocument - [0..36)::36 - [@Html.Repeat(10, @<p>Foo #@item</p>)]
+    MarkupBlock - [0..36)::36
+        MarkupTextLiteral - [0..0)::0 - [] - Gen<Markup>
+            Marker;[];
+        CSharpCodeBlock - [0..36)::36
+            CSharpImplicitExpression - [0..36)::36
+                CSharpTransition - [0..1)::1 - Gen<None>
+                    Transition;[@];
+                CSharpImplicitExpressionBody - [1..36)::35
+                    CSharpCodeBlock - [1..36)::35
+                        CSharpExpressionLiteral - [1..17)::16 - [Html.Repeat(10, ] - Gen<Expr>
+                            Identifier;[Html];
+                            Dot;[.];
+                            Identifier;[Repeat];
+                            LeftParenthesis;[(];
+                            NumericLiteral;[10];
+                            Comma;[,];
+                            Whitespace;[ ];
+                        CSharpTemplateBlock - [17..35)::18
+                            MarkupBlock - [17..35)::18
+                                MarkupTransition - [17..18)::1 - Gen<None>
+                                    Transition;[@];
+                                MarkupElement - [18..35)::17
+                                    MarkupStartTag - [18..21)::3 - [<p>] - Gen<Markup>
+                                        OpenAngle;[<];
+                                        Text;[p];
+                                        CloseAngle;[>];
+                                    MarkupTextLiteral - [21..26)::5 - [Foo #] - Gen<Markup>
+                                        Text;[Foo];
+                                        Whitespace;[ ];
+                                        Text;[#];
+                                    CSharpCodeBlock - [26..31)::5
+                                        CSharpImplicitExpression - [26..31)::5
+                                            CSharpTransition - [26..27)::1 - Gen<None>
+                                                Transition;[@];
+                                            CSharpImplicitExpressionBody - [27..31)::4
+                                                CSharpCodeBlock - [27..31)::4
+                                                    CSharpExpressionLiteral - [27..31)::4 - [item] - Gen<Expr>
+                                                        Identifier;[item];
+                                    MarkupEndTag - [31..35)::4 - [</p>] - Gen<Markup>
+                                        OpenAngle;[<];
+                                        ForwardSlash;[/];
+                                        Text;[p];
+                                        CloseAngle;[>];
+                        CSharpExpressionLiteral - [35..36)::1 - [)] - Gen<Expr>
+                            RightParenthesis;[)];
+        MarkupTextLiteral - [36..36)::0 - [] - Gen<Markup>
+            Marker;[];
+    EndOfFile;[];

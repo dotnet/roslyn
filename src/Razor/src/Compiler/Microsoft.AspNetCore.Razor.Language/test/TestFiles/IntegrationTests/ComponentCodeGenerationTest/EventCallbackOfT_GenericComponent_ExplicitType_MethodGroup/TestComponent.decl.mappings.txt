@@ -1,0 +1,13 @@
+﻿Source Location: (56:2,7 [84] x:\dir\subdir\Test\TestComponent.cshtml)
+|
+    private int counter;
+
+    public void Increment(MyType type) => counter++;
+|
+Generated Location: (557:18,0 [84] )
+|
+    private int counter;
+
+    public void Increment(MyType type) => counter++;
+|
+

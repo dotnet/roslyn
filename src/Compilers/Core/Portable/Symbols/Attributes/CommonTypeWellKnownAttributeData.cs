@@ -213,6 +213,23 @@ namespace Microsoft.CodeAnalysis
 
         #endregion
 
+        #region ExtendedLayoutAttribute
+        public bool HasExtendedLayoutAttribute
+        {
+            get
+            {
+                VerifySealed(expected: true);
+                return field;
+            }
+            set
+            {
+                VerifySealed(expected: false);
+                field = value;
+                SetDataStored();
+            }
+        }
+        #endregion
+
         #region SecurityCriticalAttribute and SecuritySafeCriticalAttribute
         private bool _hasSecurityCriticalAttributes;
         public bool HasSecurityCriticalAttributes

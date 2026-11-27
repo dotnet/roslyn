@@ -16,6 +16,7 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeCleanup;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.Formatting;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -550,7 +551,8 @@ internal abstract partial class AbstractGenerateTypeService<TService, TSimpleNam
             var codeGenResult = await CodeGenerator.AddNamedTypeDeclarationAsync(
                 new CodeGenerationSolutionContext(
                     solution,
-                    new CodeGenerationContext(contextLocation: _state.SimpleName.GetLocation())),
+                    new CodeGenerationContext(
+                        contextLocation: _state.SimpleName.GetLocation())),
                 _state.TypeToGenerateInOpt,
                 namedType,
                 _cancellationToken)

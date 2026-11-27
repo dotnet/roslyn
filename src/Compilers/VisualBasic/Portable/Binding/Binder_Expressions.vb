@@ -2744,7 +2744,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                 Dim err As ERRID = Nothing
                                 If isInstanceMember AndAlso (Not CanAccessMe(implicitReference:=True, errorId:=err) OrElse Not BindSimpleNameIsMemberOfType(leftSymbol, ContainingType)) Then
                                     diagnostics.AddRange(typeDiagnostics)
+                                    typeDiagnostics.Free()
                                     leftDiagnostics.Free()
+                                    If propertyDiagnostics IsNot Nothing Then
+                                        propertyDiagnostics.Free()
+                                    End If
 
                                     Return boundType
                                 End If

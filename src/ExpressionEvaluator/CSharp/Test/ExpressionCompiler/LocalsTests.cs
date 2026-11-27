@@ -1508,6 +1508,7 @@ class C
   IL_0000:  ldarg.3
   IL_0001:  ret
 }");
+                locals.Free();
             });
         }
 
@@ -2628,6 +2629,7 @@ class C
   IL_0000:  ldc.r8     2.74745778612482E-266
   IL_0009:  ret
 }");
+                locals.Free();
             });
         }
 
@@ -2706,6 +2708,7 @@ class C
   IL_0006:  newobj     ""decimal..ctor(int, int, int, bool, byte)""
   IL_000b:  ret
 }");
+                locals.Free();
             });
         }
 
@@ -5224,6 +5227,7 @@ public class C
   IL_0005:  ret
 }",
                         expectedGeneric: true);
+                locals.Free();
             });
         }
 

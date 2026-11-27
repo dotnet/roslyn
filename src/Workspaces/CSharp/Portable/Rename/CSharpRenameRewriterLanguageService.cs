@@ -949,15 +949,15 @@ internal sealed class CSharpRenameConflictLanguageService() : AbstractRenameRewr
     {
         // Handle renaming of symbols used for foreach
         var implicitReferencesMightConflict = renameSymbol.Kind == SymbolKind.Property &&
-                                            string.Compare(renameSymbol.Name, "Current", StringComparison.OrdinalIgnoreCase) == 0;
+                                            string.Equals(renameSymbol.Name, "Current", StringComparison.OrdinalIgnoreCase);
 
         implicitReferencesMightConflict =
             implicitReferencesMightConflict ||
                 (renameSymbol.Kind == SymbolKind.Method &&
-                    (string.Compare(renameSymbol.Name, WellKnownMemberNames.MoveNextMethodName, StringComparison.OrdinalIgnoreCase) == 0 ||
-                    string.Compare(renameSymbol.Name, WellKnownMemberNames.GetEnumeratorMethodName, StringComparison.OrdinalIgnoreCase) == 0 ||
-                    string.Compare(renameSymbol.Name, WellKnownMemberNames.GetAwaiter, StringComparison.OrdinalIgnoreCase) == 0 ||
-                    string.Compare(renameSymbol.Name, WellKnownMemberNames.DeconstructMethodName, StringComparison.OrdinalIgnoreCase) == 0));
+                    (string.Equals(renameSymbol.Name, WellKnownMemberNames.MoveNextMethodName, StringComparison.OrdinalIgnoreCase) ||
+                    string.Equals(renameSymbol.Name, WellKnownMemberNames.GetEnumeratorMethodName, StringComparison.OrdinalIgnoreCase) ||
+                    string.Equals(renameSymbol.Name, WellKnownMemberNames.GetAwaiter, StringComparison.OrdinalIgnoreCase) ||
+                    string.Equals(renameSymbol.Name, WellKnownMemberNames.DeconstructMethodName, StringComparison.OrdinalIgnoreCase)));
 
         // TODO: handle Dispose for using statement and Add methods for collection initializers.
 

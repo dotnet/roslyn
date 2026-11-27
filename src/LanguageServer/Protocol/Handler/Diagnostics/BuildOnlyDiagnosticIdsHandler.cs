@@ -36,8 +36,7 @@ internal sealed class BuildOnlyDiagnosticIdsHandler(
 
     public async Task<BuildOnlyDiagnosticIdsResult> HandleRequestAsync(RequestContext context, CancellationToken cancellationToken)
     {
-        var solution = context.Solution;
-        Contract.ThrowIfNull(solution);
+        var solution = await context.GetRequiredSolutionAsync(cancellationToken).ConfigureAwait(false);
 
         using var _ = ArrayBuilder<string>.GetInstance(out var builder);
         foreach (var languageName in solution.Projects.Select(p => p.Language).Distinct())

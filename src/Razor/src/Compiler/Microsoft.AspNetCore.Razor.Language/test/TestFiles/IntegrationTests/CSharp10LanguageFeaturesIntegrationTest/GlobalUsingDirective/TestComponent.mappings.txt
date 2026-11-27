@@ -1,0 +1,5 @@
+﻿Source Location: (4:0,4 [18] x:\dir\subdir\Test\TestComponent.razor)
+|Utility.GetValue()|
+Generated Location: (805:22,24 [18] )
+|Utility.GetValue()|
+

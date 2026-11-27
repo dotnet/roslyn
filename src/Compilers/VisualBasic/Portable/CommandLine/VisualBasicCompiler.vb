@@ -7,6 +7,7 @@ Imports System.IO
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Collections
 Imports Microsoft.CodeAnalysis.Diagnostics
+Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
@@ -17,7 +18,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Friend Const ResponseFileName As String = "vbc.rsp"
         Friend Const VbcCommandLinePrefix = "vbc : " 'Common prefix String For VB diagnostic output with no location.
         Private ReadOnly _diagnosticFormatter As CommandLineDiagnosticFormatter
-        Private ReadOnly _tempDirectory As String
         Private _additionalTextFiles As ImmutableArray(Of AdditionalTextFile)
 
         Protected Sub New(parser As VisualBasicCommandLineParser, responseFile As String, args As String(), buildPaths As BuildPaths, additionalReferenceDirectories As String, analyzerLoader As IAnalyzerAssemblyLoader, Optional driverCache As GeneratorDriverCache = Nothing, Optional fileSystem As ICommonCompilerFileSystem = Nothing)
@@ -25,7 +25,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             _diagnosticFormatter = New CommandLineDiagnosticFormatter(buildPaths.WorkingDirectory, AddressOf GetAdditionalTextFiles)
             _additionalTextFiles = Nothing
-            _tempDirectory = buildPaths.TempDirectory
 
             Debug.Assert(Arguments.OutputFileName IsNot Nothing OrElse Arguments.Errors.Length > 0 OrElse parser.IsScriptCommandLineParser)
         End Sub
@@ -158,7 +157,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' TODO: support for #load search paths
             Dim sourceFileResolver = New LoggingSourceFileResolver(ImmutableArray(Of String).Empty, Arguments.BaseDirectory, Arguments.PathMap, touchedFilesLogger)
 
-            Dim loggingFileSystem = New LoggingStrongNameFileSystem(touchedFilesLogger, _tempDirectory)
+            Dim loggingFileSystem = New LoggingStrongNameFileSystem(touchedFilesLogger, Arguments.OutputDirectory)
             Dim syntaxTreeOptions = New CompilerSyntaxTreeOptionsProvider(trees, analyzerConfigOptions, globalAnalyzerConfigOptions)
 
             Return VisualBasicCompilation.Create(
@@ -297,9 +296,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Next
         End Sub
 
-        Private Protected Overrides Function CreateGeneratorDriver(baseDirectory As String, parseOptions As ParseOptions, generators As ImmutableArray(Of ISourceGenerator), analyzerConfigOptionsProvider As AnalyzerConfigOptionsProvider, additionalTexts As ImmutableArray(Of AdditionalText)) As GeneratorDriver
+        Private Protected Overrides Function CreateGeneratorDriver(baseDirectory As String, parseOptions As ParseOptions, generators As ImmutableArray(Of ISourceGenerator), analyzerConfigOptionsProvider As AnalyzerConfigOptionsProvider, additionalTexts As ImmutableArray(Of AdditionalText), checksumAlgorithm As SourceHashAlgorithm) As GeneratorDriver
             Return VisualBasicGeneratorDriver.Create(generators, additionalTexts, DirectCast(parseOptions, VisualBasicParseOptions), analyzerConfigOptionsProvider,
-                                                     driverOptions:=New GeneratorDriverOptions(disabledOutputs:=IncrementalGeneratorOutputKind.Host, baseDirectory:=baseDirectory))
+                                                     driverOptions:=New GeneratorDriverOptions(disabledOutputs:=IncrementalGeneratorOutputKind.Host, baseDirectory:=baseDirectory) With {.ChecksumAlgorithm = checksumAlgorithm})
         End Function
 
         Private Protected Overrides Sub DiagnoseBadAccesses(consoleOutput As TextWriter, errorLogger As ErrorLogger, compilation As Compilation, diagnostics As ImmutableArray(Of Diagnostic))

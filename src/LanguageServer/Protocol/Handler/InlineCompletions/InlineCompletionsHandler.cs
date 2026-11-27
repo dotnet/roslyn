@@ -103,7 +103,7 @@ internal sealed partial class InlineCompletionsHandler : ILspServiceDocumentRequ
 
     public async Task<VSInternalInlineCompletionList?> HandleRequestAsync(VSInternalInlineCompletionRequest request, RequestContext context, CancellationToken cancellationToken)
     {
-        var document = context.GetRequiredDocument();
+        var document = await context.GetRequiredDocumentAsync(cancellationToken).ConfigureAwait(false);
         var linePosition = ProtocolConversions.PositionToLinePosition(request.Position);
         var item = await GetInlineCompletionItemsAsync(context.Logger, document, linePosition, request.Options, _xmlSnippetParser, cancellationToken).ConfigureAwait(false);
 

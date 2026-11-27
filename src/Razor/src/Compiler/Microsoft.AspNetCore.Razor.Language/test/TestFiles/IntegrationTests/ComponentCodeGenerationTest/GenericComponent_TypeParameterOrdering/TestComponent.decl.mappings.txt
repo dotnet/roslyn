@@ -1,0 +1,9 @@
+﻿Source Location: (191:3,7 [46] x:\dir\subdir\Test\TestComponent.cshtml)
+|
+    string _componentValue = string.Empty;
+|
+Generated Location: (557:18,0 [46] )
+|
+    string _componentValue = string.Empty;
+|
+

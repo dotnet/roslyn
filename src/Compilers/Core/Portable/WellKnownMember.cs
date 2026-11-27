@@ -483,6 +483,7 @@ namespace Microsoft.CodeAnalysis
         System_Span_T__get_Item,
         System_Span_T__get_Length,
         System_Span_T__Slice_Int_Int,
+        System_Span_T__op_Implicit_ReadOnlySpan_T,
 
         System_ReadOnlySpan_T__ctor_Pointer,
         System_ReadOnlySpan_T__ctor_Array,
@@ -572,6 +573,11 @@ namespace Microsoft.CodeAnalysis
         System_Runtime_CompilerServices_ScopedRefAttribute__ctor,
         System_Runtime_CompilerServices_RefSafetyRulesAttribute__ctor,
 
+        System_Runtime_CompilerServices_MemorySafetyRulesAttribute__ctor,
+        System_Diagnostics_CodeAnalysis_RequiresUnsafeAttribute__ctor,
+        System_Runtime_CompilerServices_IsClosedTypeAttribute__ctor,
+        System_Runtime_CompilerServices_IsClosedTypeAttribute__DerivedTypes,
+
         System_MemoryExtensions__SequenceEqual_Span_T,
         System_MemoryExtensions__SequenceEqual_ReadOnlySpan_T,
         System_MemoryExtensions__AsSpan_String,
@@ -621,6 +627,10 @@ namespace Microsoft.CodeAnalysis
         System_ReadOnlySpan_T__CopyTo_Span_T,
         System_Collections_Immutable_ImmutableArray_T__AsSpan,
         System_Collections_Immutable_ImmutableArray_T__Empty,
+        System_Collections_Immutable_ImmutableArray_Create_OneElement,
+        System_Collections_Immutable_ImmutableArray_Create_TwoElements,
+        System_Collections_Immutable_ImmutableArray_Create_ThreeElements,
+        System_Collections_Immutable_ImmutableArray_Create_FourElements,
         System_Collections_Generic_List_T__AddRange,
 
         System_Runtime_CompilerServices_ParamCollectionAttribute__ctor,
@@ -719,6 +729,15 @@ namespace Microsoft.CodeAnalysis
 
         System_Text_Encoding__get_UTF8,
         System_Text_Encoding__GetString,
+
+        System_Span_T__Slice_Int,
+        System_ReadOnlySpan_T__Slice_Int,
+        System_Memory_T__Slice_Int_Int,
+        System_Memory_T__Slice_Int,
+        System_ReadOnlyMemory_T__Slice_Int_Int,
+        System_ReadOnlyMemory_T__Slice_Int,
+
+        System_Runtime_CompilerServices_UnionAttribute__ctor,
 
         Count,
 

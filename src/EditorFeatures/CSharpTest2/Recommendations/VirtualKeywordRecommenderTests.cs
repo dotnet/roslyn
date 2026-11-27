@@ -175,6 +175,13 @@ public sealed class VirtualKeywordRecommenderTests : KeywordRecommenderTests
             """);
 
     [Fact]
+    public Task TestNotInsideUnion()
+        => VerifyAbsenceAsync("""
+            union U(int) {
+               $$
+            """, CSharp15ParseOptions, CSharp15ScriptParseOptions);
+
+    [Fact]
     public Task TestInsideInterface()
         => VerifyKeywordAsync("""
             interface I {

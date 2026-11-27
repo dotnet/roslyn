@@ -4,6 +4,9 @@
 
 namespace Microsoft.CodeAnalysis.MSBuild;
 
+#if NETFRAMEWORK
+[System.Serializable] // We need to this to be able to serialize across the AppDomain boundary
+#endif
 internal sealed class MSBuildDiagnosticLogItem(
     DiagnosticLogItemKind kind,
     string projectFilePath,

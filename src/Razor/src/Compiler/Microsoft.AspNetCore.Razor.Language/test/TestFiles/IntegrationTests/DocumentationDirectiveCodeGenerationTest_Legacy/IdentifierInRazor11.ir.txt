@@ -1,0 +1,26 @@
+﻿Document - 
+    RazorCompiledItemAttribute - 
+    NamespaceDeclaration -  - AspNetCoreGeneratedDocument
+        UsingDirective - (1:0,1 [20] ) - global::System
+        UsingDirective - (24:1,1 [40] ) - global::System.Collections.Generic
+        UsingDirective - (67:2,1 [25] ) - global::System.Linq
+        UsingDirective - (95:3,1 [36] ) - global::System.Threading.Tasks
+        UsingDirective - (134:4,1 [38] ) - global::Microsoft.AspNetCore.Mvc
+        UsingDirective - (175:5,1 [48] ) - global::Microsoft.AspNetCore.Mvc.Rendering
+        UsingDirective - (226:6,1 [51] ) - global::Microsoft.AspNetCore.Mvc.ViewFeatures
+        RazorSourceChecksumAttribute - 
+        RazorCompiledItemMetadataAttribute - 
+        CreateNewOnMetadataUpdateAttribute - 
+        ClassDeclaration -  - internal sealed - TestFiles_IntegrationTests_DocumentationDirectiveCodeGenerationTest_Legacy_IdentifierInRazor11 - global::Microsoft.AspNetCore.Mvc.Razor.RazorPage<dynamic> - 
+            MethodDeclaration -  - public async override - global::System.Threading.Tasks.Task - ExecuteAsync
+                CSharpExpression - (1:0,1 [13] IdentifierInRazor11.cshtml)
+                    LazyIntermediateToken - (1:0,1 [13] IdentifierInRazor11.cshtml) - CSharp - documentation
+                HtmlContent - (14:0,14 [6] IdentifierInRazor11.cshtml)
+                    LazyIntermediateToken - (14:0,14 [6] IdentifierInRazor11.cshtml) - Html -  foo\n
+            CSharpCode - (32:1,12 [48] IdentifierInRazor11.cshtml)
+                LazyIntermediateToken - (32:1,12 [48] IdentifierInRazor11.cshtml) - CSharp - \n    private string documentation => "Value";\n
+            Inject - 
+            Inject - 
+            Inject - 
+            Inject - 
+            Inject - 

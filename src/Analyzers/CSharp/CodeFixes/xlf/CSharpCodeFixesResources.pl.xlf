@@ -17,6 +17,11 @@
         <target state="translated">Dodaj nawiasy</target>
         <note />
       </trans-unit>
+      <trans-unit id="Add_safety_documentation">
+        <source>Add '&lt;safety&gt;' documentation</source>
+        <target state="translated">Dodaj dokumentację „&lt;safety&gt;”</target>
+        <note>{Locked="&lt;safety&gt;"} "safety" is an XML documentation element name and should not be localized.</note>
+      </trans-unit>
       <trans-unit id="Add_this">
         <source>Add 'this.'</source>
         <target state="translated">Dodaj „this.”</target>
@@ -45,6 +50,11 @@
       <trans-unit id="Change_return_type_from_0_to_1">
         <source>Change return type from {0} to {1}</source>
         <target state="translated">Zmień zwracany typ z {0} na {1}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="This_method_is_used_as_a_delegate_changing_the_return_type_may_result_in_build_errors">
+        <source>This method is used as a delegate; changing the return type may result in build errors</source>
+        <target state="translated">Ta metoda jest używana jako delegat; zmiana zwracanego typu może spowodować błędy kompilacji</target>
         <note />
       </trans-unit>
       <trans-unit id="Compare_to_0">

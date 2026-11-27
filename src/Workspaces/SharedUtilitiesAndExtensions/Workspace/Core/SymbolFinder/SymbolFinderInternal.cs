@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols;
 internal static class SymbolFinderInternal
 {
     /// <inheritdoc cref="SymbolFinder.FindSourceDefinitionAsync"/>
-    internal static ValueTask<ISymbol?> FindSourceDefinitionAsync(
+    internal static async ValueTask<ISymbol?> FindSourceDefinitionAsync(
         ISymbol? symbol, Solution solution, CancellationToken cancellationToken)
     {
         if (symbol != null)
@@ -32,11 +32,11 @@ internal static class SymbolFinderInternal
                 case SymbolKind.Property:
                 case SymbolKind.TypeParameter:
                 case SymbolKind.Namespace:
-                    return FindSourceDefinitionWorkerAsync(symbol, solution, cancellationToken);
+                    return await FindSourceDefinitionWorkerAsync(symbol, solution, cancellationToken).ConfigureAwait(false);
             }
         }
 
-        return new ValueTask<ISymbol?>(result: null);
+        return null;
     }
 
     private static async ValueTask<ISymbol?> FindSourceDefinitionWorkerAsync(

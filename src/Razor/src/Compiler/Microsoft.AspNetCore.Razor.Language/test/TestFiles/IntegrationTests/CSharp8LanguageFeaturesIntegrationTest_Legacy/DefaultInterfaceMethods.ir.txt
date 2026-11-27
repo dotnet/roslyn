@@ -1,0 +1,10 @@
+﻿Document - 
+    RazorCompiledItemAttribute - 
+    NamespaceDeclaration -  - Razor
+        RazorSourceChecksumAttribute - 
+        ClassDeclaration -  - public - Template - global::LegacyTemplateBase - 
+            MethodDeclaration -  - public async override - global::System.Threading.Tasks.Task - ExecuteAsync
+                HtmlContent - (38:1,0 [2] TestFiles\IntegrationTests\CSharp8LanguageFeaturesIntegrationTest_Legacy\TestView.cshtml)
+                    LazyIntermediateToken - (38:1,0 [2] TestFiles\IntegrationTests\CSharp8LanguageFeaturesIntegrationTest_Legacy\TestView.cshtml) - Html - \n
+            CSharpCode - (52:2,12 [134] TestFiles\IntegrationTests\CSharp8LanguageFeaturesIntegrationTest_Legacy\TestView.cshtml)
+                LazyIntermediateToken - (52:2,12 [134] TestFiles\IntegrationTests\CSharp8LanguageFeaturesIntegrationTest_Legacy\TestView.cshtml) - CSharp - \n    public interface IExample\n    {\n        int GetValue() => 1;\n    }\n    \n    public class Example : IExample\n    {\n    }\n

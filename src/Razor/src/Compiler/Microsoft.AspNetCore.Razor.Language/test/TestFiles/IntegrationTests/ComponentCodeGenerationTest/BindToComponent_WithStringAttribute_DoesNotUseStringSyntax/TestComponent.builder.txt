@@ -1,0 +1,3 @@
+﻿[0000] OpenComponent<global::Test.InputText>()
+[0001] AddComponentParameter(nameof(global::Test.InputText. Value ), global::Microsoft.AspNetCore.Components.CompilerServices.RuntimeHelpers.TypeCheck<global::System.String>( person.Name ))
+[0002] AddComponentParameter(nameof(global::Test.InputText.ValueChanged), (global::System.Action<global::System.String>)(__value => person.Name = __value))

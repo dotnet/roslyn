@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -35,18 +36,10 @@ internal sealed partial class ProjectSystemProject
         /// The map of file paths to the underlying <see cref="DocumentId"/>. This document may exist in <see cref="_documentsAddedInBatch"/> or has been
         /// pushed to the actual workspace.
         /// </summary>
-        private readonly Dictionary<string, DocumentId> _documentPathsToDocumentIds = new(StringComparer.OrdinalIgnoreCase);
+        private readonly Dictionary<string, DocumentEntry> _documentPathsToDocuments = new(StringComparer.OrdinalIgnoreCase);
 
-        /// <summary>
-        /// A map of explicitly-added "always open" <see cref="SourceTextContainer"/> and their associated <see cref="DocumentId"/>. This does not contain
-        /// any regular files that have been open.
-        /// </summary>
-        private IBidirectionalMap<SourceTextContainer, DocumentId> _sourceTextContainersToDocumentIds = BidirectionalMap<SourceTextContainer, DocumentId>.Empty;
-
-        /// <summary>
-        /// The map of <see cref="DocumentId"/> to <see cref="IDynamicFileInfoProvider"/> whose <see cref="DynamicFileInfo"/> got added into <see cref="Workspace"/>
-        /// </summary>
-        private readonly Dictionary<DocumentId, IDynamicFileInfoProvider> _documentIdToDynamicFileInfoProvider = [];
+        /// <param name="IsVirtual">True if the document is backed by a <see cref="SourceTextContainer"/> instead of a file on disk.</param>
+        private readonly record struct DocumentEntry(DocumentId Id, bool IsVirtual);
 
         /// <summary>
         /// The current list of documents that are to be added in this batch.
@@ -54,7 +47,7 @@ internal sealed partial class ProjectSystemProject
         private readonly ImmutableArray<DocumentInfo>.Builder _documentsAddedInBatch = ImmutableArray.CreateBuilder<DocumentInfo>();
 
         /// <summary>
-        /// The current list of documents that are being removed in this batch. Once the document is in this list, it is no longer in <see cref="_documentPathsToDocumentIds"/>.
+        /// The current list of documents that are being removed in this batch. Once the document is in this list, it is no longer in <see cref="_documentPathsToDocuments"/>.
         /// </summary>
         private readonly List<DocumentId> _documentsRemovedInBatch = [];
 
@@ -68,18 +61,6 @@ internal sealed partial class ProjectSystemProject
         private readonly Action<Workspace, DocumentId> _documentRemoveAction;
         private readonly Func<Solution, DocumentId, TextLoader, Solution> _documentTextLoaderChangedAction;
         private readonly WorkspaceChangeKind _documentChangedWorkspaceKind;
-
-        /// <summary>
-        /// An <see cref="AsyncBatchingWorkQueue"/> for processing updates to dynamic files. This is lazily created the first time we see
-        /// a change to process, since dynamic files are only used in certain Razor scenarios and most projects won't ever have one.
-        /// </summary>
-        /// <remarks>
-        /// This is used for two reasons: first, if we have a flurry of events we want to deduplicate them. But it also ensures ordering -- if we were to get a change to
-        /// a dynamic file while we're already processing another change, we want to ensure that the first change is processed before the second one. Otherwise we might
-        /// end up with the updates being applied out of order (since we're not always holding a lock while calling to the dynamic file info provider) and we might end up with
-        /// an old version stuck in the workspace.
-        /// </remarks>
-        private AsyncBatchingWorkQueue<(string projectSystemFilePath, string workspaceFilePath)>? _dynamicFilesToRefresh;
 
         public BatchingDocumentCollection(ProjectSystemProject project,
             Func<Solution, DocumentId, bool> documentAlreadyInWorkspace,
@@ -98,24 +79,44 @@ internal sealed partial class ProjectSystemProject
 
         public DocumentId AddFile(string fullPath, SourceCodeKind sourceCodeKind, ImmutableArray<string> folders)
         {
+            // Only validate file paths for non-virtual files - historical callers may pass an empty string as a file path for a virtual document.
             if (string.IsNullOrEmpty(fullPath))
             {
                 throw new ArgumentException($"{nameof(fullPath)} isn't a valid path.", nameof(fullPath));
             }
 
+            return AddDocument(
+                fullPath,
+                sourceCodeKind,
+                folders,
+                _project._projectSystemProjectFactory.CreateFileTextLoader(fullPath),
+                designTimeOnly: false,
+                documentServiceProvider: null);
+        }
+
+        private DocumentId AddDocument(
+            string fullPath,
+            SourceCodeKind sourceCodeKind,
+            ImmutableArray<string> folders,
+            TextLoader textLoader,
+            bool designTimeOnly,
+            IDocumentServiceProvider? documentServiceProvider)
+        {
+            var isVirtual = textLoader is VirtualDocumentSourceTextLoader;
             var documentId = DocumentId.CreateNewId(_project.Id, fullPath);
-            var textLoader = _project._projectSystemProjectFactory.CreateFileTextLoader(fullPath);
             var documentInfo = DocumentInfo.Create(
                 documentId,
                 name: FileNameUtilities.GetFileName(fullPath),
                 folders: folders.IsDefault ? null : folders,
                 sourceCodeKind: sourceCodeKind,
                 loader: textLoader,
-                filePath: fullPath);
+                filePath: fullPath)
+                .WithDesignTimeOnly(designTimeOnly)
+                .WithDocumentServiceProvider(documentServiceProvider);
 
             using (_project._gate.DisposableWait())
             {
-                if (_documentPathsToDocumentIds.ContainsKey(fullPath))
+                if (_documentPathsToDocuments.ContainsKey(fullPath))
                 {
                     throw new ArgumentException($"'{fullPath}' has already been added to this project.", nameof(fullPath));
                 }
@@ -123,12 +124,25 @@ internal sealed partial class ProjectSystemProject
                 // If we have an ordered document ids batch, we need to add the document id to the end of it as well.
                 _orderedDocumentsInBatch = _orderedDocumentsInBatch?.Add(documentId);
 
-                _documentPathsToDocumentIds.Add(fullPath, documentId);
-                _project._documentWatchedFiles.Add(documentId, _project._documentFileChangeContext.EnqueueWatchingFile(fullPath));
+                _documentPathsToDocuments.Add(fullPath, new DocumentEntry(documentId, isVirtual));
+
+                // Virtual documents are not backed by a file on disk, so there is nothing to watch.
+                if (!isVirtual)
+                    _project._documentWatchedFiles.Add(documentId, _project._documentFileChangeContext.EnqueueWatchingFile(fullPath));
 
                 if (_project._activeBatchScopes > 0)
                 {
                     _documentsAddedInBatch.Add(documentInfo);
+                }
+                else if (isVirtual)
+                {
+                    _project._projectSystemProjectFactory.ApplyChangeToWorkspace(w =>
+                    {
+                        _project._projectSystemProjectFactory.AddDocumentToDocumentsNotFromFiles_NoLock(documentInfo.Id);
+                        _documentAddAction(w, documentInfo);
+                        if (documentInfo.TextLoader is VirtualDocumentSourceTextLoader virtualDocument && virtualDocument.OpenDocument)
+                            w.OnDocumentOpened(documentInfo.Id, virtualDocument.TextContainer);
+                    });
                 }
                 else
                 {
@@ -140,12 +154,13 @@ internal sealed partial class ProjectSystemProject
             return documentId;
         }
 
-        public DocumentId AddTextContainer(
+        public DocumentId AddVirtualDocument(
             SourceTextContainer textContainer,
             string fullPath,
             SourceCodeKind sourceCodeKind,
             ImmutableArray<string> folders,
             bool designTimeOnly,
+            bool openDocument,
             IDocumentServiceProvider? documentServiceProvider)
         {
             if (textContainer == null)
@@ -153,115 +168,13 @@ internal sealed partial class ProjectSystemProject
                 throw new ArgumentNullException(nameof(textContainer));
             }
 
-            var documentId = DocumentId.CreateNewId(_project.Id, fullPath);
-            var textLoader = new SourceTextLoader(textContainer, fullPath);
-            var documentInfo = DocumentInfo.Create(
-                documentId,
-                FileNameUtilities.GetFileName(fullPath),
-                folders: folders.NullToEmpty(),
-                sourceCodeKind: sourceCodeKind,
-                loader: textLoader,
-                filePath: fullPath)
-                .WithDesignTimeOnly(designTimeOnly)
-                .WithDocumentServiceProvider(documentServiceProvider);
-
-            using (_project._gate.DisposableWait())
-            {
-                if (_sourceTextContainersToDocumentIds.ContainsKey(textContainer))
-                {
-                    throw new ArgumentException($"{nameof(textContainer)} is already added to this project.", nameof(textContainer));
-                }
-
-                if (fullPath != null)
-                {
-                    if (_documentPathsToDocumentIds.ContainsKey(fullPath))
-                    {
-                        throw new ArgumentException($"'{fullPath}' has already been added to this project.");
-                    }
-
-                    _documentPathsToDocumentIds.Add(fullPath, documentId);
-                }
-
-                _sourceTextContainersToDocumentIds = _sourceTextContainersToDocumentIds.Add(textContainer, documentInfo.Id);
-
-                if (_project._activeBatchScopes > 0)
-                {
-                    _documentsAddedInBatch.Add(documentInfo);
-                }
-                else
-                {
-                    _project._projectSystemProjectFactory.ApplyChangeToWorkspace(w =>
-                    {
-                        _project._projectSystemProjectFactory.AddDocumentToDocumentsNotFromFiles_NoLock(documentInfo.Id);
-                        _documentAddAction(w, documentInfo);
-                        w.OnDocumentOpened(documentInfo.Id, textContainer);
-                    });
-                }
-            }
-
-            return documentId;
-        }
-
-        public void AddDynamicFile_NoLock(IDynamicFileInfoProvider fileInfoProvider, DynamicFileInfo fileInfo, ImmutableArray<string> folders)
-        {
-            Debug.Assert(_project._gate.CurrentCount == 0);
-
-            var documentInfo = CreateDocumentInfoFromFileInfo(fileInfo, folders.NullToEmpty());
-
-            // Generally, DocumentInfo.FilePath can be null, but we always have file paths for dynamic files.
-            Contract.ThrowIfNull(documentInfo.FilePath);
-            var documentId = documentInfo.Id;
-
-            var filePath = documentInfo.FilePath;
-            if (_documentPathsToDocumentIds.ContainsKey(filePath))
-            {
-                throw new ArgumentException($"'{filePath}' has already been added to this project.", nameof(filePath));
-            }
-
-            // If we have an ordered document ids batch, we need to add the document id to the end of it as well.
-            _orderedDocumentsInBatch = _orderedDocumentsInBatch?.Add(documentId);
-
-            _documentPathsToDocumentIds.Add(filePath, documentId);
-
-            _documentIdToDynamicFileInfoProvider.Add(documentId, fileInfoProvider);
-
-            if (_project._dynamicFileInfoProvidersSubscribedTo.Add(fileInfoProvider))
-            {
-                // subscribe to the event when we use this provider the first time
-                fileInfoProvider.Updated += _project.OnDynamicFileInfoUpdated;
-            }
-
-            if (_project._activeBatchScopes > 0)
-            {
-                _documentsAddedInBatch.Add(documentInfo);
-            }
-            else
-            {
-                // right now, assumption is dynamically generated file can never be opened in editor
-                _project._projectSystemProjectFactory.ApplyChangeToWorkspace(w => _documentAddAction(w, documentInfo));
-            }
-        }
-
-        public IDynamicFileInfoProvider RemoveDynamicFile_NoLock(string fullPath)
-        {
-            Debug.Assert(_project._gate.CurrentCount == 0);
-
-            if (string.IsNullOrEmpty(fullPath))
-            {
-                throw new ArgumentException($"{nameof(fullPath)} isn't a valid path.", nameof(fullPath));
-            }
-
-            if (!_documentPathsToDocumentIds.TryGetValue(fullPath, out var documentId) ||
-                !_documentIdToDynamicFileInfoProvider.TryGetValue(documentId, out var fileInfoProvider))
-            {
-                throw new ArgumentException($"'{fullPath}' is not a dynamic file of this project.");
-            }
-
-            _documentIdToDynamicFileInfoProvider.Remove(documentId);
-
-            RemoveFileInternal(documentId, fullPath);
-
-            return fileInfoProvider;
+            return AddDocument(
+                fullPath,
+                sourceCodeKind,
+                folders,
+                new VirtualDocumentSourceTextLoader(textContainer, fullPath, openDocument),
+                designTimeOnly,
+                documentServiceProvider);
         }
 
         public void RemoveFile(string fullPath)
@@ -273,22 +186,27 @@ internal sealed partial class ProjectSystemProject
 
             using (_project._gate.DisposableWait())
             {
-                if (!_documentPathsToDocumentIds.TryGetValue(fullPath, out var documentId))
+                if (!_documentPathsToDocuments.TryGetValue(fullPath, out var entry) || entry.IsVirtual)
                 {
                     throw new ArgumentException($"'{fullPath}' is not a source file of this project.");
                 }
 
-                _project._documentWatchedFiles[documentId].Dispose();
-                _project._documentWatchedFiles.Remove(documentId);
-
-                RemoveFileInternal(documentId, fullPath);
+                RemoveDocument_NoLock(fullPath, entry);
             }
         }
 
-        private void RemoveFileInternal(DocumentId documentId, string fullPath)
+        private void RemoveDocument_NoLock(string fullPath, DocumentEntry entry)
         {
+            var (documentId, isVirtual) = entry;
+
+            if (_project._documentWatchedFiles.TryGetValue(documentId, out var watchedFile))
+            {
+                watchedFile.Dispose();
+                _project._documentWatchedFiles.Remove(documentId);
+            }
+
             _orderedDocumentsInBatch = _orderedDocumentsInBatch?.Remove(documentId);
-            _documentPathsToDocumentIds.Remove(fullPath);
+            _documentPathsToDocuments.Remove(fullPath);
 
             // There are two cases:
             // 
@@ -303,7 +221,12 @@ internal sealed partial class ProjectSystemProject
                 }
                 else
                 {
-                    _project._projectSystemProjectFactory.ApplyChangeToWorkspace(w => _documentRemoveAction(w, documentId));
+                    _project._projectSystemProjectFactory.ApplyChangeToWorkspace(w =>
+                    {
+                        _documentRemoveAction(w, documentId);
+                        if (isVirtual)
+                            _project._projectSystemProjectFactory.RemoveDocumentToDocumentsNotFromFiles_NoLock(documentId);
+                    });
                 }
             }
             else
@@ -319,65 +242,19 @@ internal sealed partial class ProjectSystemProject
             }
         }
 
-        public void RemoveTextContainer(SourceTextContainer textContainer)
+        public void RemoveVirtualDocument(DocumentId documentId)
         {
-            if (textContainer == null)
-            {
-                throw new ArgumentNullException(nameof(textContainer));
-            }
-
             using (_project._gate.DisposableWait())
             {
-                if (!_sourceTextContainersToDocumentIds.TryGetValue(textContainer, out var documentId))
+                var (fullPath, entry) = _documentPathsToDocuments.FirstOrDefault(kv => kv.Value.Id == documentId && kv.Value.IsVirtual);
+                if (fullPath is null)
                 {
-                    throw new ArgumentException($"{nameof(textContainer)} is not a text container added to this project.");
+                    throw new ArgumentException(
+                        "The document is not a virtual document of this project, or has already been removed.",
+                        nameof(documentId));
                 }
 
-                _sourceTextContainersToDocumentIds = _sourceTextContainersToDocumentIds.RemoveKey(textContainer);
-
-                // if the TextContainer had a full path provided, remove it from the map.
-                var entry = _documentPathsToDocumentIds.Where(kv => kv.Value == documentId).FirstOrDefault();
-                if (entry.Key != null)
-                {
-                    _documentPathsToDocumentIds.Remove(entry.Key);
-                }
-
-                // There are two cases:
-                // 
-                // 1. This file is actually been pushed to the workspace, and we need to remove it (either
-                //    as a part of the active batch or immediately)
-                // 2. It hasn't been pushed yet, but is contained in _documentsAddedInBatch
-                if (_project._projectSystemProjectFactory.Workspace.CurrentSolution.GetDocument(documentId) != null)
-                {
-                    if (_project._activeBatchScopes > 0)
-                    {
-                        _documentsRemovedInBatch.Add(documentId);
-                    }
-                    else
-                    {
-                        _project._projectSystemProjectFactory.ApplyChangeToWorkspace(w =>
-                        {
-                            // Just pass null for the filePath, since this document is immediately being removed
-                            // anyways -- whatever we set won't really be read since the next change will
-                            // come through.
-                            // TODO: Can't we just remove the document without closing it?
-                            w.OnDocumentClosed(documentId, new SourceTextLoader(textContainer, filePath: null));
-                            _documentRemoveAction(w, documentId);
-                            _project._projectSystemProjectFactory.RemoveDocumentToDocumentsNotFromFiles_NoLock(documentId);
-                        });
-                    }
-                }
-                else
-                {
-                    for (var i = 0; i < _documentsAddedInBatch.Count; i++)
-                    {
-                        if (_documentsAddedInBatch[i].Id == documentId)
-                        {
-                            _documentsAddedInBatch.RemoveAt(i);
-                            break;
-                        }
-                    }
-                }
+                RemoveDocument_NoLock(fullPath, entry);
             }
         }
 
@@ -390,7 +267,7 @@ internal sealed partial class ProjectSystemProject
 
             using (_project._gate.DisposableWait())
             {
-                return _documentPathsToDocumentIds.ContainsKey(fullPath);
+                return _documentPathsToDocuments.ContainsKey(fullPath);
             }
         }
 
@@ -408,13 +285,15 @@ internal sealed partial class ProjectSystemProject
 
                 foreach (var filePath in filePaths)
                 {
-                    if (_documentPathsToDocumentIds.TryGetValue(filePath, out var documentId))
+                    if (_documentPathsToDocuments.TryGetValue(filePath, out var entry))
                     {
+                        var documentId = entry.Id;
+
                         // We create file watching prior to pushing the file to the workspace in batching, so it's
                         // possible we might see a file change notification early. In this case, toss it out. Since
                         // all adds/removals of documents for this project happen under our lock, it's safe to do this
                         // check without taking the main workspace lock. We don't have to check for documents removed in
-                        // the batch, since those have already been removed out of _documentPathsToDocumentIds.
+                        // the batch, since those have already been removed out of _documentPathsToDocuments.
                         if (!_documentsAddedInBatch.Any(d => d.Id == documentId))
                         {
                             documentsToChange.Add((documentId, new WorkspaceFileTextLoader(_project._projectSystemProjectFactory.SolutionServices, filePath, defaultEncoding: null)));
@@ -448,73 +327,6 @@ internal sealed partial class ProjectSystemProject
             }
         }
 
-        /// <summary>
-        /// Process file content changes
-        /// </summary>
-        /// <param name="projectSystemFilePath">File path given from project system for the .cshtml file</param>
-        /// <param name="workspaceFilePath">File path for the equivalent .cs document used in workspace. it might be different than projectSystemFilePath.</param>
-        public void ProcessDynamicFileChange(string projectSystemFilePath, string workspaceFilePath)
-        {
-            InterlockedOperations.Initialize(ref _dynamicFilesToRefresh, () =>
-            {
-                return new AsyncBatchingWorkQueue<(string, string)>(
-                    TimeSpan.FromMilliseconds(200), // 200 chosen with absolutely no evidence whatsoever
-                    ProcessDynamicFileChangesAsync,
-                    EqualityComparer<(string, string)>.Default, // uses ordinal string comparison which is what we want
-                    _project._projectSystemProjectFactory.WorkspaceListener,
-                    _project._asynchronousFileChangeProcessingCancellationTokenSource.Token);
-            });
-
-            _dynamicFilesToRefresh.AddWork((projectSystemFilePath, workspaceFilePath));
-        }
-
-        private async ValueTask ProcessDynamicFileChangesAsync(ImmutableSegmentedList<(string projectSystemFilePath, string workspaceFilePath)> batch, CancellationToken cancellationToken)
-        {
-            foreach (var (projectSystemPath, workspaceFilePath) in batch)
-            {
-                DocumentId? documentId;
-                IDynamicFileInfoProvider? fileInfoProvider;
-
-                using (await _project._gate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
-                {
-                    // If our project has already been removed, and we can disregard everything and just 'return'
-                    if (_project.HasBeenRemoved)
-                        return;
-
-                    // For everything else, if it's not here 'continue' to the next item in the batch.
-                    if (!_documentPathsToDocumentIds.TryGetValue(workspaceFilePath, out documentId))
-                        continue;
-
-                    if (!_documentIdToDynamicFileInfoProvider.TryGetValue(documentId, out fileInfoProvider))
-                        continue;
-                }
-
-                // Now that we've got all our basic data, let's fetch the new document outside the lock, since this could be expensive.
-                var fileInfo = await fileInfoProvider.GetDynamicFileInfoAsync(
-                    _project.Id, _project._filePath, projectSystemPath, CancellationToken.None).ConfigureAwait(false);
-                Contract.ThrowIfNull(fileInfo, "We previously received a dynamic file for this path, and we're responding to a change, so we expect to get a new one.");
-
-                await _project._projectSystemProjectFactory.ApplyChangeToWorkspaceAsync(w =>
-                    {
-                        if (w.IsDocumentOpen(documentId))
-                        {
-                            return;
-                        }
-
-                        // Right now we're only supporting dynamic files as actual source files, so it's OK to call GetDocument here.
-                        // If the document is longer present, that could mean we unloaded the project, or the dynamic file was removed while we had released the lock.
-                        var documentToReload = w.CurrentSolution.GetDocument(documentId);
-
-                        if (documentToReload is null)
-                            return;
-
-                        var documentInfo = new DocumentInfo(documentToReload.State.Attributes, fileInfo.TextLoader, fileInfo.DocumentServiceProvider);
-
-                        w.OnDocumentReloaded(documentInfo);
-                    }, cancellationToken).ConfigureAwait(false);
-            }
-        }
-
         public void ReorderFiles(ImmutableArray<string> filePaths)
         {
             if (filePaths.IsEmpty)
@@ -524,7 +336,7 @@ internal sealed partial class ProjectSystemProject
 
             using (_project._gate.DisposableWait())
             {
-                if (_documentPathsToDocumentIds.Count != filePaths.Length)
+                if (_documentPathsToDocuments.Count != filePaths.Length)
                 {
                     throw new ArgumentException("The specified files do not equal the project document count.", nameof(filePaths));
                 }
@@ -533,9 +345,9 @@ internal sealed partial class ProjectSystemProject
 
                 foreach (var filePath in filePaths)
                 {
-                    if (_documentPathsToDocumentIds.TryGetValue(filePath, out var documentId))
+                    if (_documentPathsToDocuments.TryGetValue(filePath, out var entry))
                     {
-                        documentIds.Add(documentId);
+                        documentIds.Add(entry.Id);
                     }
                     else
                     {
@@ -571,8 +383,7 @@ internal sealed partial class ProjectSystemProject
             // State is cleared at the end once the solution changes are actually applied via ClearBatchState.
             return UpdateSolutionForBatch(solutionChanges, documentFileNamesAdded, addDocuments,
                 addDocumentChangeKind, removeDocuments, removeDocumentChangeKind, _project.Id, _documentsAddedInBatch.ToImmutableArray(),
-                [.. _documentsRemovedInBatch], _orderedDocumentsInBatch,
-                documentId => _sourceTextContainersToDocumentIds.GetKeyOrDefault(documentId));
+                [.. _documentsRemovedInBatch], _orderedDocumentsInBatch);
 
             static ImmutableArray<(DocumentId documentId, SourceTextContainer textContainer)> UpdateSolutionForBatch(
                 SolutionChangeAccumulator solutionChanges,
@@ -584,8 +395,7 @@ internal sealed partial class ProjectSystemProject
                 ProjectId projectId,
                 ImmutableArray<DocumentInfo> documentsAddedInBatch,
                 ImmutableArray<DocumentId> documentsRemovedInBatch,
-                ImmutableList<DocumentId>? orderedDocumentsInBatch,
-                Func<DocumentId, SourceTextContainer?> getContainer)
+                ImmutableList<DocumentId>? orderedDocumentsInBatch)
             {
                 using var _ = ArrayBuilder<(DocumentId documentId, SourceTextContainer textContainer)>.GetInstance(out var documentsToOpen);
 
@@ -598,12 +408,16 @@ internal sealed partial class ProjectSystemProject
                 foreach (var documentInfo in documentsAddedInBatch)
                 {
                     Contract.ThrowIfNull(documentInfo.FilePath, "We shouldn't be adding documents without file paths.");
-                    documentFileNamesAdded.Add(documentInfo.FilePath);
 
-                    var textContainer = getContainer(documentInfo.Id);
-                    if (textContainer != null)
+                    // Virtual documents don't need the host to check whether the file is already open.
+                    if (documentInfo.TextLoader is VirtualDocumentSourceTextLoader virtualDocument)
                     {
-                        documentsToOpen.Add((documentInfo.Id, textContainer));
+                        if (virtualDocument.OpenDocument)
+                            documentsToOpen.Add((documentInfo.Id, virtualDocument.TextContainer));
+                    }
+                    else
+                    {
+                        documentFileNamesAdded.Add(documentInfo.FilePath);
                     }
                 }
 
@@ -631,41 +445,21 @@ internal sealed partial class ProjectSystemProject
             _orderedDocumentsInBatch = null;
         }
 
-        private DocumentInfo CreateDocumentInfoFromFileInfo(DynamicFileInfo fileInfo, ImmutableArray<string> folders)
+        private sealed class VirtualDocumentSourceTextLoader : TextLoader
         {
-            Contract.ThrowIfTrue(folders.IsDefault);
-
-            // we use this file path for editorconfig. 
-            var filePath = fileInfo.FilePath;
-
-            var name = FileNameUtilities.GetFileName(filePath);
-            var documentId = DocumentId.CreateNewId(_project.Id, filePath);
-
-            return DocumentInfo.Create(
-                documentId,
-                name,
-                folders: folders,
-                sourceCodeKind: fileInfo.SourceCodeKind,
-                loader: fileInfo.TextLoader,
-                filePath: filePath,
-                isGenerated: false)
-                .WithDesignTimeOnly(true)
-                .WithDocumentServiceProvider(fileInfo.DocumentServiceProvider);
-        }
-
-        private sealed class SourceTextLoader : TextLoader
-        {
-            private readonly SourceTextContainer _textContainer;
+            internal readonly SourceTextContainer TextContainer;
+            internal readonly bool OpenDocument;
             private readonly string? _filePath;
 
-            public SourceTextLoader(SourceTextContainer textContainer, string? filePath)
+            public VirtualDocumentSourceTextLoader(SourceTextContainer textContainer, string? filePath, bool openDocument)
             {
-                _textContainer = textContainer;
+                TextContainer = textContainer;
                 _filePath = filePath;
+                OpenDocument = openDocument;
             }
 
-            public override Task<TextAndVersion> LoadTextAndVersionAsync(LoadTextOptions options, CancellationToken cancellationToken)
-                => Task.FromResult(TextAndVersion.Create(_textContainer.CurrentText, VersionStamp.Create(), _filePath));
+            public override async Task<TextAndVersion> LoadTextAndVersionAsync(LoadTextOptions options, CancellationToken cancellationToken)
+                => TextAndVersion.Create(TextContainer.CurrentText, VersionStamp.Create(), _filePath);
         }
     }
 }

@@ -1,0 +1,21 @@
+﻿Source Location: (2:0,2 [75] x:\dir\subdir\Test\TestComponent.razor)
+|
+    System.ReadOnlySpan<byte> bytes = "Razor"u8;
+    _ = bytes.Length;
+|
+Generated Location: (733:21,0 [75] )
+|
+    System.ReadOnlySpan<byte> bytes = "Razor"u8;
+    _ = bytes.Length;
+|
+
+Source Location: (89:5,7 [16] x:\dir\subdir\Test\TestComponent.razor)
+|"Razor"u8.Length|
+Generated Location: (1013:32,24 [16] )
+|"Razor"u8.Length|
+
+Source Location: (121:6,7 [20] x:\dir\subdir\Test\TestComponent.razor)
+|"""Razor"""u8.Length|
+Generated Location: (1341:43,24 [20] )
+|"""Razor"""u8.Length|
+

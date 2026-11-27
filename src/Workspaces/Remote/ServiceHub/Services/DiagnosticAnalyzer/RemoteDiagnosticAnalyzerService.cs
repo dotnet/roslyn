@@ -121,7 +121,7 @@ internal sealed class RemoteDiagnosticAnalyzerService(in BrokeredServiceBase.Ser
 
     public ValueTask ReportAnalyzerPerformanceAsync(ImmutableArray<AnalyzerPerformanceInfo> snapshot, int unitCount, bool forSpanAnalysis, CancellationToken cancellationToken)
     {
-        return RunServiceAsync(cancellationToken =>
+        return RunServiceAsync(async cancellationToken =>
         {
             using (RoslynLogger.LogBlock(FunctionId.CodeAnalysisService_ReportAnalyzerPerformance, cancellationToken))
             {
@@ -130,13 +130,11 @@ internal sealed class RemoteDiagnosticAnalyzerService(in BrokeredServiceBase.Ser
                 var service = GetWorkspace().Services.GetService<IPerformanceTrackerService>();
                 if (service == null)
                 {
-                    return default;
+                    return;
                 }
 
                 service.AddSnapshot(snapshot, unitCount, forSpanAnalysis);
             }
-
-            return default;
         }, cancellationToken);
     }
 
@@ -191,6 +189,23 @@ internal sealed class RemoteDiagnosticAnalyzerService(in BrokeredServiceBase.Ser
                 var descriptors = await service.GetDiagnosticDescriptorsAsync(
                     solution, projectId, analyzerReference, language, cancellationToken).ConfigureAwait(false);
                 return descriptors.SelectAsArray(DiagnosticDescriptorData.Create);
+            },
+            cancellationToken);
+    }
+
+    public ValueTask<ImmutableDictionary<ProjectId, ImmutableHashSet<string>>> GetAllDiagnosticIdsAsync(
+        Checksum solutionChecksum,
+        ImmutableArray<ProjectId> projectIds,
+        CancellationToken cancellationToken)
+    {
+        return RunWithSolutionAsync(
+            solutionChecksum,
+            async solution =>
+            {
+                var service = solution.Services.GetRequiredService<IDiagnosticAnalyzerService>();
+                var list = await service.GetAllDiagnosticIdsAsync(solution, projectIds, cancellationToken).ConfigureAwait(false);
+                return list;
+
             },
             cancellationToken);
     }

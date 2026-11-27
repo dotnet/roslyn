@@ -1,0 +1,45 @@
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
+using System.Composition;
+using System.Runtime.CompilerServices;
+using System.Threading;
+using System.Threading.Tasks;
+using Microsoft.AspNetCore.Razor.Threading;
+
+namespace Microsoft.CodeAnalysis.Remote.Razor.ProjectSystem;
+
+[Shared]
+[Export(typeof(RemoteSnapshotManager))]
+[method: ImportingConstructor]
+internal sealed class RemoteSnapshotManager()
+{
+    private static readonly ConditionalWeakTable<Solution, RemoteSolutionSnapshot> s_solutionToSnapshotMap = new();
+
+    public RemoteSolutionSnapshot GetSnapshot(Solution solution)
+    {
+        return s_solutionToSnapshotMap.GetValue(solution, s => new RemoteSolutionSnapshot(s, this));
+    }
+
+    public RemoteProjectSnapshot GetSnapshot(Project project)
+    {
+        return GetSnapshot(project.Solution).GetProject(project);
+    }
+
+    public RemoteDocumentSnapshot GetSnapshot(TextDocument document)
+    {
+        return GetSnapshot(document.Project).GetDocument(document);
+    }
+
+    public Task<TextDocument?> TryGetRazorDocumentAsync(Solution solution, DocumentUri generatedDocumentUri, CancellationToken cancellationToken)
+    {
+        if (!solution.TryGetSourceGeneratedDocumentIdentity(generatedDocumentUri, out var identity) ||
+            !solution.TryGetProject(identity.DocumentId.ProjectId, out var project))
+        {
+            return SpecializedTasks.Null<TextDocument>();
+        }
+
+        var snapshot = GetSnapshot(project);
+        return snapshot.TryGetRazorDocumentForGeneratedDocumentAsync(identity, cancellationToken);
+    }
+}

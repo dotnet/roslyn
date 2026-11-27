@@ -11,6 +11,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.UnitTests;
 using Microsoft.Extensions.Logging;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -18,7 +19,7 @@ using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.MSBuild.UnitTests;
 
-public class NewlyCreatedProjectsFromDotNetNew : MSBuildWorkspaceTestBase
+public class NewlyCreatedProjectsFromDotNetNew : MSBuildWorkspaceTestBase, IClassFixture<ProjectGuardFiles>
 {
     // When running on Helix the machine will only have the expected SDK
     // installed. However, when running on developer machines there could
@@ -56,7 +57,8 @@ public class NewlyCreatedProjectsFromDotNetNew : MSBuildWorkspaceTestBase
         }
     }
 
-    public NewlyCreatedProjectsFromDotNetNew(ITestOutputHelper testOutput) : base(testOutput)
+    public NewlyCreatedProjectsFromDotNetNew(ITestOutputHelper testOutput, ProjectGuardFiles projectGuardFiles)
+        : base(testOutput, projectGuardFiles)
     {
     }
 
@@ -133,7 +135,17 @@ public class NewlyCreatedProjectsFromDotNetNew : MSBuildWorkspaceTestBase
             var templateShortName = columns[1].Split(',').First();
 
             if (ExcludeMauiTemplates && templateShortName.StartsWith("maui"))
+            {
                 continue;
+            }
+
+            // WPF and WinForms templates require Windows targeting and fail with
+            // NETSDK1100 on non-Windows platforms.
+            if (!ExecutionConditionUtil.IsWindows &&
+                (templateShortName.StartsWith("wpf") || templateShortName.StartsWith("winforms")))
+            {
+                continue;
+            }
 
             templateNames.Add(templateShortName);
         }
@@ -147,7 +159,8 @@ public class NewlyCreatedProjectsFromDotNetNew : MSBuildWorkspaceTestBase
     {
         if (ignoredDiagnostics?.Length > 0)
         {
-            TestOutput.WriteLine($"""
+            var logger = LoggerFactory.CreateLogger(nameof(AssertTemplateProjectLoadsCleanlyAsync));
+            logger.LogInformation($"""
                 Ignoring compiler diagnostics: "{string.Join("\", \"", ignoredDiagnostics)}"
                 """);
         }

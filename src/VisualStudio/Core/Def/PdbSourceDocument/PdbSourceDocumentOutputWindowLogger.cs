@@ -29,8 +29,6 @@ internal sealed class PdbSourceDocumentOutputWindowLogger : IPdbSourceDocumentLo
     private readonly AsyncBatchingWorkQueue<string?> _logItemsQueue;
     private readonly IServiceProvider _serviceProvider;
 
-    private readonly CancellationTokenSource _cancellationTokenSource = new();
-
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
     public PdbSourceDocumentOutputWindowLogger(SVsServiceProvider serviceProvider, IThreadingContext threadingContext, IAsynchronousOperationListenerProvider listenerProvider)
@@ -43,8 +41,7 @@ internal sealed class PdbSourceDocumentOutputWindowLogger : IPdbSourceDocumentLo
         _logItemsQueue = new AsyncBatchingWorkQueue<string?>(
             DelayTimeSpan.NearImmediate,
             ProcessLogMessagesAsync,
-            asyncListener,
-            _cancellationTokenSource.Token);
+            asyncListener);
     }
 
     private async ValueTask ProcessLogMessagesAsync(ImmutableSegmentedList<string?> messages, CancellationToken cancellationToken)
@@ -115,6 +112,6 @@ internal sealed class PdbSourceDocumentOutputWindowLogger : IPdbSourceDocumentLo
 
     void IDisposable.Dispose()
     {
-        _cancellationTokenSource.Cancel();
+        _logItemsQueue.Dispose();
     }
 }

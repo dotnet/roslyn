@@ -4,6 +4,7 @@
 
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -187,12 +188,48 @@ namespace Microsoft.CodeAnalysis.CSharp
                 new BoundSequencePointExpression(syntax: null!, expression: factory.Local(local), type: condition.Type) :
                 condition;
 
-            return new BoundSequence(
+            var sequence = new BoundSequence(
                 condition.Syntax,
                 ImmutableArray.Create(local),
                 ImmutableArray.Create<BoundExpression>(factory.AssignmentExpression(factory.Local(local), condition)),
                 valueExpression,
                 condition.Type);
+
+            Debug.Assert(condition.ConstantValueOpt != null ||
+                (TryGetConditionalBranchDiscriminatorCondition(sequence, out var roundtripCondition, out var roundtripTarget) &&
+                 ReferenceEquals(roundtripCondition, condition) &&
+                 ReferenceEquals(roundtripTarget.LocalSymbol, local)));
+
+            return sequence;
+        }
+
+        /// <summary>
+        /// Detects the sequence produced by <see cref="AddConditionSequencePoint"/> wrapping a non-constant condition
+        /// in a <see cref="SynthesizedLocalKind.ConditionalBranchDiscriminator"/> local, returning the original condition
+        /// and the assignment target local.
+        /// </summary>
+        internal static bool TryGetConditionalBranchDiscriminatorCondition(
+            BoundExpression node,
+            [NotNullWhen(returnValue: true)] out BoundExpression? condition,
+            [NotNullWhen(returnValue: true)] out BoundLocal? target)
+        {
+            if (node is BoundSequence
+                {
+                    Locals: [{ SynthesizedKind: SynthesizedLocalKind.ConditionalBranchDiscriminator } local],
+                    SideEffects: [BoundAssignmentOperator { IsRef: false, Left: BoundLocal { LocalSymbol: var assignedLocal } left, Right: var conditionValue }],
+                    Value: BoundSequencePointExpression { Expression: BoundLocal { LocalSymbol: var valueLocal } },
+                } &&
+                ReferenceEquals(local, assignedLocal) &&
+                ReferenceEquals(local, valueLocal))
+            {
+                condition = conditionValue;
+                target = left;
+                return true;
+            }
+
+            condition = null;
+            target = null;
+            return false;
         }
     }
 }

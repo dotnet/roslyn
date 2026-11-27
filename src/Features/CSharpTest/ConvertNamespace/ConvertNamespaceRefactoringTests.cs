@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeStyle;
@@ -21,7 +22,7 @@ using VerifyCS = CSharpCodeRefactoringVerifier<ConvertNamespaceCodeRefactoringPr
 [UseExportProvider]
 public sealed class ConvertNamespaceRefactoringTests
 {
-    public static IEnumerable<object[]> EndOfDocumentSequences => [[""], ["\r\n"]];
+    public static IEnumerable<object[]> EndOfDocumentSequences => [[""], [Environment.NewLine]];
 
     #region Convert To File Scoped
 

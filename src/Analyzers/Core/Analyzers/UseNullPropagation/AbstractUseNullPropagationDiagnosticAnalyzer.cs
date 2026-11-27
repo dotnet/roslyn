@@ -188,6 +188,21 @@ internal abstract partial class AbstractUseNullPropagationDiagnosticAnalyzer<
         if (whenPartMatch == null)
             return null;
 
+        // If we have:
+        //
+        //      Foo is null ? null : Foo.Method(Foo)
+        //
+        // where an identifier (`Foo`) is ambiguous between a value and a type, then `Foo.Method` may
+        // actually be an access of a static member.
+        // Converting to `Foo?.Method(Foo)` would force `Foo` to be the value, changing which member is
+        // invoked. Bail out in that case.
+        if (whenPartMatch.Parent is TMemberAccessExpressionSyntax memberAccess)
+        {
+            var memberSymbol = semanticModel.GetSymbolInfo(memberAccess, cancellationToken).GetAnySymbol();
+            if (memberSymbol?.IsStatic is true)
+                return null;
+        }
+
         // can't use ?. on a pointer
         var whenPartType = semanticModel.GetTypeInfo(whenPartMatch, cancellationToken).Type;
         if (whenPartType is IPointerTypeSymbol)

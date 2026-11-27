@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+extern alias MSBuildWorkspaces;
+
 using System;
 using System.Collections.Generic;
 using System.IO.Pipes;
@@ -9,6 +11,8 @@ using System.Threading;
 using System.Threading.Tasks;
 using Roslyn.Test.Utilities;
 using Xunit;
+
+using NamedPipeUtil = MSBuildWorkspaces::Microsoft.CodeAnalysis.NamedPipeUtil;
 
 namespace Microsoft.CodeAnalysis.MSBuild.UnitTests;
 
@@ -216,6 +220,17 @@ public sealed class RpcTests
     }
 
     [Fact]
+    public async Task ClientDisconnectWithoutRequestsCompletesServer()
+    {
+        await using var rpcPair = new RpcPair();
+
+        rpcPair.Client.Shutdown();
+
+        // Wait for the server to shut down, implicitly testing that it does shut down
+        await rpcPair.ServerCompletion;
+    }
+
+    [Fact]
     [WorkItem("https://github.com/dotnet/roslyn/issues/77040")]
     public async Task RequestThatClosesServerDoesNotThrow()
     {
@@ -235,12 +250,12 @@ public sealed class RpcTests
     private sealed class ObjectWithVoidMethod { public string? Message; public void SetMessage(string message) { Message = message; } }
     private sealed class ObjectWithAsyncHelloMethods
     {
-        public Task<string> HelloAsync(string name) { return Task.FromResult("Hello " + name); }
-        public Task<string> HelloWithCancellationAsync(string name, CancellationToken cancellationToken)
+        public async Task<string> HelloAsync(string name) { return "Hello " + name; }
+        public async Task<string> HelloWithCancellationAsync(string name, CancellationToken cancellationToken)
         {
             // We never expect to be given a cancellable cancellation token over RPC
             Assert.False(cancellationToken.CanBeCanceled);
-            return Task.FromResult("Hello " + name);
+            return "Hello " + name;
         }
     }
 

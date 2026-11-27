@@ -14,6 +14,104 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
     Public Class AttributeTests_StructLayout
         Inherits BasicTestBase
 
+        Private Const ExtendedLayoutMinimalCoreLibrary As String = "
+            #pragma warning disable 0169,9113
+            namespace System
+            {
+                public class Object
+                {
+                }
+
+                public abstract class ValueType : Object
+                {
+                }
+
+                public abstract class Enum : ValueType
+                {
+                }
+
+                public class Attribute : Object
+                {
+                }
+
+                public struct Void
+                {
+                }
+
+                public enum AttributeTargets
+                {
+                    Class = 0x0004,
+                    Struct = 0x0008,
+                    Field = 0x0100,
+                }
+
+                [AttributeUsage(AttributeTargets.Class, Inherited = true)]
+                public sealed class AttributeUsageAttribute : Attribute
+                {
+                    public AttributeUsageAttribute(AttributeTargets validOn) { }
+                    public AttributeUsageAttribute(AttributeTargets validOn, bool allowMultiple, bool inherited) {}
+                    public bool Inherited { get; set; }
+                    public bool AllowMultiple { get; set; }
+                }
+
+                public struct UInt16
+                {
+                    private ushort m_value;
+                }
+
+                public struct Int32
+                {
+                    private int m_value;
+                }
+
+                public struct Boolean
+                {
+                    private bool m_value;
+                }
+            }
+
+            namespace System.Runtime.InteropServices
+            {
+                [AttributeUsage(AttributeTargets.Struct | AttributeTargets.Class)]
+                public sealed class StructLayoutAttribute(LayoutKind kind): Attribute
+                {
+                    public StructLayoutAttribute(ushort kind) : this((LayoutKind)kind){}
+                }
+            
+                public enum LayoutKind
+                {
+                    Sequential = 0,
+                    Extended = 1,
+                    Explicit = 2, 
+                    Auto = 3
+                }
+            
+                [AttributeUsage(AttributeTargets.Field, Inherited = false)]
+                public sealed class FieldOffsetAttribute : Attribute
+                {
+                    public FieldOffsetAttribute(int offset)
+                    {
+                    }
+                    public int Value { get { return 0; } }
+                }
+            
+                [AttributeUsage(AttributeTargets.Struct)]
+                public sealed class ExtendedLayoutAttribute(ExtendedLayoutKind kind): Attribute;
+            
+                public enum ExtendedLayoutKind
+                {
+                    CStruct,
+                    CUnion
+                }
+            }
+
+            namespace System.Runtime.CompilerServices
+            {
+                [AttributeUsage(AttributeTargets.Struct)]
+                public sealed class InlineArrayAttribute(int repeat): Attribute;
+            }
+            "
+
         <Fact>
         Public Sub Pack()
             Dim source =
@@ -873,5 +971,158 @@ Structure S
 End Structure
 ]]></file></compilation>, hasInstanceFields:=True)
         End Sub
+
+        Private Function CreateExtendedLayoutCoreLibReference() As MetadataReference
+            Return CreateCSharpCompilation(
+                ExtendedLayoutMinimalCoreLibrary,
+                referencedAssemblies:=Array.Empty(Of MetadataReference)()
+            ).EmitToImageReference(CodeAnalysis.Emit.EmitOptions.Default.WithRuntimeMetadataVersion("v4.0.30319"))
+        End Function
+
+        <Fact>
+        Public Sub ExtendedLayoutAttribute_ImpliesExtendedLayout()
+            Dim source = <compilation><file><![CDATA[
+Imports System.Runtime.InteropServices
+
+<ExtendedLayout(ExtendedLayoutKind.CStruct)>
+Structure StructureWithExtendedLayout
+    Dim f As Integer
+End Structure
+]]></file></compilation>
+
+            CompileAndVerify(CreateEmptyCompilation(
+                source,
+                {CreateExtendedLayoutCoreLibReference()}),
+                verify:=Verification.Skipped,
+                symbolValidator:=
+                Sub(moduleSymbol)
+                    Assert.Equal(MetadataHelpers.get_Extended(), moduleSymbol.GlobalNamespace.GetTypeMember("StructureWithExtendedLayout").Layout.Kind)
+                End Sub
+            ).VerifyDiagnostics()
+        End Sub
+
+        <Fact>
+        Public Sub ExtendedLayoutAttribute_Emit()
+            Dim source = <compilation><file><![CDATA[
+Imports System.Runtime.InteropServices
+
+<ExtendedLayout(ExtendedLayoutKind.CStruct)>
+Structure StructureWithExtendedLayout
+    Dim f As Integer
+End Structure
+]]></file></compilation>
+
+            CompileAndVerify(
+                source,
+                allReferences:={CreateExtendedLayoutCoreLibReference()},
+                emitOptions:=New CodeAnalysis.Emit.EmitOptions(debugInformationFormat:=CodeAnalysis.Emit.DebugInformationFormat.Embedded, runtimeMetadataVersion:="v4.0.3100.0"),
+                verify:=Verification.Skipped,
+                symbolValidator:=
+                Sub(moduleSymbol)
+                    Assert.Equal(MetadataHelpers.get_Extended(), moduleSymbol.GlobalNamespace.GetTypeMember("StructureWithExtendedLayout").Layout.Kind)
+                End Sub)
+        End Sub
+
+        <Fact>
+        Public Sub Explicitly_Specified_LayoutKind_Extended_Errors()
+            Dim source = <compilation><file><![CDATA[
+Imports System.Runtime.InteropServices
+                             
+<StructLayout(DirectCast(1, LayoutKind))>
+Structure C
+    Dim f As Integer
+End Structure
+                                
+<StructLayout(DirectCast(1, LayoutKind))>
+<ExtendedLayout(ExtendedLayoutKind.CStruct)>
+Structure D
+    Dim f As Integer
+End Structure
+]]></file></compilation>
+
+            CreateEmptyCompilation(
+                source,
+                {CreateExtendedLayoutCoreLibReference()}).AssertTheseDiagnostics(<![CDATA[
+BC30127: Attribute 'StructLayoutAttribute' is not valid: Incorrect argument value.
+<StructLayout(DirectCast(1, LayoutKind))>
+              ~~~~~~~~~~~~~~~~~~~~~~~~~
+BC30127: Attribute 'StructLayoutAttribute' is not valid: Incorrect argument value.
+<StructLayout(DirectCast(1, LayoutKind))>
+              ~~~~~~~~~~~~~~~~~~~~~~~~~
+]]>)
+        End Sub
+
+        <Fact>
+        Public Sub ExtendedLayout_OtherLayoutKind_Errors()
+            Dim source = <compilation><file><![CDATA[
+Imports System.Runtime.InteropServices
+                             
+<StructLayout(LayoutKind.Sequential)>
+<ExtendedLayout(ExtendedLayoutKind.CStruct)>
+Structure C
+    Dim f As Integer
+End Structure
+                                
+<StructLayout(LayoutKind.Explicit)>
+<ExtendedLayout(ExtendedLayoutKind.CStruct)>
+Structure D
+End Structure
+
+<StructLayout(LayoutKind.Sequential)>
+<ExtendedLayout(ExtendedLayoutKind.CStruct)>
+Structure E
+End Structure
+]]></file></compilation>
+
+            CreateEmptyCompilation(
+                source,
+                {CreateExtendedLayoutCoreLibReference()}
+            ).AssertTheseDiagnostics(<![CDATA[
+BC31220: Use of 'StructLayoutAttribute' and 'ExtendedLayoutAttribute' on the same type is not allowed.
+Structure C
+          ~
+BC31220: Use of 'StructLayoutAttribute' and 'ExtendedLayoutAttribute' on the same type is not allowed.
+Structure D
+          ~
+BC31220: Use of 'StructLayoutAttribute' and 'ExtendedLayoutAttribute' on the same type is not allowed.
+Structure E
+          ~
+]]>)
+        End Sub
+
+        <Fact>
+        Public Sub ExtendedLayoutAttribute_DefinedInOtherAssembly_Errors()
+            Dim source = <compilation><file><![CDATA[
+Imports System.Runtime.InteropServices
+
+Namespace System.Runtime.InteropServices
+    <AttributeUsage(AttributeTargets.Struct, AllowMultiple:=False)>
+    Public NotInheritable Class ExtendedLayoutAttribute
+        Inherits Attribute
+        Public Sub New(layoutKind As ExtendedLayoutKind)
+        End Sub
+    End Class
+
+    Public Enum ExtendedLayoutKind
+        CStruct = 0
+        CUnion = 1
+    End Enum
+
+End Namespace
+                             
+<ExtendedLayout(ExtendedLayoutKind.CStruct)>
+Structure C
+    Dim f As Integer
+End Structure
+
+]]></file></compilation>
+
+            CreateCompilationWithMscorlib40(source).AssertTheseDiagnostics(<![CDATA[
+BC31221: The target runtime does not support extended layout types.
+Structure C
+          ~
+]]>)
+        End Sub
+
     End Class
 End Namespace

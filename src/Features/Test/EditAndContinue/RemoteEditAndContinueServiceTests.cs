@@ -46,8 +46,8 @@ public sealed class RemoteEditAndContinueServiceTests
         if (testHost == TestHost.InProcess)
         {
             localComposition = localComposition
-                .AddExcludedPartTypes(typeof(EditAndContinueService))
-                .AddParts(typeof(MockEditAndContinueService));
+                .AddExcludedPartTypes(typeof(EditAndContinueService.WorkspaceServiceFactory))
+                .AddParts(typeof(MockEditAndContinueServiceFactory));
         }
 
         using var localWorkspace = new TestWorkspace(composition: localComposition);
@@ -60,13 +60,13 @@ public sealed class RemoteEditAndContinueServiceTests
         {
             Assert.Null(clientProvider);
 
-            mockEncService = (MockEditAndContinueService)localWorkspace.GetService<IEditAndContinueService>();
+            mockEncService = (MockEditAndContinueService)localWorkspace.Services.GetRequiredService<IEditAndContinueWorkspaceService>().Service;
         }
         else
         {
             Assert.NotNull(clientProvider);
-            clientProvider!.AdditionalRemoteParts = [typeof(MockEditAndContinueService)];
-            clientProvider!.ExcludedRemoteParts = [typeof(EditAndContinueService)];
+            clientProvider!.AdditionalRemoteParts = [typeof(MockEditAndContinueServiceFactory)];
+            clientProvider!.ExcludedRemoteParts = [typeof(EditAndContinueService.WorkspaceServiceFactory)];
 
             var client = await InProcRemoteHostClient.GetTestClientAsync(localWorkspace);
             var remoteWorkspace = client.TestData.WorkspaceManager.GetWorkspace();
@@ -127,7 +127,7 @@ public sealed class RemoteEditAndContinueServiceTests
 
         // StartDebuggingSession
 
-        IManagedHotReloadService? remoteDebuggeeModuleMetadataProvider = null;
+        IManagedHotReloadState? remoteDebuggeeModuleMetadataProvider = null;
 
         var debuggingSession = mockEncService.StartDebuggingSessionImpl = (solution, debuggerService, sourceTextProvider, reportDiagnostics) =>
         {
@@ -140,7 +140,7 @@ public sealed class RemoteEditAndContinueServiceTests
 
         var sessionProxy = await proxy.StartDebuggingSessionAsync(
             localWorkspace.CurrentSolution,
-            debuggerService: new MockManagedEditAndContinueDebuggerService()
+            state: new MockManagedEditAndContinueDebuggerService()
             {
                 IsEditAndContinueAvailable = _ => new ManagedHotReloadAvailability(ManagedHotReloadAvailabilityStatus.NotAllowedForModule, "can't do enc"),
                 GetActiveStatementsImpl = () => [as1]
@@ -209,6 +209,7 @@ public sealed class RemoteEditAndContinueServiceTests
 
             return new()
             {
+                SolutionAction = SolutionAction.None,
                 Solution = solution,
                 ModuleUpdates = updates,
                 Diagnostics = diagnostics,

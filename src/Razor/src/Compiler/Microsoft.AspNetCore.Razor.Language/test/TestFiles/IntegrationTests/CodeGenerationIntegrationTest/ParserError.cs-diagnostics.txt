@@ -1,0 +1,12 @@
+﻿// TestFiles/IntegrationTests/CodeGenerationIntegrationTest/ParserError.cshtml(2,1): error CS1035: End-of-file found, '*/' expected
+// /*
+Diagnostic(ErrorCode.ERR_OpenEndedComment, "").WithLocation(2, 1),
+// TestFiles/IntegrationTests/CodeGenerationIntegrationTest/ParserError.cshtml(26,10): error CS1513: } expected
+//         {
+Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(26, 10),
+// TestFiles/IntegrationTests/CodeGenerationIntegrationTest/ParserError.cshtml(26,10): error CS1513: } expected
+//         {
+Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(26, 10),
+// TestFiles/IntegrationTests/CodeGenerationIntegrationTest/ParserError.cshtml(26,10): error CS1513: } expected
+//         {
+Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(26, 10)

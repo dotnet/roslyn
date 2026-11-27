@@ -23,6 +23,8 @@ internal static class SymbolCompletionItem
 
     private static readonly Action<ImmutableArray<ISymbol>, ArrayBuilder<KeyValuePair<string, string>>> s_addSymbolEncoding = AddSymbolEncoding;
     private static readonly Action<ImmutableArray<ISymbol>, ArrayBuilder<KeyValuePair<string, string>>> s_addSymbolInfo = AddSymbolInfo;
+    private static ContextPositionCache s_lastContextPositionInfo = new(0, "0");
+
     private const char ProjectSeparatorChar = ';';
 
     private static CompletionItem CreateWorker(
@@ -51,7 +53,7 @@ internal static class SymbolCompletionItem
         if (insertionText != null)
             builder.Add(KeyValuePair.Create(InsertionTextProperty, insertionText));
 
-        builder.Add(KeyValuePair.Create("ContextPosition", contextPosition.ToString()));
+        AddContextPosition(builder, contextPosition);
         AddSupportedPlatforms(builder, supportedPlatforms);
         symbolEncoder(symbols, builder);
 
@@ -223,6 +225,26 @@ internal static class SymbolCompletionItem
         }
 
         return document;
+    }
+
+    private static void AddContextPosition(ArrayBuilder<KeyValuePair<string, string>> properties, int contextPosition)
+    {
+        // Cache the last context position we added to avoid doing extra allocations of converting int to string.
+        // Nearly all completion items for a session have the same context position.
+        var contextPositionData = s_lastContextPositionInfo;
+
+        string contextPositionString;
+        if (contextPositionData.Position == contextPosition)
+        {
+            contextPositionString = contextPositionData.PositionString;
+        }
+        else
+        {
+            contextPositionString = contextPosition.ToString();
+            s_lastContextPositionInfo = new ContextPositionCache(contextPosition, contextPositionString);
+        }
+
+        properties.Add(KeyValuePair.Create("ContextPosition", contextPositionString));
     }
 
     private static void AddSupportedPlatforms(ArrayBuilder<KeyValuePair<string, string>> properties, SupportedPlatformData? supportedPlatforms)
@@ -405,5 +427,11 @@ internal static class SymbolCompletionItem
         {
             return CompletionDescription.Empty;
         }
+    }
+
+    private sealed class ContextPositionCache(int position, string positionString)
+    {
+        public readonly int Position = position;
+        public readonly string PositionString = positionString;
     }
 }

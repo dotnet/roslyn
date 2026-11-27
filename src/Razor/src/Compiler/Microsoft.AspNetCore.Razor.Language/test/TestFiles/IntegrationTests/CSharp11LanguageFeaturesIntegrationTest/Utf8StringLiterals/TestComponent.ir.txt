@@ -1,0 +1,19 @@
+﻿Document - 
+    NamespaceDeclaration -  - Test
+        UsingDirective - (3:1,1 [20] ) - global::System
+        UsingDirective - (26:2,1 [40] ) - global::System.Collections.Generic
+        UsingDirective - (69:3,1 [25] ) - global::System.Linq
+        UsingDirective - (97:4,1 [36] ) - global::System.Threading.Tasks
+        UsingDirective - (136:5,1 [45] ) - global::Microsoft.AspNetCore.Components
+        ClassDeclaration -  - public partial - TestComponent - global::Microsoft.AspNetCore.Components.ComponentBase - 
+            MethodDeclaration -  - protected override - void - BuildRenderTree
+                CSharpCode - (2:0,2 [75] x:\dir\subdir\Test\TestComponent.razor)
+                    LazyIntermediateToken - (2:0,2 [75] x:\dir\subdir\Test\TestComponent.razor) - CSharp - \n    System.ReadOnlySpan<byte> bytes = "Razor"u8;\n    _ = bytes.Length;\n
+                MarkupElement - (82:5,0 [30] x:\dir\subdir\Test\TestComponent.razor) - div
+                    CSharpExpression - (89:5,7 [16] x:\dir\subdir\Test\TestComponent.razor)
+                        LazyIntermediateToken - (89:5,7 [16] x:\dir\subdir\Test\TestComponent.razor) - CSharp - "Razor"u8.Length
+                HtmlContent - (112:5,30 [2] x:\dir\subdir\Test\TestComponent.razor)
+                    LazyIntermediateToken - (112:5,30 [2] x:\dir\subdir\Test\TestComponent.razor) - Html - \n
+                MarkupElement - (114:6,0 [34] x:\dir\subdir\Test\TestComponent.razor) - div
+                    CSharpExpression - (121:6,7 [20] x:\dir\subdir\Test\TestComponent.razor)
+                        LazyIntermediateToken - (121:6,7 [20] x:\dir\subdir\Test\TestComponent.razor) - CSharp - """Razor"""u8.Length

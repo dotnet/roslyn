@@ -1398,7 +1398,7 @@ public sealed partial class CSharpJsonParserBasicTests : CSharpJsonParserTests
             </Diagnostics>
             """);
 
-    [Fact]
+    [ConditionalFact(typeof(WindowsOnly), Reason = @"Diagnostic offsets differ due to \r\n vs \n line endings")]
     public void TestNestedPropertyMissingColon()
         => Test("""
             @"
@@ -1609,7 +1609,7 @@ public sealed partial class CSharpJsonParserBasicTests : CSharpJsonParserTests
             </Diagnostics>
             """);
 
-    [Fact]
+    [ConditionalFact(typeof(WindowsOnly), Reason = @"Diagnostic offsets differ due to \r\n vs \n line endings")]
     public void TestAdditionalContentComma()
         => Test("""
             @"[
@@ -1665,7 +1665,7 @@ public sealed partial class CSharpJsonParserBasicTests : CSharpJsonParserTests
             </Diagnostics>
             """);
 
-    [Fact]
+    [ConditionalFact(typeof(WindowsOnly), Reason = @"Diagnostic offsets differ due to \r\n vs \n line endings")]
     public void TestAdditionalContentText()
         => Test("""
             @"[
@@ -2975,7 +2975,7 @@ public sealed partial class CSharpJsonParserBasicTests : CSharpJsonParserTests
             </Diagnostics>
             """);
 
-    [Fact]
+    [ConditionalFact(typeof(WindowsOnly), Reason = @"Diagnostic offsets differ due to \r\n vs \n line endings")]
     public void TestMultiLine1()
         => Test("""
             @"
@@ -3071,7 +3071,7 @@ public sealed partial class CSharpJsonParserBasicTests : CSharpJsonParserTests
             "",
             "");
 
-    [Fact]
+    [ConditionalFact(typeof(WindowsOnly), Reason = @"Diagnostic offsets differ due to \r\n vs \n line endings")]
     public void TestNestedObject()
         => Test("""
             @"
@@ -3525,7 +3525,7 @@ public sealed partial class CSharpJsonParserBasicTests : CSharpJsonParserTests
             "",
             "");
 
-    [Fact]
+    [ConditionalFact(typeof(WindowsOnly), Reason = @"Diagnostic offsets differ due to \r\n vs \n line endings")]
     public void TestLiterals3()
         => Test("""
             @"[

@@ -1396,11 +1396,12 @@ object? oNull2 = null;
 oNull2.P = new object();
 
 object? oNotNull = new object();
-oNotNull.P = null; // 1
+oNotNull.P = null;
+E.set_P(oNotNull, null);
 
 oNotNull.P = new object();
 
-oNotNull?.P = null; // 2
+oNotNull?.P = null;
 
 static class E
 {
@@ -1410,14 +1411,13 @@ static class E
     }
 }
 """;
-        var comp = CreateCompilation(src);
-        comp.VerifyEmitDiagnostics(
+        CreateCompilation(src).VerifyEmitDiagnostics(
             // (10,14): warning CS8625: Cannot convert null literal to non-nullable reference type.
-            // oNotNull.P = null; // 1
+            // oNotNull.P = null;
             Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(10, 14),
-            // (14,15): warning CS8625: Cannot convert null literal to non-nullable reference type.
-            // oNotNull?.P = null; // 2
-            Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(14, 15));
+            // (15,15): warning CS8625: Cannot convert null literal to non-nullable reference type.
+            // oNotNull?.P = null;
+            Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(15, 15));
     }
 
     [Fact]
@@ -1455,7 +1455,8 @@ static class E
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
         var propertyAccess = GetSyntaxes<MemberAccessExpressionSyntax>(tree, "C<object?>.P").First();
-        AssertEx.Equal("C<System.Object?>! E.extension<C<System.Object?>!>(C<System.Object?>!).P { set; }", model.GetSymbolInfo(propertyAccess).Symbol.ToTestDisplayString(includeNonNullable: true));
+        AssertEx.Equal("C<System.Object?>! E.extension<C<System.Object?>!>(C<System.Object?>!).P { set; }",
+            model.GetSymbolInfo(propertyAccess).Symbol.ToTestDisplayString(includeNonNullable: true));
     }
 
     [Fact]
@@ -2266,7 +2267,936 @@ public static class E
     }
 
     [Fact]
-    public void Nullability_NullableContext_01()
+    public void Nullability_Setter_01()
+    {
+        // generic extension parameter, instance member, property write access, notnull constraint
+        var src = """
+#nullable enable
+
+object? oNull = null;
+oNull.P = null; // 1
+
+object? oNull2 = null;
+oNull2.P = new object(); // 2
+
+object? oNotNull = new object();
+oNotNull.P = null; // 3
+E.set_P(oNotNull, null); // 4
+
+oNotNull.P = new object();
+
+oNotNull?.P = null; // 5
+
+static class E
+{
+    extension<T>(T t) where T : notnull
+    {
+        public T P { set => throw null!; }
+    }
+}
+""";
+        CreateCompilation(src).VerifyEmitDiagnostics(
+            // (4,1): warning CS8714: The type 'object?' cannot be used as type parameter 'T' in the generic type or method 'E.extension<T>(T)'. Nullability of type argument 'object?' doesn't match 'notnull' constraint.
+            // oNull.P = null; // 1
+            Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterNotNullConstraint, "oNull.P").WithArguments("E.extension<T>(T)", "T", "object?").WithLocation(4, 1),
+            // (7,1): warning CS8714: The type 'object?' cannot be used as type parameter 'T' in the generic type or method 'E.extension<T>(T)'. Nullability of type argument 'object?' doesn't match 'notnull' constraint.
+            // oNull2.P = new object(); // 2
+            Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterNotNullConstraint, "oNull2.P").WithArguments("E.extension<T>(T)", "T", "object?").WithLocation(7, 1),
+            // (10,14): warning CS8625: Cannot convert null literal to non-nullable reference type.
+            // oNotNull.P = null; // 3
+            Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(10, 14),
+            // (11,1): warning CS8714: The type 'object?' cannot be used as type parameter 'T' in the generic type or method 'E.set_P<T>(T, T)'. Nullability of type argument 'object?' doesn't match 'notnull' constraint.
+            // E.set_P(oNotNull, null); // 4
+            Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterNotNullConstraint, "E.set_P").WithArguments("E.set_P<T>(T, T)", "T", "object?").WithLocation(11, 1),
+            // (15,15): warning CS8625: Cannot convert null literal to non-nullable reference type.
+            // oNotNull?.P = null; // 5
+            Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(15, 15));
+    }
+
+    [Fact]
+    public void Nullability_Setter_02()
+    {
+        // generic extension parameter, static member, property write access
+        var src = """
+#nullable enable
+
+object.P = null;
+E.set_P((object?)null);
+
+object.P = new object();
+
+static class E
+{
+    extension<T>(T)
+    {
+        public static T P { set => throw null!; }
+    }
+}
+""";
+        CreateCompilation(src).VerifyEmitDiagnostics(
+            // (3,12): warning CS8625: Cannot convert null literal to non-nullable reference type.
+            // object.P = null;
+            Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(3, 12));
+    }
+
+    [Fact]
+    public void Nullability_Setter_03()
+    {
+        // property write access, warning in receiver
+        var src = """
+#nullable enable
+
+object? oNull = null;
+M(oNull).P = null; // 1, 2
+
+object? oNull2 = null;
+M(oNull2).P = new object(); // 3
+
+object M(object o) => throw null!;
+
+static class E
+{
+    extension<T>(T t)
+    {
+        public T P { set => throw null!; }
+    }
+}
+""";
+        CreateCompilation(src).VerifyEmitDiagnostics(
+            // (4,3): warning CS8604: Possible null reference argument for parameter 'o' in 'object M(object o)'.
+            // M(oNull).P = null; // 1, 2
+            Diagnostic(ErrorCode.WRN_NullReferenceArgument, "oNull").WithArguments("o", "object M(object o)").WithLocation(4, 3),
+            // (4,14): warning CS8625: Cannot convert null literal to non-nullable reference type.
+            // M(oNull).P = null; // 1, 2
+            Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(4, 14),
+            // (7,3): warning CS8604: Possible null reference argument for parameter 'o' in 'object M(object o)'.
+            // M(oNull2).P = new object(); // 3
+            Diagnostic(ErrorCode.WRN_NullReferenceArgument, "oNull2").WithArguments("o", "object M(object o)").WithLocation(7, 3));
+    }
+
+    [Fact]
+    public void Nullability_Setter_04()
+    {
+        // generic extension parameter, check result of assignment
+        var src = """
+#nullable enable
+
+object? oNull = null;
+(oNull.P = null).ToString(); // 1
+
+object? oNull2 = null;
+(oNull2.P = new object()).ToString();
+
+object? oNotNull = new object();
+(oNotNull.P = null).ToString(); // 2, 
+
+(oNotNull.P = new object()).ToString();
+
+static class E
+{
+    extension<T>(T t)
+    {
+        public T P { set => throw null!; }
+    }
+}
+""";
+        CreateCompilation(src).VerifyEmitDiagnostics(
+            // (4,2): warning CS8602: Dereference of a possibly null reference.
+            // (oNull.P = null).ToString(); // 1
+            Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "oNull.P = null").WithLocation(4, 2),
+            // (10,2): warning CS8602: Dereference of a possibly null reference.
+            // (oNotNull.P = null).ToString(); // 2, 
+            Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "oNotNull.P = null").WithLocation(10, 2),
+            // (10,15): warning CS8625: Cannot convert null literal to non-nullable reference type.
+            // (oNotNull.P = null).ToString(); // 2, 
+            Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(10, 15));
+    }
+
+    [Fact]
+    public void Nullability_Setter_05()
+    {
+        // variance in receiver
+        var src = """
+#nullable enable
+
+I<object?> iNull = null!;
+iNull.P = 42;
+_ = iNull.P;
+
+I<object> iNotNull = null!;
+iNotNull.P = 42;
+_ = iNotNull.P;
+
+static class E
+{
+    extension(I<object?> t)
+    {
+        public int P { get => throw null!; set => throw null!; }
+    }
+}
+
+interface I<out T> { }
+""";
+        CreateCompilation(src).VerifyEmitDiagnostics();
+    }
+
+    [Fact]
+    public void Nullability_Setter_06()
+    {
+        // variance in receiver
+        var src = """
+#nullable enable
+
+I<object?> iNull = null!;
+iNull.P = 42;
+_ = iNull.P;
+
+I<object> iNotNull = null!;
+iNotNull.P = 42;
+_ = iNotNull.P;
+
+static class E
+{
+    extension(I<object> t)
+    {
+        public int P { get => throw null!; set => throw null!; }
+    }
+}
+
+interface I<out T> { }
+""";
+        CreateCompilation(src).VerifyEmitDiagnostics(
+            // (4,1): warning CS8620: Argument of type 'I<object?>' cannot be used for parameter 't' of type 'I<object>' in 'E.extension(I<object>)' due to differences in the nullability of reference types.
+            // iNull.P = 42;
+            Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "iNull").WithArguments("I<object?>", "I<object>", "t", "E.extension(I<object>)").WithLocation(4, 1),
+            // (5,5): warning CS8620: Argument of type 'I<object?>' cannot be used for parameter 't' of type 'I<object>' in 'E.extension(I<object>)' due to differences in the nullability of reference types.
+            // _ = iNull.P;
+            Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "iNull").WithArguments("I<object?>", "I<object>", "t", "E.extension(I<object>)").WithLocation(5, 5));
+    }
+
+    [Fact]
+    public void Nullability_Setter_07()
+    {
+        // variance in receiver, ref extension paramter
+        var src = """
+#nullable enable
+
+I<object?> iNull = null!;
+iNull.P = 42;
+_ = iNull.P;
+
+I<object> iNotNull = null!;
+iNotNull.P = 42;
+_ = iNotNull.P;
+
+static class E
+{
+    extension(ref I<object?> t)
+    {
+        public int P { get => throw null!; set => throw null!; }
+    }
+}
+
+interface I<out T> { }
+""";
+        CreateCompilation(src).VerifyEmitDiagnostics(
+            // (4,7): error CS1061: 'I<object?>' does not contain a definition for 'P' and no accessible extension method 'P' accepting a first argument of type 'I<object?>' could be found (are you missing a using directive or an assembly reference?)
+            // iNull.P = 42;
+            Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "P").WithArguments("I<object?>", "P").WithLocation(4, 7),
+            // (5,11): error CS1061: 'I<object?>' does not contain a definition for 'P' and no accessible extension method 'P' accepting a first argument of type 'I<object?>' could be found (are you missing a using directive or an assembly reference?)
+            // _ = iNull.P;
+            Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "P").WithArguments("I<object?>", "P").WithLocation(5, 11),
+            // (8,10): error CS1061: 'I<object>' does not contain a definition for 'P' and no accessible extension method 'P' accepting a first argument of type 'I<object>' could be found (are you missing a using directive or an assembly reference?)
+            // iNotNull.P = 42;
+            Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "P").WithArguments("I<object>", "P").WithLocation(8, 10),
+            // (9,14): error CS1061: 'I<object>' does not contain a definition for 'P' and no accessible extension method 'P' accepting a first argument of type 'I<object>' could be found (are you missing a using directive or an assembly reference?)
+            // _ = iNotNull.P;
+            Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "P").WithArguments("I<object>", "P").WithLocation(9, 14),
+            // (13,19): error CS9300: The 'ref' receiver parameter of an extension block must be a value type or a generic type constrained to struct.
+            //     extension(ref I<object?> t)
+            Diagnostic(ErrorCode.ERR_RefExtensionParameterMustBeValueTypeOrConstrainedToOne, "I<object?>").WithLocation(13, 19));
+    }
+
+    [Fact]
+    public void Nullability_Setter_08()
+    {
+        // ref-returning property
+        var src = """
+#nullable enable
+object? oNull3 = null;
+
+object? oNull = null;
+oNull.P = oNull3;
+
+object? oNull2 = null;
+object? oNotNull = new object();
+oNull2.P = oNotNull;
+
+oNotNull.P = oNull3; // 1
+
+oNotNull.P = oNotNull;
+
+static class E
+{
+    extension<T>(T t)
+    {
+        public ref T P { get => throw null!; }
+    }
+}
+""";
+        CreateCompilation(src).VerifyEmitDiagnostics(
+            // (11,14): warning CS8601: Possible null reference assignment.
+            // oNotNull.P = oNull3; // 1
+            Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "oNull3").WithLocation(11, 14));
+    }
+
+    [Fact]
+    public void Nullability_Setter_09()
+    {
+        // property's state
+        var src = """
+#nullable enable
+
+object o = new object();
+o.P = null;
+o.P.ToString(); // 1
+o.P.ToString(); // 2
+
+o.P = new object();
+o.P.ToString(); // 3
+o.P.ToString(); // 4
+
+static class E
+{
+    extension(object o)
+    {
+        public object? P { get => throw null!; set => throw null!; }
+    }
+}
+""";
+        CreateCompilation(src).VerifyEmitDiagnostics(
+            // (5,1): warning CS8602: Dereference of a possibly null reference.
+            // o.P.ToString(); // 1
+            Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "o.P").WithLocation(5, 1),
+            // (6,1): warning CS8602: Dereference of a possibly null reference.
+            // o.P.ToString(); // 2
+            Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "o.P").WithLocation(6, 1),
+            // (9,1): warning CS8602: Dereference of a possibly null reference.
+            // o.P.ToString(); // 3
+            Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "o.P").WithLocation(9, 1),
+            // (10,1): warning CS8602: Dereference of a possibly null reference.
+            // o.P.ToString(); // 4
+            Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "o.P").WithLocation(10, 1));
+
+        src = """
+#nullable enable
+
+C o = new C();
+o.P = null;
+o.P.ToString(); // 1
+o.P.ToString();
+
+o.P = new object();
+o.P.ToString();
+
+class C
+{
+    public object? P { get => throw null!; set => throw null!; }
+}
+""";
+        CreateCompilation(src).VerifyEmitDiagnostics(
+            // (5,1): warning CS8602: Dereference of a possibly null reference.
+            // o.P.ToString(); // 1
+            Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "o.P").WithLocation(5, 1));
+    }
+
+    [Fact]
+    public void Nullability_Setter_10()
+    {
+        // assignment resulting in maybe-null converted value
+        var src = """
+#nullable enable
+
+(object.P = new D()).ToString(); // 1
+
+static class E
+{
+    extension(object o)
+    {
+        public static C? P { get => throw null!; set => throw null!; }
+    }
+}
+
+class D
+{
+    public static implicit operator C?(D d) => throw null!;
+}
+
+class C { }
+""";
+        CreateCompilation(src).VerifyEmitDiagnostics(
+            // (3,2): warning CS8602: Dereference of a possibly null reference.
+            // (object.P = new D()).ToString(); // 1
+            Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "object.P = new D()").WithLocation(3, 2));
+    }
+
+    [Fact]
+    public void Nullability_Setter_11()
+    {
+        // assignment resulting in not-null converted value
+        var src = """
+#nullable enable
+
+D? dNull = null;
+(object.P = dNull).ToString();
+
+static class E
+{
+    extension(object o)
+    {
+        public static C? P { get => throw null!; set => throw null!; }
+    }
+}
+
+class D
+{
+    public static implicit operator C(D? d) => throw null!;
+}
+
+class C { }
+""";
+        CreateCompilation(src).VerifyEmitDiagnostics();
+    }
+
+    [Fact]
+    public void Nullability_Setter_13()
+    {
+        // compound assignment
+        var src = """
+#nullable enable
+
+object? oNull = null;
+oNull.P += (object?)null;
+
+object? oNull2 = null;
+oNull2.P += new object();
+
+object? oNotNull = new object();
+oNotNull.P += (object?)null; // 1
+oNotNull.P += new object();
+
+static class E
+{
+    extension<T>(T t)
+    {
+        public T P { get => throw null!; set => throw null!; }
+        public static T operator +(T t1, T t2) => throw null!;
+    }
+}
+""";
+        CreateCompilation(src).VerifyEmitDiagnostics(
+            // (10,1): warning CS8601: Possible null reference assignment.
+            // oNotNull.P += (object?)null; // 1
+            Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "oNotNull.P += (object?)null").WithLocation(10, 1));
+    }
+
+    [Fact]
+    public void Nullability_Setter_14()
+    {
+        // compound assignment
+        var src = """
+#nullable enable
+
+object? oNull = null;
+oNull.P += (object?)null; // 1
+
+object? oNull2 = null;
+oNull2.P += new object(); // 2
+
+object? oNotNull = new object();
+oNotNull.P += (object?)null; // 3
+oNotNull.P += new object();
+
+static class E
+{
+    extension<T>(T t)
+    {
+        [property: System.Diagnostics.CodeAnalysis.DisallowNull]
+        public T P { get => throw null!; set => throw null!; }
+
+        public static T operator +(T t1, T t2) => throw null!;
+    }
+}
+""";
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net100);
+        comp.VerifyEmitDiagnostics(
+            // (4,1): warning CS8601: Possible null reference assignment.
+            // oNull.P += (object?)null; // 1
+            Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "oNull.P += (object?)null").WithLocation(4, 1),
+            // (7,1): warning CS8601: Possible null reference assignment.
+            // oNull2.P += new object(); // 2
+            Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "oNull2.P += new object()").WithLocation(7, 1),
+            // (10,1): warning CS8601: Possible null reference assignment.
+            // oNotNull.P += (object?)null; // 3
+            Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "oNotNull.P += (object?)null").WithLocation(10, 1));
+    }
+
+    [Fact]
+    public void Nullability_Setter_15()
+    {
+        // + returns nullable reference type
+        var src = """
+#nullable enable
+
+C? oNull = null;
+oNull.P += null;
+
+C? oNull2 = null;
+oNull2.P += new C();
+
+C? oNotNull = new C();
+oNotNull.P += null; // 1
+
+var x = E.get_P(oNotNull);
+x += null;
+E.set_P(oNotNull, x);
+
+oNotNull.P += new C(); // 2
+
+static class E
+{
+    extension<T>(T t)
+    {
+        public T P { get => throw null!; set => throw null!; }
+    }
+}
+
+class C
+{
+    public static C? operator +(C? c1, C? c2) => throw null!;
+}
+""";
+        var comp = CreateCompilation(src).VerifyEmitDiagnostics(
+            // (10,1): warning CS8601: Possible null reference assignment.
+            // oNotNull.P += null; // 1
+            Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "oNotNull.P += null").WithLocation(10, 1),
+            // (16,1): warning CS8601: Possible null reference assignment.
+            // oNotNull.P += new C(); // 2
+            Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "oNotNull.P += new C()").WithLocation(16, 1));
+
+        var tree = comp.SyntaxTrees.First();
+        var model = comp.GetSemanticModel(tree);
+        var propertyAccess = GetSyntaxes<MemberAccessExpressionSyntax>(tree, "oNull.P").First();
+        AssertEx.Equal("C? E.extension<C?>(C?).P { get; set; }",
+            model.GetSymbolInfo(propertyAccess).Symbol.ToTestDisplayString(includeNonNullable: true));
+    }
+
+    [Fact]
+    public void Nullability_Setter_16()
+    {
+        // + returns non-nullable reference type
+        var src = """
+#nullable enable
+
+C? oNull = null;
+oNull.P += null;
+
+C? oNull2 = null;
+oNull2.P += new C();
+
+C? oNotNull = new C();
+oNotNull.P += null;
+oNotNull.P += new C();
+
+static class E
+{
+    extension<T>(T t)
+    {
+        public T P { get => throw null!; set => throw null!; }
+    }
+}
+
+class C
+{
+    public static C operator +(C? c1, C? c2) => throw null!;
+}
+""";
+        CreateCompilation(src).VerifyEmitDiagnostics();
+    }
+
+    [Fact]
+    public void Nullability_Setter_17()
+    {
+        // compound assignment, + returns nullable reference type, ref-returning property
+        var src = """
+#nullable enable
+
+C? oNull = null;
+oNull.P += null;
+
+C? oNull2 = null;
+oNull2.P += new C();
+
+C? oNotNull = new C();
+oNotNull.P += null;
+oNotNull.P += new C();
+
+static class E
+{
+    extension<T>(T t)
+    {
+        public ref T P { get => throw null!; }
+    }
+}
+
+class C
+{
+    public static C? operator +(C? c1, C? c2) => throw null!;
+}
+""";
+        CreateCompilation(src).VerifyEmitDiagnostics(
+            // (10,1): warning CS8601: Possible null reference assignment.
+            // oNotNull.P += null;
+            Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "oNotNull.P += null").WithLocation(10, 1),
+            // (11,1): warning CS8601: Possible null reference assignment.
+            // oNotNull.P += new C();
+            Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "oNotNull.P += new C()").WithLocation(11, 1));
+    }
+
+    [Fact]
+    public void Nullability_Setter_18()
+    {
+        // compound assignment, + returns non-nullable reference type, ref-returning property
+        var src = """
+#nullable enable
+
+C? oNull = null;
+oNull.P += null;
+
+C? oNull2 = null;
+oNull2.P += new C();
+
+C? oNotNull = new C();
+oNotNull.P += null;
+oNotNull.P += new C();
+
+static class E
+{
+    extension<T>(T t)
+    {
+        public ref T P { get => throw null!; }
+    }
+}
+
+class C
+{
+    public static C operator +(C? c1, C? c2) => throw null!;
+}
+""";
+        CreateCompilation(src).VerifyEmitDiagnostics();
+    }
+
+    [Fact]
+    public void Nullability_Setter_19()
+    {
+        // compound assignment, + returns nullable reference type, check result value
+        var src = """
+#nullable enable
+
+C? oNull = null;
+(oNull.P += null).ToString(); // 1
+
+C? oNull2 = null;
+(oNull2.P += new C()).ToString(); // 2
+
+C? oNotNull = new C();
+(oNotNull.P += null).ToString(); // 3, 4
+
+(oNotNull.P += new C()).ToString(); // 5, 6
+
+static class E
+{
+    extension<T>(T t)
+    {
+        public T P { get => throw null!; set => throw null!; }
+    }
+}
+
+class C
+{
+    public static C? operator +(C? c1, C? c2) => throw null!;
+}
+""";
+        CreateCompilation(src).VerifyEmitDiagnostics(
+            // (4,2): warning CS8602: Dereference of a possibly null reference.
+            // (oNull.P += null).ToString(); // 1
+            Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "oNull.P += null").WithLocation(4, 2),
+            // (7,2): warning CS8602: Dereference of a possibly null reference.
+            // (oNull2.P += new C()).ToString(); // 2
+            Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "oNull2.P += new C()").WithLocation(7, 2),
+            // (10,2): warning CS8601: Possible null reference assignment.
+            // (oNotNull.P += null).ToString(); // 3, 4
+            Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "oNotNull.P += null").WithLocation(10, 2),
+            // (10,2): warning CS8602: Dereference of a possibly null reference.
+            // (oNotNull.P += null).ToString(); // 3, 4
+            Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "oNotNull.P += null").WithLocation(10, 2),
+            // (12,2): warning CS8601: Possible null reference assignment.
+            // (oNotNull.P += new C()).ToString(); // 5, 6
+            Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "oNotNull.P += new C()").WithLocation(12, 2),
+            // (12,2): warning CS8602: Dereference of a possibly null reference.
+            // (oNotNull.P += new C()).ToString(); // 5, 6
+            Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "oNotNull.P += new C()").WithLocation(12, 2));
+    }
+
+    [Fact]
+    public void Nullability_Setter_20()
+    {
+        // compound assignment, + returns non-nullable reference type, check result value
+        var src = """
+#nullable enable
+
+C? oNull = null;
+(oNull.P += null).ToString();
+
+C? oNull2 = null;
+(oNull2.P += new C()).ToString();
+
+C? oNotNull = new C();
+(oNotNull.P += null).ToString();
+
+(oNotNull.P += new C()).ToString();
+
+static class E
+{
+    extension<T>(T t)
+    {
+        public T P { get => throw null!; set => throw null!; }
+    }
+}
+
+class C
+{
+    public static C operator +(C? c1, C? c2) => throw null!;
+}
+""";
+        CreateCompilation(src).VerifyEmitDiagnostics();
+    }
+
+    [Fact]
+    public void Nullability_Setter_21()
+    {
+        // compound assignment, warning in receiver
+        var src = """
+#nullable enable
+
+M(null).P += 0;
+
+object M(object o) => throw null!;
+
+static class E
+{
+    extension(object o)
+    {
+        public int P { get => throw null!; set => throw null!; }
+    }
+}
+""";
+        CreateCompilation(src).VerifyEmitDiagnostics(
+            // (3,3): warning CS8625: Cannot convert null literal to non-nullable reference type.
+            // M(null).P += 0;
+            Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(3, 3));
+    }
+
+    [Fact]
+    public void Nullability_Setter_22()
+    {
+        // compound assignment, warning in RHS
+        var src = """
+#nullable enable
+
+object.P += M(null);
+
+int M(object o) => throw null!;
+
+static class E
+{
+    extension(object)
+    {
+        public static int P { get => throw null!; set => throw null!; }
+    }
+}
+""";
+        CreateCompilation(src).VerifyEmitDiagnostics(
+            // (3,15): warning CS8625: Cannot convert null literal to non-nullable reference type.
+            // object.P += M(null);
+            Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(3, 15));
+    }
+
+    [Fact]
+    public void Nullability_Setter_23()
+    {
+        // compound assignment resulting in maybe-null converted value
+        var src = """
+#nullable enable
+
+(object.P += new D()).ToString(); // 1
+
+static class E
+{
+    extension(object o)
+    {
+        public static C? P { get => throw null!; set => throw null!; }
+    }
+}
+
+class D { }
+
+class C
+{
+    public static C? operator+(C? c1, D d2) => throw null!;
+}
+""";
+        CreateCompilation(src).VerifyEmitDiagnostics(
+            // (3,2): warning CS8602: Dereference of a possibly null reference.
+            // (object.P += new D()).ToString(); // 1
+            Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "object.P += new D()").WithLocation(3, 2));
+    }
+
+    [Fact]
+    public void Nullability_Setter_24()
+    {
+        // compound assignment resulting in not-null converted value
+        var src = """
+#nullable enable
+
+(object.P += new D()).ToString();
+
+static class E
+{
+    extension(object o)
+    {
+        public static C? P { get => throw null!; set => throw null!; }
+    }
+}
+
+class D { }
+
+class C
+{
+    public static C operator+(C? c1, D d2) => throw null!;
+}
+""";
+        CreateCompilation(src).VerifyEmitDiagnostics();
+    }
+
+    [Fact]
+    public void Nullability_Setter_25()
+    {
+        // + returns non-nullable reference type, DisallowNull
+        var src = """
+#nullable enable
+
+C? oNull = null;
+oNull.P += null;
+
+C? oNull2 = null;
+oNull2.P += new C();
+
+C? oNotNull = new C();
+oNotNull.P += null;
+oNotNull.P += new C();
+
+static class E
+{
+    extension<T>(T t)
+    {
+        [property: System.Diagnostics.CodeAnalysis.DisallowNull]
+        public T P { get => throw null!; set => throw null!; }
+    }
+}
+
+class C
+{
+    public static C operator +(C? c1, C? c2) => throw null!;
+}
+""";
+        CreateCompilation(src, targetFramework: TargetFramework.Net100).VerifyEmitDiagnostics();
+    }
+
+    [Fact]
+    public void Nullability_Setter_26()
+    {
+        var src = """
+#nullable enable
+
+C<string> c = new();
+c.Property = null; // 1
+
+class C<T> { }
+
+static class E
+{
+    extension<T>(C<T> c)
+    {
+        public T Property { set { } }
+    }
+}
+""";
+
+        CreateCompilation(src).VerifyEmitDiagnostics(
+            // (4,14): warning CS8625: Cannot convert null literal to non-nullable reference type.
+            // c.Property = null; // 1
+            Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(4, 14));
+    }
+
+    [Fact]
+    public void Nullability_Setter_27()
+    {
+        // NullableWalker asserts that result types match expectations
+        var src = """
+#nullable enable
+
+new Derived().P = new Base(); // 1
+E.set_P(new Derived(), new Base());
+
+new Derived().P = (Base?)null; // 2, 3
+E.set_P(new Derived(), (Base?)null);
+
+new Base().P = (Derived?)null; // 4
+E.set_P(new Base(), (Derived?)null); // 5
+
+((Base?)null).P = new Derived();
+E.set_P((Base?)null, new Derived());
+
+static class E
+{
+    extension<T>(T t)
+    {
+        public T P { set { } }
+    }
+}
+
+public class Base { }
+public class Derived : Base { }
+""";
+
+        CreateCompilation(src).VerifyEmitDiagnostics(
+            // (3,19): error CS0266: Cannot implicitly convert type 'Base' to 'Derived'. An explicit conversion exists (are you missing a cast?)
+            // new Derived().P = new Base(); // 1
+            Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "new Base()").WithArguments("Base", "Derived").WithLocation(3, 19),
+            // (6,19): error CS0266: Cannot implicitly convert type 'Base' to 'Derived'. An explicit conversion exists (are you missing a cast?)
+            // new Derived().P = (Base?)null; // 2, 3
+            Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "(Base?)null").WithArguments("Base", "Derived").WithLocation(6, 19),
+            // (6,19): warning CS8625: Cannot convert null literal to non-nullable reference type.
+            // new Derived().P = (Base?)null; // 2, 3
+            Diagnostic(ErrorCode.WRN_NullAsNonNullable, "(Base?)null").WithLocation(6, 19),
+            // (9,16): warning CS8625: Cannot convert null literal to non-nullable reference type.
+            // new Base().P = (Derived?)null; // 4
+            Diagnostic(ErrorCode.WRN_NullAsNonNullable, "(Derived?)null").WithLocation(9, 16));
+    }
+
+    [Theory, CombinatorialData]
+    public void Nullability_NullableContext_01(bool useCompilationReference)
     {
         var src = """
 #nullable enable
@@ -2297,10 +3227,27 @@ public static class E
             AssertEx.SetEqual(m is SourceModuleSymbol ? new string[] { } : ["System.Runtime.CompilerServices.NullableContextAttribute(1)", "System.Runtime.CompilerServices.NullableAttribute(0)"],
                 m.GlobalNamespace.GetTypeMember("E").GetAttributes().ToStrings());
         }
+
+        var src2 = """
+#nullable enable
+
+object.M1(null);
+object.M1(new object());
+E.M1(null);
+E.M1(new object());
+""";
+        var comp2 = CreateCompilation(src2, references: [AsReference(comp, useCompilationReference)], targetFramework: TargetFramework.Net90);
+        comp2.VerifyEmitDiagnostics(
+            // (3,11): warning CS8625: Cannot convert null literal to non-nullable reference type.
+            // object.M1(null);
+            Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(3, 11),
+            // (5,6): warning CS8625: Cannot convert null literal to non-nullable reference type.
+            // E.M1(null);
+            Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(5, 6));
     }
 
-    [Fact]
-    public void Nullability_NullableContext_02()
+    [Theory, CombinatorialData]
+    public void Nullability_NullableContext_02(bool useCompilationReference)
     {
         var src = """
 #nullable enable
@@ -2331,6 +3278,509 @@ public static class E
             AssertEx.SetEqual(m is SourceModuleSymbol ? new string[] { } : ["System.Runtime.CompilerServices.NullableContextAttribute(2)", "System.Runtime.CompilerServices.NullableAttribute(0)"],
                 m.GlobalNamespace.GetTypeMember("E").GetAttributes().ToStrings());
         }
+
+        var src2 = """
+#nullable enable
+
+object.M1(null);
+object.M1(new object());
+E.M1(null);
+E.M1(new object());
+""";
+        var comp2 = CreateCompilation(src2, references: [AsReference(comp, useCompilationReference)], targetFramework: TargetFramework.Net90);
+        comp2.VerifyEmitDiagnostics();
+    }
+
+    [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/81654")]
+    public void Nullability_NullableContext_03(bool useCompilationReference)
+    {
+        var libSrc = """
+#nullable enable
+
+public static class E
+{
+    public static void X1(object o) { }
+    public static void X2(object o) { }
+    public static void X3(object o) { }
+    public static void X4(object o) { }
+    public static void X5(object o) { }
+    public static void X6(object o) { }
+    extension(int i)
+    {
+        public void M2<T>() { }
+    }
+}
+""";
+
+        var libComp = CreateCompilation(libSrc, targetFramework: TargetFramework.Net90);
+        var verifier = CompileAndVerify(libComp, symbolValidator: validate, verify: Verification.Skipped);
+        verifier.VerifyDiagnostics();
+
+        static void validate(ModuleSymbol m)
+        {
+            var e = m.GlobalNamespace.GetTypeMember("E");
+
+            AssertEx.SetEqual([
+                "System.Runtime.CompilerServices.NullableContextAttribute(1)",
+                "System.Runtime.CompilerServices.NullableAttribute(0)"
+                ], e.GetAttributes().ToStrings());
+
+            var extensionMethod = e.GetTypeMembers().Single().GetMember<MethodSymbol>("M2");
+            AssertEx.Equal(["System.Runtime.CompilerServices.NullableContextAttribute(2)"], extensionMethod.GetAttributes().ToStrings());
+            var implementationMethod = e.GetMember<MethodSymbol>("M2");
+            AssertEx.Equal(["System.Runtime.CompilerServices.NullableContextAttribute(2)"], implementationMethod.GetAttributes().ToStrings());
+        }
+
+        var src = """
+#nullable enable
+
+class C
+{
+    void Test()
+    {
+        int i = 42;
+        i.M2<string?>();
+        E.M2<string?>(i);
+    }
+}
+""";
+
+        var comp = CreateCompilation(src, references: [AsReference(libComp, useCompilationReference)], targetFramework: TargetFramework.Net90);
+        comp.VerifyEmitDiagnostics();
+
+        var extensionMethod = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("E").GetTypeMembers().Single().GetMember<MethodSymbol>("M2");
+        Assert.True(extensionMethod.IsExtensionBlockMember());
+        var extensionTypeParam = extensionMethod.TypeParameters.Single();
+        Assert.False(extensionTypeParam.HasNotNullConstraint);
+
+        var implementationMethod = comp.GetMember<MethodSymbol>("E.M2");
+        var implementationTypeParam = implementationMethod.TypeParameters.Single();
+        Assert.False(implementationTypeParam.HasNotNullConstraint);
+
+        verifier.VerifyTypeIL("E", """
+.class public auto ansi abstract sealed beforefieldinit E
+    extends [System.Runtime]System.Object
+{
+    .custom instance void [System.Runtime]System.Runtime.CompilerServices.NullableContextAttribute::.ctor(uint8) = (
+        01 00 01 00 00
+    )
+    .custom instance void [System.Runtime]System.Runtime.CompilerServices.NullableAttribute::.ctor(uint8) = (
+        01 00 00 00 00
+    )
+    .custom instance void [System.Runtime]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
+        01 00 00 00
+    )
+    // Nested Types
+    .class nested public auto ansi sealed specialname '<G>$BA41CFE2B5EDAEB8C1B9062F59ED4D69'
+        extends [System.Runtime]System.Object
+    {
+        .custom instance void [System.Runtime]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
+            01 00 00 00
+        )
+        // Nested Types
+        .class nested public auto ansi abstract sealed specialname '<M>$F4B4FFE41AB49E80A4ECF390CF6EB372'
+            extends [System.Runtime]System.Object
+        {
+            // Methods
+            .method public hidebysig specialname static 
+                void '<Extension>$' (
+                    int32 i
+                ) cil managed 
+            {
+                .custom instance void [System.Runtime]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+                    01 00 00 00
+                )
+                // Method begins at RVA 0x206f
+                // Code size 1 (0x1)
+                .maxstack 8
+                IL_0000: ret
+            } // end of method '<M>$F4B4FFE41AB49E80A4ECF390CF6EB372'::'<Extension>$'
+        } // end of class <M>$F4B4FFE41AB49E80A4ECF390CF6EB372
+        // Methods
+        .method public hidebysig 
+            instance void M2<T> () cil managed 
+        {
+            .custom instance void [System.Runtime]System.Runtime.CompilerServices.NullableContextAttribute::.ctor(uint8) = (
+                01 00 02 00 00
+            )
+            .custom instance void System.Runtime.CompilerServices.ExtensionMarkerAttribute::.ctor(string) = (
+                01 00 24 3c 4d 3e 24 46 34 42 34 46 46 45 34 31
+                41 42 34 39 45 38 30 41 34 45 43 46 33 39 30 43
+                46 36 45 42 33 37 32 00 00
+            )
+            // Method begins at RVA 0x2071
+            // Code size 6 (0x6)
+            .maxstack 8
+            IL_0000: newobj instance void [System.Runtime]System.NotSupportedException::.ctor()
+            IL_0005: throw
+        } // end of method '<G>$BA41CFE2B5EDAEB8C1B9062F59ED4D69'::M2
+    } // end of class <G>$BA41CFE2B5EDAEB8C1B9062F59ED4D69
+    // Methods
+    .method public hidebysig static 
+        void X1 (
+            object o
+        ) cil managed 
+    {
+        // Method begins at RVA 0x206f
+        // Code size 1 (0x1)
+        .maxstack 8
+        IL_0000: ret
+    } // end of method E::X1
+    .method public hidebysig static 
+        void X2 (
+            object o
+        ) cil managed 
+    {
+        // Method begins at RVA 0x206f
+        // Code size 1 (0x1)
+        .maxstack 8
+        IL_0000: ret
+    } // end of method E::X2
+    .method public hidebysig static 
+        void X3 (
+            object o
+        ) cil managed 
+    {
+        // Method begins at RVA 0x206f
+        // Code size 1 (0x1)
+        .maxstack 8
+        IL_0000: ret
+    } // end of method E::X3
+    .method public hidebysig static 
+        void X4 (
+            object o
+        ) cil managed 
+    {
+        // Method begins at RVA 0x206f
+        // Code size 1 (0x1)
+        .maxstack 8
+        IL_0000: ret
+    } // end of method E::X4
+    .method public hidebysig static 
+        void X5 (
+            object o
+        ) cil managed 
+    {
+        // Method begins at RVA 0x206f
+        // Code size 1 (0x1)
+        .maxstack 8
+        IL_0000: ret
+    } // end of method E::X5
+    .method public hidebysig static 
+        void X6 (
+            object o
+        ) cil managed 
+    {
+        // Method begins at RVA 0x206f
+        // Code size 1 (0x1)
+        .maxstack 8
+        IL_0000: ret
+    } // end of method E::X6
+    .method public hidebysig static 
+        void M2<T> (
+            int32 i
+        ) cil managed 
+    {
+        .custom instance void [System.Runtime]System.Runtime.CompilerServices.NullableContextAttribute::.ctor(uint8) = (
+            01 00 02 00 00
+        )
+        .custom instance void [System.Runtime]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
+            01 00 00 00
+        )
+        // Method begins at RVA 0x206f
+        // Code size 1 (0x1)
+        .maxstack 8
+        IL_0000: ret
+    } // end of method E::M2
+} // end of class E
+""");
+    }
+
+    [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/81654")]
+    public void Nullability_NullableContext_04(bool useCompilationReference)
+    {
+        var libSrc = """
+#nullable enable
+
+public static class E
+{
+    public static void X1(object? o) { }
+    public static void X2(object? o) { }
+    public static void X3(object? o) { }
+    public static void X4(object? o) { }
+    public static void X5(object? o) { }
+    public static void X6(object? o) { }
+    extension(int i)
+    {
+        public void M2<T>() where T : notnull { }
+    }
+}
+""";
+
+        var libComp = CreateCompilation(libSrc, targetFramework: TargetFramework.Net90);
+        var verifier = CompileAndVerify(libComp, symbolValidator: validate, verify: Verification.Skipped);
+        verifier.VerifyDiagnostics();
+
+        static void validate(ModuleSymbol m)
+        {
+            var e = m.GlobalNamespace.GetTypeMember("E");
+
+            AssertEx.SetEqual([
+                "System.Runtime.CompilerServices.NullableContextAttribute(2)",
+                "System.Runtime.CompilerServices.NullableAttribute(0)"
+                ], e.GetAttributes().ToStrings());
+
+            var extensionMethod = e.GetTypeMembers().Single().GetMember<MethodSymbol>("M2");
+            AssertEx.SetEqual(["System.Runtime.CompilerServices.NullableContextAttribute(1)"], extensionMethod.GetAttributes().ToStrings());
+            var implementationMethod = e.GetMember<MethodSymbol>("M2");
+            AssertEx.SetEqual(["System.Runtime.CompilerServices.NullableContextAttribute(1)"], implementationMethod.GetAttributes().ToStrings());
+        }
+
+        var src = """
+#nullable enable
+
+class C
+{
+    void Test()
+    {
+        int i = 42;
+        i.M2<string?>();
+        E.M2<string?>(i);
+    }
+}
+""";
+
+        var comp = CreateCompilation(src, references: [AsReference(libComp, useCompilationReference)], targetFramework: TargetFramework.Net90);
+
+        var extensionMethod = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("E").GetTypeMembers().Single().GetMember<MethodSymbol>("M2");
+        Assert.True(extensionMethod.IsExtensionBlockMember());
+        var extensionTypeParam = extensionMethod.TypeParameters.Single();
+
+        var implementationMethod = comp.GetMember<MethodSymbol>("E.M2");
+        var implementationTypeParam = implementationMethod.TypeParameters.Single();
+
+        Assert.True(extensionTypeParam.HasNotNullConstraint);
+        Assert.True(implementationTypeParam.HasNotNullConstraint);
+
+        comp.VerifyEmitDiagnostics(
+            // (8,9): warning CS8714: The type 'string?' cannot be used as type parameter 'T' in the generic type or method 'E.extension(int).M2<T>()'. Nullability of type argument 'string?' doesn't match 'notnull' constraint.
+            //         i.M2<string?>();
+            Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterNotNullConstraint, "i.M2<string?>").WithArguments("E.extension(int).M2<T>()", "T", "string?").WithLocation(8, 9),
+            // (9,9): warning CS8714: The type 'string?' cannot be used as type parameter 'T' in the generic type or method 'E.M2<T>(int)'. Nullability of type argument 'string?' doesn't match 'notnull' constraint.
+            //         E.M2<string?>(i);
+            Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterNotNullConstraint, "E.M2<string?>").WithArguments("E.M2<T>(int)", "T", "string?").WithLocation(9, 9));
+
+        verifier.VerifyTypeIL("E", """
+.class public auto ansi abstract sealed beforefieldinit E
+    extends [System.Runtime]System.Object
+{
+    .custom instance void [System.Runtime]System.Runtime.CompilerServices.NullableContextAttribute::.ctor(uint8) = (
+        01 00 02 00 00
+    )
+    .custom instance void [System.Runtime]System.Runtime.CompilerServices.NullableAttribute::.ctor(uint8) = (
+        01 00 00 00 00
+    )
+    .custom instance void [System.Runtime]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
+        01 00 00 00
+    )
+    // Nested Types
+    .class nested public auto ansi sealed specialname '<G>$BA41CFE2B5EDAEB8C1B9062F59ED4D69'
+        extends [System.Runtime]System.Object
+    {
+        .custom instance void [System.Runtime]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
+            01 00 00 00
+        )
+        // Nested Types
+        .class nested public auto ansi abstract sealed specialname '<M>$F4B4FFE41AB49E80A4ECF390CF6EB372'
+            extends [System.Runtime]System.Object
+        {
+            // Methods
+            .method public hidebysig specialname static 
+                void '<Extension>$' (
+                    int32 i
+                ) cil managed 
+            {
+                .custom instance void [System.Runtime]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+                    01 00 00 00
+                )
+                // Method begins at RVA 0x206f
+                // Code size 1 (0x1)
+                .maxstack 8
+                IL_0000: ret
+            } // end of method '<M>$F4B4FFE41AB49E80A4ECF390CF6EB372'::'<Extension>$'
+        } // end of class <M>$F4B4FFE41AB49E80A4ECF390CF6EB372
+        // Methods
+        .method public hidebysig 
+            instance void M2<T> () cil managed 
+        {
+            .custom instance void [System.Runtime]System.Runtime.CompilerServices.NullableContextAttribute::.ctor(uint8) = (
+                01 00 01 00 00
+            )
+            .custom instance void System.Runtime.CompilerServices.ExtensionMarkerAttribute::.ctor(string) = (
+                01 00 24 3c 4d 3e 24 46 34 42 34 46 46 45 34 31
+                41 42 34 39 45 38 30 41 34 45 43 46 33 39 30 43
+                46 36 45 42 33 37 32 00 00
+            )
+            // Method begins at RVA 0x2071
+            // Code size 6 (0x6)
+            .maxstack 8
+            IL_0000: newobj instance void [System.Runtime]System.NotSupportedException::.ctor()
+            IL_0005: throw
+        } // end of method '<G>$BA41CFE2B5EDAEB8C1B9062F59ED4D69'::M2
+    } // end of class <G>$BA41CFE2B5EDAEB8C1B9062F59ED4D69
+    // Methods
+    .method public hidebysig static 
+        void X1 (
+            object o
+        ) cil managed 
+    {
+        // Method begins at RVA 0x206f
+        // Code size 1 (0x1)
+        .maxstack 8
+        IL_0000: ret
+    } // end of method E::X1
+    .method public hidebysig static 
+        void X2 (
+            object o
+        ) cil managed 
+    {
+        // Method begins at RVA 0x206f
+        // Code size 1 (0x1)
+        .maxstack 8
+        IL_0000: ret
+    } // end of method E::X2
+    .method public hidebysig static 
+        void X3 (
+            object o
+        ) cil managed 
+    {
+        // Method begins at RVA 0x206f
+        // Code size 1 (0x1)
+        .maxstack 8
+        IL_0000: ret
+    } // end of method E::X3
+    .method public hidebysig static 
+        void X4 (
+            object o
+        ) cil managed 
+    {
+        // Method begins at RVA 0x206f
+        // Code size 1 (0x1)
+        .maxstack 8
+        IL_0000: ret
+    } // end of method E::X4
+    .method public hidebysig static 
+        void X5 (
+            object o
+        ) cil managed 
+    {
+        // Method begins at RVA 0x206f
+        // Code size 1 (0x1)
+        .maxstack 8
+        IL_0000: ret
+    } // end of method E::X5
+    .method public hidebysig static 
+        void X6 (
+            object o
+        ) cil managed 
+    {
+        // Method begins at RVA 0x206f
+        // Code size 1 (0x1)
+        .maxstack 8
+        IL_0000: ret
+    } // end of method E::X6
+    .method public hidebysig static 
+        void M2<T> (
+            int32 i
+        ) cil managed 
+    {
+        .custom instance void [System.Runtime]System.Runtime.CompilerServices.NullableContextAttribute::.ctor(uint8) = (
+            01 00 01 00 00
+        )
+        .custom instance void [System.Runtime]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
+            01 00 00 00
+        )
+        // Method begins at RVA 0x206f
+        // Code size 1 (0x1)
+        .maxstack 8
+        IL_0000: ret
+    } // end of method E::M2
+} // end of class E
+""");
+    }
+
+    [Theory, CombinatorialData]
+    public void Nullability_NullableContext_05(bool useCompilationReference)
+    {
+        var libSrc = """
+#nullable enable
+
+public static class E
+{
+    public static object? X1() => throw null!;
+    public static object? X2() => throw null!;
+    public static object? X3() => throw null!;
+    public static object? X4() => throw null!;
+    public static object? X5() => throw null!;
+    public static object? X6() => throw null!;
+    extension(object)
+    {
+        public static object M() => throw null!;
+    }
+}
+""";
+
+        var libComp = CreateCompilation(libSrc, targetFramework: TargetFramework.Net100).VerifyEmitDiagnostics();
+
+        var src = """
+#nullable enable
+
+object.M().ToString();;
+E.M().ToString();
+""";
+
+        var comp = CreateCompilation(src, references: [AsReference(libComp, useCompilationReference)], targetFramework: TargetFramework.Net100);
+        comp.VerifyEmitDiagnostics();
+    }
+
+    [Theory, CombinatorialData]
+    public void Nullability_NullableContext_06(bool useCompilationReference)
+    {
+        var libSrc = """
+#nullable enable
+
+public static class E
+{
+    public static object X1() => throw null!;
+    public static object X2() => throw null!;
+    public static object X3() => throw null!;
+    public static object X4() => throw null!;
+    public static object X5() => throw null!;
+    public static object X6() => throw null!;
+    extension(object)
+    {
+        public static object? M() => throw null!;
+    }
+}
+""";
+
+        var libComp = CreateCompilation(libSrc, targetFramework: TargetFramework.Net100).VerifyEmitDiagnostics();
+
+        var src = """
+#nullable enable
+
+object.M().ToString();
+E.M().ToString();
+""";
+
+        var comp = CreateCompilation(src, references: [AsReference(libComp, useCompilationReference)], targetFramework: TargetFramework.Net100);
+        comp.VerifyEmitDiagnostics(
+            // (3,1): warning CS8602: Dereference of a possibly null reference.
+            // object.M().ToString();
+            Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "object.M()").WithLocation(3, 1),
+            // (4,1): warning CS8602: Dereference of a possibly null reference.
+            // E.M().ToString();
+            Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "E.M()").WithLocation(4, 1));
     }
 
     [Fact]
@@ -7160,8 +8610,124 @@ static class E
             Diagnostic(ErrorCode.WRN_BadXMLRef, "extension(int).M()").WithArguments("extension(int).M()").WithLocation(10, 28));
     }
 
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/81710")]
+    public void Cref_68()
+    {
+        var src = """
+/// <see cref="E.extension(int).M(string)"/>
+static class E
+{
+    extension(int i)
+    {
+        public void M(string s) => throw null!;
+    }
+}
+""";
+        var comp = CreateCompilation(src, parseOptions: TestOptions.RegularPreviewWithDocumentationComments);
+        comp.VerifyEmitDiagnostics();
+
+        var tree = comp.SyntaxTrees.Single();
+        var extensionCref = GetSyntax<ExtensionMemberCrefSyntax>(tree, "extension(int).M(string)", descendIntoTrivia: true);
+        var model = comp.GetSemanticModel(tree);
+        AssertEx.Equal("E.extension(int).M(string)", model.GetSymbolInfo(extensionCref).Symbol.ToDisplayString());
+        AssertEx.Equal("E.extension(int).M(string)", model.GetSymbolInfo(extensionCref.Member).Symbol.ToDisplayString());
+
+        var m = ((NameMemberCrefSyntax)extensionCref.Member).Name;
+        Assert.Equal("M", m.ToString());
+        AssertEx.Equal("E.extension(int).M(string)", model.GetSymbolInfo(m).Symbol.ToDisplayString());
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/81710")]
+    public void Cref_69()
+    {
+        var src = """
+/// <see cref="E.extension(int).Property"/>
+static class E
+{
+    extension(int i)
+    {
+        public int Property => throw null!;
+    }
+}
+""";
+        var comp = CreateCompilation(src, parseOptions: TestOptions.RegularPreviewWithDocumentationComments);
+        comp.VerifyEmitDiagnostics();
+
+        var tree = comp.SyntaxTrees.Single();
+        var extensionCref = GetSyntax<ExtensionMemberCrefSyntax>(tree, "extension(int).Property", descendIntoTrivia: true);
+        var model = comp.GetSemanticModel(tree);
+        AssertEx.Equal("E.extension(int).Property", model.GetSymbolInfo(extensionCref).Symbol.ToDisplayString());
+        AssertEx.Equal("E.extension(int).Property", model.GetSymbolInfo(extensionCref.Member).Symbol.ToDisplayString());
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/81710")]
+    public void Cref_70()
+    {
+        var src = """
+namespace N;
+
+/// <see cref="N.E.extension(int).M(string)"/>
+static class E
+{
+    extension(int i)
+    {
+        public void M(string s) => throw null!;
+    }
+}
+""";
+        var comp = CreateCompilation(src, parseOptions: TestOptions.RegularPreviewWithDocumentationComments);
+        comp.VerifyEmitDiagnostics();
+
+        var tree = comp.SyntaxTrees.Single();
+        var model = comp.GetSemanticModel(tree);
+
+        var qualifiedCref = GetSyntax<QualifiedCrefSyntax>(tree, "N.E.extension(int).M(string)", descendIntoTrivia: true);
+        AssertEx.Equal("N.E.extension(int).M(string)", model.GetSymbolInfo(qualifiedCref).Symbol.ToDisplayString());
+
+        var extensionCref = GetSyntax<ExtensionMemberCrefSyntax>(tree, "extension(int).M(string)", descendIntoTrivia: true);
+        AssertEx.Equal("N.E.extension(int).M(string)", model.GetSymbolInfo(extensionCref).Symbol.ToDisplayString());
+        AssertEx.Equal("N.E.extension(int).M(string)", model.GetSymbolInfo(extensionCref.Member).Symbol.ToDisplayString());
+
+        var m = ((NameMemberCrefSyntax)extensionCref.Member).Name;
+        Assert.Equal("M", m.ToString());
+        AssertEx.Equal("N.E.extension(int).M(string)", model.GetSymbolInfo(m).Symbol.ToDisplayString());
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/81710")]
+    public void Cref_71()
+    {
+        var src = """
+/// <see cref="extension(int).M(string)"/>
+extension(int i)
+{
+    public void M(string s) => throw null!;
+}
+""";
+        var comp = CreateCompilation(src, parseOptions: TestOptions.RegularPreviewWithDocumentationComments);
+        comp.VerifyEmitDiagnostics(
+            // (1,16): warning CS1574: XML comment has cref attribute 'extension(int).M(string)' that could not be resolved
+            // /// <see cref="extension(int).M(string)"/>
+            Diagnostic(ErrorCode.WRN_BadXMLRef, "extension(int).M(string)").WithArguments("extension(int).M(string)").WithLocation(1, 16),
+            // (2,1): error CS9283: Extensions must be declared in a top-level, non-generic, static class
+            // extension(int i)
+            Diagnostic(ErrorCode.ERR_BadExtensionContainingType, "extension").WithLocation(2, 1),
+            // (4,17): warning CS1591: Missing XML comment for publicly visible type or member 'extension(int).M(string)'
+            //     public void M(string s) => throw null!;
+            Diagnostic(ErrorCode.WRN_MissingXMLComment, "M").WithArguments("extension(int).M(string)").WithLocation(4, 17));
+
+        var tree = comp.SyntaxTrees.Single();
+        var model = comp.GetSemanticModel(tree);
+
+        var extensionCref = GetSyntax<ExtensionMemberCrefSyntax>(tree, "extension(int).M(string)", descendIntoTrivia: true);
+        Assert.Null(model.GetSymbolInfo(extensionCref).Symbol);
+        Assert.Null(model.GetSymbolInfo(extensionCref.Member).Symbol);
+
+        var m = ((NameMemberCrefSyntax)extensionCref.Member).Name;
+        Assert.Null(model.GetSymbolInfo(m).Symbol);
+    }
+
     [Fact]
-    public void PropertyAccess_Set_01()
+    public void PropertyAccess_Set_01_01()
     {
         var src = """
 static class E
@@ -7257,7 +8823,7 @@ class Program
 """;
 
         var comp = CreateCompilation(src, options: TestOptions.DebugExe);
-        var verifier = CompileAndVerify(comp, expectedOutput: "124124:124124:124124:123124", verify: Verification.Skipped).VerifyDiagnostics();
+        var verifier = CompileAndVerify(comp, expectedOutput: "124124:124124:124124:123124").VerifyDiagnostics();
 
         verifier.VerifyIL("Program.Test",
 @"
@@ -7316,18 +8882,157 @@ class Program
 """;
 
         var comp2 = CreateCompilation([src2]);
-        comp2.VerifyDiagnostics(
-            // (15,9): error CS0131: The left-hand side of an assignment must be a variable, property or indexer
-            //         default(S1).P1 = 1;
-            Diagnostic(ErrorCode.ERR_AssgLvalueExpected, "default(S1).P1").WithLocation(15, 9)
-            );
+        comp2.VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void PropertyAccess_Set_01_02()
+    {
+        var src = """
+static class E
+{
+    extension(S1 x)
+    {
+        public int P1
+        {
+            get
+            {
+                return 0;
+            }
+            set
+            {
+                System.Console.Write(x.F1);
+            }
+        }
+    }
+}
+
+public struct S1
+{
+    public int F1;
+
+    public readonly void Test()
+    {
+        this.P1 = Program.Get1();
+    }
+}
+
+class Program
+{
+    public static S1 F;
+
+    static void Main()
+    {
+        F = new S1 { F1 = 123 };
+        Test1(in F);
+        System.Console.Write(F.F1);
+
+        System.Console.Write(":");
+
+        F = new S1 { F1 = 123 };
+        F.Test();
+        System.Console.Write(F.F1);
+
+        System.Console.Write(":");
+
+        F = new S1 { F1 = 123 };
+        Test2(ref F);
+        System.Console.Write(F.F1);
+    }
+
+    static void Test1(in S1 f)
+    {
+        f.P1 = Get1();
+    }
+
+    static void Test2(ref readonly S1 f)
+    {
+        f.P1 = Get1();
+    }
+
+    public static int Get1()
+    {
+        Program.F.F1++;
+        return 1;
+    }
+}
+""";
+
+        var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+        CompileAndVerify(comp, expectedOutput: "124124:124124:124124").VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void PropertyAccess_Set_01_03()
+    {
+        var src = """
+static class E
+{
+    extension(S1 x)
+    {
+        public int P1
+        {
+            get
+            {
+                return 0;
+            }
+            set
+            {
+                System.Console.Write(x.F1);
+            }
+        }
+    }
+}
+
+public struct S1
+{
+    public int F1;
+}
+
+class Program
+{
+    static void Main()
+    {
+        Test1();
+    }
+
+    static void Test1()
+    {
+        GetTarget().P1 = Get1();
+    }
+
+    static S1 GetTarget() => new S1 { F1 = 123 };
+
+    public static int Get1()
+    {
+        return 1;
+    }
+}
+""";
+
+        var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+        var verifier = CompileAndVerify(comp, expectedOutput: "123").VerifyDiagnostics();
+
+        verifier.VerifyIL("Program.Test1",
+@"
+{
+  // Code size       18 (0x12)
+  .maxstack  2
+  IL_0000:  nop
+  IL_0001:  call       ""S1 Program.GetTarget()""
+  IL_0006:  call       ""int Program.Get1()""
+  IL_000b:  call       ""void E.set_P1(S1, int)""
+  IL_0010:  nop
+  IL_0011:  ret
+}
+");
     }
 
     [Theory]
     [InlineData("ref")]
     [InlineData("ref readonly")]
     [InlineData("in")]
-    public void PropertyAccess_Set_02(string refKind)
+    public void PropertyAccess_Set_02_01(string refKind)
     {
         var src = $$$"""
 static class E
@@ -7455,22 +9160,190 @@ class Program
                 comp2.VerifyDiagnostics(
                     // (15,9): warning CS9193: Argument 0 should be a variable because it is passed to a 'ref readonly' parameter
                     //         default(S1).P1 = 1;
-                    Diagnostic(ErrorCode.WRN_RefReadonlyNotVariable, "default(S1)").WithArguments("0").WithLocation(15, 9),
-                    // (15,9): error CS0131: The left-hand side of an assignment must be a variable, property or indexer
-                    //         default(S1).P1 = 1;
-                    Diagnostic(ErrorCode.ERR_AssgLvalueExpected, "default(S1).P1").WithLocation(15, 9)
+                    Diagnostic(ErrorCode.WRN_RefReadonlyNotVariable, "default(S1)").WithArguments("0").WithLocation(15, 9)
                     );
                 break;
             case "in":
-                comp2.VerifyDiagnostics(
-                    // (15,9): error CS0131: The left-hand side of an assignment must be a variable, property or indexer
-                    //         default(S1).P1 = 1;
-                    Diagnostic(ErrorCode.ERR_AssgLvalueExpected, "default(S1).P1").WithLocation(15, 9)
-                    );
+                comp2.VerifyDiagnostics();
                 break;
             default:
                 throw ExceptionUtilities.UnexpectedValue(refKind);
         }
+    }
+
+    [Theory]
+    [InlineData("ref readonly")]
+    [InlineData("in")]
+    public void PropertyAccess_Set_02_02(string refKind)
+    {
+        var text0 = @"
+public static class Helper
+{
+    public static unsafe void Assign(ref readonly int i, int value)
+    {
+        fixed (int* f2 = &i)
+        {
+            (*f2) = value;
+        }
+    }
+}
+";
+        var comp0 = CreateCompilation(text0, options: TestOptions.DebugDll.WithAllowUnsafe(true));
+
+        var src = $$$"""
+static class E
+{
+    extension({{{refKind}}} S1 x)
+    {
+        public int P1
+        {
+            get
+            {
+                System.Console.Write(x.F1);
+                Helper.Assign(in x.F1, x.F1 + 1);
+                return 0;
+            }
+            set
+            {
+                System.Console.Write(x.F1);
+                Helper.Assign(in x.F1, x.F1 + 1);
+            }
+        }
+    }
+}
+
+struct S1
+{
+    public int F1;
+
+    public readonly void Test()
+    {
+        this.P1 = Program.Get1();
+    }
+}
+
+class Program
+{
+    public static S1 F;
+
+    static void Main()
+    {
+        F = new S1 { F1 = 123 };
+        Test1(in F);
+        System.Console.Write(F.F1);
+
+        System.Console.Write(":");
+
+        F = new S1 { F1 = 123 };
+        F.Test();
+        System.Console.Write(F.F1);
+
+        System.Console.Write(":");
+
+        F = new S1 { F1 = 123 };
+        Test2(ref F);
+        System.Console.Write(F.F1);
+    }
+
+    static void Test1(in S1 f)
+    {
+        f.P1 = Get1();
+    }
+
+    static void Test2(ref readonly S1 f)
+    {
+        f.P1 = Get1();
+    }
+
+    public static int Get1()
+    {
+        Program.F.F1++;
+        return 1;
+    }
+}
+""";
+
+        var comp = CreateCompilation([src], references: [comp0.EmitToImageReference()], options: TestOptions.DebugExe);
+        CompileAndVerify(comp, expectedOutput: "124125:124125:124125").VerifyDiagnostics();
+    }
+
+    [Theory]
+    [InlineData("ref readonly")]
+    [InlineData("in")]
+    public void PropertyAccess_Set_02_03(string refKind)
+    {
+        var src = $$$"""
+static class E
+{
+    extension({{{refKind}}} S1 x)
+    {
+        public int P1
+        {
+            get
+            {
+                System.Console.Write(x.F1);
+                return 0;
+            }
+            set
+            {
+                System.Console.Write(x.F1);
+            }
+        }
+    }
+}
+
+struct S1
+{
+    public int F1;
+}
+
+class Program
+{
+    static void Main()
+    {
+        Test1();
+    }
+
+    static void Test1()
+    {
+        GetTarget().P1 = Get1();
+    }
+
+    static S1 GetTarget() => new S1 { F1 = 123 };
+
+    public static int Get1()
+    {
+        return 1;
+    }
+}
+""";
+
+        var comp = CreateCompilation([src], options: TestOptions.DebugExe);
+        var verifier = CompileAndVerify(comp, expectedOutput: "123").VerifyDiagnostics(
+            refKind == "in" ? [] :
+            [
+                // (34,9): warning CS9193: Argument 0 should be a variable because it is passed to a 'ref readonly' parameter
+                //         GetTarget().P1 = Get1();
+                Diagnostic(ErrorCode.WRN_RefReadonlyNotVariable, "GetTarget()").WithArguments("0").WithLocation(34, 9)
+            ]
+            );
+
+        verifier.VerifyIL("Program.Test1",
+$$$"""
+{
+  // Code size       21 (0x15)
+  .maxstack  2
+  .locals init (S1 V_0)
+  IL_0000:  nop
+  IL_0001:  call       "S1 Program.GetTarget()"
+  IL_0006:  stloc.0
+  IL_0007:  ldloca.s   V_0
+  IL_0009:  call       "int Program.Get1()"
+  IL_000e:  call       "void E.set_P1({{{refKind}}} S1, int)"
+  IL_0013:  nop
+  IL_0014:  ret
+}
+""");
     }
 
     [Fact]
@@ -7546,7 +9419,7 @@ class Program
 
     [Fact]
     [WorkItem("https://github.com/dotnet/roslyn/issues/79416")]
-    public void PropertyAccess_Set_04()
+    public void PropertyAccess_Set_04_01()
     {
         var src = """
 using System.Threading.Tasks;
@@ -7595,12 +9468,11 @@ class Program
         Test2(ref Program<S1>.F);
         System.Console.Write(Program<S1>.F.F1);
 
-        // https://github.com/dotnet/roslyn/issues/79416 - uncomment the following code once fixed
-        //System.Console.Write(":");
+        System.Console.Write(":");
 
-        //Program<S1>.F = new S1 { F1 = 123 };
-        //await Test3<S1>();
-        //System.Console.Write(Program<S1>.F.F1);
+        Program<S1>.F = new S1 { F1 = 123 };
+        await Test3<S1>();
+        System.Console.Write(Program<S1>.F.F1);
     }
 
     static void Test1<T>(ref T f)
@@ -7619,23 +9491,22 @@ class Program
         return 1;
     }
 
-    // https://github.com/dotnet/roslyn/issues/79416 - uncomment the following code once fixed
-    //static async Task Test3<T>()
-    //{
-    //    Program<T>.F.P1 = await Get1Async();
-    //}
+    static async Task Test3<T>()
+    {
+        Program<T>.F.P1 = await Get1Async();
+    }
 
-    //static async Task<int> Get1Async()
-    //{
-    //    Program<S1>.F.F1++;
-    //    await Task.Yield();
-    //    return 1;
-    //}
+    static async Task<int> Get1Async()
+    {
+        Program<S1>.F.F1++;
+        await Task.Yield();
+        return 1;
+    }
 }
 """;
 
         var comp = CreateCompilation([src], options: TestOptions.DebugExe);
-        var verifier = CompileAndVerify(comp, expectedOutput: "124124:124124").VerifyDiagnostics();
+        var verifier = CompileAndVerify(comp, expectedOutput: "124124:124124:124124").VerifyDiagnostics();
 
         verifier.VerifyIL("Program.Test1<T>(ref T)",
 @"
@@ -7728,9 +9599,6 @@ namespace NS2
 
         var comp2 = CreateCompilation([src2]);
         comp2.VerifyDiagnostics(
-            // (13,9): error CS0131: The left-hand side of an assignment must be a variable, property or indexer
-            //         default(T).P1 = 1;
-            Diagnostic(ErrorCode.ERR_AssgLvalueExpected, "default(T).P1").WithLocation(13, 9),
             // (21,25): error CS9301: The 'in' or 'ref readonly' receiver parameter of extension must be a concrete (non-generic) value type.
             //         extension<T>(in T x) where T : struct
             Diagnostic(ErrorCode.ERR_InExtensionParameterMustBeValueType, "T").WithLocation(21, 25),
@@ -7738,6 +9606,157 @@ namespace NS2
             //         extension<T>(ref readonly T x) where T : struct
             Diagnostic(ErrorCode.ERR_InExtensionParameterMustBeValueType, "T").WithLocation(31, 35)
             );
+    }
+
+    [Theory]
+    [InlineData("ref readonly")]
+    [InlineData("in")]
+    public void PropertyAccess_Set_04_02(string refKind)
+    {
+        var src = $$$"""
+static class E
+{
+    extension<T>(T x)
+    {
+        public int P1
+        {
+            get
+            {
+                System.Console.Write(((S1)(object)x).F1);
+                Program<S1>.F.F1++;
+                return 0;
+            }
+            set
+            {
+                System.Console.Write(((S1)(object)x).F1);
+            }
+        }
+    }
+}
+
+struct S1
+{
+    public int F1;
+}
+
+class Program<T>
+{
+    public static T F;
+}
+
+class Program
+{
+    static void Main()
+    {
+        Program<S1>.F = new S1 { F1 = 123 };
+        Test1({{{refKind.Substring(0, Math.Min(3, refKind.Length))}}} Program<S1>.F);
+        System.Console.Write(Program<S1>.F.F1);
+
+        System.Console.Write(":");
+
+        Program<S1>.F = new S1 { F1 = 123 };
+        Test2({{{refKind.Substring(0, Math.Min(3, refKind.Length))}}} Program<S1>.F);
+        System.Console.Write(Program<S1>.F.F1);
+    }
+
+    static void Test1<T>({{{refKind}}} T f)
+    {
+        f.P1 = Get1();
+    }
+
+    static void Test2<T>({{{refKind}}} T f) where T : struct
+    {
+        f.P1 = Get1();
+    }
+
+    static int Get1()
+    {
+        Program<S1>.F.F1++;
+        return 1;
+    }
+}
+""";
+
+        var comp = CreateCompilation([src], options: TestOptions.DebugExe);
+        CompileAndVerify(comp, expectedOutput: "124124:124124").VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void PropertyAccess_Set_04_03()
+    {
+        var src = """
+static class E
+{
+    extension<T>(T x)
+    {
+        public int P1
+        {
+            get
+            {
+                System.Console.Write(((S1)(object)x).F1);
+                return 0;
+            }
+            set
+            {
+                System.Console.Write(((S1)(object)x).F1);
+            }
+        }
+    }
+}
+
+struct S1
+{
+    public int F1;
+}
+
+class Program
+{
+    static void Main()
+    {
+        Test1<S1>();
+
+        System.Console.Write(":");
+
+        Test2<S1>();
+    }
+
+    static void Test1<T>()
+    {
+        GetTarget<T>().P1 = Get1();
+    }
+
+    static void Test2<T>() where T : struct
+    {
+        GetTarget<T>().P1 = Get1();
+    }
+
+    static T GetTarget<T>() => (T)(object)new S1 { F1 = 123 };
+
+    static int Get1()
+    {
+        return 1;
+    }
+}
+""";
+
+        var comp = CreateCompilation([src], options: TestOptions.DebugExe);
+        var verifier = CompileAndVerify(comp, expectedOutput: "123:123").VerifyDiagnostics();
+
+        var expected =
+@"
+{
+  // Code size       18 (0x12)
+  .maxstack  2
+  IL_0000:  nop
+  IL_0001:  call       ""T Program.GetTarget<T>()""
+  IL_0006:  call       ""int Program.Get1()""
+  IL_000b:  call       ""void E.set_P1<T>(T, int)""
+  IL_0010:  nop
+  IL_0011:  ret
+}
+";
+        verifier.VerifyIL("Program.Test1<T>", expected);
+        verifier.VerifyIL("Program.Test2<T>", expected);
     }
 
     [Fact]
@@ -7936,12 +9955,11 @@ class Program
         Test2(ref Program<C1>.F);
         System.Console.Write(Program<C1>.F.F1);
 
-        // https://github.com/dotnet/roslyn/issues/79416 - uncomment the following code once fixed
-        //System.Console.Write(":");
+        System.Console.Write(":");
 
-        //Program<C1>.F = new C1 { F1 = 123 };
-        //await Test3<C1>();
-        //System.Console.Write(Program<C1>.F.F1);
+        Program<C1>.F = new C1 { F1 = 123 };
+        await Test3<C1>();
+        System.Console.Write(Program<C1>.F.F1);
     }
 
     static void Test1<T>(ref T f)
@@ -7960,23 +9978,22 @@ class Program
         return 1;
     }
 
-    // https://github.com/dotnet/roslyn/issues/79416 - uncomment the following code once fixed
-    //static async Task Test3<T>()
-    //{
-    //    Program<T>.F.P1 = await Get1Async();
-    //}
+    static async Task Test3<T>()
+    {
+        Program<T>.F.P1 = await Get1Async();
+    }
 
-    //static async Task<int> Get1Async()
-    //{
-    //    Program<C1>.F = new C1 { F1 = Program<C1>.F.F1 + 1 };
-    //    await Task.Yield();
-    //    return 1;
-    //}
+    static async Task<int> Get1Async()
+    {
+        Program<C1>.F = new C1 { F1 = Program<C1>.F.F1 + 1 };
+        await Task.Yield();
+        return 1;
+    }
 }
 """;
 
         var comp = CreateCompilation([src], options: TestOptions.DebugExe);
-        var verifier = CompileAndVerify(comp, expectedOutput: "123124:123124").VerifyDiagnostics();
+        var verifier = CompileAndVerify(comp, expectedOutput: "123124:123124:123124").VerifyDiagnostics();
 
         verifier.VerifyIL("Program.Test1<T>(ref T)",
 @"
@@ -8596,7 +10613,7 @@ class Program
     }
 
     [Fact]
-    public void PropertyAccess_CompoundAssignment_01()
+    public void PropertyAccess_CompoundAssignment_01_01()
     {
         var src = """
 static class E
@@ -8707,11 +10724,162 @@ class Program
 ");
     }
 
+    [Fact]
+    public void PropertyAccess_CompoundAssignment_01_02()
+    {
+        var src = """
+static class E
+{
+    extension(S1 x)
+    {
+        public int P1
+        {
+            get
+            {
+                System.Console.Write(x.F1);
+                Program.F.F1++;
+                return 0;
+            }
+            set
+            {
+                System.Console.Write(x.F1);
+            }
+        }
+    }
+}
+
+struct S1
+{
+    public int F1;
+
+    public readonly void Test()
+    {
+        this.P1 += Program.Get1();
+    }
+}
+
+class Program
+{
+    public static S1 F;
+
+    static void Main()
+    {
+        F = new S1 { F1 = 123 };
+        Test1(in F);
+        System.Console.Write(F.F1);
+
+        System.Console.Write(":");
+
+        F = new S1 { F1 = 123 };
+        F.Test();
+        System.Console.Write(F.F1);
+
+        System.Console.Write(":");
+
+        F = new S1 { F1 = 123 };
+        Test2(ref F);
+        System.Console.Write(F.F1);
+    }
+
+    static void Test1(in S1 f)
+    {
+        f.P1 += Get1();
+    }
+
+    static void Test2(ref readonly S1 f)
+    {
+        f.P1 += Get1();
+    }
+
+    public static int Get1()
+    {
+        Program.F.F1++;
+        return 1;
+    }
+}
+""";
+
+        var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+        CompileAndVerify(comp, expectedOutput: "123125125:123125125:123125125").VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void PropertyAccess_CompoundAssignment_01_03()
+    {
+        var src = """
+static class E
+{
+    extension(S1 x)
+    {
+        public int P1
+        {
+            get
+            {
+                System.Console.Write(x.F1);
+                return 0;
+            }
+            set
+            {
+                System.Console.Write(x.F1);
+            }
+        }
+    }
+}
+
+struct S1
+{
+    public int F1;
+}
+
+class Program
+{
+    static void Main()
+    {
+        Test1();
+    }
+
+    static void Test1()
+    {
+        GetTarget().P1 += Get1();
+    }
+
+    static S1 GetTarget() => new S1 { F1 = 123 };
+
+    public static int Get1()
+    {
+        return 1;
+    }
+}
+""";
+
+        var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+        var verifier = CompileAndVerify(comp, expectedOutput: "123123").VerifyDiagnostics();
+
+        verifier.VerifyIL("Program.Test1", """
+{
+  // Code size       27 (0x1b)
+  .maxstack  3
+  .locals init (int V_0)
+  IL_0000:  nop
+  IL_0001:  call       "S1 Program.GetTarget()"
+  IL_0006:  dup
+  IL_0007:  call       "int E.get_P1(S1)"
+  IL_000c:  call       "int Program.Get1()"
+  IL_0011:  add
+  IL_0012:  stloc.0
+  IL_0013:  ldloc.0
+  IL_0014:  call       "void E.set_P1(S1, int)"
+  IL_0019:  nop
+  IL_001a:  ret
+}
+""");
+    }
+
     [Theory]
     [InlineData("ref")]
     [InlineData("ref readonly")]
     [InlineData("in")]
-    public void PropertyAccess_CompoundAssignment_02(string refKind)
+    public void PropertyAccess_CompoundAssignment_02_01(string refKind)
     {
         var src = $$$"""
 static class E
@@ -8845,22 +11013,206 @@ class Program
                 comp2.VerifyDiagnostics(
                     // (15,9): warning CS9193: Argument 0 should be a variable because it is passed to a 'ref readonly' parameter
                     //         default(S1).P1 += 1;
-                    Diagnostic(ErrorCode.WRN_RefReadonlyNotVariable, "default(S1)").WithArguments("0").WithLocation(15, 9),
-                    // (15,9): error CS0131: The left-hand side of an assignment must be a variable, property or indexer
-                    //         default(S1).P1 += 1;
-                    Diagnostic(ErrorCode.ERR_AssgLvalueExpected, "default(S1).P1").WithLocation(15, 9)
-                    );
+                    Diagnostic(ErrorCode.WRN_RefReadonlyNotVariable, "default(S1)").WithArguments("0").WithLocation(15, 9));
                 break;
             case "in":
-                comp2.VerifyDiagnostics(
-                    // (15,9): error CS0131: The left-hand side of an assignment must be a variable, property or indexer
-                    //         default(S1).P1 += 1;
-                    Diagnostic(ErrorCode.ERR_AssgLvalueExpected, "default(S1).P1").WithLocation(15, 9)
-                    );
+                comp2.VerifyDiagnostics();
                 break;
             default:
                 throw ExceptionUtilities.UnexpectedValue(refKind);
         }
+    }
+
+    [Theory]
+    [InlineData("ref readonly")]
+    [InlineData("in")]
+    public void PropertyAccess_CompoundAssignment_02_02(string refKind)
+    {
+        var text0 = """
+public static class Helper
+{
+    public static unsafe void Assign(ref readonly int i, int value)
+    {
+        fixed (int* f2 = &i)
+        {
+            (*f2) = value;
+        }
+    }
+}
+""";
+        var comp0 = CreateCompilation(text0, options: TestOptions.DebugDll.WithAllowUnsafe(true));
+
+        var src = $$$"""
+static class E
+{
+    extension({{{refKind}}} S1 x)
+    {
+        public int P1
+        {
+            get
+            {
+                System.Console.Write(x.F1);
+                Helper.Assign(in x.F1, x.F1 + 1);
+                return 0;
+            }
+            set
+            {
+                System.Console.Write(x.F1);
+                Helper.Assign(in x.F1, x.F1 + 1);
+            }
+        }
+    }
+}
+
+struct S1
+{
+    public int F1;
+
+    public readonly void Test()
+    {
+        this.P1 += Program.Get1();
+    }
+}
+
+class Program
+{
+    public static S1 F;
+
+    static void Main()
+    {
+        F = new S1 { F1 = 123 };
+        Test1(in F);
+        System.Console.Write(F.F1);
+
+        System.Console.Write(":");
+
+        F = new S1 { F1 = 123 };
+        F.Test();
+        System.Console.Write(F.F1);
+
+        System.Console.Write(":");
+
+        F = new S1 { F1 = 123 };
+        Test2(ref F);
+        System.Console.Write(F.F1);
+    }
+
+    static void Test1(in S1 f)
+    {
+        f.P1 += Get1();
+    }
+
+    static void Test2(ref readonly S1 f)
+    {
+        f.P1 += Get1();
+    }
+
+    public static int Get1()
+    {
+        Program.F.F1++;
+        return 1;
+    }
+}
+""";
+
+        var comp = CreateCompilation(src, references: [comp0.EmitToImageReference()], options: TestOptions.DebugExe);
+        CompileAndVerify(comp, expectedOutput: "123125126:123125126:123125126").VerifyDiagnostics();
+    }
+
+    [Theory]
+    [InlineData("ref readonly")]
+    [InlineData("in")]
+    public void PropertyAccess_CompoundAssignment_02_03(string refKind)
+    {
+        var text0 = """
+public static class Helper
+{
+    public static unsafe void Assign(ref readonly int i, int value)
+    {
+        fixed (int* f2 = &i)
+        {
+            (*f2) = value;
+        }
+    }
+}
+""";
+        var comp0 = CreateCompilation(text0, options: TestOptions.DebugDll.WithAllowUnsafe(true));
+
+        var src = $$$"""
+static class E
+{
+    extension({{{refKind}}} S1 x)
+    {
+        public int P1
+        {
+            get
+            {
+                System.Console.Write(x.F1);
+                Helper.Assign(in x.F1, x.F1 + 1);
+                return 0;
+            }
+            set
+            {
+                System.Console.Write(x.F1);
+            }
+        }
+    }
+}
+
+struct S1
+{
+    public int F1;
+}
+
+class Program
+{
+    static void Main()
+    {
+        Test1();
+    }
+
+    static void Test1()
+    {
+        GetTarget().P1 += Get1();
+    }
+
+    static S1 GetTarget() => new S1 { F1 = 123 };
+
+    public static int Get1()
+    {
+        return 1;
+    }
+}
+""";
+
+        var comp = CreateCompilation(src, references: [comp0.EmitToImageReference()], options: TestOptions.DebugExe);
+        var verifier = CompileAndVerify(comp, expectedOutput: "123124").VerifyDiagnostics(
+            refKind == "in" ? [] :
+            [
+                // (35,9): warning CS9193: Argument 0 should be a variable because it is passed to a 'ref readonly' parameter
+                //         GetTarget().P1 += Get1();
+                Diagnostic(ErrorCode.WRN_RefReadonlyNotVariable, "GetTarget()").WithArguments("0").WithLocation(35, 9)
+            ]
+            );
+
+        verifier.VerifyIL("Program.Test1", $$$"""
+{
+  // Code size       29 (0x1d)
+  .maxstack  3
+  .locals init (S1 V_0)
+  IL_0000:  nop
+  IL_0001:  call       "S1 Program.GetTarget()"
+  IL_0006:  stloc.0
+  IL_0007:  ldloca.s   V_0
+  IL_0009:  ldloca.s   V_0
+  IL_000b:  call       "int E.get_P1({{{refKind}}} S1)"
+  IL_0010:  call       "int Program.Get1()"
+  IL_0015:  add
+  IL_0016:  call       "void E.set_P1({{{refKind}}} S1, int)"
+  IL_001b:  nop
+  IL_001c:  ret
+}
+""");
     }
 
     [Fact]
@@ -9946,7 +12298,7 @@ class Program
     }
 
     [Fact]
-    public void PropertyAccess_PrefixIncrementAssignment_01()
+    public void PropertyAccess_PrefixIncrementAssignment_01_01()
     {
         var src = """
 static class E
@@ -10058,11 +12410,167 @@ class Program
 ");
     }
 
+    [Fact]
+    public void PropertyAccess_PrefixIncrementAssignment_01_02()
+    {
+        var src = """
+static class E
+{
+    extension(S1 x)
+    {
+        public S2 P1
+        {
+            get
+            {
+                System.Console.Write(x.F1);
+                Program.F.F1++;
+                return default;
+            }
+            set
+            {
+                System.Console.Write(x.F1);
+            }
+        }
+    }
+}
+
+struct S1
+{
+    public int F1;
+
+    public readonly void Test()
+    {
+        ++this.P1;
+    }
+}
+
+struct S2
+{
+    public static S2 operator ++(S2 x)
+    {
+        Program.F.F1++;
+        return x;
+    }
+}
+
+class Program
+{
+    public static S1 F;
+
+    static void Main()
+    {
+        F = new S1 { F1 = 123 };
+        Test1(in F);
+        System.Console.Write(F.F1);
+
+        System.Console.Write(":");
+
+        F = new S1 { F1 = 123 };
+        F.Test();
+        System.Console.Write(F.F1);
+
+        System.Console.Write(":");
+
+        F = new S1 { F1 = 123 };
+        Test2(ref F);
+        System.Console.Write(F.F1);
+    }
+
+    static void Test1(in S1 f)
+    {
+        ++f.P1;
+    }
+
+    static void Test2(ref readonly S1 f)
+    {
+        ++f.P1;
+    }
+}
+""";
+
+        var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+        CompileAndVerify(comp, expectedOutput: "123125125:123125125:123125125").VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void PropertyAccess_PrefixIncrementAssignment_01_03()
+    {
+        var src = """
+static class E
+{
+    extension(S1 x)
+    {
+        public S2 P1
+        {
+            get
+            {
+                System.Console.Write(x.F1);
+                return default;
+            }
+            set
+            {
+                System.Console.Write(x.F1);
+            }
+        }
+    }
+}
+
+struct S1
+{
+    public int F1;
+}
+
+struct S2
+{
+    public static S2 operator ++(S2 x)
+    {
+        return x;
+    }
+}
+
+class Program
+{
+    static void Main()
+    {
+        Test1();
+    }
+
+    static void Test1()
+    {
+        ++GetTarget().P1;
+    }
+
+    static S1 GetTarget() => new S1 { F1 = 123 };
+}
+""";
+
+        var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+        var verifier = CompileAndVerify(comp, expectedOutput: "123123").VerifyDiagnostics();
+
+        verifier.VerifyIL("Program.Test1", """
+{
+  // Code size       26 (0x1a)
+  .maxstack  2
+  .locals init (S2 V_0)
+  IL_0000:  nop
+  IL_0001:  call       "S1 Program.GetTarget()"
+  IL_0006:  dup
+  IL_0007:  call       "S2 E.get_P1(S1)"
+  IL_000c:  call       "S2 S2.op_Increment(S2)"
+  IL_0011:  stloc.0
+  IL_0012:  ldloc.0
+  IL_0013:  call       "void E.set_P1(S1, S2)"
+  IL_0018:  nop
+  IL_0019:  ret
+}
+""");
+    }
+
     [Theory]
     [InlineData("ref")]
     [InlineData("ref readonly")]
     [InlineData("in")]
-    public void PropertyAccess_PrefixIncrementAssignment_02(string refKind)
+    public void PropertyAccess_PrefixIncrementAssignment_02_01(string refKind)
     {
         var src = $$$"""
 static class E
@@ -10203,22 +12711,215 @@ class Program
                 comp2.VerifyDiagnostics(
                     // (15,11): warning CS9193: Argument 0 should be a variable because it is passed to a 'ref readonly' parameter
                     //         ++default(S1).P1;
-                    Diagnostic(ErrorCode.WRN_RefReadonlyNotVariable, "default(S1)").WithArguments("0").WithLocation(15, 11),
-                    // (15,11): error CS0131: The left-hand side of an assignment must be a variable, property or indexer
-                    //         ++default(S1).P1;
-                    Diagnostic(ErrorCode.ERR_AssgLvalueExpected, "default(S1).P1").WithLocation(15, 11)
+                    Diagnostic(ErrorCode.WRN_RefReadonlyNotVariable, "default(S1)").WithArguments("0").WithLocation(15, 11)
                     );
                 break;
             case "in":
-                comp2.VerifyDiagnostics(
-                    // (15,11): error CS0131: The left-hand side of an assignment must be a variable, property or indexer
-                    //         ++default(S1).P1;
-                    Diagnostic(ErrorCode.ERR_AssgLvalueExpected, "default(S1).P1").WithLocation(15, 11)
-                    );
+                comp2.VerifyDiagnostics();
                 break;
             default:
                 throw ExceptionUtilities.UnexpectedValue(refKind);
         }
+    }
+
+    [Theory]
+    [InlineData("ref readonly")]
+    [InlineData("in")]
+    public void PropertyAccess_PrefixIncrementAssignment_02_02(string refKind)
+    {
+        var text0 = """
+public static class Helper
+{
+    public static unsafe void Assign(ref readonly int i, int value)
+    {
+        fixed (int* f2 = &i)
+        {
+            (*f2) = value;
+        }
+    }
+}
+""";
+        var comp0 = CreateCompilation(text0, options: TestOptions.DebugDll.WithAllowUnsafe(true));
+
+        var src = $$$"""
+static class E
+{
+    extension({{{refKind}}} S1 x)
+    {
+        public S2 P1
+        {
+            get
+            {
+                System.Console.Write(x.F1);
+                Helper.Assign(in x.F1, x.F1 + 1);
+                return default;
+            }
+            set
+            {
+                System.Console.Write(x.F1);
+                Helper.Assign(in x.F1, x.F1 + 1);
+            }
+        }
+    }
+}
+
+struct S1
+{
+    public int F1;
+
+    public readonly void Test()
+    {
+        ++this.P1;
+    }
+}
+
+struct S2
+{
+    public static S2 operator ++(S2 x)
+    {
+        Program.F.F1++;
+        return x;
+    }
+}
+
+class Program
+{
+    public static S1 F;
+
+    static void Main()
+    {
+        F = new S1 { F1 = 123 };
+        Test1(in F);
+        System.Console.Write(F.F1);
+
+        System.Console.Write(":");
+
+        F = new S1 { F1 = 123 };
+        F.Test();
+        System.Console.Write(F.F1);
+
+        System.Console.Write(":");
+
+        F = new S1 { F1 = 123 };
+        Test2(ref F);
+        System.Console.Write(F.F1);
+    }
+
+    static void Test1(in S1 f)
+    {
+        ++f.P1;
+    }
+
+    static void Test2(ref readonly S1 f)
+    {
+        ++f.P1;
+    }
+}
+""";
+
+        var comp = CreateCompilation(src, references: [comp0.EmitToImageReference()], options: TestOptions.DebugExe);
+        CompileAndVerify(comp, expectedOutput: "123125126:123125126:123125126").VerifyDiagnostics();
+    }
+
+    [Theory]
+    [InlineData("ref readonly")]
+    [InlineData("in")]
+    public void PropertyAccess_PrefixIncrementAssignment_02_03(string refKind)
+    {
+        var text0 = """
+public static class Helper
+{
+    public static unsafe void Assign(ref readonly int i, int value)
+    {
+        fixed (int* f2 = &i)
+        {
+            (*f2) = value;
+        }
+    }
+}
+""";
+        var comp0 = CreateCompilation(text0, options: TestOptions.DebugDll.WithAllowUnsafe(true));
+
+        var src = $$$"""
+static class E
+{
+    extension({{{refKind}}} S1 x)
+    {
+        public S2 P1
+        {
+            get
+            {
+                System.Console.Write(x.F1);
+                Helper.Assign(in x.F1, x.F1 + 1);
+                return default;
+            }
+            set
+            {
+                System.Console.Write(x.F1);
+            }
+        }
+    }
+}
+
+struct S1
+{
+    public int F1;
+}
+
+struct S2
+{
+    public static S2 operator ++(S2 x)
+    {
+        return x;
+    }
+}
+
+class Program
+{
+    static void Main()
+    {
+        Test1();
+    }
+
+    static void Test1()
+    {
+        ++GetTarget().P1;
+    }
+
+    static S1 GetTarget() => new S1 { F1 = 123 };
+}
+""";
+
+        var comp = CreateCompilation(src, references: [comp0.EmitToImageReference()], options: TestOptions.DebugExe);
+        var verifier = CompileAndVerify(comp, expectedOutput: "123124").VerifyDiagnostics(
+            refKind == "in" ? [] :
+            [
+                // (43,11): warning CS9193: Argument 0 should be a variable because it is passed to a 'ref readonly' parameter
+                //         ++GetTarget().P1;
+                Diagnostic(ErrorCode.WRN_RefReadonlyNotVariable, "GetTarget()").WithArguments("0").WithLocation(43, 11)
+            ]
+            );
+
+        verifier.VerifyIL("Program.Test1", $$$"""
+{
+  // Code size       30 (0x1e)
+  .maxstack  2
+  .locals init (S1 V_0,
+                S2 V_1)
+  IL_0000:  nop
+  IL_0001:  call       "S1 Program.GetTarget()"
+  IL_0006:  stloc.0
+  IL_0007:  ldloca.s   V_0
+  IL_0009:  call       "S2 E.get_P1({{{refKind}}} S1)"
+  IL_000e:  call       "S2 S2.op_Increment(S2)"
+  IL_0013:  stloc.1
+  IL_0014:  ldloca.s   V_0
+  IL_0016:  ldloc.1
+  IL_0017:  call       "void E.set_P1({{{refKind}}} S1, S2)"
+  IL_001c:  nop
+  IL_001d:  ret
+}
+""");
     }
 
     [Fact]
@@ -10685,7 +13386,7 @@ class Program
     }
 
     [Fact]
-    public void PropertyAccess_PostfixIncrementAssignment_01()
+    public void PropertyAccess_PostfixIncrementAssignment_01_01()
     {
         var src = """
 static class E
@@ -10797,11 +13498,167 @@ class Program
 ");
     }
 
+    [Fact]
+    public void PropertyAccess_PostfixIncrementAssignment_01_02()
+    {
+        var src = """
+static class E
+{
+    extension(S1 x)
+    {
+        public S2 P1
+        {
+            get
+            {
+                System.Console.Write(x.F1);
+                Program.F.F1++;
+                return default;
+            }
+            set
+            {
+                System.Console.Write(x.F1);
+            }
+        }
+    }
+}
+
+struct S1
+{
+    public int F1;
+
+    public readonly void Test()
+    {
+        this.P1++;
+    }
+}
+
+struct S2
+{
+    public static S2 operator ++(S2 x)
+    {
+        Program.F.F1++;
+        return x;
+    }
+}
+
+class Program
+{
+    public static S1 F;
+
+    static void Main()
+    {
+        F = new S1 { F1 = 123 };
+        Test1(in F);
+        System.Console.Write(F.F1);
+
+        System.Console.Write(":");
+
+        F = new S1 { F1 = 123 };
+        F.Test();
+        System.Console.Write(F.F1);
+
+        System.Console.Write(":");
+
+        F = new S1 { F1 = 123 };
+        Test2(ref F);
+        System.Console.Write(F.F1);
+    }
+
+    static void Test1(in S1 f)
+    {
+        f.P1++;
+    }
+
+    static void Test2(ref readonly S1 f)
+    {
+        f.P1++;
+    }
+}
+""";
+
+        var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+        CompileAndVerify(comp, expectedOutput: "123125125:123125125:123125125").VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void PropertyAccess_PostfixIncrementAssignment_01_03()
+    {
+        var src = """
+static class E
+{
+    extension(S1 x)
+    {
+        public S2 P1
+        {
+            get
+            {
+                System.Console.Write(x.F1);
+                return default;
+            }
+            set
+            {
+                System.Console.Write(x.F1);
+            }
+        }
+    }
+}
+
+struct S1
+{
+    public int F1;
+}
+
+struct S2
+{
+    public static S2 operator ++(S2 x)
+    {
+        return x;
+    }
+}
+
+class Program
+{
+    static void Main()
+    {
+        Test1();
+    }
+
+    static void Test1()
+    {
+        GetTarget().P1++;
+    }
+
+    static S1 GetTarget() => new S1 { F1 = 123 };
+}
+""";
+
+        var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+        var verifier = CompileAndVerify(comp, expectedOutput: "123123").VerifyDiagnostics();
+
+        verifier.VerifyIL("Program.Test1", """
+{
+  // Code size       26 (0x1a)
+  .maxstack  2
+  .locals init (S2 V_0)
+  IL_0000:  nop
+  IL_0001:  call       "S1 Program.GetTarget()"
+  IL_0006:  dup
+  IL_0007:  call       "S2 E.get_P1(S1)"
+  IL_000c:  call       "S2 S2.op_Increment(S2)"
+  IL_0011:  stloc.0
+  IL_0012:  ldloc.0
+  IL_0013:  call       "void E.set_P1(S1, S2)"
+  IL_0018:  nop
+  IL_0019:  ret
+}
+""");
+    }
+
     [Theory]
     [InlineData("ref")]
     [InlineData("ref readonly")]
     [InlineData("in")]
-    public void PropertyAccess_PostfixIncrementAssignment_02(string refKind)
+    public void PropertyAccess_PostfixIncrementAssignment_02_01(string refKind)
     {
         var src = $$$"""
 static class E
@@ -10942,22 +13799,215 @@ class Program
                 comp2.VerifyDiagnostics(
                     // (15,9): warning CS9193: Argument 0 should be a variable because it is passed to a 'ref readonly' parameter
                     //         default(S1).P1++;
-                    Diagnostic(ErrorCode.WRN_RefReadonlyNotVariable, "default(S1)").WithArguments("0").WithLocation(15, 9),
-                    // (15,9): error CS0131: The left-hand side of an assignment must be a variable, property or indexer
-                    //         default(S1).P1++;
-                    Diagnostic(ErrorCode.ERR_AssgLvalueExpected, "default(S1).P1").WithLocation(15, 9)
+                    Diagnostic(ErrorCode.WRN_RefReadonlyNotVariable, "default(S1)").WithArguments("0").WithLocation(15, 9)
                     );
                 break;
             case "in":
-                comp2.VerifyDiagnostics(
-                    // (15,9): error CS0131: The left-hand side of an assignment must be a variable, property or indexer
-                    //         default(S1).P1++;
-                    Diagnostic(ErrorCode.ERR_AssgLvalueExpected, "default(S1).P1").WithLocation(15, 9)
-                    );
+                comp2.VerifyDiagnostics();
                 break;
             default:
                 throw ExceptionUtilities.UnexpectedValue(refKind);
         }
+    }
+
+    [Theory]
+    [InlineData("ref readonly")]
+    [InlineData("in")]
+    public void PropertyAccess_PostfixIncrementAssignment_02_02(string refKind)
+    {
+        var text0 = """
+public static class Helper
+{
+    public static unsafe void Assign(ref readonly int i, int value)
+    {
+        fixed (int* f2 = &i)
+        {
+            (*f2) = value;
+        }
+    }
+}
+""";
+        var comp0 = CreateCompilation(text0, options: TestOptions.DebugDll.WithAllowUnsafe(true));
+
+        var src = $$$"""
+static class E
+{
+    extension({{{refKind}}} S1 x)
+    {
+        public S2 P1
+        {
+            get
+            {
+                System.Console.Write(x.F1);
+                Helper.Assign(in x.F1, x.F1 + 1);
+                return default;
+            }
+            set
+            {
+                System.Console.Write(x.F1);
+                Helper.Assign(in x.F1, x.F1 + 1);
+            }
+        }
+    }
+}
+
+struct S1
+{
+    public int F1;
+
+    public readonly void Test()
+    {
+        this.P1++;
+    }
+}
+
+struct S2
+{
+    public static S2 operator ++(S2 x)
+    {
+        Program.F.F1++;
+        return x;
+    }
+}
+
+class Program
+{
+    public static S1 F;
+
+    static void Main()
+    {
+        F = new S1 { F1 = 123 };
+        Test1(in F);
+        System.Console.Write(F.F1);
+
+        System.Console.Write(":");
+
+        F = new S1 { F1 = 123 };
+        F.Test();
+        System.Console.Write(F.F1);
+
+        System.Console.Write(":");
+
+        F = new S1 { F1 = 123 };
+        Test2(ref F);
+        System.Console.Write(F.F1);
+    }
+
+    static void Test1(in S1 f)
+    {
+        f.P1++;
+    }
+
+    static void Test2(ref readonly S1 f)
+    {
+        f.P1++;
+    }
+}
+""";
+
+        var comp = CreateCompilation(src, references: [comp0.EmitToImageReference()], options: TestOptions.DebugExe);
+        CompileAndVerify(comp, expectedOutput: "123125126:123125126:123125126").VerifyDiagnostics();
+    }
+
+    [Theory]
+    [InlineData("ref readonly")]
+    [InlineData("in")]
+    public void PropertyAccess_PostfixIncrementAssignment_02_03(string refKind)
+    {
+        var text0 = """
+public static class Helper
+{
+    public static unsafe void Assign(ref readonly int i, int value)
+    {
+        fixed (int* f2 = &i)
+        {
+            (*f2) = value;
+        }
+    }
+}
+""";
+        var comp0 = CreateCompilation(text0, options: TestOptions.DebugDll.WithAllowUnsafe(true));
+
+        var src = $$$"""
+static class E
+{
+    extension({{{refKind}}} S1 x)
+    {
+        public S2 P1
+        {
+            get
+            {
+                System.Console.Write(x.F1);
+                Helper.Assign(in x.F1, x.F1 + 1);
+                return default;
+            }
+            set
+            {
+                System.Console.Write(x.F1);
+            }
+        }
+    }
+}
+
+struct S1
+{
+    public int F1;
+}
+
+struct S2
+{
+    public static S2 operator ++(S2 x)
+    {
+        return x;
+    }
+}
+
+class Program
+{
+    static void Main()
+    {
+        Test1();
+    }
+
+    static void Test1()
+    {
+        GetTarget().P1++;
+    }
+
+    static S1 GetTarget() => new S1 { F1 = 123 };
+}
+""";
+
+        var comp = CreateCompilation(src, references: [comp0.EmitToImageReference()], options: TestOptions.DebugExe);
+        var verifier = CompileAndVerify(comp, expectedOutput: "123124").VerifyDiagnostics(
+            refKind == "in" ? [] :
+            [
+                // (43,9): warning CS9193: Argument 0 should be a variable because it is passed to a 'ref readonly' parameter
+                //         GetTarget().P1++;
+                Diagnostic(ErrorCode.WRN_RefReadonlyNotVariable, "GetTarget()").WithArguments("0").WithLocation(43, 9)
+            ]
+            );
+
+        verifier.VerifyIL("Program.Test1", $$$"""
+{
+  // Code size       30 (0x1e)
+  .maxstack  2
+  .locals init (S1 V_0,
+                S2 V_1)
+  IL_0000:  nop
+  IL_0001:  call       "S1 Program.GetTarget()"
+  IL_0006:  stloc.0
+  IL_0007:  ldloca.s   V_0
+  IL_0009:  call       "S2 E.get_P1({{{refKind}}} S1)"
+  IL_000e:  stloc.1
+  IL_000f:  ldloca.s   V_0
+  IL_0011:  ldloc.1
+  IL_0012:  call       "S2 S2.op_Increment(S2)"
+  IL_0017:  call       "void E.set_P1({{{refKind}}} S1, S2)"
+  IL_001c:  nop
+  IL_001d:  ret
+}
+""");
     }
 
     [Fact]
@@ -11424,7 +14474,7 @@ class Program
     }
 
     [Fact]
-    public void PropertyAccess_ConditionalAssignment_01()
+    public void PropertyAccess_ConditionalAssignment_01_01()
     {
         var src = """
 static class E
@@ -11653,11 +14703,272 @@ class Program
 ");
     }
 
+    [Fact]
+    public void PropertyAccess_ConditionalAssignment_01_02()
+    {
+        var src = """
+static class E
+{
+    extension(S1 x)
+    {
+        public object P1
+        {
+            get
+            {
+                System.Console.Write(x.F1);
+                Program.F.F1++;
+                return null;
+            }
+            set
+            {
+                System.Console.Write(x.F1);
+            }
+        }
+
+        public int? P2
+        {
+            get
+            {
+                System.Console.Write(x.F1);
+                Program.F.F1++;
+                return null;
+            }
+            set
+            {
+                System.Console.Write(x.F1);
+            }
+        }
+    }
+}
+
+struct S1
+{
+    public int F1;
+
+    public readonly void Test1()
+    {
+        this.P1 ??= Program.Get1();
+    }
+
+    public readonly void Test2()
+    {
+        this.P2 ??= Program.Get1();
+    }
+}
+
+class Program
+{
+    public static S1 F;
+
+    static void Main()
+    {
+        F = new S1 { F1 = 123 };
+        Test1(in F);
+        System.Console.Write(F.F1);
+
+        System.Console.Write(":");
+
+        F = new S1 { F1 = 123 };
+        F.Test1();
+        System.Console.Write(F.F1);
+
+        System.Console.Write(":");
+
+        F = new S1 { F1 = 123 };
+        Test3(ref F);
+        System.Console.Write(F.F1);
+
+        System.Console.Write(":");
+
+        F = new S1 { F1 = 123 };
+        Test2(in F);
+        System.Console.Write(F.F1);
+
+        System.Console.Write(":");
+
+        F = new S1 { F1 = 123 };
+        F.Test2();
+        System.Console.Write(F.F1);
+
+        System.Console.Write(":");
+
+        F = new S1 { F1 = 123 };
+        Test4(ref F);
+        System.Console.Write(F.F1);
+    }
+
+    static void Test1(in S1 f)
+    {
+        f.P1 ??= Get1();
+    }
+
+    static void Test2(in S1 f)
+    {
+        f.P2 ??= Get1();
+    }
+
+    static void Test3(ref readonly S1 f)
+    {
+        f.P1 ??= Get1();
+    }
+
+    static void Test4(ref readonly S1 f)
+    {
+        f.P2 ??= Get1();
+    }
+
+    public static int Get1()
+    {
+        Program.F.F1++;
+        return 1;
+    }
+}
+""";
+
+        var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+        CompileAndVerify(comp, expectedOutput: "123125125:123125125:123125125:123125125:123125125:123125125").VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void PropertyAccess_ConditionalAssignment_01_03()
+    {
+        var src = """
+static class E
+{
+    extension(S1 x)
+    {
+        public object P1
+        {
+            get
+            {
+                System.Console.Write(x.F1);
+                return null;
+            }
+            set
+            {
+                System.Console.Write(x.F1);
+            }
+        }
+
+        public int? P2
+        {
+            get
+            {
+                System.Console.Write(x.F1);
+                return null;
+            }
+            set
+            {
+                System.Console.Write(x.F1);
+            }
+        }
+    }
+}
+
+struct S1
+{
+    public int F1;
+}
+
+class Program
+{
+    static void Main()
+    {
+        Test1();
+
+        System.Console.Write(":");
+
+        Test2();
+    }
+
+    static void Test1()
+    {
+        GetTarget().P1 ??= Get1();
+    }
+
+    static void Test2()
+    {
+        GetTarget().P2 ??= Get1();
+    }
+
+    static S1 GetTarget() => new S1 { F1 = 123 };
+
+    public static int Get1()
+    {
+        return 1;
+    }
+}
+""";
+
+        var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+        var verifier = CompileAndVerify(comp, expectedOutput: "123123:123123").VerifyDiagnostics();
+
+        verifier.VerifyIL("Program.Test1", """
+{
+  // Code size       37 (0x25)
+  .maxstack  3
+  .locals init (S1 V_0,
+                object V_1,
+                object V_2)
+  IL_0000:  nop
+  IL_0001:  call       "S1 Program.GetTarget()"
+  IL_0006:  stloc.0
+  IL_0007:  ldloc.0
+  IL_0008:  call       "object E.get_P1(S1)"
+  IL_000d:  brtrue.s   IL_0024
+  IL_000f:  call       "int Program.Get1()"
+  IL_0014:  box        "int"
+  IL_0019:  stloc.1
+  IL_001a:  ldloc.0
+  IL_001b:  ldloc.1
+  IL_001c:  dup
+  IL_001d:  stloc.2
+  IL_001e:  call       "void E.set_P1(S1, object)"
+  IL_0023:  nop
+  IL_0024:  ret
+}
+""");
+
+        verifier.VerifyIL("Program.Test2", """
+{
+  // Code size       56 (0x38)
+  .maxstack  3
+  .locals init (S1 V_0,
+                int? V_1,
+                int V_2,
+                int? V_3)
+  IL_0000:  nop
+  IL_0001:  call       "S1 Program.GetTarget()"
+  IL_0006:  stloc.0
+  IL_0007:  ldloc.0
+  IL_0008:  call       "int? E.get_P2(S1)"
+  IL_000d:  stloc.1
+  IL_000e:  ldloca.s   V_1
+  IL_0010:  call       "int int?.GetValueOrDefault()"
+  IL_0015:  stloc.2
+  IL_0016:  ldloca.s   V_1
+  IL_0018:  call       "bool int?.HasValue.get"
+  IL_001d:  brtrue.s   IL_0037
+  IL_001f:  call       "int Program.Get1()"
+  IL_0024:  stloc.2
+  IL_0025:  ldloc.0
+  IL_0026:  ldloca.s   V_3
+  IL_0028:  ldloc.2
+  IL_0029:  call       "int?..ctor(int)"
+  IL_002e:  ldloc.3
+  IL_002f:  call       "void E.set_P2(S1, int?)"
+  IL_0034:  nop
+  IL_0035:  br.s       IL_0037
+  IL_0037:  ret
+}
+""");
+    }
+
     [Theory]
     [InlineData("ref")]
     [InlineData("ref readonly")]
     [InlineData("in")]
-    public void PropertyAccess_ConditionalAssignment_02(string refKind)
+    public void PropertyAccess_ConditionalAssignment_02_01(string refKind)
     {
         var src = $$$"""
 static class E
@@ -11913,30 +15224,319 @@ class Program
                     // (16,9): warning CS9193: Argument 0 should be a variable because it is passed to a 'ref readonly' parameter
                     //         default(S1).P1 ??= 1;
                     Diagnostic(ErrorCode.WRN_RefReadonlyNotVariable, "default(S1)").WithArguments("0").WithLocation(16, 9),
-                    // (16,9): error CS0131: The left-hand side of an assignment must be a variable, property or indexer
-                    //         default(S1).P1 ??= 1;
-                    Diagnostic(ErrorCode.ERR_AssgLvalueExpected, "default(S1).P1").WithLocation(16, 9),
                     // (20,9): warning CS9193: Argument 0 should be a variable because it is passed to a 'ref readonly' parameter
                     //         default(S1).P2 ??= 1;
-                    Diagnostic(ErrorCode.WRN_RefReadonlyNotVariable, "default(S1)").WithArguments("0").WithLocation(20, 9),
-                    // (20,9): error CS0131: The left-hand side of an assignment must be a variable, property or indexer
-                    //         default(S1).P2 ??= 1;
-                    Diagnostic(ErrorCode.ERR_AssgLvalueExpected, "default(S1).P2").WithLocation(20, 9)
+                    Diagnostic(ErrorCode.WRN_RefReadonlyNotVariable, "default(S1)").WithArguments("0").WithLocation(20, 9)
                     );
                 break;
             case "in":
-                comp2.VerifyDiagnostics(
-                    // (16,9): error CS0131: The left-hand side of an assignment must be a variable, property or indexer
-                    //         default(S1).P1 ??= 1;
-                    Diagnostic(ErrorCode.ERR_AssgLvalueExpected, "default(S1).P1").WithLocation(16, 9),
-                    // (20,9): error CS0131: The left-hand side of an assignment must be a variable, property or indexer
-                    //         default(S1).P2 ??= 1;
-                    Diagnostic(ErrorCode.ERR_AssgLvalueExpected, "default(S1).P2").WithLocation(20, 9)
-                    );
+                comp2.VerifyDiagnostics();
                 break;
             default:
                 throw ExceptionUtilities.UnexpectedValue(refKind);
         }
+    }
+
+    [Theory]
+    [InlineData("ref readonly")]
+    [InlineData("in")]
+    public void PropertyAccess_ConditionalAssignment_02_02(string refKind)
+    {
+        var text0 = """
+public static class Helper
+{
+    public static unsafe void Assign(ref readonly int i, int value)
+    {
+        fixed (int* f2 = &i)
+        {
+            (*f2) = value;
+        }
+    }
+}
+""";
+        var comp0 = CreateCompilation(text0, options: TestOptions.DebugDll.WithAllowUnsafe(true));
+
+        var src = $$$"""
+static class E
+{
+    extension({{{refKind}}} S1 x)
+    {
+        public object P1
+        {
+            get
+            {
+                System.Console.Write(x.F1);
+                Helper.Assign(in x.F1, x.F1 + 1);
+                return null;
+            }
+            set
+            {
+                System.Console.Write(x.F1);
+                Helper.Assign(in x.F1, x.F1 + 1);
+            }
+        }
+        public int? P2
+        {
+            get
+            {
+                System.Console.Write(x.F1);
+                Helper.Assign(in x.F1, x.F1 + 1);
+                return null;
+            }
+            set
+            {
+                System.Console.Write(x.F1);
+                Helper.Assign(in x.F1, x.F1 + 1);
+            }
+        }
+    }
+}
+
+struct S1
+{
+    public int F1;
+
+    public readonly void Test1()
+    {
+        this.P1 ??= Program.Get1();
+    }
+
+    public readonly void Test2()
+    {
+        this.P2 ??= Program.Get1();
+    }
+}
+
+class Program
+{
+    public static S1 F;
+
+    static void Main()
+    {
+        F = new S1 { F1 = 123 };
+        Test1(in F);
+        System.Console.Write(F.F1);
+
+        System.Console.Write(":");
+
+        F = new S1 { F1 = 123 };
+        F.Test1();
+        System.Console.Write(F.F1);
+
+        System.Console.Write(":");
+
+        F = new S1 { F1 = 123 };
+        Test3(ref F);
+        System.Console.Write(F.F1);
+
+        System.Console.Write(":");
+
+        F = new S1 { F1 = 123 };
+        Test2(in F);
+        System.Console.Write(F.F1);
+
+        System.Console.Write(":");
+
+        F = new S1 { F1 = 123 };
+        F.Test2();
+        System.Console.Write(F.F1);
+
+        System.Console.Write(":");
+
+        F = new S1 { F1 = 123 };
+        Test4(ref F);
+        System.Console.Write(F.F1);
+    }
+
+    static void Test1(in S1 f)
+    {
+        f.P1 ??= Get1();
+    }
+
+    static void Test2(in S1 f)
+    {
+        f.P2 ??= Get1();
+    }
+
+    static void Test3(ref readonly S1 f)
+    {
+        f.P1 ??= Get1();
+    }
+
+    static void Test4(ref readonly S1 f)
+    {
+        f.P2 ??= Get1();
+    }
+
+    public static int Get1()
+    {
+        Program.F.F1++;
+        return 1;
+    }
+}
+""";
+
+        var comp = CreateCompilation(src, references: [comp0.EmitToImageReference()], options: TestOptions.DebugExe);
+        CompileAndVerify(comp, expectedOutput: "123125126:123125126:123125126:123125126:123125126:123125126").VerifyDiagnostics();
+    }
+
+    [Theory]
+    [InlineData("ref readonly")]
+    [InlineData("in")]
+    public void PropertyAccess_ConditionalAssignment_02_03(string refKind)
+    {
+        var text0 = """
+public static class Helper
+{
+    public static unsafe void Assign(ref readonly int i, int value)
+    {
+        fixed (int* f2 = &i)
+        {
+            (*f2) = value;
+        }
+    }
+}
+""";
+        var comp0 = CreateCompilation(text0, options: TestOptions.DebugDll.WithAllowUnsafe(true));
+
+        var src = $$$"""
+static class E
+{
+    extension({{{refKind}}} S1 x)
+    {
+        public object P1
+        {
+            get
+            {
+                System.Console.Write(x.F1);
+                Helper.Assign(in x.F1, x.F1 + 1);
+                return null;
+            }
+            set
+            {
+                System.Console.Write(x.F1);
+            }
+        }
+        public int? P2
+        {
+            get
+            {
+                System.Console.Write(x.F1);
+                Helper.Assign(in x.F1, x.F1 + 1);
+                return null;
+            }
+            set
+            {
+                System.Console.Write(x.F1);
+            }
+        }
+    }
+}
+
+struct S1
+{
+    public int F1;
+}
+
+class Program
+{
+    static void Main()
+    {
+        Test1();
+
+        System.Console.Write(":");
+
+        Test2();
+    }
+
+    static void Test1()
+    {
+        GetTarget().P1 ??= Get1();
+    }
+
+    static void Test2()
+    {
+        GetTarget().P2 ??= Get1();
+    }
+
+    static S1 GetTarget() => new S1 { F1 = 123 };
+
+    public static int Get1()
+    {
+        return 1;
+    }
+}
+""";
+
+        var comp = CreateCompilation(src, references: [comp0.EmitToImageReference()], options: TestOptions.DebugExe);
+        var verifier = CompileAndVerify(comp, expectedOutput: "123124:123124").VerifyDiagnostics(
+            refKind == "in" ? [] :
+            [
+                // (52,9): warning CS9193: Argument 0 should be a variable because it is passed to a 'ref readonly' parameter
+                //         GetTarget().P1 ??= Get1();
+                Diagnostic(ErrorCode.WRN_RefReadonlyNotVariable, "GetTarget()").WithArguments("0").WithLocation(52, 9),
+                // (57,9): warning CS9193: Argument 0 should be a variable because it is passed to a 'ref readonly' parameter
+                //         GetTarget().P2 ??= Get1();
+                Diagnostic(ErrorCode.WRN_RefReadonlyNotVariable, "GetTarget()").WithArguments("0").WithLocation(57, 9)
+            ]
+            );
+
+        verifier.VerifyIL("Program.Test1", $$$"""
+{
+  // Code size       37 (0x25)
+  .maxstack  3
+  .locals init (S1 V_0,
+                object V_1)
+  IL_0000:  nop
+  IL_0001:  call       "S1 Program.GetTarget()"
+  IL_0006:  stloc.0
+  IL_0007:  ldloca.s   V_0
+  IL_0009:  call       "object E.get_P1({{{refKind}}} S1)"
+  IL_000e:  brtrue.s   IL_0024
+  IL_0010:  ldloca.s   V_0
+  IL_0012:  call       "int Program.Get1()"
+  IL_0017:  box        "int"
+  IL_001c:  dup
+  IL_001d:  stloc.1
+  IL_001e:  call       "void E.set_P1({{{refKind}}} S1, object)"
+  IL_0023:  nop
+  IL_0024:  ret
+}
+""");
+
+        verifier.VerifyIL("Program.Test2", $$$"""
+{
+  // Code size       58 (0x3a)
+  .maxstack  3
+  .locals init (S1 V_0,
+                int? V_1,
+                int V_2,
+                int? V_3)
+  IL_0000:  nop
+  IL_0001:  call       "S1 Program.GetTarget()"
+  IL_0006:  stloc.0
+  IL_0007:  ldloca.s   V_0
+  IL_0009:  call       "int? E.get_P2({{{refKind}}} S1)"
+  IL_000e:  stloc.1
+  IL_000f:  ldloca.s   V_1
+  IL_0011:  call       "int int?.GetValueOrDefault()"
+  IL_0016:  stloc.2
+  IL_0017:  ldloca.s   V_1
+  IL_0019:  call       "bool int?.HasValue.get"
+  IL_001e:  brtrue.s   IL_0039
+  IL_0020:  call       "int Program.Get1()"
+  IL_0025:  stloc.2
+  IL_0026:  ldloca.s   V_0
+  IL_0028:  ldloca.s   V_3
+  IL_002a:  ldloc.2
+  IL_002b:  call       "int?..ctor(int)"
+  IL_0030:  ldloc.3
+  IL_0031:  call       "void E.set_P2({{{refKind}}} S1, int?)"
+  IL_0036:  nop
+  IL_0037:  br.s       IL_0039
+  IL_0039:  ret
+}
+""");
     }
 
     [Fact]
@@ -13275,7 +16875,7 @@ class Program
     }
 
     [Fact]
-    public void PropertyAccess_DeconstructAssignment_01()
+    public void PropertyAccess_DeconstructAssignment_01_01()
     {
         var src = """
 static class E
@@ -13377,11 +16977,157 @@ class Program
 ");
     }
 
+    [Fact]
+    public void PropertyAccess_DeconstructAssignment_01_02()
+    {
+        var src = """
+static class E
+{
+    extension(S1 x)
+    {
+        public int P1
+        {
+            get
+            {
+                throw null;
+            }
+            set
+            {
+                System.Console.Write(x.F1);
+            }
+        }
+    }
+}
+
+struct S1
+{
+    public int F1;
+
+    public readonly void Test()
+    {
+        (this.P1, _) = (Program.Get1(), 0);
+    }
+}
+
+class Program
+{
+    public static S1 F;
+
+    static void Main()
+    {
+        F = new S1 { F1 = 123 };
+        Test1(in F);
+        System.Console.Write(F.F1);
+
+        System.Console.Write(":");
+
+        F = new S1 { F1 = 123 };
+        F.Test();
+        System.Console.Write(F.F1);
+
+        System.Console.Write(":");
+
+        F = new S1 { F1 = 123 };
+        Test2(ref F);
+        System.Console.Write(F.F1);
+    }
+
+    static void Test1(in S1 f)
+    {
+        (f.P1, _) = (Get1(), 0);
+    }
+
+    static void Test2(ref readonly S1 f)
+    {
+        (f.P1, _) = (Get1(), 0);
+    }
+
+    public static int Get1()
+    {
+        System.Console.Write(Program.F.F1);
+        Program.F.F1++;
+        return 1;
+    }
+}
+""";
+
+        var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+        CompileAndVerify(comp, expectedOutput: "123124124:123124124:123124124").VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void PropertyAccess_DeconstructAssignment_01_03()
+    {
+        var src = """
+static class E
+{
+    extension(S1 x)
+    {
+        public int P1
+        {
+            get
+            {
+                throw null;
+            }
+            set
+            {
+                System.Console.Write(x.F1);
+            }
+        }
+    }
+}
+
+struct S1
+{
+    public int F1;
+}
+
+class Program
+{
+    static void Main()
+    {
+        Test1();
+    }
+
+    static void Test1()
+    {
+        (GetTarget().P1, _) = (Get1(), 0);
+    }
+
+    static S1 GetTarget() => new S1 { F1 = 123 };
+
+    public static int Get1()
+    {
+        return 1;
+    }
+}
+""";
+
+        var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+        var verifier = CompileAndVerify(comp, expectedOutput: "123").VerifyDiagnostics();
+
+        verifier.VerifyIL("Program.Test1", """
+{
+  // Code size       20 (0x14)
+  .maxstack  2
+  .locals init (int V_0)
+  IL_0000:  nop
+  IL_0001:  call       "S1 Program.GetTarget()"
+  IL_0006:  call       "int Program.Get1()"
+  IL_000b:  stloc.0
+  IL_000c:  ldloc.0
+  IL_000d:  call       "void E.set_P1(S1, int)"
+  IL_0012:  nop
+  IL_0013:  ret
+}
+""");
+    }
+
     [Theory]
     [InlineData("ref")]
     [InlineData("ref readonly")]
     [InlineData("in")]
-    public void PropertyAccess_DeconstructAssignment_02(string refKind)
+    public void PropertyAccess_DeconstructAssignment_02_01(string refKind)
     {
         var src = $$$"""
 static class E
@@ -13514,22 +17260,190 @@ class Program
                 comp2.VerifyDiagnostics(
                     // (15,10): warning CS9193: Argument 0 should be a variable because it is passed to a 'ref readonly' parameter
                     //         (default(S1).P1, _) = (1, 0);
-                    Diagnostic(ErrorCode.WRN_RefReadonlyNotVariable, "default(S1)").WithArguments("0").WithLocation(15, 10),
-                    // (15,10): error CS0131: The left-hand side of an assignment must be a variable, property or indexer
-                    //         (default(S1).P1, _) = (1, 0);
-                    Diagnostic(ErrorCode.ERR_AssgLvalueExpected, "default(S1).P1").WithLocation(15, 10)
+                    Diagnostic(ErrorCode.WRN_RefReadonlyNotVariable, "default(S1)").WithArguments("0").WithLocation(15, 10)
                     );
                 break;
             case "in":
-                comp2.VerifyDiagnostics(
-                    // (15,10): error CS0131: The left-hand side of an assignment must be a variable, property or indexer
-                    //         (default(S1).P1, _) = (1, 0);
-                    Diagnostic(ErrorCode.ERR_AssgLvalueExpected, "default(S1).P1").WithLocation(15, 10)
-                    );
+                comp2.VerifyDiagnostics();
                 break;
             default:
                 throw ExceptionUtilities.UnexpectedValue(refKind);
         }
+    }
+
+    [Theory]
+    [InlineData("ref readonly")]
+    [InlineData("in")]
+    public void PropertyAccess_DeconstructAssignment_02_02(string refKind)
+    {
+        var text0 = """
+public static class Helper
+{
+    public static unsafe void Assign(ref readonly int i, int value)
+    {
+        fixed (int* f2 = &i)
+        {
+            (*f2) = value;
+        }
+    }
+}
+""";
+        var comp0 = CreateCompilation(text0, options: TestOptions.DebugDll.WithAllowUnsafe(true));
+
+        var src = $$$"""
+static class E
+{
+    extension({{{refKind}}} S1 x)
+    {
+        public int P1
+        {
+            get
+            {
+                throw null;
+            }
+            set
+            {
+                System.Console.Write(x.F1);
+                Helper.Assign(in x.F1, x.F1 + 1);
+            }
+        }
+    }
+}
+
+struct S1
+{
+    public int F1;
+
+    public readonly void Test()
+    {
+        (this.P1, _) = (Program.Get1(), 0);
+    }
+}
+
+class Program
+{
+    public static S1 F;
+
+    static void Main()
+    {
+        F = new S1 { F1 = 123 };
+        Test1(in F);
+        System.Console.Write(F.F1);
+
+        System.Console.Write(":");
+
+        F = new S1 { F1 = 123 };
+        F.Test();
+        System.Console.Write(F.F1);
+
+        System.Console.Write(":");
+
+        F = new S1 { F1 = 123 };
+        Test2(ref F);
+        System.Console.Write(F.F1);
+    }
+
+    static void Test1(in S1 f)
+    {
+        (f.P1, _) = (Get1(), 0);
+    }
+
+    static void Test2(ref readonly S1 f)
+    {
+        (f.P1, _) = (Get1(), 0);
+    }
+
+    public static int Get1()
+    {
+        System.Console.Write(Program.F.F1);
+        Program.F.F1++;
+        return 1;
+    }
+}
+""";
+
+        var comp = CreateCompilation(src, references: [comp0.EmitToImageReference()], options: TestOptions.DebugExe);
+        CompileAndVerify(comp, expectedOutput: "123124125:123124125:123124125").VerifyDiagnostics();
+    }
+
+    [Theory]
+    [InlineData("ref readonly")]
+    [InlineData("in")]
+    public void PropertyAccess_DeconstructAssignment_02_03(string refKind)
+    {
+        var src = $$$"""
+static class E
+{
+    extension({{{refKind}}} S1 x)
+    {
+        public int P1
+        {
+            get
+            {
+                throw null;
+            }
+            set
+            {
+                System.Console.Write(x.F1);
+            }
+        }
+    }
+}
+
+struct S1
+{
+    public int F1;
+}
+
+class Program
+{
+    static void Main()
+    {
+        Test1();
+    }
+
+    static void Test1()
+    {
+        (GetTarget().P1, _) = (Get1(), 0);
+    }
+
+    static S1 GetTarget() => new S1 { F1 = 123 };
+
+    public static int Get1()
+    {
+        return 1;
+    }
+}
+""";
+
+        var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+        var verifier = CompileAndVerify(comp, expectedOutput: "123").VerifyDiagnostics(
+            refKind == "in" ? [] :
+            [
+                // (33,10): warning CS9193: Argument 0 should be a variable because it is passed to a 'ref readonly' parameter
+                //         (GetTarget().P1, _) = (Get1(), 0);
+                Diagnostic(ErrorCode.WRN_RefReadonlyNotVariable, "GetTarget()").WithArguments("0").WithLocation(33, 10)
+            ]
+            );
+
+        verifier.VerifyIL("Program.Test1", $$$"""
+{
+  // Code size       23 (0x17)
+  .maxstack  2
+  .locals init (S1 V_0,
+                int V_1)
+  IL_0000:  nop
+  IL_0001:  call       "S1 Program.GetTarget()"
+  IL_0006:  stloc.0
+  IL_0007:  call       "int Program.Get1()"
+  IL_000c:  stloc.1
+  IL_000d:  ldloca.s   V_0
+  IL_000f:  ldloc.1
+  IL_0010:  call       "void E.set_P1({{{refKind}}} S1, int)"
+  IL_0015:  nop
+  IL_0016:  ret
+}
+""");
     }
 
     [Fact]
@@ -14170,9 +18084,8 @@ class Program
             """);
     }
 
-    [Fact(Skip = "https://github.com/dotnet/roslyn/issues/78829")]
-    [WorkItem("https://github.com/dotnet/roslyn/issues/78829")]
-    public void IndexerAccess_CompoundAssignment_01()
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/78829")]
+    public void IndexerAccess_CompoundAssignment_01_01()
     {
         var src = """
 static class E
@@ -14298,7 +18211,7 @@ class Program
 }
 ");
 
-        var src2 = $$$"""
+        var src2 = """
 static class E
 {
     extension(S1 x)
@@ -14319,19 +18232,14 @@ class Program
 """;
 
         var comp2 = CreateCompilation(src2);
-        comp2.VerifyDiagnostics(
-            // (15,9): error CS0131: The left-hand side of an assignment must be a variable, property or indexer
-            //         default(S1)[0] += 1;
-            Diagnostic(ErrorCode.ERR_AssgLvalueExpected, "default(S1)[0]").WithLocation(15, 9)
-            );
+        comp2.VerifyDiagnostics();
     }
 
-    [Theory(Skip = "https://github.com/dotnet/roslyn/issues/78829")]
-    [WorkItem("https://github.com/dotnet/roslyn/issues/78829")]
+    [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/78829")]
     [InlineData("ref")]
     [InlineData("ref readonly")]
     [InlineData("in")]
-    public void IndexerAccess_CompoundAssignment_02(string refKind)
+    public void IndexerAccess_CompoundAssignment_02_01(string refKind)
     {
         var src = $$$"""
 static class E
@@ -14471,15 +18379,237 @@ class Program
 """;
 
         var comp2 = CreateCompilation(src2);
-        comp2.VerifyDiagnostics(
-            // (15,9): error CS0131: The left-hand side of an assignment must be a variable, property or indexer
-            //         default(S1)[0] += 1;
-            Diagnostic(ErrorCode.ERR_AssgLvalueExpected, "default(S1)[0]").WithLocation(15, 9)
-            );
+        if (refKind == "ref readonly")
+        {
+            comp2.VerifyDiagnostics(
+                // (15,9): warning CS9193: Argument 0 should be a variable because it is passed to a 'ref readonly' parameter
+                //         default(S1)[0] += 1;
+                Diagnostic(ErrorCode.WRN_RefReadonlyNotVariable, "default(S1)").WithArguments("0").WithLocation(15, 9)
+                );
+        }
+        else if (refKind == "in")
+        {
+            comp2.VerifyDiagnostics();
+        }
+        else
+        {
+            comp2.VerifyDiagnostics(
+                // (15,9): error CS1510: A ref or out value must be an assignable variable
+                //         default(S1)[0] += 1;
+                Diagnostic(ErrorCode.ERR_RefLvalueExpected, "default(S1)").WithLocation(15, 9));
+        }
     }
 
-    [Fact(Skip = "https://github.com/dotnet/roslyn/issues/78829")]
-    [WorkItem("https://github.com/dotnet/roslyn/issues/78829")]
+    [Theory]
+    [InlineData("ref readonly")]
+    [InlineData("in")]
+    public void IndexerAccess_CompoundAssignment_02_02(string refKind)
+    {
+        var text0 = @"
+public static class Helper
+{
+    public static unsafe void Assign(ref readonly int i, int value)
+    {
+        fixed (int* f2 = &i)
+        {
+            (*f2) = value;
+        }
+    }
+}
+";
+        var comp0 = CreateCompilation(text0, options: TestOptions.DebugDll.WithAllowUnsafe(true));
+
+        var src = $$$"""
+static class E
+{
+    extension({{{refKind}}} S1 x)
+    {
+        public int this[int i]
+        {
+            get
+            {
+                System.Console.Write(x.F1);
+                Helper.Assign(in x.F1, x.F1 + 1);
+                return 0;
+            }
+            set
+            {
+                System.Console.Write(x.F1);
+                Helper.Assign(in x.F1, x.F1 + 1);
+            }
+        }
+    }
+}
+
+struct S1
+{
+    public int F1;
+
+    public readonly void Test()
+    {
+        this[Program.Get2()] += Program.Get1();
+    }
+}
+
+class Program
+{
+    public static S1 F;
+
+    static void Main()
+    {
+        F = new S1 { F1 = 123 };
+        Test1(in F);
+        System.Console.Write(F.F1);
+
+        System.Console.Write(":");
+
+        F = new S1 { F1 = 123 };
+        F.Test();
+        System.Console.Write(F.F1);
+
+        System.Console.Write(":");
+
+        F = new S1 { F1 = 123 };
+        Test2(ref F);
+        System.Console.Write(F.F1);
+    }
+
+    static void Test1(in S1 f)
+    {
+        f[Get2()] += Get1();
+    }
+
+    static void Test2(ref readonly S1 f)
+    {
+        f[Get2()] += Get1();
+    }
+
+    public static int Get1()
+    {
+        Program.F.F1++;
+        return 1;
+    }
+
+    public static int Get2()
+    {
+        Program.F.F1++;
+        return 1;
+    }
+}
+""";
+
+        var comp = CreateCompilation(src, references: [comp0.EmitToImageReference()], options: TestOptions.DebugExe);
+        CompileAndVerify(comp, expectedOutput: "124126127:124126127:124126127").VerifyDiagnostics();
+    }
+
+    [Theory]
+    [InlineData("ref readonly")]
+    [InlineData("in")]
+    public void IndexerAccess_CompoundAssignment_02_03(string refKind)
+    {
+        var text0 = @"
+public static class Helper
+{
+    public static unsafe void Assign(ref readonly int i, int value)
+    {
+        fixed (int* f2 = &i)
+        {
+            (*f2) = value;
+        }
+    }
+}
+";
+        var comp0 = CreateCompilation(text0, options: TestOptions.DebugDll.WithAllowUnsafe(true));
+
+        var src = $$$"""
+static class E
+{
+    extension({{{refKind}}} S1 x)
+    {
+        public int this[int i]
+        {
+            get
+            {
+                System.Console.Write(x.F1);
+                Helper.Assign(in x.F1, x.F1 + 1);
+                return 0;
+            }
+            set
+            {
+                System.Console.Write(x.F1);
+            }
+        }
+    }
+}
+
+struct S1
+{
+    public int F1;
+}
+
+class Program
+{
+    static void Main()
+    {
+        Test1();
+    }
+
+    static void Test1()
+    {
+        GetTarget()[Get2()] += Get1();
+    }
+
+    static S1 GetTarget() => new S1 { F1 = 123 };
+
+    public static int Get1()
+    {
+        return 1;
+    }
+
+    public static int Get2()
+    {
+        return 1;
+    }
+}
+""";
+
+        var comp = CreateCompilation(src, references: [comp0.EmitToImageReference()], options: TestOptions.DebugExe);
+        var verifier = CompileAndVerify(comp, expectedOutput: "123124").VerifyDiagnostics(
+            refKind == "in" ? [] :
+            [
+                // (35,9): warning CS9193: Argument 0 should be a variable because it is passed to a 'ref readonly' parameter
+                //         GetTarget()[Get2()] += Get1();
+                Diagnostic(ErrorCode.WRN_RefReadonlyNotVariable, "GetTarget()").WithArguments("0").WithLocation(35, 9)
+            ]
+            );
+
+        verifier.VerifyIL("Program.Test1",
+$$$"""
+{
+  // Code size       37 (0x25)
+  .maxstack  4
+  .locals init (S1 V_0,
+                int V_1)
+  IL_0000:  nop
+  IL_0001:  call       "S1 Program.GetTarget()"
+  IL_0006:  stloc.0
+  IL_0007:  call       "int Program.Get2()"
+  IL_000c:  stloc.1
+  IL_000d:  ldloca.s   V_0
+  IL_000f:  ldloc.1
+  IL_0010:  ldloca.s   V_0
+  IL_0012:  ldloc.1
+  IL_0013:  call       "int E.get_Item({{{refKind}}} S1, int)"
+  IL_0018:  call       "int Program.Get1()"
+  IL_001d:  add
+  IL_001e:  call       "void E.set_Item({{{refKind}}} S1, int, int)"
+  IL_0023:  nop
+  IL_0024:  ret
+}
+""");
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/78829")]
     public void IndexerAccess_CompoundAssignment_03()
     {
         var src = """
@@ -14567,9 +18697,8 @@ class Program
 ");
     }
 
-    [Fact(Skip = "https://github.com/dotnet/roslyn/issues/78829")]
-    [WorkItem("https://github.com/dotnet/roslyn/issues/78829")]
-    public void IndexerAccess_CompoundAssignment_04()
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/78829")]
+    public void IndexerAccess_CompoundAssignment_04_01()
     {
         var src = """
 using System.Threading.Tasks;
@@ -14761,9 +18890,6 @@ namespace NS2
 
         var comp2 = CreateCompilation(src2);
         comp2.VerifyDiagnostics(
-            // (13,9): error CS0131: The left-hand side of an assignment must be a variable, property or indexer
-            //         default(T)[0] += 1;
-            Diagnostic(ErrorCode.ERR_AssgLvalueExpected, "default(T)[0]").WithLocation(13, 9),
             // (21,25): error CS9301: The 'in' or 'ref readonly' receiver parameter of extension must be a concrete (non-generic) value type.
             //         extension<T>(in T x) where T : struct
             Diagnostic(ErrorCode.ERR_InExtensionParameterMustBeValueType, "T").WithLocation(21, 25),
@@ -14773,7 +18899,166 @@ namespace NS2
             );
     }
 
-    [Fact(Skip = "https://github.com/dotnet/roslyn/issues/78829")]
+    [Theory]
+    [InlineData("ref readonly")]
+    [InlineData("in")]
+    public void IndexerAccess_CompoundAssignment_04_02(string refKind)
+    {
+        var src = $$$"""
+static class E
+{
+    extension<T>(T x)
+    {
+        public int this[int i]
+        {
+            get
+            {
+                System.Console.Write(((S1)(object)x).F1);
+                Program<S1>.F.F1++;
+                return 0;
+            }
+            set
+            {
+                System.Console.Write(((S1)(object)x).F1);
+            }
+        }
+    }
+}
+
+struct S1
+{
+    public int F1;
+}
+
+class Program<T>
+{
+    public static T F;
+}
+
+class Program
+{
+    static void Main()
+    {
+        Program<S1>.F = new S1 { F1 = 123 };
+        Test1({{{refKind.Substring(0, Math.Min(3, refKind.Length))}}} Program<S1>.F);
+        System.Console.Write(Program<S1>.F.F1);
+
+        System.Console.Write(":");
+
+        Program<S1>.F = new S1 { F1 = 123 };
+        Test2({{{refKind.Substring(0, Math.Min(3, refKind.Length))}}} Program<S1>.F);
+        System.Console.Write(Program<S1>.F.F1);
+    }
+
+    static void Test1<T>({{{refKind}}} T f)
+    {
+        f[0] += Get1();
+    }
+
+    static void Test2<T>({{{refKind}}} T f) where T : struct
+    {
+        f[0] += Get1();
+    }
+
+    static int Get1()
+    {
+        Program<S1>.F.F1++;
+        return 1;
+    }
+}
+""";
+
+        var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+        CompileAndVerify(comp, expectedOutput: "123125125:123125125").VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void IndexerAccess_CompoundAssignment_04_03()
+    {
+        var src = """
+static class E
+{
+    extension<T>(T x)
+    {
+        public int this[int i]
+        {
+            get
+            {
+                System.Console.Write(((S1)(object)x).F1);
+                return 0;
+            }
+            set
+            {
+                System.Console.Write(((S1)(object)x).F1);
+            }
+        }
+    }
+}
+
+struct S1
+{
+    public int F1;
+}
+
+class Program
+{
+    static void Main()
+    {
+        Test1<S1>();
+
+        System.Console.Write(":");
+
+        Test2<S1>();
+    }
+
+    static void Test1<T>()
+    {
+        GetTarget<T>()[0] += Get1();
+    }
+
+    static void Test2<T>() where T : struct
+    {
+        GetTarget<T>()[0] += Get1();
+    }
+
+    static T GetTarget<T>() => (T)(object)new S1 { F1 = 123 };
+
+    static int Get1()
+    {
+        return 1;
+    }
+}
+""";
+
+        var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+        var verifier = CompileAndVerify(comp, expectedOutput: "123123:123123").VerifyDiagnostics();
+
+        var expected =
+@"
+{
+  // Code size       29 (0x1d)
+  .maxstack  3
+  .locals init (int V_0)
+  IL_0000:  nop
+  IL_0001:  call       ""T Program.GetTarget<T>()""
+  IL_0006:  dup
+  IL_0007:  ldc.i4.0
+  IL_0008:  call       ""int E.get_Item<T>(T, int)""
+  IL_000d:  call       ""int Program.Get1()""
+  IL_0012:  add
+  IL_0013:  stloc.0
+  IL_0014:  ldc.i4.0
+  IL_0015:  ldloc.0
+  IL_0016:  call       ""void E.set_Item<T>(T, int, int)""
+  IL_001b:  nop
+  IL_001c:  ret
+}
+";
+        verifier.VerifyIL("Program.Test1<T>", expected);
+        verifier.VerifyIL("Program.Test2<T>", expected);
+    }
+
+    [Fact]
     [WorkItem("https://github.com/dotnet/roslyn/issues/78829")]
     public void IndexerAccess_CompoundAssignment_05()
     {
@@ -14915,9 +19200,9 @@ namespace NS2
 
         var comp2 = CreateCompilation(src2);
         comp2.VerifyDiagnostics(
-            // (13,9): error CS0131: The left-hand side of an assignment must be a variable, property or indexer
+            // (13,9): error CS1510: A ref or out value must be an assignable variable
             //         default(T)[0] += 1;
-            Diagnostic(ErrorCode.ERR_AssgLvalueExpected, "default(T)[0]").WithLocation(13, 9),
+            Diagnostic(ErrorCode.ERR_RefLvalueExpected, "default(T)").WithLocation(13, 9),
             // (21,25): error CS9301: The 'in' or 'ref readonly' receiver parameter of extension must be a concrete (non-generic) value type.
             //         extension<T>(in T x) where T : struct
             Diagnostic(ErrorCode.ERR_InExtensionParameterMustBeValueType, "T").WithLocation(21, 25),
@@ -14927,7 +19212,7 @@ namespace NS2
             );
     }
 
-    [Fact(Skip = "https://github.com/dotnet/roslyn/issues/78829")]
+    [Fact]
     [WorkItem("https://github.com/dotnet/roslyn/issues/78829")]
     public void IndexerAccess_CompoundAssignment_06()
     {
@@ -15081,7 +19366,7 @@ class Program
 ");
     }
 
-    [Fact(Skip = "https://github.com/dotnet/roslyn/issues/78829")]
+    [Fact]
     [WorkItem("https://github.com/dotnet/roslyn/issues/78829")]
     public void IndexerAccess_CompoundAssignment_07()
     {
@@ -15174,7 +19459,7 @@ class Program
 ");
     }
 
-    [Fact(Skip = "https://github.com/dotnet/roslyn/issues/78829")]
+    [Fact]
     [WorkItem("https://github.com/dotnet/roslyn/issues/78829")]
     public void IndexerAccess_CompoundAssignment_08()
     {
@@ -15298,9 +19583,151 @@ class Program
 ");
     }
 
-    [Fact(Skip = "https://github.com/dotnet/roslyn/issues/78829")]
+    [Theory]
+    [InlineData("ref")]
+    [InlineData("ref readonly")]
+    [InlineData("in")]
+    public void IndexerAccess_CompoundAssignment_ReadonlyReceiver_041(string refKind)
+    {
+        // unconstrained extension parameter, ref/ref readonly/in struct value
+        var src = $$$"""
+static class E
+{
+    extension<T>(T x)
+    {
+        public int this[int i]
+        {
+            get { System.Console.Write($"get:{((S1)(object)x).F1} "); Program<S1>.F.F1++; return 0; }
+            set { System.Console.Write($"set:{((S1)(object)x).F1} "); }
+        }
+    }
+}
+
+struct S1
+{
+    public int F1;
+}
+
+class Program<T>
+{
+    public static T F;
+}
+
+class Program
+{
+    static void Main()
+    {
+        Program<S1>.F = new S1 { F1 = 3 };
+        Test1({{{(refKind == "ref" ? "ref" : "in")}}} Program<S1>.F);
+        System.Console.Write($"final:{Program<S1>.F.F1}");
+    }
+
+    static void Test1<T>({{{refKind}}} T f)
+    {
+        f[GetIndex()] += GetValue();
+    }
+
+    static int GetIndex() { System.Console.Write($"GetIndex:{Program<S1>.F.F1} "); Program<S1>.F.F1++; return 1; }
+    static int GetValue() { System.Console.Write($"GetValue:{Program<S1>.F.F1} "); Program<S1>.F.F1++; return 1; }
+}
+""";
+
+        var comp = CreateCompilation(src, options: TestOptions.DebugExe, targetFramework: TargetFramework.Net100);
+        if (refKind == "ref")
+        {
+            var verifier = CompileAndVerify(comp, expectedOutput: ExpectedOutput("GetIndex:3 get:4 GetValue:5 set:6 final:6"), verify: Verification.FailsPEVerify)
+                .VerifyDiagnostics();
+            verifier.VerifyIL($"Program.Test1<T>({refKind} T)", """
+{
+  // Code size       72 (0x48)
+  .maxstack  3
+  .locals init (T V_0,
+                T& V_1,
+                int V_2,
+                T V_3,
+                int V_4)
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  stloc.1
+  IL_0003:  ldloca.s   V_3
+  IL_0005:  initobj    "T"
+  IL_000b:  ldloc.3
+  IL_000c:  box        "T"
+  IL_0011:  brtrue.s   IL_001e
+  IL_0013:  ldloc.1
+  IL_0014:  ldobj      "T"
+  IL_0019:  stloc.0
+  IL_001a:  ldloca.s   V_0
+  IL_001c:  br.s       IL_001f
+  IL_001e:  ldloc.1
+  IL_001f:  call       "int Program.GetIndex()"
+  IL_0024:  stloc.2
+  IL_0025:  dup
+  IL_0026:  ldobj      "T"
+  IL_002b:  ldloc.2
+  IL_002c:  call       "int E.get_Item<T>(T, int)"
+  IL_0031:  call       "int Program.GetValue()"
+  IL_0036:  add
+  IL_0037:  stloc.s    V_4
+  IL_0039:  ldobj      "T"
+  IL_003e:  ldloc.2
+  IL_003f:  ldloc.s    V_4
+  IL_0041:  call       "void E.set_Item<T>(T, int, int)"
+  IL_0046:  nop
+  IL_0047:  ret
+}
+""");
+        }
+        else
+        {
+            var verifier = CompileAndVerify(comp, expectedOutput: ExpectedOutput("GetIndex:3 get:4 GetValue:5 set:6 final:6"), verify: Verification.FailsPEVerify)
+                .VerifyDiagnostics();
+            verifier.VerifyIL($"Program.Test1<T>({refKind} T)", """
+{
+  // Code size       72 (0x48)
+  .maxstack  3
+  .locals init (T V_0,
+                T& V_1,
+                int V_2,
+                T V_3,
+                int V_4)
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  stloc.1
+  IL_0003:  ldloca.s   V_3
+  IL_0005:  initobj    "T"
+  IL_000b:  ldloc.3
+  IL_000c:  box        "T"
+  IL_0011:  brtrue.s   IL_001e
+  IL_0013:  ldloc.1
+  IL_0014:  ldobj      "T"
+  IL_0019:  stloc.0
+  IL_001a:  ldloca.s   V_0
+  IL_001c:  br.s       IL_001f
+  IL_001e:  ldloc.1
+  IL_001f:  call       "int Program.GetIndex()"
+  IL_0024:  stloc.2
+  IL_0025:  dup
+  IL_0026:  ldobj      "T"
+  IL_002b:  ldloc.2
+  IL_002c:  call       "int E.get_Item<T>(T, int)"
+  IL_0031:  call       "int Program.GetValue()"
+  IL_0036:  add
+  IL_0037:  stloc.s    V_4
+  IL_0039:  ldobj      "T"
+  IL_003e:  ldloc.2
+  IL_003f:  ldloc.s    V_4
+  IL_0041:  call       "void E.set_Item<T>(T, int, int)"
+  IL_0046:  nop
+  IL_0047:  ret
+}
+""");
+        }
+    }
+
+    [Fact]
     [WorkItem("https://github.com/dotnet/roslyn/issues/78829")]
-    public void IndexerAccess_CompoundAssignment_WithInterpolationHandler_01()
+    public void IndexerAccess_CompoundAssignment_WithInterpolationHandler_01_01()
     {
         var src = """
 [System.Runtime.CompilerServices.InterpolatedStringHandler]
@@ -15489,19 +19916,208 @@ struct InterpolationHandler
 """;
 
         var comp2 = CreateCompilation([src2, InterpolatedStringHandlerAttribute, InterpolatedStringHandlerArgumentAttribute]);
-        comp2.VerifyDiagnostics(
-            // (15,9): error CS0131: The left-hand side of an assignment must be a variable, property or indexer
-            //         default(S1)[0, $""] += 1;
-            Diagnostic(ErrorCode.ERR_AssgLvalueExpected, @"default(S1)[0, $""""]").WithLocation(15, 9)
-            );
+        comp2.VerifyDiagnostics();
     }
 
-    [Theory(Skip = "https://github.com/dotnet/roslyn/issues/78829")]
+    [Fact]
+    public void IndexerAccess_CompoundAssignment_WithInterpolationHandler_01_02()
+    {
+        var src = """
+[System.Runtime.CompilerServices.InterpolatedStringHandler]
+public struct InterpolationHandler
+{
+
+    public InterpolationHandler(int literalLength, int formattedCount, S1 x)
+    {
+        System.Console.Write(x.F1);
+        Program.F.F1++;
+    }
+    public void AppendLiteral(string value) { }
+    public void AppendFormatted<T>(T hole, int alignment = 0, string format = null) => throw null;
+}
+
+static class E
+{
+    extension(S1 x)
+    {
+        public int this[int i, [System.Runtime.CompilerServices.InterpolatedStringHandlerArgument("x")] InterpolationHandler h]
+        {
+            get
+            {
+                System.Console.Write(x.F1);
+                Program.F.F1++;
+                return 0;
+            }
+            set
+            {
+                System.Console.Write(x.F1);
+            }
+        }
+    }
+}
+
+public struct S1
+{
+    public int F1;
+
+    public readonly void Test()
+    {
+        this[Program.Get1(), $""] += Program.Get1();
+    }
+}
+
+class Program
+{
+    public static S1 F;
+
+    static void Main()
+    {
+        F = new S1 { F1 = 123 };
+        Test1(in F);
+        System.Console.Write(F.F1);
+
+        System.Console.Write(":");
+
+        F = new S1 { F1 = 123 };
+        F.Test();
+        System.Console.Write(F.F1);
+
+        System.Console.Write(":");
+
+        F = new S1 { F1 = 123 };
+        Test2(ref F);
+        System.Console.Write(F.F1);
+    }
+
+    static void Test1(in S1 f)
+    {
+        f[Program.Get1(), $""] += Get1();
+    }
+
+    static void Test2(ref readonly S1 f)
+    {
+        f[Program.Get1(), $""] += Get1();
+    }
+
+    public static int Get1()
+    {
+        Program.F.F1++;
+        return 1;
+    }
+}
+""";
+
+        var comp = CreateCompilation([src, InterpolatedStringHandlerAttribute, InterpolatedStringHandlerArgumentAttribute], options: TestOptions.DebugExe);
+        CompileAndVerify(comp, expectedOutput: "124125127127:124125127127:124125127127", verify: Verification.Skipped).VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void IndexerAccess_CompoundAssignment_WithInterpolationHandler_01_03()
+    {
+        var src = """
+[System.Runtime.CompilerServices.InterpolatedStringHandler]
+public struct InterpolationHandler
+{
+
+    public InterpolationHandler(int literalLength, int formattedCount, S1 x)
+    {
+        System.Console.Write(x.F1);
+    }
+    public void AppendLiteral(string value) { }
+    public void AppendFormatted<T>(T hole, int alignment = 0, string format = null) => throw null;
+}
+
+static class E
+{
+    extension(S1 x)
+    {
+        public int this[int i, [System.Runtime.CompilerServices.InterpolatedStringHandlerArgument("x")] InterpolationHandler h]
+        {
+            get
+            {
+                System.Console.Write(x.F1);
+                return 0;
+            }
+            set
+            {
+                System.Console.Write(x.F1);
+            }
+        }
+    }
+}
+
+public struct S1
+{
+    public int F1;
+}
+
+class Program
+{
+    static void Main()
+    {
+        Test1();
+    }
+
+    static void Test1()
+    {
+        GetTarget()[Program.Get1(), $""] += Get1();
+    }
+
+    static S1 GetTarget() => new S1 { F1 = 123 };
+
+    public static int Get1()
+    {
+        return 1;
+    }
+}
+""";
+
+        var comp = CreateCompilation([src, InterpolatedStringHandlerAttribute, InterpolatedStringHandlerArgumentAttribute], options: TestOptions.DebugExe);
+        var verifier = CompileAndVerify(comp, expectedOutput: "123123123", verify: Verification.Skipped).VerifyDiagnostics();
+
+        verifier.VerifyIL("Program.Test1",
+@"
+{
+  // Code size       48 (0x30)
+  .maxstack  4
+  .locals init (S1 V_0,
+                int V_1,
+                InterpolationHandler V_2,
+                int V_3)
+  IL_0000:  nop
+  IL_0001:  call       ""S1 Program.GetTarget()""
+  IL_0006:  stloc.0
+  IL_0007:  call       ""int Program.Get1()""
+  IL_000c:  stloc.1
+  IL_000d:  ldc.i4.0
+  IL_000e:  ldc.i4.0
+  IL_000f:  ldloc.0
+  IL_0010:  newobj     ""InterpolationHandler..ctor(int, int, S1)""
+  IL_0015:  stloc.2
+  IL_0016:  ldloc.0
+  IL_0017:  ldloc.1
+  IL_0018:  ldloc.2
+  IL_0019:  call       ""int E.get_Item(S1, int, InterpolationHandler)""
+  IL_001e:  call       ""int Program.Get1()""
+  IL_0023:  add
+  IL_0024:  stloc.3
+  IL_0025:  ldloc.0
+  IL_0026:  ldloc.1
+  IL_0027:  ldloc.2
+  IL_0028:  ldloc.3
+  IL_0029:  call       ""void E.set_Item(S1, int, InterpolationHandler, int)""
+  IL_002e:  nop
+  IL_002f:  ret
+}
+");
+    }
+
+    [Theory]
     [WorkItem("https://github.com/dotnet/roslyn/issues/78829")]
     [InlineData("ref")]
     [InlineData("ref readonly")]
     [InlineData("in")]
-    public void IndexerAccess_CompoundAssignment_WithInterpolationHandler_02(string refKind)
+    public void IndexerAccess_CompoundAssignment_WithInterpolationHandler_02_01(string refKind)
     {
         var src = $$$"""
 [System.Runtime.CompilerServices.InterpolatedStringHandler]
@@ -15678,14 +20294,262 @@ struct InterpolationHandler
 """;
 
         var comp2 = CreateCompilation([src2, InterpolatedStringHandlerAttribute, InterpolatedStringHandlerArgumentAttribute]);
-        comp2.VerifyDiagnostics(
-            // (15,9): error CS0131: The left-hand side of an assignment must be a variable, property or indexer
-            //         default(S1)[0, $""] += 1;
-            Diagnostic(ErrorCode.ERR_AssgLvalueExpected, @"default(S1)[0, $""""]").WithLocation(15, 9)
-            );
+        if (refKind == "in")
+        {
+            comp2.VerifyDiagnostics();
+        }
+        else if (refKind == "ref")
+        {
+            comp2.VerifyDiagnostics(
+                // (15,9): error CS1510: A ref or out value must be an assignable variable
+                //         default(S1)[0, $""] += 1;
+                Diagnostic(ErrorCode.ERR_RefLvalueExpected, "default(S1)").WithLocation(15, 9)
+                );
+        }
+        else
+        {
+            comp2.VerifyDiagnostics(
+                // (15,9): warning CS9193: Argument 0 should be a variable because it is passed to a 'ref readonly' parameter
+                //         default(S1)[0, $""] += 1;
+                Diagnostic(ErrorCode.WRN_RefReadonlyNotVariable, "default(S1)").WithArguments("0").WithLocation(15, 9)
+                );
+        }
     }
 
-    [Fact(Skip = "https://github.com/dotnet/roslyn/issues/78829")]
+    [Theory]
+    [InlineData("ref readonly")]
+    [InlineData("in")]
+    public void IndexerAccess_CompoundAssignment_WithInterpolationHandler_02_02(string refKind)
+    {
+        var text0 = @"
+public static class Helper
+{
+    public static unsafe void Assign(ref readonly int i, int value)
+    {
+        fixed (int* f2 = &i)
+        {
+            (*f2) = value;
+        }
+    }
+}
+";
+        var comp0 = CreateCompilation(text0, options: TestOptions.DebugDll.WithAllowUnsafe(true));
+
+        var src = $$$"""
+[System.Runtime.CompilerServices.InterpolatedStringHandler]
+struct InterpolationHandler
+{
+
+    public InterpolationHandler(int literalLength, int formattedCount, {{{refKind}}} S1 x)
+    {
+        System.Console.Write(x.F1);
+        Helper.Assign(in x.F1, x.F1 + 1);
+    }
+    public void AppendLiteral(string value) { }
+    public void AppendFormatted<T>(T hole, int alignment = 0, string format = null) => throw null;
+}
+
+static class E
+{
+    extension({{{refKind}}} S1 x)
+    {
+        public int this[int i, [System.Runtime.CompilerServices.InterpolatedStringHandlerArgument("x")] InterpolationHandler h]
+        {
+            get
+            {
+                System.Console.Write(x.F1);
+                Helper.Assign(in x.F1, x.F1 + 1);
+                return 0;
+            }
+            set
+            {
+                System.Console.Write(x.F1);
+                Helper.Assign(in x.F1, x.F1 + 1);
+            }
+        }
+    }
+}
+
+struct S1
+{
+    public int F1;
+
+    public readonly void Test()
+    {
+        this[Program.Get1(), $""] += Program.Get1();
+    }
+}
+
+class Program
+{
+    public static S1 F;
+
+    static void Main()
+    {
+        F = new S1 { F1 = 123 };
+        Test1(in F);
+        System.Console.Write(F.F1);
+
+        System.Console.Write(":");
+
+        F = new S1 { F1 = 123 };
+        F.Test();
+        System.Console.Write(F.F1);
+
+        System.Console.Write(":");
+
+        F = new S1 { F1 = 123 };
+        Test2(ref F);
+        System.Console.Write(F.F1);
+    }
+
+    static void Test1(in S1 f)
+    {
+        f[Program.Get1(), $""] += Get1();
+    }
+
+    static void Test2(ref readonly S1 f)
+    {
+        f[Program.Get1(), $""] += Get1();
+    }
+
+    public static int Get1()
+    {
+        Program.F.F1++;
+        return 1;
+    }
+}
+""";
+
+        var comp = CreateCompilation([src, InterpolatedStringHandlerAttribute, InterpolatedStringHandlerArgumentAttribute], references: [comp0.EmitToImageReference()], options: TestOptions.DebugExe);
+        CompileAndVerify(comp, expectedOutput: "124125127128:124125127128:124125127128").VerifyDiagnostics();
+    }
+
+    [Theory]
+    [InlineData("ref readonly")]
+    [InlineData("in")]
+    public void IndexerAccess_CompoundAssignment_WithInterpolationHandler_02_03(string refKind)
+    {
+        var text0 = @"
+public static class Helper
+{
+    public static unsafe void Assign(ref readonly int i, int value)
+    {
+        fixed (int* f2 = &i)
+        {
+            (*f2) = value;
+        }
+    }
+}
+";
+        var comp0 = CreateCompilation(text0, options: TestOptions.DebugDll.WithAllowUnsafe(true));
+
+        var src = $$$"""
+[System.Runtime.CompilerServices.InterpolatedStringHandler]
+struct InterpolationHandler
+{
+
+    public InterpolationHandler(int literalLength, int formattedCount, {{{refKind}}} S1 x)
+    {
+        System.Console.Write(x.F1);
+        Helper.Assign(in x.F1, x.F1 + 1);
+    }
+    public void AppendLiteral(string value) { }
+    public void AppendFormatted<T>(T hole, int alignment = 0, string format = null) => throw null;
+}
+
+static class E
+{
+    extension({{{refKind}}} S1 x)
+    {
+        public int this[int i, [System.Runtime.CompilerServices.InterpolatedStringHandlerArgument("x")] InterpolationHandler h]
+        {
+            get
+            {
+                System.Console.Write(x.F1);
+                Helper.Assign(in x.F1, x.F1 + 1);
+                return 0;
+            }
+            set
+            {
+                System.Console.Write(x.F1);
+                Helper.Assign(in x.F1, x.F1 + 1);
+            }
+        }
+    }
+}
+
+struct S1
+{
+    public int F1;
+}
+
+class Program
+{
+    static void Main()
+    {
+        Test1();
+    }
+
+    static void Test1()
+    {
+        GetTarget()[Program.Get1(), $""] += Get1();
+    }
+
+    static S1 GetTarget() => new S1 { F1 = 123 };
+
+    public static int Get1()
+    {
+        return 1;
+    }
+}
+""";
+
+        var comp = CreateCompilation([src, InterpolatedStringHandlerAttribute, InterpolatedStringHandlerArgumentAttribute], references: [comp0.EmitToImageReference()], options: TestOptions.DebugExe);
+        var verifier = CompileAndVerify(comp, expectedOutput: "123124125").VerifyDiagnostics(
+            refKind == "in" ? [] :
+            [
+                // (49,9): warning CS9193: Argument 0 should be a variable because it is passed to a 'ref readonly' parameter
+                //         GetTarget()[Program.Get1(), $""] += Get1();
+                Diagnostic(ErrorCode.WRN_RefReadonlyNotVariable, "GetTarget()").WithArguments("0").WithLocation(49, 9)
+            ]
+            );
+
+        verifier.VerifyIL("Program.Test1",
+$$$"""
+{
+  // Code size       49 (0x31)
+  .maxstack  6
+  .locals init (S1 V_0,
+            int V_1,
+            InterpolationHandler V_2)
+  IL_0000:  nop
+  IL_0001:  call       "S1 Program.GetTarget()"
+  IL_0006:  stloc.0
+  IL_0007:  call       "int Program.Get1()"
+  IL_000c:  stloc.1
+  IL_000d:  ldc.i4.0
+  IL_000e:  ldc.i4.0
+  IL_000f:  ldloca.s   V_0
+  IL_0011:  newobj     "InterpolationHandler..ctor(int, int, {{{refKind}}} S1)"
+  IL_0016:  stloc.2
+  IL_0017:  ldloca.s   V_0
+  IL_0019:  ldloc.1
+  IL_001a:  ldloc.2
+  IL_001b:  ldloca.s   V_0
+  IL_001d:  ldloc.1
+  IL_001e:  ldloc.2
+  IL_001f:  call       "int E.get_Item({{{refKind}}} S1, int, InterpolationHandler)"
+  IL_0024:  call       "int Program.Get1()"
+  IL_0029:  add
+  IL_002a:  call       "void E.set_Item({{{refKind}}} S1, int, InterpolationHandler, int)"
+  IL_002f:  nop
+  IL_0030:  ret
+}
+""");
+    }
+
+    [Fact]
     [WorkItem("https://github.com/dotnet/roslyn/issues/78829")]
     public void IndexerAccess_CompoundAssignment_WithInterpolationHandler_03()
     {
@@ -15789,9 +20653,9 @@ class Program
 ");
     }
 
-    [Fact(Skip = "https://github.com/dotnet/roslyn/issues/78829")]
+    [Fact]
     [WorkItem("https://github.com/dotnet/roslyn/issues/78829")]
-    public void IndexerAccess_CompoundAssignment_WithInterpolationHandler_04()
+    public void IndexerAccess_CompoundAssignment_WithInterpolationHandler_04_01()
     {
         var src = """
 using System.Threading.Tasks;
@@ -16038,9 +20902,6 @@ struct InterpolationHandler<TR>
 
         var comp2 = CreateCompilation([src2, InterpolatedStringHandlerAttribute, InterpolatedStringHandlerArgumentAttribute]);
         comp2.VerifyDiagnostics(
-            // (13,9): error CS0131: The left-hand side of an assignment must be a variable, property or indexer
-            //         default(T)[0, $""] += 1;
-            Diagnostic(ErrorCode.ERR_AssgLvalueExpected, @"default(T)[0, $""""]").WithLocation(13, 9),
             // (21,25): error CS9301: The 'in' or 'ref readonly' receiver parameter of extension must be a concrete (non-generic) value type.
             //         extension<T>(in T x) where T : struct
             Diagnostic(ErrorCode.ERR_InExtensionParameterMustBeValueType, "T").WithLocation(21, 25),
@@ -16050,7 +20911,207 @@ struct InterpolationHandler<TR>
             );
     }
 
-    [Fact(Skip = "https://github.com/dotnet/roslyn/issues/78829")]
+    [Theory]
+    [InlineData("ref readonly")]
+    [InlineData("in")]
+    public void IndexerAccess_CompoundAssignment_WithInterpolationHandler_04_02(string refKind)
+    {
+        var src = $$$"""
+[System.Runtime.CompilerServices.InterpolatedStringHandler]
+struct InterpolationHandler<TR>
+{
+
+    public InterpolationHandler(int literalLength, int formattedCount, TR x)
+    {
+        System.Console.Write(((S1)(object)x).F1);
+        Program<S1>.F.F1++;
+    }
+    public void AppendLiteral(string value) { }
+    public void AppendFormatted<T>(T hole, int alignment = 0, string format = null) => throw null;
+}
+
+
+static class E
+{
+    extension<T>(T x)
+    {
+        public int this[int i, [System.Runtime.CompilerServices.InterpolatedStringHandlerArgument("x")] InterpolationHandler<T> h]
+        {
+            get
+            {
+                System.Console.Write(((S1)(object)x).F1);
+                Program<S1>.F.F1++;
+                return 0;
+            }
+            set
+            {
+                System.Console.Write(((S1)(object)x).F1);
+            }
+        }
+    }
+}
+
+struct S1
+{
+    public int F1;
+}
+
+class Program<T>
+{
+    public static T F;
+}
+
+class Program
+{
+    static void Main()
+    {
+        Program<S1>.F = new S1 { F1 = 123 };
+        Test1({{{refKind.Substring(0, Math.Min(3, refKind.Length))}}} Program<S1>.F);
+        System.Console.Write(Program<S1>.F.F1);
+
+        System.Console.Write(":");
+
+        Program<S1>.F = new S1 { F1 = 123 };
+        Test2({{{refKind.Substring(0, Math.Min(3, refKind.Length))}}} Program<S1>.F);
+        System.Console.Write(Program<S1>.F.F1);
+    }
+
+    static void Test1<T>({{{refKind}}} T f)
+    {
+        f[Get1(), $""] += Get1();
+    }
+
+    static void Test2<T>({{{refKind}}} T f) where T : struct
+    {
+        f[Get1(), $""] += Get1();
+    }
+
+    static int Get1()
+    {
+        Program<S1>.F.F1++;
+        return 1;
+    }
+}
+""";
+
+        var comp = CreateCompilation([src, InterpolatedStringHandlerAttribute, InterpolatedStringHandlerArgumentAttribute], options: TestOptions.DebugExe);
+        CompileAndVerify(comp, expectedOutput: "124125127127:124125127127").VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void IndexerAccess_CompoundAssignment_WithInterpolationHandler_04_03()
+    {
+        var src = """
+[System.Runtime.CompilerServices.InterpolatedStringHandler]
+struct InterpolationHandler<TR>
+{
+
+    public InterpolationHandler(int literalLength, int formattedCount, TR x)
+    {
+        System.Console.Write(((S1)(object)x).F1);
+    }
+    public void AppendLiteral(string value) { }
+    public void AppendFormatted<T>(T hole, int alignment = 0, string format = null) => throw null;
+}
+
+
+static class E
+{
+    extension<T>(T x)
+    {
+        public int this[int i, [System.Runtime.CompilerServices.InterpolatedStringHandlerArgument("x")] InterpolationHandler<T> h]
+        {
+            get
+            {
+                System.Console.Write(((S1)(object)x).F1);
+                return 0;
+            }
+            set
+            {
+                System.Console.Write(((S1)(object)x).F1);
+            }
+        }
+    }
+}
+
+struct S1
+{
+    public int F1;
+}
+
+class Program
+{
+    static void Main()
+    {
+        Test1<S1>();
+
+        System.Console.Write(":");
+
+        Test2<S1>();
+    }
+
+    static void Test1<T>()
+    {
+        GetTarget<T>()[Get1(), $""] += Get1();
+    }
+
+    static void Test2<T>() where T : struct
+    {
+        GetTarget<T>()[Get1(), $""] += Get1();
+    }
+
+    static T GetTarget<T>() => (T)(object)new S1 { F1 = 123 };
+
+    static int Get1()
+    {
+        return 1;
+    }
+}
+""";
+
+        var comp = CreateCompilation([src, InterpolatedStringHandlerAttribute, InterpolatedStringHandlerArgumentAttribute], options: TestOptions.DebugExe);
+        var verifier = CompileAndVerify(comp, expectedOutput: "123123123:123123123").VerifyDiagnostics();
+
+        var expected =
+@"
+{
+  // Code size       48 (0x30)
+  .maxstack  4
+  .locals init (T V_0,
+            int V_1,
+            InterpolationHandler<T> V_2,
+            int V_3)
+  IL_0000:  nop
+  IL_0001:  call       ""T Program.GetTarget<T>()""
+  IL_0006:  stloc.0
+  IL_0007:  call       ""int Program.Get1()""
+  IL_000c:  stloc.1
+  IL_000d:  ldc.i4.0
+  IL_000e:  ldc.i4.0
+  IL_000f:  ldloc.0
+  IL_0010:  newobj     ""InterpolationHandler<T>..ctor(int, int, T)""
+  IL_0015:  stloc.2
+  IL_0016:  ldloc.0
+  IL_0017:  ldloc.1
+  IL_0018:  ldloc.2
+  IL_0019:  call       ""int E.get_Item<T>(T, int, InterpolationHandler<T>)""
+  IL_001e:  call       ""int Program.Get1()""
+  IL_0023:  add
+  IL_0024:  stloc.3
+  IL_0025:  ldloc.0
+  IL_0026:  ldloc.1
+  IL_0027:  ldloc.2
+  IL_0028:  ldloc.3
+  IL_0029:  call       ""void E.set_Item<T>(T, int, InterpolationHandler<T>, int)""
+  IL_002e:  nop
+  IL_002f:  ret
+}
+";
+        verifier.VerifyIL("Program.Test1<T>", expected);
+        verifier.VerifyIL("Program.Test2<T>", expected);
+    }
+
+    [Fact]
     [WorkItem("https://github.com/dotnet/roslyn/issues/78829")]
     public void IndexerAccess_CompoundAssignment_WithInterpolationHandler_05()
     {
@@ -16227,9 +21288,9 @@ struct InterpolationHandler<TR>
 
         var comp2 = CreateCompilation([src2, InterpolatedStringHandlerAttribute, InterpolatedStringHandlerArgumentAttribute]);
         comp2.VerifyDiagnostics(
-            // (13,9): error CS0131: The left-hand side of an assignment must be a variable, property or indexer
+            // (13,9): error CS1510: A ref or out value must be an assignable variable
             //         default(T)[0, $""] += 1;
-            Diagnostic(ErrorCode.ERR_AssgLvalueExpected, @"default(T)[0, $""""]").WithLocation(13, 9),
+            Diagnostic(ErrorCode.ERR_RefLvalueExpected, "default(T)").WithLocation(13, 9),
             // (21,25): error CS9301: The 'in' or 'ref readonly' receiver parameter of extension must be a concrete (non-generic) value type.
             //         extension<T>(in T x) where T : struct
             Diagnostic(ErrorCode.ERR_InExtensionParameterMustBeValueType, "T").WithLocation(21, 25),
@@ -16239,7 +21300,7 @@ struct InterpolationHandler<TR>
             );
     }
 
-    [Fact(Skip = "https://github.com/dotnet/roslyn/issues/78829")]
+    [Fact]
     [WorkItem("https://github.com/dotnet/roslyn/issues/78829")]
     public void IndexerAccess_CompoundAssignment_WithInterpolationHandler_06()
     {
@@ -16432,7 +21493,7 @@ class Program
 ");
     }
 
-    [Fact(Skip = "https://github.com/dotnet/roslyn/issues/78829")]
+    [Fact]
     [WorkItem("https://github.com/dotnet/roslyn/issues/78829")]
     [WorkItem("https://github.com/dotnet/roslyn/issues/79415")]
     public void IndexerAccess_CompoundAssignment_WithInterpolationHandler_07()
@@ -16514,7 +21575,7 @@ class Program
 """;
 
         var comp = CreateCompilation([src, InterpolatedStringHandlerAttribute, InterpolatedStringHandlerArgumentAttribute], options: TestOptions.DebugExe);
-        var verifier = CompileAndVerify(comp, expectedOutput: "123123:123123").VerifyDiagnostics();
+        var verifier = CompileAndVerify(comp, expectedOutput: "123123123:123123123").VerifyDiagnostics();
 
         verifier.VerifyIL("Program.Test1<T>()",
 @"
@@ -16553,7 +21614,7 @@ class Program
 ");
     }
 
-    [Fact(Skip = "https://github.com/dotnet/roslyn/issues/78829")]
+    [Fact]
     [WorkItem("https://github.com/dotnet/roslyn/issues/78829")]
     [WorkItem("https://github.com/dotnet/roslyn/issues/79415")]
     public void IndexerAccess_CompoundAssignment_WithInterpolationHandler_08()
@@ -16643,7 +21704,7 @@ class Program
 """;
 
         var comp = CreateCompilation([src, InterpolatedStringHandlerAttribute, InterpolatedStringHandlerArgumentAttribute], options: TestOptions.DebugExe);
-        var verifier = CompileAndVerify(comp, expectedOutput: "123123123:123123123").VerifyDiagnostics();
+        var verifier = CompileAndVerify(comp, expectedOutput: "123123123:123123123:123123123").VerifyDiagnostics();
 
         verifier.VerifyIL("Program.Test1<T>()",
 @"
@@ -16715,9 +21776,9 @@ class Program
 ");
     }
 
-    [Fact(Skip = "https://github.com/dotnet/roslyn/issues/78829")]
+    [Fact]
     [WorkItem("https://github.com/dotnet/roslyn/issues/78829")]
-    public void IndexerAccess_Set_WithInterpolationHandler_01()
+    public void IndexerAccess_Set_WithInterpolationHandler_01_01()
     {
         var src = """
 [System.Runtime.CompilerServices.InterpolatedStringHandler]
@@ -16892,19 +21953,191 @@ struct InterpolationHandler
 """;
 
         var comp2 = CreateCompilation([src2, InterpolatedStringHandlerAttribute, InterpolatedStringHandlerArgumentAttribute]);
-        comp2.VerifyDiagnostics(
-            // (15,9): error CS0131: The left-hand side of an assignment must be a variable, property or indexer
-            //         default(S1)[0, $""] += 1;
-            Diagnostic(ErrorCode.ERR_AssgLvalueExpected, @"default(S1)[0, $""""]").WithLocation(15, 9)
-            );
+        comp2.VerifyDiagnostics();
     }
 
-    [Theory(Skip = "https://github.com/dotnet/roslyn/issues/78829")]
+    [Fact]
+    public void IndexerAccess_Set_WithInterpolationHandler_01_02()
+    {
+        var src = """
+[System.Runtime.CompilerServices.InterpolatedStringHandler]
+public struct InterpolationHandler
+{
+
+    public InterpolationHandler(int literalLength, int formattedCount, S1 x)
+    {
+        System.Console.Write(x.F1);
+        Program.F.F1++;
+    }
+    public void AppendLiteral(string value) { }
+    public void AppendFormatted<T>(T hole, int alignment = 0, string format = null) => throw null;
+}
+
+static class E
+{
+    extension(S1 x)
+    {
+        public int this[int i, [System.Runtime.CompilerServices.InterpolatedStringHandlerArgument("x")] InterpolationHandler h]
+        {
+            get
+            {
+                return 0;
+            }
+            set
+            {
+                System.Console.Write(x.F1);
+            }
+        }
+    }
+}
+
+public struct S1
+{
+    public int F1;
+
+    public readonly void Test()
+    {
+        this[Program.Get1(), $""] = Program.Get1();
+    }
+}
+
+class Program
+{
+    public static S1 F;
+
+    static void Main()
+    {
+        F = new S1 { F1 = 123 };
+        Test1(in F);
+        System.Console.Write(F.F1);
+
+        System.Console.Write(":");
+
+        F = new S1 { F1 = 123 };
+        F.Test();
+        System.Console.Write(F.F1);
+
+        System.Console.Write(":");
+
+        F = new S1 { F1 = 123 };
+        Test2(ref F);
+        System.Console.Write(F.F1);
+    }
+
+    static void Test1(in S1 f)
+    {
+        f[Program.Get1(), $""] = Get1();
+    }
+
+    static void Test2(ref readonly S1 f)
+    {
+        f[Program.Get1(), $""] = Get1();
+    }
+
+    public static int Get1()
+    {
+        Program.F.F1++;
+        return 1;
+    }
+}
+""";
+
+        var comp = CreateCompilation([src, InterpolatedStringHandlerAttribute, InterpolatedStringHandlerArgumentAttribute], options: TestOptions.DebugExe);
+        CompileAndVerify(comp, expectedOutput: "124126126:124126126:124126126", verify: Verification.Skipped).VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void IndexerAccess_Set_WithInterpolationHandler_01_03()
+    {
+        var src = """
+[System.Runtime.CompilerServices.InterpolatedStringHandler]
+public struct InterpolationHandler
+{
+
+    public InterpolationHandler(int literalLength, int formattedCount, S1 x)
+    {
+        System.Console.Write(x.F1);
+    }
+    public void AppendLiteral(string value) { }
+    public void AppendFormatted<T>(T hole, int alignment = 0, string format = null) => throw null;
+}
+
+static class E
+{
+    extension(S1 x)
+    {
+        public int this[int i, [System.Runtime.CompilerServices.InterpolatedStringHandlerArgument("x")] InterpolationHandler h]
+        {
+            get
+            {
+                return 0;
+            }
+            set
+            {
+                System.Console.Write(x.F1);
+            }
+        }
+    }
+}
+
+public struct S1
+{
+    public int F1;
+}
+
+class Program
+{
+    static void Main()
+    {
+        Test1();
+    }
+
+    static void Test1()
+    {
+        GetTarget()[Program.Get1(), $""] = Get1();
+    }
+
+    static S1 GetTarget() => new S1 { F1 = 123 };
+
+    public static int Get1()
+    {
+        return 1;
+    }
+}
+""";
+
+        var comp = CreateCompilation([src, InterpolatedStringHandlerAttribute, InterpolatedStringHandlerArgumentAttribute], options: TestOptions.DebugExe);
+        var verifier = CompileAndVerify(comp, expectedOutput: "123123", verify: Verification.Skipped).VerifyDiagnostics();
+
+        verifier.VerifyIL("Program.Test1",
+@"
+{
+  // Code size       33 (0x21)
+  .maxstack  5
+  .locals init (S1 V_0)
+  IL_0000:  nop
+  IL_0001:  call       ""S1 Program.GetTarget()""
+  IL_0006:  stloc.0
+  IL_0007:  ldloc.0
+  IL_0008:  call       ""int Program.Get1()""
+  IL_000d:  ldc.i4.0
+  IL_000e:  ldc.i4.0
+  IL_000f:  ldloc.0
+  IL_0010:  newobj     ""InterpolationHandler..ctor(int, int, S1)""
+  IL_0015:  call       ""int Program.Get1()""
+  IL_001a:  call       ""void E.set_Item(S1, int, InterpolationHandler, int)""
+  IL_001f:  nop
+  IL_0020:  ret
+}
+");
+    }
+
+    [Theory]
     [WorkItem("https://github.com/dotnet/roslyn/issues/78829")]
     [InlineData("ref")]
     [InlineData("ref readonly")]
     [InlineData("in")]
-    public void IndexerAccess_Set_WithInterpolationHandler_02(string refKind)
+    public void IndexerAccess_Set_WithInterpolationHandler_02_01(string refKind)
     {
         var src = $$$"""
 [System.Runtime.CompilerServices.InterpolatedStringHandler]
@@ -17059,14 +22292,250 @@ struct InterpolationHandler
 """;
 
         var comp2 = CreateCompilation([src2, InterpolatedStringHandlerAttribute, InterpolatedStringHandlerArgumentAttribute]);
-        comp2.VerifyDiagnostics(
-            // (15,9): error CS0131: The left-hand side of an assignment must be a variable, property or indexer
-            //         default(S1)[0, $""] += 1;
-            Diagnostic(ErrorCode.ERR_AssgLvalueExpected, @"default(S1)[0, $""""]").WithLocation(15, 9)
-            );
+        if (refKind == "in")
+        {
+            comp2.VerifyDiagnostics();
+        }
+        else if (refKind == "ref readonly")
+        {
+            comp2.VerifyDiagnostics(
+                // (15,9): warning CS9193: Argument 0 should be a variable because it is passed to a 'ref readonly' parameter
+                //         default(S1)[0, $""] = 1;
+                Diagnostic(ErrorCode.WRN_RefReadonlyNotVariable, "default(S1)").WithArguments("0").WithLocation(15, 9)
+                );
+        }
+        else
+        {
+            comp2.VerifyDiagnostics(
+                // (15,9): error CS1510: A ref or out value must be an assignable variable
+                //         default(S1)[0, $""] = 1;
+                Diagnostic(ErrorCode.ERR_RefLvalueExpected, "default(S1)").WithLocation(15, 9));
+        }
     }
 
-    [Fact(Skip = "https://github.com/dotnet/roslyn/issues/78829")]
+    [Theory]
+    [InlineData("ref readonly")]
+    [InlineData("in")]
+    public void IndexerAccess_Set_WithInterpolationHandler_02_02(string refKind)
+    {
+        var text0 = @"
+public static class Helper
+{
+    public static unsafe void Assign(ref readonly int i, int value)
+    {
+        fixed (int* f2 = &i)
+        {
+            (*f2) = value;
+        }
+    }
+}
+";
+        var comp0 = CreateCompilation(text0, options: TestOptions.DebugDll.WithAllowUnsafe(true));
+
+        var src = $$$"""
+[System.Runtime.CompilerServices.InterpolatedStringHandler]
+struct InterpolationHandler
+{
+
+    public InterpolationHandler(int literalLength, int formattedCount, {{{refKind}}} S1 x)
+    {
+        System.Console.Write(x.F1);
+        Helper.Assign(in x.F1, x.F1 + 1);
+    }
+    public void AppendLiteral(string value) { }
+    public void AppendFormatted<T>(T hole, int alignment = 0, string format = null) => throw null;
+}
+
+static class E
+{
+    extension({{{refKind}}} S1 x)
+    {
+        public int this[int i, [System.Runtime.CompilerServices.InterpolatedStringHandlerArgument("x")] InterpolationHandler h]
+        {
+            get
+            {
+                System.Console.Write(x.F1);
+                Helper.Assign(in x.F1, x.F1 + 1);
+                return 0;
+            }
+            set
+            {
+                System.Console.Write(x.F1);
+                Helper.Assign(in x.F1, x.F1 + 1);
+            }
+        }
+    }
+}
+
+struct S1
+{
+    public int F1;
+
+    public readonly void Test()
+    {
+        this[Program.Get1(), $""] = Program.Get1();
+    }
+}
+
+class Program
+{
+    public static S1 F;
+
+    static void Main()
+    {
+        F = new S1 { F1 = 123 };
+        Test1(in F);
+        System.Console.Write(F.F1);
+
+        System.Console.Write(":");
+
+        F = new S1 { F1 = 123 };
+        F.Test();
+        System.Console.Write(F.F1);
+
+        System.Console.Write(":");
+
+        F = new S1 { F1 = 123 };
+        Test2(ref F);
+        System.Console.Write(F.F1);
+    }
+
+    static void Test1(in S1 f)
+    {
+        f[Program.Get1(), $""] = Get1();
+    }
+
+    static void Test2(ref readonly S1 f)
+    {
+        f[Program.Get1(), $""] = Get1();
+    }
+
+    public static int Get1()
+    {
+        Program.F.F1++;
+        return 1;
+    }
+}
+""";
+
+        var comp = CreateCompilation([src, InterpolatedStringHandlerAttribute, InterpolatedStringHandlerArgumentAttribute], references: [comp0.EmitToImageReference()], options: TestOptions.DebugExe);
+        CompileAndVerify(comp, expectedOutput: "124126127:124126127:124126127").VerifyDiagnostics();
+    }
+
+    [Theory]
+    [InlineData("ref readonly")]
+    [InlineData("in")]
+    public void IndexerAccess_Set_WithInterpolationHandler_02_03(string refKind)
+    {
+        var text0 = @"
+public static class Helper
+{
+    public static unsafe void Assign(ref readonly int i, int value)
+    {
+        fixed (int* f2 = &i)
+        {
+            (*f2) = value;
+        }
+    }
+}
+";
+        var comp0 = CreateCompilation(text0, options: TestOptions.DebugDll.WithAllowUnsafe(true));
+
+        var src = $$$"""
+[System.Runtime.CompilerServices.InterpolatedStringHandler]
+struct InterpolationHandler
+{
+
+    public InterpolationHandler(int literalLength, int formattedCount, {{{refKind}}} S1 x)
+    {
+        System.Console.Write(x.F1);
+        Helper.Assign(in x.F1, x.F1 + 1);
+    }
+    public void AppendLiteral(string value) { }
+    public void AppendFormatted<T>(T hole, int alignment = 0, string format = null) => throw null;
+}
+
+static class E
+{
+    extension({{{refKind}}} S1 x)
+    {
+        public int this[int i, [System.Runtime.CompilerServices.InterpolatedStringHandlerArgument("x")] InterpolationHandler h]
+        {
+            get
+            {
+                System.Console.Write(x.F1);
+                Helper.Assign(in x.F1, x.F1 + 1);
+                return 0;
+            }
+            set
+            {
+                System.Console.Write(x.F1);
+                Helper.Assign(in x.F1, x.F1 + 1);
+            }
+        }
+    }
+}
+
+struct S1
+{
+    public int F1;
+}
+
+class Program
+{
+    static void Main()
+    {
+        Test1();
+    }
+
+    static void Test1()
+    {
+        GetTarget()[Program.Get1(), $""] = Get1();
+    }
+
+    static S1 GetTarget() => new S1 { F1 = 123 };
+
+    public static int Get1()
+    {
+        return 1;
+    }
+}
+""";
+
+        var comp = CreateCompilation([src, InterpolatedStringHandlerAttribute, InterpolatedStringHandlerArgumentAttribute], references: [comp0.EmitToImageReference()], options: TestOptions.DebugExe);
+        var verifier = CompileAndVerify(comp, expectedOutput: "123124").VerifyDiagnostics(
+            refKind == "in" ? [] :
+            [
+                // (49,9): warning CS9193: Argument 0 should be a variable because it is passed to a 'ref readonly' parameter
+                //         GetTarget()[Program.Get1(), $""] = Get1();
+                Diagnostic(ErrorCode.WRN_RefReadonlyNotVariable, "GetTarget()").WithArguments("0").WithLocation(49, 9)
+            ]
+            );
+
+        verifier.VerifyIL("Program.Test1",
+$$$"""
+{
+  // Code size       35 (0x23)
+  .maxstack  5
+  .locals init (S1 V_0)
+  IL_0000:  nop
+  IL_0001:  call       "S1 Program.GetTarget()"
+  IL_0006:  stloc.0
+  IL_0007:  ldloca.s   V_0
+  IL_0009:  call       "int Program.Get1()"
+  IL_000e:  ldc.i4.0
+  IL_000f:  ldc.i4.0
+  IL_0010:  ldloca.s   V_0
+  IL_0012:  newobj     "InterpolationHandler..ctor(int, int, {{{refKind}}} S1)"
+  IL_0017:  call       "int Program.Get1()"
+  IL_001c:  call       "void E.set_Item({{{refKind}}} S1, int, InterpolationHandler, int)"
+  IL_0021:  nop
+  IL_0022:  ret
+}
+""");
+    }
+
+    [Fact]
     [WorkItem("https://github.com/dotnet/roslyn/issues/78829")]
     public void IndexerAccess_Set_WithInterpolationHandler_03()
     {
@@ -17159,10 +22628,10 @@ class Program
 ");
     }
 
-    [Fact(Skip = "https://github.com/dotnet/roslyn/issues/78829")]
+    [Fact]
     [WorkItem("https://github.com/dotnet/roslyn/issues/78829")]
     [WorkItem("https://github.com/dotnet/roslyn/issues/79416")]
-    public void IndexerAccess_Set_WithInterpolationHandler_04()
+    public void IndexerAccess_Set_WithInterpolationHandler_04_01()
     {
         var src = """
 using System.Threading.Tasks;
@@ -17225,12 +22694,11 @@ class Program
         Test2(ref Program<S1>.F);
         System.Console.Write(Program<S1>.F.F1);
 
-        // https://github.com/dotnet/roslyn/issues/79416 - uncomment the following code once fixed
-        //System.Console.Write(":");
+        System.Console.Write(":");
 
-        //Program<S1>.F = new S1 { F1 = 123 };
-        //await Test3<S1>();
-        //System.Console.Write(Program<S1>.F.F1);
+        Program<S1>.F = new S1 { F1 = 123 };
+        await Test3<S1>();
+        System.Console.Write(Program<S1>.F.F1);
     }
 
     static void Test1<T>(ref T f)
@@ -17249,23 +22717,22 @@ class Program
         return 1;
     }
 
-    // https://github.com/dotnet/roslyn/issues/79416 - uncomment the following code once fixed
-    //static async Task Test3<T>()
-    //{
-    //    Program<T>.F[Get1(), $""] = await Get1Async();
-    //}
+    static async Task Test3<T>()
+    {
+        Program<T>.F[Get1(), $""] = await Get1Async();
+    }
 
-    //static async Task<int> Get1Async()
-    //{
-    //    Program<S1>.F.F1++;
-    //    await Task.Yield();
-    //    return 1;
-    //}
+    static async Task<int> Get1Async()
+    {
+        Program<S1>.F.F1++;
+        await Task.Yield();
+        return 1;
+    }
 }
 """;
 
         var comp = CreateCompilation([src, InterpolatedStringHandlerAttribute, InterpolatedStringHandlerArgumentAttribute], options: TestOptions.DebugExe);
-        var verifier = CompileAndVerify(comp, expectedOutput: "124126126:124126126").VerifyDiagnostics();
+        var verifier = CompileAndVerify(comp, expectedOutput: "124126126:124126126:124126126").VerifyDiagnostics();
 
         verifier.VerifyIL("Program.Test1<T>(ref T)",
 @"
@@ -17399,9 +22866,6 @@ struct InterpolationHandler<TR>
 
         var comp2 = CreateCompilation([src2, InterpolatedStringHandlerAttribute, InterpolatedStringHandlerArgumentAttribute]);
         comp2.VerifyDiagnostics(
-            // (13,9): error CS0131: The left-hand side of an assignment must be a variable, property or indexer
-            //         default(T)[0, $""] += 1;
-            Diagnostic(ErrorCode.ERR_AssgLvalueExpected, @"default(T)[0, $""""]").WithLocation(13, 9),
             // (21,25): error CS9301: The 'in' or 'ref readonly' receiver parameter of extension must be a concrete (non-generic) value type.
             //         extension<T>(in T x) where T : struct
             Diagnostic(ErrorCode.ERR_InExtensionParameterMustBeValueType, "T").WithLocation(21, 25),
@@ -17411,7 +22875,193 @@ struct InterpolationHandler<TR>
             );
     }
 
-    [Fact(Skip = "https://github.com/dotnet/roslyn/issues/78829")]
+    [Theory]
+    [InlineData("ref readonly")]
+    [InlineData("in")]
+    public void IndexerAccess_Set_WithInterpolationHandler_04_02(string refKind)
+    {
+        var src = $$$"""
+[System.Runtime.CompilerServices.InterpolatedStringHandler]
+struct InterpolationHandler<TR>
+{
+
+    public InterpolationHandler(int literalLength, int formattedCount, TR x)
+    {
+        System.Console.Write(((S1)(object)x).F1);
+        Program<S1>.F.F1++;
+    }
+    public void AppendLiteral(string value) { }
+    public void AppendFormatted<T>(T hole, int alignment = 0, string format = null) => throw null;
+}
+
+
+static class E
+{
+    extension<T>(T x)
+    {
+        public int this[int i, [System.Runtime.CompilerServices.InterpolatedStringHandlerArgument("x")] InterpolationHandler<T> h]
+        {
+            get
+            {
+                System.Console.Write(((S1)(object)x).F1);
+                Program<S1>.F.F1++;
+                return 0;
+            }
+            set
+            {
+                System.Console.Write(((S1)(object)x).F1);
+            }
+        }
+    }
+}
+
+struct S1
+{
+    public int F1;
+}
+
+class Program<T>
+{
+    public static T F;
+}
+
+class Program
+{
+    static void Main()
+    {
+        Program<S1>.F = new S1 { F1 = 123 };
+        Test1({{{refKind.Substring(0, Math.Min(3, refKind.Length))}}} Program<S1>.F);
+        System.Console.Write(Program<S1>.F.F1);
+
+        System.Console.Write(":");
+
+        Program<S1>.F = new S1 { F1 = 123 };
+        Test2({{{refKind.Substring(0, Math.Min(3, refKind.Length))}}} Program<S1>.F);
+        System.Console.Write(Program<S1>.F.F1);
+    }
+
+    static void Test1<T>({{{refKind}}} T f)
+    {
+        f[Get1(), $""] = Get1();
+    }
+
+    static void Test2<T>({{{refKind}}} T f) where T : struct
+    {
+        f[Get1(), $""] = Get1();
+    }
+
+    static int Get1()
+    {
+        Program<S1>.F.F1++;
+        return 1;
+    }
+}
+""";
+
+        var comp = CreateCompilation([src, InterpolatedStringHandlerAttribute, InterpolatedStringHandlerArgumentAttribute], options: TestOptions.DebugExe);
+        CompileAndVerify(comp, expectedOutput: "124126126:124126126").VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void IndexerAccess_Set_WithInterpolationHandler_04_03()
+    {
+        var src = """
+[System.Runtime.CompilerServices.InterpolatedStringHandler]
+struct InterpolationHandler<TR>
+{
+
+    public InterpolationHandler(int literalLength, int formattedCount, TR x)
+    {
+        System.Console.Write(((S1)(object)x).F1);
+    }
+    public void AppendLiteral(string value) { }
+    public void AppendFormatted<T>(T hole, int alignment = 0, string format = null) => throw null;
+}
+
+
+static class E
+{
+    extension<T>(T x)
+    {
+        public int this[int i, [System.Runtime.CompilerServices.InterpolatedStringHandlerArgument("x")] InterpolationHandler<T> h]
+        {
+            get
+            {
+                System.Console.Write(((S1)(object)x).F1);
+                return 0;
+            }
+            set
+            {
+                System.Console.Write(((S1)(object)x).F1);
+            }
+        }
+    }
+}
+
+struct S1
+{
+    public int F1;
+}
+
+class Program
+{
+    static void Main()
+    {
+        Test1<S1>();
+
+        System.Console.Write(":");
+
+        Test2<S1>();
+    }
+
+    static void Test1<T>()
+    {
+        GetTarget<T>()[Get1(), $""] = Get1();
+    }
+
+    static void Test2<T>() where T : struct
+    {
+        GetTarget<T>()[Get1(), $""] = Get1();
+    }
+
+    static T GetTarget<T>() => (T)(object)new S1 { F1 = 123 };
+
+    static int Get1()
+    {
+        return 1;
+    }
+}
+""";
+
+        var comp = CreateCompilation([src, InterpolatedStringHandlerAttribute, InterpolatedStringHandlerArgumentAttribute], options: TestOptions.DebugExe);
+        var verifier = CompileAndVerify(comp, expectedOutput: "123123:123123").VerifyDiagnostics();
+
+        var expected =
+@"
+{
+  // Code size       33 (0x21)
+  .maxstack  5
+  .locals init (T V_0)
+  IL_0000:  nop
+  IL_0001:  call       ""T Program.GetTarget<T>()""
+  IL_0006:  stloc.0
+  IL_0007:  ldloc.0
+  IL_0008:  call       ""int Program.Get1()""
+  IL_000d:  ldc.i4.0
+  IL_000e:  ldc.i4.0
+  IL_000f:  ldloc.0
+  IL_0010:  newobj     ""InterpolationHandler<T>..ctor(int, int, T)""
+  IL_0015:  call       ""int Program.Get1()""
+  IL_001a:  call       ""void E.set_Item<T>(T, int, InterpolationHandler<T>, int)""
+  IL_001f:  nop
+  IL_0020:  ret
+}
+";
+        verifier.VerifyIL("Program.Test1<T>", expected);
+        verifier.VerifyIL("Program.Test2<T>", expected);
+    }
+
+    [Fact]
     [WorkItem("https://github.com/dotnet/roslyn/issues/78829")]
     public void IndexerAccess_Set_WithInterpolationHandler_05()
     {
@@ -17577,9 +23227,9 @@ struct InterpolationHandler<TR>
 
         var comp2 = CreateCompilation([src2, InterpolatedStringHandlerAttribute, InterpolatedStringHandlerArgumentAttribute]);
         comp2.VerifyDiagnostics(
-            // (13,9): error CS0131: The left-hand side of an assignment must be a variable, property or indexer
-            //         default(T)[0, $""] += 1;
-            Diagnostic(ErrorCode.ERR_AssgLvalueExpected, @"default(T)[0, $""""]").WithLocation(13, 9),
+            // (13,9): error CS1510: A ref or out value must be an assignable variable
+            //         default(T)[0, $""] = 1;
+            Diagnostic(ErrorCode.ERR_RefLvalueExpected, "default(T)").WithLocation(13, 9),
             // (21,25): error CS9301: The 'in' or 'ref readonly' receiver parameter of extension must be a concrete (non-generic) value type.
             //         extension<T>(in T x) where T : struct
             Diagnostic(ErrorCode.ERR_InExtensionParameterMustBeValueType, "T").WithLocation(21, 25),
@@ -17589,7 +23239,7 @@ struct InterpolationHandler<TR>
             );
     }
 
-    [Fact(Skip = "https://github.com/dotnet/roslyn/issues/78829")]
+    [Fact]
     [WorkItem("https://github.com/dotnet/roslyn/issues/78829")]
     [WorkItem("https://github.com/dotnet/roslyn/issues/79416")]
     public void IndexerAccess_Set_WithInterpolationHandler_06()
@@ -17654,12 +23304,11 @@ class Program
         Test2(ref Program<C1>.F);
         System.Console.Write(Program<C1>.F.F1);
 
-        // https://github.com/dotnet/roslyn/issues/79416 - uncomment the following code once fixed
-        //System.Console.Write(":");
+        System.Console.Write(":");
 
-        //Program<C1>.F = new C1 { F1 = 123 };
-        //await Test3<C1>();
-        //System.Console.Write(Program<C1>.F.F1);
+        Program<C1>.F = new C1 { F1 = 123 };
+        await Test3<C1>();
+        System.Console.Write(Program<C1>.F.F1);
     }
 
     static void Test1<T>(ref T f)
@@ -17678,23 +23327,22 @@ class Program
         return 1;
     }
 
-    // https://github.com/dotnet/roslyn/issues/79416 - uncomment the following code once fixed
-    //static async Task Test3<T>()
-    //{
-    //    Program<T>.F[Get1(), $""] = await Get1Async();
-    //}
+    static async Task Test3<T>()
+    {
+        Program<T>.F[Get1(), $""] = await Get1Async();
+    }
 
-    //static async Task<int> Get1Async()
-    //{
-    //    Program<C1>.F = new C1 { F1 = Program<C1>.F.F1 + 1 };
-    //    await Task.Yield();
-    //    return 1;
-    //}
+    static async Task<int> Get1Async()
+    {
+        Program<C1>.F = new C1 { F1 = Program<C1>.F.F1 + 1 };
+        await Task.Yield();
+        return 1;
+    }
 }
 """;
 
         var comp = CreateCompilation([src, InterpolatedStringHandlerAttribute, InterpolatedStringHandlerArgumentAttribute], options: TestOptions.DebugExe);
-        var verifier = CompileAndVerify(comp, expectedOutput: "123123126:123123126").VerifyDiagnostics();
+        var verifier = CompileAndVerify(comp, expectedOutput: "123123126:123123126:123123126").VerifyDiagnostics();
 
         verifier.VerifyIL("Program.Test1<T>(ref T)",
 @"
@@ -17768,7 +23416,7 @@ class Program
 ");
     }
 
-    [Fact(Skip = "https://github.com/dotnet/roslyn/issues/78829")]
+    [Fact]
     [WorkItem("https://github.com/dotnet/roslyn/issues/78829")]
     public void IndexerAccess_Set_WithInterpolationHandler_07()
     {
@@ -17874,7 +23522,7 @@ class Program
 ");
     }
 
-    [Fact(Skip = "https://github.com/dotnet/roslyn/issues/78829")]
+    [Fact]
     [WorkItem("https://github.com/dotnet/roslyn/issues/78829")]
     public void IndexerAccess_Set_WithInterpolationHandler_08()
     {
@@ -18010,7 +23658,7 @@ class Program
 ");
     }
 
-    [Fact(Skip = "https://github.com/dotnet/roslyn/issues/78829")]
+    [Fact]
     [WorkItem("https://github.com/dotnet/roslyn/issues/78829")]
     public void IndexerAccess_Get_WithInterpolationHandler_LValueReceiver_01()
     {
@@ -18153,7 +23801,7 @@ class Program
 ");
     }
 
-    [Theory(Skip = "https://github.com/dotnet/roslyn/issues/78829")]
+    [Theory]
     [WorkItem("https://github.com/dotnet/roslyn/issues/78829")]
     [InlineData("ref")]
     [InlineData("ref readonly")]
@@ -18308,12 +23956,28 @@ struct InterpolationHandler
 """;
 
         var comp2 = CreateCompilation([src2, InterpolatedStringHandlerAttribute, InterpolatedStringHandlerArgumentAttribute]);
-        // !!! Shouldn't there be a not a variable error for 'default(T)[0, $"", 1]' !!!
-        comp2.VerifyDiagnostics(
-            );
+
+        if (refKind == "in")
+        {
+            comp2.VerifyDiagnostics();
+        }
+        else if (refKind == "ref readonly")
+        {
+            comp2.VerifyDiagnostics(
+                // (15,13): warning CS9193: Argument 0 should be a variable because it is passed to a 'ref readonly' parameter
+                //         _ = default(S1)[0, $"", 1];
+                Diagnostic(ErrorCode.WRN_RefReadonlyNotVariable, "default(S1)").WithArguments("0").WithLocation(15, 13));
+        }
+        else
+        {
+            comp2.VerifyDiagnostics(
+                // (15,13): error CS1510: A ref or out value must be an assignable variable
+                //         _ = default(S1)[0, $"", 1];
+                Diagnostic(ErrorCode.ERR_RefLvalueExpected, "default(S1)").WithLocation(15, 13));
+        }
     }
 
-    [Fact(Skip = "https://github.com/dotnet/roslyn/issues/78829")]
+    [Fact]
     [WorkItem("https://github.com/dotnet/roslyn/issues/78829")]
     public void IndexerAccess_Get_WithInterpolationHandler_LValueReceiver_03()
     {
@@ -18401,7 +24065,7 @@ class Program
 ");
     }
 
-    [Fact(Skip = "https://github.com/dotnet/roslyn/issues/78829")]
+    [Fact]
     [WorkItem("https://github.com/dotnet/roslyn/issues/78829")]
     [WorkItem("https://github.com/dotnet/roslyn/issues/79416")]
     public void IndexerAccess_Get_WithInterpolationHandler_LValueReceiver_04()
@@ -18462,12 +24126,11 @@ class Program
         Test2(ref Program<S1>.F);
         System.Console.Write(Program<S1>.F.F1);
 
-        // https://github.com/dotnet/roslyn/issues/79416 - uncomment the following code once fixed
-        //System.Console.Write(":");
+        System.Console.Write(":");
 
-        //Program<S1>.F = new S1 { F1 = 123 };
-        //await Test3<S1>();
-        //System.Console.Write(Program<S1>.F.F1);
+        Program<S1>.F = new S1 { F1 = 123 };
+        await Test3<S1>();
+        System.Console.Write(Program<S1>.F.F1);
     }
 
     static void Test1<T>(ref T f)
@@ -18486,23 +24149,22 @@ class Program
         return 1;
     }
 
-    // https://github.com/dotnet/roslyn/issues/79416 - uncomment the following code once fixed
-    //static async Task Test3<T>()
-    //{
-    //    _ = Program<T>.F[Get1(), $"", await Get1Async()];
-    //}
+    static async Task Test3<T>()
+    {
+        _ = Program<T>.F[Get1(), $"", await Get1Async()];
+    }
 
-    //static async Task<int> Get1Async()
-    //{
-    //    Program<S1>.F.F1++;
-    //    await Task.Yield();
-    //    return 1;
-    //}
+    static async Task<int> Get1Async()
+    {
+        Program<S1>.F.F1++;
+        await Task.Yield();
+        return 1;
+    }
 }
 """;
 
         var comp = CreateCompilation([src, InterpolatedStringHandlerAttribute, InterpolatedStringHandlerArgumentAttribute], options: TestOptions.DebugExe);
-        var verifier = CompileAndVerify(comp, expectedOutput: "124126126:124126126").VerifyDiagnostics();
+        var verifier = CompileAndVerify(comp, expectedOutput: "124126126:124126126:124126126").VerifyDiagnostics();
 
         verifier.VerifyIL("Program.Test1<T>(ref T)",
 @"
@@ -18586,7 +24248,7 @@ class Program
 ");
     }
 
-    [Fact(Skip = "https://github.com/dotnet/roslyn/issues/78829")]
+    [Fact]
     [WorkItem("https://github.com/dotnet/roslyn/issues/78829")]
     public void IndexerAccess_Get_WithInterpolationHandler_LValueReceiver_05()
     {
@@ -18746,9 +24408,10 @@ struct InterpolationHandler<TR>
 """;
 
         var comp2 = CreateCompilation([src2, InterpolatedStringHandlerAttribute, InterpolatedStringHandlerArgumentAttribute]);
-
-        // !!! Shouldn't there be a not a variable error for 'default(T)[0, $"", 1]' !!!
         comp2.VerifyDiagnostics(
+            // (13,13): error CS1510: A ref or out value must be an assignable variable
+            //         _ = default(T)[0, $"", 1];
+            Diagnostic(ErrorCode.ERR_RefLvalueExpected, "default(T)").WithLocation(13, 13),
             // (21,25): error CS9301: The 'in' or 'ref readonly' receiver parameter of extension must be a concrete (non-generic) value type.
             //         extension<T>(in T x) where T : struct
             Diagnostic(ErrorCode.ERR_InExtensionParameterMustBeValueType, "T").WithLocation(21, 25),
@@ -18758,7 +24421,7 @@ struct InterpolationHandler<TR>
             );
     }
 
-    [Fact(Skip = "https://github.com/dotnet/roslyn/issues/78829")]
+    [Fact]
     [WorkItem("https://github.com/dotnet/roslyn/issues/78829")]
     [WorkItem("https://github.com/dotnet/roslyn/issues/79416")]
     public void IndexerAccess_Get_WithInterpolationHandler_LValueReceiver_06()
@@ -18818,12 +24481,11 @@ class Program
         Test2(ref Program<C1>.F);
         System.Console.Write(Program<C1>.F.F1);
 
-        // https://github.com/dotnet/roslyn/issues/79416 - uncomment the following code once fixed
-        //System.Console.Write(":");
+        System.Console.Write(":");
 
-        //Program<C1>.F = new C1 { F1 = 123 };
-        //await Test3<C1>();
-        //System.Console.Write(Program<C1>.F.F1);
+        Program<C1>.F = new C1 { F1 = 123 };
+        await Test3<C1>();
+        System.Console.Write(Program<C1>.F.F1);
     }
 
     static void Test1<T>(ref T f)
@@ -18842,23 +24504,22 @@ class Program
         return 1;
     }
 
-    // https://github.com/dotnet/roslyn/issues/79416 - uncomment the following code once fixed
-    //static async Task Test3<T>()
-    //{
-    //    _ = Program<T>.F[Get1(), $"", await Get1Async()];
-    //}
+    static async Task Test3<T>()
+    {
+        _ = Program<T>.F[Get1(), $"", await Get1Async()];
+    }
 
-    //static async Task<int> Get1Async()
-    //{
-    //    Program<C1>.F = new C1 { F1 = Program<C1>.F.F1 + 1 };
-    //    await Task.Yield();
-    //    return 1;
-    //}
+    static async Task<int> Get1Async()
+    {
+        Program<C1>.F = new C1 { F1 = Program<C1>.F.F1 + 1 };
+        await Task.Yield();
+        return 1;
+    }
 }
 """;
 
         var comp = CreateCompilation([src, InterpolatedStringHandlerAttribute, InterpolatedStringHandlerArgumentAttribute], options: TestOptions.DebugExe);
-        var verifier = CompileAndVerify(comp, expectedOutput: "123123126:123123126").VerifyDiagnostics();
+        var verifier = CompileAndVerify(comp, expectedOutput: "123123126:123123126:123123126").VerifyDiagnostics();
 
         verifier.VerifyIL("Program.Test1<T>(ref T)",
 @"
@@ -18932,7 +24593,7 @@ class Program
 ");
     }
 
-    [Fact(Skip = "https://github.com/dotnet/roslyn/issues/78829")]
+    [Fact]
     [WorkItem("https://github.com/dotnet/roslyn/issues/78829")]
     public void IndexerAccess_Get_WithInterpolationHandler_RValueReceiver_01()
     {
@@ -19016,7 +24677,7 @@ class Program
 ");
     }
 
-    [Theory(Skip = "https://github.com/dotnet/roslyn/issues/78829")]
+    [Theory]
     [WorkItem("https://github.com/dotnet/roslyn/issues/78829")]
     [InlineData("ref")]
     [InlineData("ref readonly")]
@@ -19082,7 +24743,29 @@ class Program
 """;
 
         var comp = CreateCompilation([src, InterpolatedStringHandlerAttribute, InterpolatedStringHandlerArgumentAttribute], options: TestOptions.DebugExe.WithAllowUnsafe(true));
-        var verifier = CompileAndVerify(comp, expectedOutput: "123124", verify: Verification.Skipped).VerifyDiagnostics();
+        if (refKind == "ref")
+        {
+            comp.VerifyEmitDiagnostics(
+                // (46,13): error CS1510: A ref or out value must be an assignable variable
+                //         _ = GetS1()[Program.Get1(), $"", Get1()];
+                Diagnostic(ErrorCode.ERR_RefLvalueExpected, "GetS1()").WithLocation(46, 13));
+
+            return;
+        }
+
+        var verifier = CompileAndVerify(comp, expectedOutput: "123124", verify: Verification.Skipped);
+
+        if (refKind == "in")
+        {
+            verifier.VerifyDiagnostics();
+        }
+        else if (refKind == "ref readonly")
+        {
+            verifier.VerifyDiagnostics(
+                // (46,13): warning CS9193: Argument 0 should be a variable because it is passed to a 'ref readonly' parameter
+                //         _ = GetS1()[Program.Get1(), $"", Get1()];
+                Diagnostic(ErrorCode.WRN_RefReadonlyNotVariable, "GetS1()").WithArguments("0").WithLocation(46, 13));
+        }
 
         verifier.VerifyIL("Program.Test",
 @"
@@ -19107,7 +24790,7 @@ class Program
 ");
     }
 
-    [Fact(Skip = "https://github.com/dotnet/roslyn/issues/78829")]
+    [Fact]
     [WorkItem("https://github.com/dotnet/roslyn/issues/78829")]
     public void IndexerAccess_Get_WithInterpolationHandler_RValueReceiver_03()
     {
@@ -19191,7 +24874,7 @@ class Program
 ");
     }
 
-    [Fact(Skip = "https://github.com/dotnet/roslyn/issues/78829")]
+    [Fact]
     [WorkItem("https://github.com/dotnet/roslyn/issues/78829")]
     public void IndexerAccess_Get_WithInterpolationHandler_RValueReceiver_04()
     {
@@ -19324,7 +25007,7 @@ class Program
 ");
     }
 
-    [Fact(Skip = "https://github.com/dotnet/roslyn/issues/78829")]
+    [Fact]
     [WorkItem("https://github.com/dotnet/roslyn/issues/78829")]
     public void IndexerAccess_Get_WithInterpolationHandler_RValueReceiver_05()
     {
@@ -19401,32 +25084,16 @@ class Program
 """;
 
         var comp = CreateCompilation([src, InterpolatedStringHandlerAttribute, InterpolatedStringHandlerArgumentAttribute], options: TestOptions.DebugExe);
-        var verifier = CompileAndVerify(comp, expectedOutput: "123124:123124").VerifyDiagnostics();
-
-        verifier.VerifyIL("Program.Test2<T>()",
-@"
-{
-  // Code size       35 (0x23)
-  .maxstack  5
-  .locals init (T V_0)
-  IL_0000:  nop
-  IL_0001:  call       ""T Program.GetT<T>()""
-  IL_0006:  stloc.0
-  IL_0007:  ldloca.s   V_0
-  IL_0009:  call       ""int Program.Get1()""
-  IL_000e:  ldc.i4.0
-  IL_000f:  ldc.i4.0
-  IL_0010:  ldloca.s   V_0
-  IL_0012:  newobj     ""InterpolationHandler<T>..ctor(int, int, ref T)""
-  IL_0017:  call       ""int Program.Get1()""
-  IL_001c:  call       ""int E.get_Item<T>(ref T, int, InterpolationHandler<T>, int)""
-  IL_0021:  pop
-  IL_0022:  ret
-}
-");
+        comp.VerifyEmitDiagnostics(
+            // (49,13): error CS1510: A ref or out value must be an assignable variable
+            //         _ = GetT<T>()[Get1(), $"", Get1()];
+            Diagnostic(ErrorCode.ERR_RefLvalueExpected, "GetT<T>()").WithLocation(49, 13),
+            // (61,13): error CS1510: A ref or out value must be an assignable variable
+            //         _ = GetT<T>()[Get1(), $"", await Get1Async()];
+            Diagnostic(ErrorCode.ERR_RefLvalueExpected, "GetT<T>()").WithLocation(61, 13));
     }
 
-    [Fact(Skip = "https://github.com/dotnet/roslyn/issues/78829")]
+    [Fact]
     [WorkItem("https://github.com/dotnet/roslyn/issues/78829")]
     public void IndexerAccess_Get_WithInterpolationHandler_RValueReceiver_06()
     {
@@ -19558,7 +25225,7 @@ class Program
 ");
     }
 
-    [Theory(Skip = "https://github.com/dotnet/roslyn/issues/78829")]
+    [Theory]
     [WorkItem("https://github.com/dotnet/roslyn/issues/78829")]
     [InlineData("ref")]
     [InlineData("ref readonly")]
@@ -19649,7 +25316,7 @@ class Program
 ");
     }
 
-    [Theory(Skip = "https://github.com/dotnet/roslyn/issues/78829")]
+    [Theory]
     [WorkItem("https://github.com/dotnet/roslyn/issues/78829")]
     [InlineData("ref")]
     [InlineData("ref readonly")]
@@ -19742,7 +25409,7 @@ class Program
 ");
     }
 
-    [Theory(Skip = "https://github.com/dotnet/roslyn/issues/78829")]
+    [Theory]
     [WorkItem("https://github.com/dotnet/roslyn/issues/78829")]
     [InlineData("ref readonly")]
     [InlineData("in")]
@@ -19848,9 +25515,9 @@ class Program
 ");
     }
 
-    [Fact(Skip = "https://github.com/dotnet/roslyn/issues/78829")]
+    [Fact]
     [WorkItem("https://github.com/dotnet/roslyn/issues/78829")]
-    public void IndexerAccess_Set_01()
+    public void IndexerAccess_Set_01_01()
     {
         var src = """
 static class E
@@ -19958,7 +25625,7 @@ class Program
 }
 ");
 
-        var src2 = $$$"""
+        var src2 = """
 static class E
 {
     extension(S1 x)
@@ -19979,19 +25646,159 @@ class Program
 """;
 
         var comp2 = CreateCompilation([src2]);
-        comp2.VerifyDiagnostics(
-            // (15,9): error CS0131: The left-hand side of an assignment must be a variable, property or indexer
-            //         default(S1)[0] = 1;
-            Diagnostic(ErrorCode.ERR_AssgLvalueExpected, "default(S1)[0]").WithLocation(15, 9)
-            );
+        comp2.VerifyDiagnostics();
     }
 
-    [Theory(Skip = "https://github.com/dotnet/roslyn/issues/78829")]
+    [Fact]
+    public void IndexerAccess_Set_01_02()
+    {
+        var src = """
+static class E
+{
+    extension(S1 x)
+    {
+        public int this[int i]
+        {
+            get
+            {
+                return 0;
+            }
+            set
+            {
+                System.Console.Write(x.F1);
+            }
+        }
+    }
+}
+
+public struct S1
+{
+    public int F1;
+
+    public readonly void Test()
+    {
+        this[Program.Get1()] = Program.Get1();
+    }
+}
+
+class Program
+{
+    public static S1 F;
+
+    static void Main()
+    {
+        F = new S1 { F1 = 123 };
+        Test1(in F);
+        System.Console.Write(F.F1);
+
+        System.Console.Write(":");
+
+        F = new S1 { F1 = 123 };
+        F.Test();
+        System.Console.Write(F.F1);
+
+        System.Console.Write(":");
+
+        F = new S1 { F1 = 123 };
+        Test2(ref F);
+        System.Console.Write(F.F1);
+    }
+
+    static void Test1(in S1 f)
+    {
+        f[Program.Get1()] = Get1();
+    }
+
+    static void Test2(ref readonly S1 f)
+    {
+        f[Program.Get1()] = Get1();
+    }
+
+    public static int Get1()
+    {
+        Program.F.F1++;
+        return 1;
+    }
+}
+""";
+
+        var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+        CompileAndVerify(comp, expectedOutput: "125125:125125:125125", verify: Verification.Skipped).VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void IndexerAccess_Set_01_03()
+    {
+        var src = """
+static class E
+{
+    extension(S1 x)
+    {
+        public int this[int i]
+        {
+            get
+            {
+                return 0;
+            }
+            set
+            {
+                System.Console.Write(x.F1);
+            }
+        }
+    }
+}
+
+public struct S1
+{
+    public int F1;
+}
+
+class Program
+{
+    static void Main()
+    {
+        Test1();
+    }
+
+    static void Test1()
+    {
+        GetTarget()[Program.Get1()] = Get1();
+    }
+
+    static S1 GetTarget() => new S1 { F1 = 123 };
+
+    public static int Get1()
+    {
+        return 1;
+    }
+}
+""";
+
+        var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+        var verifier = CompileAndVerify(comp, expectedOutput: "123", verify: Verification.Skipped).VerifyDiagnostics();
+
+        verifier.VerifyIL("Program.Test1",
+@"
+{
+  // Code size       23 (0x17)
+  .maxstack  3
+  IL_0000:  nop
+  IL_0001:  call       ""S1 Program.GetTarget()""
+  IL_0006:  call       ""int Program.Get1()""
+  IL_000b:  call       ""int Program.Get1()""
+  IL_0010:  call       ""void E.set_Item(S1, int, int)""
+  IL_0015:  nop
+  IL_0016:  ret
+}
+");
+    }
+
+    [Theory]
     [WorkItem("https://github.com/dotnet/roslyn/issues/78829")]
     [InlineData("ref")]
     [InlineData("ref readonly")]
     [InlineData("in")]
-    public void IndexerAccess_Set_02(string refKind)
+    public void IndexerAccess_Set_02_01(string refKind)
     {
         var src = $$$"""
 static class E
@@ -20108,14 +25915,205 @@ class Program
 """;
 
         var comp2 = CreateCompilation([src2]);
-        comp2.VerifyDiagnostics(
-            // (15,9): error CS0131: The left-hand side of an assignment must be a variable, property or indexer
-            //         default(S1)[0] = 1;
-            Diagnostic(ErrorCode.ERR_AssgLvalueExpected, "default(S1)[0]").WithLocation(15, 9)
-            );
+        if (refKind == "ref")
+        {
+            comp2.VerifyDiagnostics(
+                // (15,9): error CS1510: A ref or out value must be an assignable variable
+                //         default(S1)[0] = 1;
+                Diagnostic(ErrorCode.ERR_RefLvalueExpected, "default(S1)").WithLocation(15, 9)
+                );
+        }
+        else if (refKind == "ref readonly")
+        {
+            comp2.VerifyDiagnostics(
+                // (15,9): warning CS9193: Argument 0 should be a variable because it is passed to a 'ref readonly' parameter
+                //         default(S1)[0] = 1;
+                Diagnostic(ErrorCode.WRN_RefReadonlyNotVariable, "default(S1)").WithArguments("0").WithLocation(15, 9)
+                );
+        }
+        else
+        {
+            comp2.VerifyDiagnostics();
+        }
     }
 
-    [Fact(Skip = "https://github.com/dotnet/roslyn/issues/78829")]
+    [Theory]
+    [InlineData("ref readonly")]
+    [InlineData("in")]
+    public void IndexerAccess_Set_02_02(string refKind)
+    {
+        var text0 = @"
+public static class Helper
+{
+    public static unsafe void Assign(ref readonly int i, int value)
+    {
+        fixed (int* f2 = &i)
+        {
+            (*f2) = value;
+        }
+    }
+}
+";
+        var comp0 = CreateCompilation(text0, options: TestOptions.DebugDll.WithAllowUnsafe(true));
+
+        var src = $$$"""
+static class E
+{
+    extension({{{refKind}}} S1 x)
+    {
+        public int this[int i]
+        {
+            get
+            {
+                System.Console.Write(x.F1);
+                Helper.Assign(in x.F1, x.F1 + 1);
+                return 0;
+            }
+            set
+            {
+                System.Console.Write(x.F1);
+                Helper.Assign(in x.F1, x.F1 + 1);
+            }
+        }
+    }
+}
+
+struct S1
+{
+    public int F1;
+
+    public readonly void Test()
+    {
+        this[Program.Get1()] = Program.Get1();
+    }
+}
+
+class Program
+{
+    public static S1 F;
+
+    static void Main()
+    {
+        F = new S1 { F1 = 123 };
+        Test1(in F);
+        System.Console.Write(F.F1);
+
+        System.Console.Write(":");
+
+        F = new S1 { F1 = 123 };
+        F.Test();
+        System.Console.Write(F.F1);
+
+        System.Console.Write(":");
+
+        F = new S1 { F1 = 123 };
+        Test2(ref F);
+        System.Console.Write(F.F1);
+    }
+
+    static void Test1(in S1 f)
+    {
+        f[Program.Get1()] = Get1();
+    }
+
+    static void Test2(ref readonly S1 f)
+    {
+        f[Program.Get1()] = Get1();
+    }
+
+    public static int Get1()
+    {
+        Program.F.F1++;
+        return 1;
+    }
+}
+""";
+
+        var comp = CreateCompilation([src], references: [comp0.EmitToImageReference()], options: TestOptions.DebugExe);
+        CompileAndVerify(comp, expectedOutput: "125126:125126:125126").VerifyDiagnostics();
+    }
+
+    [Theory]
+    [InlineData("ref readonly")]
+    [InlineData("in")]
+    public void IndexerAccess_Set_02_03(string refKind)
+    {
+        var src = $$$"""
+static class E
+{
+    extension({{{refKind}}} S1 x)
+    {
+        public int this[int i]
+        {
+            get
+            {
+                System.Console.Write(x.F1);
+                return 0;
+            }
+            set
+            {
+                System.Console.Write(x.F1);
+            }
+        }
+    }
+}
+
+struct S1
+{
+    public int F1;
+}
+
+class Program
+{
+    static void Main()
+    {
+        Test1();
+    }
+
+    static void Test1()
+    {
+        GetTarget()[Program.Get1()] = Get1();
+    }
+
+    static S1 GetTarget() => new S1 { F1 = 123 };
+
+    public static int Get1()
+    {
+        return 1;
+    }
+}
+""";
+
+        var comp = CreateCompilation([src], options: TestOptions.DebugExe);
+        var verifier = CompileAndVerify(comp, expectedOutput: "123").VerifyDiagnostics(
+            refKind == "in" ? [] :
+            [
+                // (34,9): warning CS9193: Argument 0 should be a variable because it is passed to a 'ref readonly' parameter
+                //         GetTarget()[Program.Get1()] = Get1();
+                Diagnostic(ErrorCode.WRN_RefReadonlyNotVariable, "GetTarget()").WithArguments("0").WithLocation(34, 9)
+            ]
+            );
+
+        verifier.VerifyIL("Program.Test1",
+$$$"""
+{
+  // Code size       26 (0x1a)
+  .maxstack  3
+  .locals init (S1 V_0)
+  IL_0000:  nop
+  IL_0001:  call       "S1 Program.GetTarget()"
+  IL_0006:  stloc.0
+  IL_0007:  ldloca.s   V_0
+  IL_0009:  call       "int Program.Get1()"
+  IL_000e:  call       "int Program.Get1()"
+  IL_0013:  call       "void E.set_Item({{{refKind}}} S1, int, int)"
+  IL_0018:  nop
+  IL_0019:  ret
+}
+""");
+    }
+
+    [Fact]
     [WorkItem("https://github.com/dotnet/roslyn/issues/78829")]
     public void IndexerAccess_Set_03()
     {
@@ -20188,10 +26186,10 @@ class Program
 ");
     }
 
-    [Fact(Skip = "https://github.com/dotnet/roslyn/issues/78829")]
+    [Fact]
     [WorkItem("https://github.com/dotnet/roslyn/issues/78829")]
     [WorkItem("https://github.com/dotnet/roslyn/issues/79416")]
-    public void IndexerAccess_Set_04()
+    public void IndexerAccess_Set_04_01()
     {
         var src = """
 using System.Threading.Tasks;
@@ -20240,12 +26238,11 @@ class Program
         Test2(ref Program<S1>.F);
         System.Console.Write(Program<S1>.F.F1);
 
-        // https://github.com/dotnet/roslyn/issues/79416 - uncomment the following code once fixed
-        //System.Console.Write(":");
+        System.Console.Write(":");
 
-        //Program<S1>.F = new S1 { F1 = 123 };
-        //await Test3<S1>();
-        //System.Console.Write(Program<S1>.F.F1);
+        Program<S1>.F = new S1 { F1 = 123 };
+        await Test3<S1>();
+        System.Console.Write(Program<S1>.F.F1);
     }
 
     static void Test1<T>(ref T f)
@@ -20264,23 +26261,22 @@ class Program
         return 1;
     }
 
-    // https://github.com/dotnet/roslyn/issues/79416 - uncomment the following code once fixed
-    //static async Task Test3<T>()
-    //{
-    //    Program<T>.F[Get1()] = await Get1Async();
-    //}
+    static async Task Test3<T>()
+    {
+        Program<T>.F[Get1()] = await Get1Async();
+    }
 
-    //static async Task<int> Get1Async()
-    //{
-    //    Program<S1>.F.F1++;
-    //    await Task.Yield();
-    //    return 1;
-    //}
+    static async Task<int> Get1Async()
+    {
+        Program<S1>.F.F1++;
+        await Task.Yield();
+        return 1;
+    }
 }
 """;
 
         var comp = CreateCompilation([src], options: TestOptions.DebugExe);
-        var verifier = CompileAndVerify(comp, expectedOutput: "125125:125125").VerifyDiagnostics();
+        var verifier = CompileAndVerify(comp, expectedOutput: "125125:125125:125125").VerifyDiagnostics();
 
         verifier.VerifyIL("Program.Test1<T>(ref T)",
 @"
@@ -20381,9 +26377,6 @@ namespace NS2
 
         var comp2 = CreateCompilation([src2]);
         comp2.VerifyDiagnostics(
-            // (13,9): error CS0131: The left-hand side of an assignment must be a variable, property or indexer
-            //         default(T)[0] = 1;
-            Diagnostic(ErrorCode.ERR_AssgLvalueExpected, "default(T)[0]").WithLocation(13, 9),
             // (21,25): error CS9301: The 'in' or 'ref readonly' receiver parameter of extension must be a concrete (non-generic) value type.
             //         extension<T>(in T x) where T : struct
             Diagnostic(ErrorCode.ERR_InExtensionParameterMustBeValueType, "T").WithLocation(21, 25),
@@ -20393,7 +26386,159 @@ namespace NS2
             );
     }
 
-    [Fact(Skip = "https://github.com/dotnet/roslyn/issues/78829")]
+    [Theory]
+    [InlineData("ref readonly")]
+    [InlineData("in")]
+    public void IndexerAccess_Set_04_02(string refKind)
+    {
+        var src = $$$"""
+static class E
+{
+    extension<T>(T x)
+    {
+        public int this[int i]
+        {
+            get
+            {
+                System.Console.Write(((S1)(object)x).F1);
+                Program<S1>.F.F1++;
+                return 0;
+            }
+            set
+            {
+                System.Console.Write(((S1)(object)x).F1);
+            }
+        }
+    }
+}
+
+struct S1
+{
+    public int F1;
+}
+
+class Program<T>
+{
+    public static T F;
+}
+
+class Program
+{
+    static void Main()
+    {
+        Program<S1>.F = new S1 { F1 = 123 };
+        Test1({{{refKind.Substring(0, Math.Min(3, refKind.Length))}}} Program<S1>.F);
+        System.Console.Write(Program<S1>.F.F1);
+
+        System.Console.Write(":");
+
+        Program<S1>.F = new S1 { F1 = 123 };
+        Test2({{{refKind.Substring(0, Math.Min(3, refKind.Length))}}} Program<S1>.F);
+        System.Console.Write(Program<S1>.F.F1);
+    }
+
+    static void Test1<T>({{{refKind}}} T f)
+    {
+        f[Get1()] = Get1();
+    }
+
+    static void Test2<T>({{{refKind}}} T f) where T : struct
+    {
+        f[Get1()] = Get1();
+    }
+
+    static int Get1()
+    {
+        Program<S1>.F.F1++;
+        return 1;
+    }
+}
+""";
+
+        var comp = CreateCompilation([src], options: TestOptions.DebugExe);
+        CompileAndVerify(comp, expectedOutput: "125125:125125").VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void IndexerAccess_Set_04_03()
+    {
+        var src = """
+static class E
+{
+    extension<T>(T x)
+    {
+        public int this[int i]
+        {
+            get
+            {
+                System.Console.Write(((S1)(object)x).F1);
+                return 0;
+            }
+            set
+            {
+                System.Console.Write(((S1)(object)x).F1);
+            }
+        }
+    }
+}
+
+struct S1
+{
+    public int F1;
+}
+
+class Program
+{
+    static void Main()
+    {
+        Test1<S1>();
+
+        System.Console.Write(":");
+
+        Test2<S1>();
+    }
+
+    static void Test1<T>()
+    {
+        GetTarget<T>()[Get1()] = Get1();
+    }
+
+    static void Test2<T>() where T : struct
+    {
+        GetTarget<T>()[Get1()] = Get1();
+    }
+
+    static T GetTarget<T>() => (T)(object)new S1 { F1 = 123 };
+
+    static int Get1()
+    {
+        return 1;
+    }
+}
+""";
+
+        var comp = CreateCompilation([src], options: TestOptions.DebugExe);
+        var verifier = CompileAndVerify(comp, expectedOutput: "123:123").VerifyDiagnostics();
+
+        var expected =
+@"
+{
+  // Code size       23 (0x17)
+  .maxstack  3
+  IL_0000:  nop
+  IL_0001:  call       ""T Program.GetTarget<T>()""
+  IL_0006:  call       ""int Program.Get1()""
+  IL_000b:  call       ""int Program.Get1()""
+  IL_0010:  call       ""void E.set_Item<T>(T, int, int)""
+  IL_0015:  nop
+  IL_0016:  ret
+}
+";
+        verifier.VerifyIL("Program.Test1<T>", expected);
+        verifier.VerifyIL("Program.Test2<T>", expected);
+    }
+
+    [Fact]
     [WorkItem("https://github.com/dotnet/roslyn/issues/78829")]
     public void IndexerAccess_Set_05()
     {
@@ -20528,9 +26673,9 @@ namespace NS2
 
         var comp2 = CreateCompilation([src2]);
         comp2.VerifyDiagnostics(
-            // (13,9): error CS0131: The left-hand side of an assignment must be a variable, property or indexer
+            // (13,9): error CS1510: A ref or out value must be an assignable variable
             //         default(T)[0] = 1;
-            Diagnostic(ErrorCode.ERR_AssgLvalueExpected, "default(T)[0]").WithLocation(13, 9),
+            Diagnostic(ErrorCode.ERR_RefLvalueExpected, "default(T)").WithLocation(13, 9),
             // (21,25): error CS9301: The 'in' or 'ref readonly' receiver parameter of extension must be a concrete (non-generic) value type.
             //         extension<T>(in T x) where T : struct
             Diagnostic(ErrorCode.ERR_InExtensionParameterMustBeValueType, "T").WithLocation(21, 25),
@@ -20540,7 +26685,7 @@ namespace NS2
             );
     }
 
-    [Fact(Skip = "https://github.com/dotnet/roslyn/issues/78829")]
+    [Fact]
     [WorkItem("https://github.com/dotnet/roslyn/issues/78829")]
     [WorkItem("https://github.com/dotnet/roslyn/issues/79416")]
     public void IndexerAccess_Set_06()
@@ -20592,12 +26737,11 @@ class Program
         Test2(ref Program<C1>.F);
         System.Console.Write(Program<C1>.F.F1);
 
-        // https://github.com/dotnet/roslyn/issues/79416 - uncomment the following code once fixed
-        //System.Console.Write(":");
+        System.Console.Write(":");
 
-        //Program<C1>.F = new C1 { F1 = 123 };
-        //await Test3<C1>();
-        //System.Console.Write(Program<C1>.F.F1);
+        Program<C1>.F = new C1 { F1 = 123 };
+        await Test3<C1>();
+        System.Console.Write(Program<C1>.F.F1);
     }
 
     static void Test1<T>(ref T f)
@@ -20616,23 +26760,22 @@ class Program
         return 1;
     }
 
-    // https://github.com/dotnet/roslyn/issues/79416 - uncomment the following code once fixed
-    //static async Task Test3<T>()
-    //{
-    //    Program<T>.F[Get1()] = await Get1Async();
-    //}
+    static async Task Test3<T>()
+    {
+        Program<T>.F[Get1()] = await Get1Async();
+    }
 
-    //static async Task<int> Get1Async()
-    //{
-    //    Program<C1>.F = new C1 { F1 = Program<C1>.F.F1 + 1 };
-    //    await Task.Yield();
-    //    return 1;
-    //}
+    static async Task<int> Get1Async()
+    {
+        Program<C1>.F = new C1 { F1 = Program<C1>.F.F1 + 1 };
+        await Task.Yield();
+        return 1;
+    }
 }
 """;
 
         var comp = CreateCompilation([src], options: TestOptions.DebugExe);
-        var verifier = CompileAndVerify(comp, expectedOutput: "123125:123125").VerifyDiagnostics();
+        var verifier = CompileAndVerify(comp, expectedOutput: "123125:123125:123125").VerifyDiagnostics();
 
         verifier.VerifyIL("Program.Test1<T>(ref T)",
 @"
@@ -20688,7 +26831,7 @@ class Program
 ");
     }
 
-    [Fact(Skip = "https://github.com/dotnet/roslyn/issues/78829")]
+    [Fact]
     [WorkItem("https://github.com/dotnet/roslyn/issues/78829")]
     public void IndexerAccess_Set_07()
     {
@@ -20774,7 +26917,7 @@ class Program
 ");
     }
 
-    [Fact(Skip = "https://github.com/dotnet/roslyn/issues/78829")]
+    [Fact]
     [WorkItem("https://github.com/dotnet/roslyn/issues/78829")]
     public void IndexerAccess_Set_08()
     {
@@ -20884,7 +27027,7 @@ class Program
 ");
     }
 
-    [Fact(Skip = "https://github.com/dotnet/roslyn/issues/78829")]
+    [Fact]
     [WorkItem("https://github.com/dotnet/roslyn/issues/78829")]
     public void IndexerAccess_Get_LValueReceiver_01()
     {
@@ -20984,7 +27127,7 @@ class Program
 ");
     }
 
-    [Theory(Skip = "https://github.com/dotnet/roslyn/issues/78829")]
+    [Theory]
     [WorkItem("https://github.com/dotnet/roslyn/issues/78829")]
     [InlineData("ref")]
     [InlineData("ref readonly")]
@@ -21099,12 +27242,46 @@ class Program
 """;
 
         var comp2 = CreateCompilation([src2]);
-        // !!! Shouldn't there be a not a variable error for 'default(T)[0, $"", 1]' !!!
-        comp2.VerifyDiagnostics(
-            );
+        if (refKind == "ref")
+        {
+            comp2.VerifyDiagnostics(
+                // (15,13): error CS1510: A ref or out value must be an assignable variable
+                //         _ = default(S1)[0];
+                Diagnostic(ErrorCode.ERR_RefLvalueExpected, "default(S1)").WithLocation(15, 13));
+        }
+        else if (refKind == "ref readonly")
+        {
+            comp2.VerifyDiagnostics(
+                // (15,13): warning CS9193: Argument 0 should be a variable because it is passed to a 'ref readonly' parameter
+                //         _ = default(S1)[0];
+                Diagnostic(ErrorCode.WRN_RefReadonlyNotVariable, "default(S1)").WithArguments("0").WithLocation(15, 13));
+        }
+        else
+        {
+            comp2.VerifyDiagnostics();
+        }
+
+        if (refKind != "ref")
+        {
+            verifier = CompileAndVerify(comp2);
+            verifier.VerifyIL("Program.Test", $$"""
+{
+  // Code size       17 (0x11)
+  .maxstack  2
+  .locals init (S1 V_0)
+  IL_0000:  ldloca.s   V_0
+  IL_0002:  dup
+  IL_0003:  initobj    "S1"
+  IL_0009:  ldc.i4.0
+  IL_000a:  call       "int E.get_Item({{refKind}} S1, int)"
+  IL_000f:  pop
+  IL_0010:  ret
+}
+""");
+        }
     }
 
-    [Fact(Skip = "https://github.com/dotnet/roslyn/issues/78829")]
+    [Fact]
     [WorkItem("https://github.com/dotnet/roslyn/issues/78829")]
     public void IndexerAccess_Get_LValueReceiver_03()
     {
@@ -21171,7 +27348,7 @@ class Program
 ");
     }
 
-    [Fact(Skip = "https://github.com/dotnet/roslyn/issues/78829")]
+    [Fact]
     [WorkItem("https://github.com/dotnet/roslyn/issues/78829")]
     [WorkItem("https://github.com/dotnet/roslyn/issues/79416")]
     public void IndexerAccess_Get_LValueReceiver_04()
@@ -21218,12 +27395,11 @@ class Program
         Test2(ref Program<S1>.F);
         System.Console.Write(Program<S1>.F.F1);
 
-        // https://github.com/dotnet/roslyn/issues/79416 - uncomment the following code once fixed
-        //System.Console.Write(":");
+        System.Console.Write(":");
 
-        //Program<S1>.F = new S1 { F1 = 123 };
-        //await Test3<S1>();
-        //System.Console.Write(Program<S1>.F.F1);
+        Program<S1>.F = new S1 { F1 = 123 };
+        await Test3<S1>();
+        System.Console.Write(Program<S1>.F.F1);
     }
 
     static void Test1<T>(ref T f)
@@ -21242,23 +27418,22 @@ class Program
         return 1;
     }
 
-    // https://github.com/dotnet/roslyn/issues/79416 - uncomment the following code once fixed
-    //static async Task Test3<T>()
-    //{
-    //    _ = Program<T>.F[await Get1Async()];
-    //}
+    static async Task Test3<T>()
+    {
+        _ = Program<T>.F[await Get1Async()];
+    }
 
-    //static async Task<int> Get1Async()
-    //{
-    //    Program<S1>.F.F1++;
-    //    await Task.Yield();
-    //    return 1;
-    //}
+    static async Task<int> Get1Async()
+    {
+        Program<S1>.F.F1++;
+        await Task.Yield();
+        return 1;
+    }
 }
 """;
 
         var comp = CreateCompilation([src], options: TestOptions.DebugExe);
-        var verifier = CompileAndVerify(comp, expectedOutput: "124124:124124").VerifyDiagnostics();
+        var verifier = CompileAndVerify(comp, expectedOutput: "124124:124124:124124").VerifyDiagnostics();
 
         verifier.VerifyIL("Program.Test1<T>(ref T)",
 @"
@@ -21312,7 +27487,7 @@ class Program
 ");
     }
 
-    [Fact(Skip = "https://github.com/dotnet/roslyn/issues/78829")]
+    [Fact]
     [WorkItem("https://github.com/dotnet/roslyn/issues/78829")]
     public void IndexerAccess_Get_LValueReceiver_05()
     {
@@ -21441,8 +27616,10 @@ namespace NS2
 
         var comp2 = CreateCompilation([src2]);
 
-        // !!! Shouldn't there be a not a variable error for 'default(T)[0, $"", 1]' !!!
         comp2.VerifyDiagnostics(
+            // (13,13): error CS1510: A ref or out value must be an assignable variable
+            //         _ = default(T)[0];
+            Diagnostic(ErrorCode.ERR_RefLvalueExpected, "default(T)").WithLocation(13, 13),
             // (21,25): error CS9301: The 'in' or 'ref readonly' receiver parameter of extension must be a concrete (non-generic) value type.
             //         extension<T>(in T x) where T : struct
             Diagnostic(ErrorCode.ERR_InExtensionParameterMustBeValueType, "T").WithLocation(21, 25),
@@ -21452,7 +27629,7 @@ namespace NS2
             );
     }
 
-    [Fact(Skip = "https://github.com/dotnet/roslyn/issues/78829")]
+    [Fact]
     [WorkItem("https://github.com/dotnet/roslyn/issues/78829")]
     [WorkItem("https://github.com/dotnet/roslyn/issues/79416")]
     public void IndexerAccess_Get_LValueReceiver_06()
@@ -21499,12 +27676,11 @@ class Program
         Test2(ref Program<C1>.F);
         System.Console.Write(Program<C1>.F.F1);
 
-        // https://github.com/dotnet/roslyn/issues/79416 - uncomment the following code once fixed
-        //System.Console.Write(":");
+        System.Console.Write(":");
 
-        //Program<C1>.F = new C1 { F1 = 123 };
-        //await Test3<C1>();
-        //System.Console.Write(Program<C1>.F.F1);
+        Program<C1>.F = new C1 { F1 = 123 };
+        await Test3<C1>();
+        System.Console.Write(Program<C1>.F.F1);
     }
 
     static void Test1<T>(ref T f)
@@ -21523,23 +27699,22 @@ class Program
         return 1;
     }
 
-    // https://github.com/dotnet/roslyn/issues/79416 - uncomment the following code once fixed
-    //static async Task Test3<T>()
-    //{
-    //    _ = Program<T>.F[await Get1Async()];
-    //}
+    static async Task Test3<T>()
+    {
+        _ = Program<T>.F[await Get1Async()];
+    }
 
-    //static async Task<int> Get1Async()
-    //{
-    //    Program<C1>.F = new C1 { F1 = Program<C1>.F.F1 + 1 };
-    //    await Task.Yield();
-    //    return 1;
-    //}
+    static async Task<int> Get1Async()
+    {
+        Program<C1>.F = new C1 { F1 = Program<C1>.F.F1 + 1 };
+        await Task.Yield();
+        return 1;
+    }
 }
 """;
 
         var comp = CreateCompilation([src], options: TestOptions.DebugExe);
-        var verifier = CompileAndVerify(comp, expectedOutput: "123124:123124").VerifyDiagnostics();
+        var verifier = CompileAndVerify(comp, expectedOutput: "123124:123124:123124").VerifyDiagnostics();
 
         verifier.VerifyIL("Program.Test1<T>(ref T)",
 @"
@@ -21590,7 +27765,7 @@ class Program
 ");
     }
 
-    [Fact(Skip = "https://github.com/dotnet/roslyn/issues/78829")]
+    [Fact]
     [WorkItem("https://github.com/dotnet/roslyn/issues/78829")]
     public void IndexerAccess_Get_RValueReceiver_01()
     {
@@ -21654,7 +27829,7 @@ class Program
 ");
     }
 
-    [Theory(Skip = "https://github.com/dotnet/roslyn/issues/78829")]
+    [Theory]
     [WorkItem("https://github.com/dotnet/roslyn/issues/78829")]
     [InlineData("ref")]
     [InlineData("ref readonly")]
@@ -21704,7 +27879,27 @@ class Program
 """;
 
         var comp = CreateCompilation([src], options: TestOptions.DebugExe.WithAllowUnsafe(true));
-        var verifier = CompileAndVerify(comp, expectedOutput: "123", verify: Verification.Skipped).VerifyDiagnostics();
+        if (refKind == "ref")
+        {
+            comp.VerifyEmitDiagnostics(
+                // (30,13): error CS1510: A ref or out value must be an assignable variable
+                //         _ = GetS1()[Get1()];
+                Diagnostic(ErrorCode.ERR_RefLvalueExpected, "GetS1()").WithLocation(30, 13));
+            return;
+        }
+        else if (refKind == "ref readonly")
+        {
+            comp.VerifyEmitDiagnostics(
+                // (30,13): warning CS9193: Argument 0 should be a variable because it is passed to a 'ref readonly' parameter
+                //         _ = GetS1()[Get1()];
+                Diagnostic(ErrorCode.WRN_RefReadonlyNotVariable, "GetS1()").WithArguments("0").WithLocation(30, 13));
+        }
+        else
+        {
+            comp.VerifyEmitDiagnostics();
+        }
+
+        var verifier = CompileAndVerify(comp, expectedOutput: "123", verify: Verification.Skipped);
 
         verifier.VerifyIL("Program.Test",
 @"
@@ -21724,7 +27919,7 @@ class Program
 ");
     }
 
-    [Fact(Skip = "https://github.com/dotnet/roslyn/issues/78829")]
+    [Fact]
     [WorkItem("https://github.com/dotnet/roslyn/issues/78829")]
     public void IndexerAccess_Get_RValueReceiver_03()
     {
@@ -21788,7 +27983,7 @@ class Program
 ");
     }
 
-    [Fact(Skip = "https://github.com/dotnet/roslyn/issues/78829")]
+    [Fact]
     [WorkItem("https://github.com/dotnet/roslyn/issues/78829")]
     public void IndexerAccess_Get_RValueReceiver_04()
     {
@@ -21892,7 +28087,7 @@ class Program
 ");
     }
 
-    [Fact(Skip = "https://github.com/dotnet/roslyn/issues/78829")]
+    [Fact]
     [WorkItem("https://github.com/dotnet/roslyn/issues/78829")]
     public void IndexerAccess_Get_RValueReceiver_05()
     {
@@ -21956,27 +28151,16 @@ class Program
 """;
 
         var comp = CreateCompilation([src], options: TestOptions.DebugExe);
-        var verifier = CompileAndVerify(comp, expectedOutput: "123:123").VerifyDiagnostics();
-
-        verifier.VerifyIL("Program.Test2<T>()",
-@"
-{
-  // Code size       21 (0x15)
-  .maxstack  2
-  .locals init (T V_0)
-  IL_0000:  nop
-  IL_0001:  call       ""T Program.GetT<T>()""
-  IL_0006:  stloc.0
-  IL_0007:  ldloca.s   V_0
-  IL_0009:  call       ""int Program.Get1()""
-  IL_000e:  call       ""int E.get_Item<T>(ref T, int)""
-  IL_0013:  pop
-  IL_0014:  ret
-}
-");
+        comp.VerifyEmitDiagnostics(
+            // (36,13): error CS1510: A ref or out value must be an assignable variable
+            //         _ = GetT<T>()[Get1()];
+            Diagnostic(ErrorCode.ERR_RefLvalueExpected, "GetT<T>()").WithLocation(36, 13),
+            // (48,13): error CS1510: A ref or out value must be an assignable variable
+            //         _ = GetT<T>()[await Get1Async()];
+            Diagnostic(ErrorCode.ERR_RefLvalueExpected, "GetT<T>()").WithLocation(48, 13));
     }
 
-    [Fact(Skip = "https://github.com/dotnet/roslyn/issues/78829")]
+    [Fact]
     [WorkItem("https://github.com/dotnet/roslyn/issues/78829")]
     public void IndexerAccess_Get_RValueReceiver_06()
     {
@@ -23155,7 +29339,7 @@ struct C<T> where T : allows ref struct
 }
 """;
         CompileAndVerify(src2, targetFramework: TargetFramework.Net90, verify: Verification.FailsPEVerify).VerifyTypeIL("C`1", """
-.class private sequential ansi sealed beforefieldinit C`1<T>
+.class private sequential ansi sealed beforefieldinit C`1<byreflike T>
     extends [System.Runtime]System.ValueType
 {
     .pack 0
@@ -31526,10 +37710,10 @@ static class E
 """;
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80);
         comp.VerifyEmitDiagnostics(
-            // (5,24): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method with a single parameter of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
+            // (5,24): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method whose last parameter is of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
             // MyCollection<int> c1 = [];
             Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "[]").WithArguments("Create", "T", "MyCollection<T>").WithLocation(5, 24),
-            // (6,24): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method with a single parameter of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
+            // (6,24): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method whose last parameter is of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
             // MyCollection<int> c2 = [1];
             Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "[1]").WithArguments("Create", "T", "MyCollection<T>").WithLocation(6, 24));
     }
@@ -33203,7 +39387,7 @@ public static class E
         }
     }
 
-    [Theory(Skip = "https://github.com/dotnet/roslyn/issues/78829 extension indexers"), CombinatorialData]
+    [Theory, CombinatorialData]
     public void PropagateAttributes_14(bool useCompilationReference)
     {
         // attribute on extension indexer
@@ -33213,7 +39397,7 @@ public static class E
     extension(int i1)
     {
         [A]
-        public this[int i2] => 0;
+        public int this[int i2] => 0;
     }
 }
 
@@ -33229,7 +39413,7 @@ public class AAttribute : System.Attribute { }
         {
             var extension = comp.GlobalNamespace.GetTypeMember("E").GetTypeMembers().Single();
             Assert.True(extension.IsExtension);
-            var extensionIndexer = extension.GetMember<PropertySymbol>("Item");
+            var extensionIndexer = extension.GetMember<PropertySymbol>("this[]");
             Assert.Equal("AAttribute", extensionIndexer.GetAttributes().Single().ToString());
             var extensionGetter = extension.GetMember<MethodSymbol>("get_Item");
             Assert.Empty(extensionGetter.GetAttributes());
@@ -33240,7 +39424,7 @@ public class AAttribute : System.Attribute { }
         }
     }
 
-    [Theory(Skip = "https://github.com/dotnet/roslyn/issues/78829 extension indexers"), CombinatorialData]
+    [Theory, CombinatorialData]
     public void PropagateAttributes_15(bool useCompilationReference)
     {
         // attribute on parameters for extension indexer
@@ -33249,7 +39433,7 @@ public static class E
 {
     extension([A] int i1)
     {
-        public this[[B] int i2] => 0;
+        public int this[[B] int i2] => 0;
     }
 }
 
@@ -33268,7 +39452,7 @@ public class BAttribute : System.Attribute { }
             Assert.True(extension.IsExtension);
             Assert.Equal("AAttribute", extension.ExtensionParameter.GetAttributes().Single().ToString());
 
-            var extensionIndexer = extension.GetMember<PropertySymbol>("Item");
+            var extensionIndexer = extension.GetMember<PropertySymbol>("this[]");
             Assert.Empty(extensionIndexer.GetAttributes());
             Assert.Equal("BAttribute", extensionIndexer.Parameters.Single().GetAttributes().Single().ToString());
 
@@ -33282,7 +39466,7 @@ public class BAttribute : System.Attribute { }
         }
     }
 
-    [Theory(Skip = "https://github.com/dotnet/roslyn/issues/78829 extension indexers"), CombinatorialData]
+    [Theory, CombinatorialData]
     public void PropagateAttributes_16(bool useCompilationReference)
     {
         // attribute on type parameters for extension indexer
@@ -33291,7 +39475,7 @@ public static class E
 {
     extension<[A] T>(T t)
     {
-        public this[int i] => 0;
+        public int this[int i] => 0;
     }
 }
 
@@ -33315,7 +39499,7 @@ public class AAttribute : System.Attribute { }
         }
     }
 
-    [Theory(Skip = "https://github.com/dotnet/roslyn/issues/78829 extension indexers"), CombinatorialData]
+    [Theory, CombinatorialData]
     public void PropagateAttributes_17(bool useCompilationReference)
     {
         // attribute on accessor for extension indexer
@@ -33324,7 +39508,7 @@ public static class E
 {
     extension(int i1)
     {
-        public this[int i2]
+        public int this[int i2]
         {
             [A]
             get => 0;
@@ -33357,7 +39541,7 @@ public class AAttribute : System.Attribute { }
     [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/80017")]
     public void PropagateAttributes_18(bool useCompilationReference)
     {
-        // return attribute on property
+        // return attribute on property accessor
         var libSrc = """
 public static class E
 {
@@ -33612,7 +39796,7 @@ public class DAttribute : System.Attribute { }
         IL_0001: call void E::'<M>g__local|1_0'<int32>(int32)
         IL_0006: ret
     } // end of method E::M
-    .method assembly hidebysig static 
+    .method private hidebysig static 
         void '<M>g__local|1_0'<T> (
             int32 i2
         ) cil managed 
@@ -35761,14 +41945,11 @@ public static class E
 }
 """;
         var comp = CreateCompilation(src);
-        comp.VerifyEmitDiagnostics(
-            // (5,20): error CS9282: This member is not allowed in an extension block
-            //         public int this[int i] { get => 0; set { } }
-            Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "this").WithLocation(5, 20));
+        comp.VerifyEmitDiagnostics();
 
         var extension = comp.GlobalNamespace.GetTypeMember("E").GetTypeMembers().Single();
         var indexer = extension.GetMember<PropertySymbol>("this[]").GetPublicSymbol();
-        Assert.Null(indexer.ReduceExtensionMember(comp.GetSpecialType(SpecialType.System_Object).GetPublicSymbol()));
+        Assert.Equal("E.extension<object>(object).this[int]", indexer.ReduceExtensionMember(comp.GetSpecialType(SpecialType.System_Object).GetPublicSymbol()).ToDisplayString());
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/80273")]
@@ -36033,6 +42214,99 @@ extension<T>(T)
         var m = extension.GetMember<IMethodSymbol>("M");
         var reduced = m.ReduceExtensionMember(comp.GetSpecialType(SpecialType.System_Object).GetPublicSymbol());
         AssertEx.Equal("void <G>$8048A6C8BE30A622530249B904B537EB<System.Object>.M()", reduced.ToTestDisplayString());
+    }
+
+    [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/86458")]
+    [InlineData("T2 : T1", "C1", "C2")]
+    [InlineData("T1 : T2", "C2", "C1")]
+    public void ReduceExtensionMember_15_MethodGroup_PartiallyInferred_WithConstraints(string constraint, string receiverType, string argumentType)
+    {
+        var src = $$"""
+using System;
+
+var r = new {{receiverType}}();
+Action<{{argumentType}}> a = r.M1;
+Action<{{argumentType}}> b = r.M2;
+a(new {{argumentType}}());
+b(new {{argumentType}}());
+r.M1(new {{argumentType}}());
+r.M2(new {{argumentType}}());
+
+static class Extensions
+{
+    public static void M1<T1, T2>(this T1 t, T2 x) where {{constraint}}
+        => Console.Write("1");
+
+    extension<T1, T2>(T1 t) where {{constraint}}
+    {
+        public void M2(T2 x) => Console.Write("2");
+    }
+}
+
+class C1;
+class C2 : C1;
+""";
+        CompileAndVerify(src, expectedOutput: "1212").VerifyDiagnostics();
+        CompileAndVerify(src, expectedOutput: "1212", parseOptions: TestOptions.RegularNext).VerifyDiagnostics();
+        CompileAndVerify(src, expectedOutput: "1212", parseOptions: TestOptions.Regular15).VerifyDiagnostics();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/86458")]
+    public void ReduceExtensionMember_16_PartiallyInferred_WithConstraints()
+    {
+        var src = """
+public static class Extensions
+{
+    extension<T1, T2>(T1 t) where T1 : class where T2 : T1
+    {
+        public void M(T2 x) { }
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics();
+
+        var extension = comp.GlobalNamespace.GetTypeMember("Extensions").GetTypeMembers().Single();
+        var method = extension.GetMember<MethodSymbol>("M").GetPublicSymbol();
+        var reduced = method.ReduceExtensionMember(comp.GetSpecialType(SpecialType.System_String).GetPublicSymbol());
+        var displayOptions = SymbolDisplayFormat.TestFormat.WithCompilerInternalOptions(SymbolDisplayCompilerInternalOptions.None);
+        AssertEx.Equal("void Extensions.extension<System.String, T2>(System.String).M(T2 x)", reduced.ToDisplayString(displayOptions));
+        Assert.Null(method.ReduceExtensionMember(comp.GetSpecialType(SpecialType.System_Int32).GetPublicSymbol()));
+    }
+
+    [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/86458")]
+    [InlineData("T2 : T1")]
+    [InlineData("T1 : T2")]
+    public void ReduceExtensionMember_17_MethodGroup_PartiallyInferred_WithConstraints(string constraint)
+    {
+        var src = $$"""
+using System;
+
+var r = new C1();
+Action<C2> a = r.M1;
+Action<C2> b = r.M2;
+
+static class Extensions
+{
+    public static void M1<T1, T2>(this T1 t, T2 x) where {{constraint}} { }
+
+    extension<T1, T2>(T1 t) where {{constraint}}
+    {
+        public void M2(T2 x) { }
+    }
+}
+
+class C1;
+class C2;
+""";
+        CreateCompilation(src).VerifyEmitDiagnostics(
+            // (4,16): error CS0411: The type arguments for method 'Extensions.M1<T1, T2>(T1, T2)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+            // Action<C2> a = r.M1;
+            Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "r.M1").WithArguments("Extensions.M1<T1, T2>(T1, T2)").WithLocation(4, 16),
+            // (5,16): error CS0411: The type arguments for method 'Extensions.extension<T1, T2>(T1).M2(T2)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+            // Action<C2> b = r.M2;
+            Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "r.M2").WithArguments("Extensions.extension<T1, T2>(T1).M2(T2)").WithLocation(5, 16)
+            );
     }
 
     [Fact]
@@ -36955,5 +43229,2738 @@ class Program
         compB = CreateCompilation(sourceB, references: [compA.EmitToImageReference()], assemblyName: "B", options: TestOptions.DebugExe);
         CompileAndVerify(compB, expectedOutput: "TrueTrueFalse").VerifyDiagnostics();
     }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/81851")]
+    public void Nullability_ReceiverConversion_01()
+    {
+        var src = """
+#nullable enable
+
+(object, object)? o = (new object(), new object());
+_ = o.P;
+o.P = 42;
+o.M();
+
+static class E
+{
+    extension((object?, object?)? o)
+    {
+        public int P { get => throw null!; set => throw null!; }
+        public void M() { }
+    }
+}
+""";
+        CreateCompilation(src).VerifyEmitDiagnostics(
+            // (4,5): warning CS8620: Argument of type '(object, object)?' cannot be used for parameter 'o' of type '(object?, object?)?' in 'E.extension((object?, object?)?)' due to differences in the nullability of reference types.
+            // _ = o.P;
+            Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "o").WithArguments("(object, object)?", "(object?, object?)?", "o", "E.extension((object?, object?)?)").WithLocation(4, 5),
+            // (5,1): warning CS8620: Argument of type '(object, object)?' cannot be used for parameter 'o' of type '(object?, object?)?' in 'E.extension((object?, object?)?)' due to differences in the nullability of reference types.
+            // o.P = 42;
+            Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "o").WithArguments("(object, object)?", "(object?, object?)?", "o", "E.extension((object?, object?)?)").WithLocation(5, 1),
+            // (6,1): warning CS8620: Argument of type '(object, object)?' cannot be used for parameter 'o' of type '(object?, object?)?' in 'E.extension((object?, object?)?)' due to differences in the nullability of reference types.
+            // o.M();
+            Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "o").WithArguments("(object, object)?", "(object?, object?)?", "o", "E.extension((object?, object?)?)").WithLocation(6, 1));
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/81851")]
+    public void Nullability_ReceiverConversion_02()
+    {
+        // initializer
+        var src = """
+#nullable enable
+
+_ = new System.Nullable<System.ValueTuple<object, object>>() { P = null };
+
+public static class E
+{
+    extension((object?, object?)? t)
+    {
+        public string? P { set { } }
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (3,64): warning CS8620: Argument of type '(object, object)?' cannot be used for parameter 't' of type '(object?, object?)?' in 'E.extension((object?, object?)?)' due to differences in the nullability of reference types.
+            // _ = new System.Nullable<System.ValueTuple<object, object>>() { P = null };
+            Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "P").WithArguments("(object, object)?", "(object?, object?)?", "t", "E.extension((object?, object?)?)").WithLocation(3, 64));
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/81851")]
+    public void Nullability_ReceiverConversion_03()
+    {
+        // initializer, target-typed
+        var src = """
+#nullable enable
+
+System.Nullable<System.ValueTuple<object, object>> t = new() { P = null };
+
+public static class E
+{
+    extension((object?, object?)? t)
+    {
+        public string? P { set { } }
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (3,56): error CS1929: '(object, object)' does not contain a definition for 'P' and the best extension method overload 'E.extension((object?, object?)?).P' requires a receiver of type '(object?, object?)?'
+            // System.Nullable<System.ValueTuple<object, object>> t = new() { P = null };
+            Diagnostic(ErrorCode.ERR_BadInstanceArgType, "new() { P = null }").WithArguments("(object, object)", "P", "E.extension((object?, object?)?).P", "(object?, object?)?").WithLocation(3, 56));
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/81851")]
+    public void Nullability_ReceiverConversion_04()
+    {
+        // nested initializer
+        var src = """
+#nullable enable
+
+_ = new System.Nullable<System.ValueTuple<object, object>>() { P = { F = "" } };
+
+public static class E
+{
+    extension((object?, object?)? t)
+    {
+        public C P { get => new C(); }
+    }
 }
 
+public class C
+{
+    public string? F;
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (3,64): warning CS8620: Argument of type '(object, object)?' cannot be used for parameter 't' of type '(object?, object?)?' in 'E.extension((object?, object?)?)' due to differences in the nullability of reference types.
+            // _ = new System.Nullable<System.ValueTuple<object, object>>() { P = { F = "" } };
+            Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "P").WithArguments("(object, object)?", "(object?, object?)?", "t", "E.extension((object?, object?)?)").WithLocation(3, 64));
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/81851")]
+    public void Nullability_ReceiverConversion_05()
+    {
+        // property pattern
+        var src = """
+#nullable enable
+
+(object, object)? o = (new object(), new object());
+_ = o is { P: var x };
+
+static class E
+{
+    extension((object?, object?)? o)
+    {
+        public int P { get => throw null!; }
+    }
+}
+""";
+        CreateCompilation(src).VerifyEmitDiagnostics(
+            // (4,12): error CS1929: '(object, object)' does not contain a definition for 'P' and the best extension method overload 'E.extension((object?, object?)?).P' requires a receiver of type '(object?, object?)?'
+            // _ = o is { P: var x };
+            Diagnostic(ErrorCode.ERR_BadInstanceArgType, "P").WithArguments("(object, object)", "P", "E.extension((object?, object?)?).P", "(object?, object?)?").WithLocation(4, 12));
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/81851")]
+    public void Nullability_ReceiverConversion_06()
+    {
+        // property pattern
+        var src = """
+#nullable enable
+
+(object, object)? o = (new object(), new object());
+_ = o is { P: var x };
+
+static class E
+{
+    extension((object?, object?) o)
+    {
+        public int P { get => throw null!; }
+    }
+}
+""";
+        CreateCompilation(src).VerifyEmitDiagnostics();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/81851")]
+    public void Nullability_ReceiverConversion_07()
+    {
+        // 'with' expression
+        var src = """
+#nullable enable
+
+(object, object)? o = (new object(), new object());
+_ = o with { P = 42 };
+
+static class E
+{
+    extension((object?, object?)? o)
+    {
+        public int P { set { } }
+    }
+}
+""";
+        CreateCompilation(src).VerifyEmitDiagnostics(
+            // (4,14): warning CS8620: Argument of type '(object, object)?' cannot be used for parameter 'o' of type '(object?, object?)?' in 'E.extension((object?, object?)?)' due to differences in the nullability of reference types.
+            // _ = o with { P = 42 };
+            Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "P").WithArguments("(object, object)?", "(object?, object?)?", "o", "E.extension((object?, object?)?)").WithLocation(4, 14));
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/81851")]
+    public void Nullability_ReceiverConversion_08()
+    {
+        // increment operator
+        var src = """
+#nullable enable
+
+(object, object)? o = (new object(), new object());
+o++;
+
+static class E
+{
+    extension((object?, object?)?)
+    {
+        public static (object?, object?)? operator++((object?, object?)? t) => t;
+    }
+}
+""";
+        CreateCompilation(src).VerifyEmitDiagnostics(
+            // (4,1): warning CS8619: Nullability of reference types in value of type '(object?, object?)?' doesn't match target type '(object, object)?'.
+            // o++;
+            Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "o++").WithArguments("(object?, object?)?", "(object, object)?").WithLocation(4, 1));
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/81851")]
+    public void Nullability_ReceiverConversion_09()
+    {
+        // compound assignment
+        var src = """
+#nullable enable
+
+(object, object)? o = (new object(), new object());
+o.P++;
+
+static class E
+{
+    extension((object?, object?)? o)
+    {
+        public int P { get => throw null!; set { } }
+    }
+}
+""";
+        CreateCompilation(src).VerifyEmitDiagnostics(
+            // (4,1): warning CS8620: Argument of type '(object, object)?' cannot be used for parameter 'o' of type '(object?, object?)?' in 'E.extension((object?, object?)?)' due to differences in the nullability of reference types.
+            // o.P++;
+            Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "o").WithArguments("(object, object)?", "(object?, object?)?", "o", "E.extension((object?, object?)?)").WithLocation(4, 1));
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/81851")]
+    public void Nullability_ReceiverConversion_10()
+    {
+        // static method
+        var src = """
+#nullable enable
+
+System.Nullable<System.ValueTuple<object, object>>.M();
+
+public static class E
+{
+    extension((object?, object?)? t)
+    {
+        public static void M() { }
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (3,1): warning CS8620: Argument of type '(object, object)?' cannot be used for parameter 't' of type '(object?, object?)?' in 'E.extension((object?, object?)?)' due to differences in the nullability of reference types.
+            // System.Nullable<System.ValueTuple<object, object>>.M();;
+            Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "System.Nullable<System.ValueTuple<object, object>>").WithArguments("(object, object)?", "(object?, object?)?", "t", "E.extension((object?, object?)?)").WithLocation(3, 1));
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/81851")]
+    public void Nullability_ReceiverConversion_11()
+    {
+        // static property
+        var src = """
+#nullable enable
+
+_ = System.Nullable<System.ValueTuple<object, object>>.P;
+System.Nullable<System.ValueTuple<object, object>>.P = 0;
+
+public static class E
+{
+    extension((object?, object?)? t)
+    {
+        public static int P { get => throw null!; set { } }
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (3,5): warning CS8620: Argument of type '(object, object)?' cannot be used for parameter 't' of type '(object?, object?)?' in 'E.extension((object?, object?)?)' due to differences in the nullability of reference types.
+            // _ = System.Nullable<System.ValueTuple<object, object>>.P;
+            Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "System.Nullable<System.ValueTuple<object, object>>").WithArguments("(object, object)?", "(object?, object?)?", "t", "E.extension((object?, object?)?)").WithLocation(3, 5),
+            // (4,1): warning CS8620: Argument of type '(object, object)?' cannot be used for parameter 't' of type '(object?, object?)?' in 'E.extension((object?, object?)?)' due to differences in the nullability of reference types.
+            // System.Nullable<System.ValueTuple<object, object>>.P = 0;
+            Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "System.Nullable<System.ValueTuple<object, object>>").WithArguments("(object, object)?", "(object?, object?)?", "t", "E.extension((object?, object?)?)").WithLocation(4, 1));
+    }
+
+    [Fact]
+    public void CallerMemberName_01()
+    {
+        var src = """
+42.M();
+
+public static class E
+{
+    extension(int i)
+    {
+        public void M([System.Runtime.CompilerServices.CallerMemberName] string s = "")
+        {
+            System.Console.Write(s);
+        }
+    }
+}
+""";
+
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net100);
+        CompileAndVerify(comp, expectedOutput: ExpectedOutput("<Main>$"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void CallerMemberName_02()
+    {
+        var src = """
+42.M();
+
+public static class E
+{
+    extension(int i)
+    {
+        public void M()
+        {
+            local();
+
+            void local([System.Runtime.CompilerServices.CallerMemberName] string s = "")
+            {
+                System.Console.Write(s);
+            }
+        }
+    }
+}
+""";
+
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net100);
+        CompileAndVerify(comp, expectedOutput: ExpectedOutput("M"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+    }
+
+    [Fact, CompilerTrait(CompilerFeature.RefLifetime)]
+    public void RefAnalysis_ObjectCreation_01()
+    {
+        string source = """
+_ = new S() { Property = 42 };
+System.Console.Write(E.Field);
+
+S s = new S();
+E.get_Property(s) = 43;
+System.Console.Write(E.Field);
+
+ref struct S { }
+
+static class E
+{
+    public static int Field;
+    extension(S s)
+    {
+        public ref int Property { get => ref Field; }
+    }
+}
+""";
+
+        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net100);
+        CompileAndVerify(comp, expectedOutput: ExpectedOutput("4243"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+    }
+
+    [Fact, CompilerTrait(CompilerFeature.RefLifetime)]
+    public void RefAnalysis_ObjectCreation_02()
+    {
+        string source = """
+System.Span<byte> span = stackalloc byte[10];
+_ = new S() { Property = span };
+
+S s = new S();
+E.get_Property(s) = span;
+
+ref struct S { }
+
+static class E
+{
+    extension(S s)
+    {
+        public ref System.Span<byte> Property { get => throw null; }
+    }
+}
+""";
+
+        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net100);
+        comp.VerifyEmitDiagnostics(
+            // (5,21): error CS8352: Cannot use variable 'span' in this context because it may expose referenced variables outside of their declaration scope
+            // E.get_Property(s) = span;
+            Diagnostic(ErrorCode.ERR_EscapeVariable, "span").WithArguments("span").WithLocation(5, 21));
+    }
+
+    [Fact, CompilerTrait(CompilerFeature.RefLifetime)]
+    public void RefAnalysis_ObjectCreation_03()
+    {
+        string source = """
+System.Span<byte> span = stackalloc byte[10];
+_ = new S() { Property = span };
+
+S s = new S();
+E.get_Property(ref s) = span;
+
+ref struct S { }
+
+static class E
+{
+    extension(ref S s)
+    {
+        public ref System.Span<byte> Property { get => throw null; }
+    }
+}
+""";
+
+        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net100);
+        comp.VerifyEmitDiagnostics(
+            // (5,25): error CS8352: Cannot use variable 'span' in this context because it may expose referenced variables outside of their declaration scope
+            // E.get_Property(ref s) = span;
+            Diagnostic(ErrorCode.ERR_EscapeVariable, "span").WithArguments("span").WithLocation(5, 25));
+    }
+
+    [Fact, CompilerTrait(CompilerFeature.RefLifetime)]
+    public void RefAnalysis_ObjectCreation_04()
+    {
+        string source = """
+System.Span<byte> span = stackalloc byte[10];
+_ = new C() { Property = span };
+
+C c = new C();
+E.get_Property(c) = span;
+
+class C { }
+
+static class E
+{
+    extension(C c)
+    {
+        public ref System.Span<byte> Property { get => throw null; }
+    }
+}
+""";
+
+        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net100);
+        comp.VerifyEmitDiagnostics(
+            // (5,21): error CS8352: Cannot use variable 'span' in this context because it may expose referenced variables outside of their declaration scope
+            // E.get_Property(s) = span;
+            Diagnostic(ErrorCode.ERR_EscapeVariable, "span").WithArguments("span").WithLocation(5, 21));
+    }
+
+    [Fact]
+    public void Script_01()
+    {
+        var source = """
+static class E
+{
+    extension(object o)
+    {
+        static void F() { }
+    }
+}
+
+class C
+{
+    void M() { this.F(); }
+}
+
+new object().F();
+""";
+        CreateCompilation(source, parseOptions: TestOptions.Script).VerifyEmitDiagnostics(
+            // (3,5): error CS9283: Extensions must be declared in a top-level, non-generic, static class
+            //     extension(object o)
+            Diagnostic(ErrorCode.ERR_BadExtensionContainingType, "extension").WithLocation(3, 5),
+            // (11,21): error CS1061: 'C' does not contain a definition for 'F' and no accessible extension method 'F' accepting a first argument of type 'C' could be found (are you missing a using directive or an assembly reference?)
+            //     void M() { this.F(); }
+            Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "F").WithArguments("C", "F").WithLocation(11, 21),
+            // (14,14): error CS1061: 'object' does not contain a definition for 'F' and no accessible extension method 'F' accepting a first argument of type 'object' could be found (are you missing a using directive or an assembly reference?)
+            // new object().F();
+            Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "F").WithArguments("object", "F").WithLocation(14, 14));
+    }
+
+    [Fact]
+    public void Script_02()
+    {
+        var source = """
+static class E
+{
+    extension(object o)
+    {
+        static int Property => 42;
+    }
+}
+
+class C
+{
+    void M() { this.F(); }
+}
+
+_ = new object().Property;
+""";
+        CreateCompilation(source, parseOptions: TestOptions.Script).VerifyEmitDiagnostics(
+            // (3,5): error CS9283: Extensions must be declared in a top-level, non-generic, static class
+            //     extension(object o)
+            Diagnostic(ErrorCode.ERR_BadExtensionContainingType, "extension").WithLocation(3, 5),
+            // (11,21): error CS1061: 'C' does not contain a definition for 'F' and no accessible extension method 'F' accepting a first argument of type 'C' could be found (are you missing a using directive or an assembly reference?)
+            //     void M() { this.F(); }
+            Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "F").WithArguments("C", "F").WithLocation(11, 21),
+            // (14,18): error CS1061: 'object' does not contain a definition for 'Property' and no accessible extension method 'Property' accepting a first argument of type 'object' could be found (are you missing a using directive or an assembly reference?)
+            // _ = new object().Property;
+            Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "Property").WithArguments("object", "Property").WithLocation(14, 18));
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/82642")]
+    public void UseSite_01()
+    {
+        // extension(Missing).Property
+        var missing_cs = """
+public class Missing { }
+""";
+        var missingRef = CreateCompilation(missing_cs, assemblyName: "missing")
+            .EmitToImageReference();
+
+        var lib2_cs = """
+public static class E1
+{
+    extension(Missing m)
+    {
+        public int Length => 1;
+    }
+}
+""";
+        var lib2Ref = CreateCompilation(lib2_cs, references: [missingRef])
+            .EmitToImageReference();
+
+        var source = """
+using Outer;
+
+var o = new object();
+_ = o.Length;
+
+namespace Outer
+{
+    public static class E2
+    {
+        extension(object o)
+        {
+            public int Length => 1;
+        }
+    }
+}
+""";
+        var compilation = CreateCompilation(source, references: [lib2Ref]);
+        compilation.VerifyEmitDiagnostics(
+            // (4,5): error CS0012: The type 'Missing' is defined in an assembly that is not referenced. You must add a reference to assembly 'missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+            // _ = o.Length;
+            Diagnostic(ErrorCode.ERR_NoTypeDef, "o.Length").WithArguments("Missing", "missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(4, 5));
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/82642")]
+    public void UseSite_02()
+    {
+        // static extension(Missing).Property
+        var missing_cs = """
+public class Missing { }
+""";
+        var missingRef = CreateCompilation(missing_cs, assemblyName: "missing")
+            .EmitToImageReference();
+
+        var lib2_cs = """
+public static class E1
+{
+    extension(Missing)
+    {
+        public static int Property => 1;
+    }
+}
+""";
+        var lib2Ref = CreateCompilation(lib2_cs, references: [missingRef])
+            .EmitToImageReference();
+
+        var source = """
+using Outer;
+
+_ = object.Property;
+
+namespace Outer
+{
+    public static class E2
+    {
+        extension(object)
+        {
+            public static int Property => 1;
+        }
+    }
+}
+""";
+        var compilation = CreateCompilation(source, references: [lib2Ref]);
+        compilation.VerifyEmitDiagnostics(
+            // (3,5): error CS0012: The type 'Missing' is defined in an assembly that is not referenced. You must add a reference to assembly 'missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+            // _ = object.Property;
+            Diagnostic(ErrorCode.ERR_NoTypeDef, "object.Property").WithArguments("Missing", "missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(3, 5));
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/82642")]
+    public void UseSite_03()
+    {
+        // extension(Missing).M()
+        var missing_cs = """
+public class Missing { }
+""";
+        var missingRef = CreateCompilation(missing_cs, assemblyName: "missing")
+            .EmitToImageReference();
+
+        var lib2_cs = """
+public static class E1
+{
+    extension(Missing m)
+    {
+        public void M() { }
+    }
+}
+""";
+        var lib2Ref = CreateCompilation(lib2_cs, references: [missingRef])
+            .EmitToImageReference();
+
+        var source = """
+using Outer;
+
+var o = new object();
+o.M();
+
+namespace Outer
+{
+    public static class E2
+    {
+        extension(object o)
+        {
+            public void M() { }
+        }
+    }
+}
+""";
+        var compilation = CreateCompilation(source, references: [lib2Ref]);
+        compilation.VerifyEmitDiagnostics(
+            // (4,1): error CS0012: The type 'Missing' is defined in an assembly that is not referenced. You must add a reference to assembly 'missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+            // o.M(42);
+            Diagnostic(ErrorCode.ERR_NoTypeDef, "o.M").WithArguments("Missing", "missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(4, 1));
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/82642")]
+    public void UseSite_04()
+    {
+        // extension(object).M(Missing)
+        var missing_cs = """
+public class Missing { }
+""";
+        var missingRef = CreateCompilation(missing_cs, assemblyName: "missing")
+            .EmitToImageReference();
+
+        var lib2_cs = """
+public static class E1
+{
+    extension(object o)
+    {
+        public void M(Missing m) { }
+    }
+}
+""";
+        var lib2Ref = CreateCompilation(lib2_cs, references: [missingRef])
+            .EmitToImageReference();
+
+        var source = """
+using Outer;
+
+var o = new object();
+o.M(42);
+
+namespace Outer
+{
+    public static class E2
+    {
+        extension(object o)
+        {
+            public void M(int i) { }
+        }
+    }
+}
+""";
+        var compilation = CreateCompilation(source, references: [lib2Ref]);
+        compilation.VerifyEmitDiagnostics(
+            // (4,1): error CS0012: The type 'Missing' is defined in an assembly that is not referenced. You must add a reference to assembly 'missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+            // o.M(42);
+            Diagnostic(ErrorCode.ERR_NoTypeDef, "o.M").WithArguments("Missing", "missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(4, 1));
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/82642")]
+    public void UseSite_05()
+    {
+        // static extension(Missing).M()
+        var missing_cs = """
+public class Missing { }
+""";
+        var missingRef = CreateCompilation(missing_cs, assemblyName: "missing")
+            .EmitToImageReference();
+
+        var lib2_cs = """
+public static class E1
+{
+    extension(Missing)
+    {
+        public static void M() { }
+    }
+}
+""";
+        var lib2Ref = CreateCompilation(lib2_cs, references: [missingRef])
+            .EmitToImageReference();
+
+        var source = """
+using Outer;
+
+object.M();
+
+namespace Outer
+{
+    public static class E2
+    {
+        extension(object)
+        {
+            public static void M() { }
+        }
+    }
+}
+""";
+        var compilation = CreateCompilation(source, references: [lib2Ref]);
+        compilation.VerifyEmitDiagnostics(
+            // (3,1): error CS0012: The type 'Missing' is defined in an assembly that is not referenced. You must add a reference to assembly 'missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+            // object.M();
+            Diagnostic(ErrorCode.ERR_NoTypeDef, "object.M").WithArguments("Missing", "missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(3, 1));
+    }
+
+    [Fact]
+    public void UseSite_06()
+    {
+        // M(this object, Missing)
+        var missing_cs = """
+public class Missing { }
+""";
+        var missingRef = CreateCompilation(missing_cs, assemblyName: "missing")
+            .EmitToImageReference();
+
+        var lib2_cs = """
+public static class E1
+{
+    public static void M(this object o, Missing m) { }
+}
+""";
+        var lib2Ref = CreateCompilation(lib2_cs, references: [missingRef])
+            .EmitToImageReference();
+
+        var source = """
+using Outer;
+
+var o = new object();
+o.M(42);
+
+namespace Outer
+{
+    public static class E2
+    {
+        public static void M(this object o, int i) { }
+    }
+}
+""";
+        var compilation = CreateCompilation(source, references: [lib2Ref]);
+        compilation.VerifyEmitDiagnostics(
+            // (4,1): error CS0012: The type 'Missing' is defined in an assembly that is not referenced. You must add a reference to assembly 'missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+            // o.M(42);
+            Diagnostic(ErrorCode.ERR_NoTypeDef, "o.M").WithArguments("Missing", "missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(4, 1));
+    }
+
+    [Fact]
+    public void UseSite_07()
+    {
+        // M(this Missing)
+        var missing_cs = """
+public class Missing { }
+""";
+        var missingRef = CreateCompilation(missing_cs, assemblyName: "missing")
+            .EmitToImageReference();
+
+        var lib2_cs = """
+public static class E1
+{
+    public static void M(this Missing m) { }
+}
+""";
+        var lib2Ref = CreateCompilation(lib2_cs, references: [missingRef])
+            .EmitToImageReference();
+
+        var source = """
+using Outer;
+
+var o = new object();
+o.M();
+
+namespace Outer
+{
+    public static class E2
+    {
+        public static void M(this int i) { }
+    }
+}
+""";
+        var compilation = CreateCompilation(source, references: [lib2Ref]);
+        compilation.VerifyEmitDiagnostics(
+            // (4,1): error CS0012: The type 'Missing' is defined in an assembly that is not referenced. You must add a reference to assembly 'missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+            // o.M();
+            Diagnostic(ErrorCode.ERR_NoTypeDef, "o.M").WithArguments("Missing", "missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(4, 1));
+    }
+
+    [Fact]
+    public void Invocation_LValueReceiver_01()
+    {
+        // struct lvalue receiver passed by value
+        var src = """
+static class E
+{
+    extension(S1 x)
+    {
+        public void M(int i) { System.Console.Write($"M:{x.F1} "); }
+    }
+
+    public static void M3(this S1 x, int i) { System.Console.Write($"M3:{x.F1} "); }
+}
+
+public struct S1
+{
+    public int F1;
+
+    public void M2(int i) { System.Console.Write($"M2:{F1} "); }
+}
+
+class Program
+{
+    public static S1 F;
+
+    static void Main()
+    {
+        F = new S1 { F1 = 3 };
+        Test1();
+        System.Console.Write($"final:{F.F1}");
+
+        System.Console.Write(", ");
+
+        F = new S1 { F1 = 3 };
+        Test2();
+        System.Console.Write($"final:{F.F1}");
+
+        System.Console.Write(", ");
+
+        F = new S1 { F1 = 3 };
+        Test3();
+        System.Console.Write($"final:{F.F1}");
+    }
+
+    static void Test1()
+    {
+        F.M(GetArg());
+    }
+
+    static void Test2()
+    {
+        F.M2(GetArg());
+    }
+
+    static void Test3()
+    {
+        F.M3(GetArg());
+    }
+
+    public static int GetArg() { System.Console.Write($"GetArg:{Program.F.F1} "); Program.F.F1++; return 42; }
+}
+""";
+
+        var comp = CreateCompilation(src, options: TestOptions.DebugExe, targetFramework: TargetFramework.Net100);
+        var verifier = CompileAndVerify(comp, expectedOutput: ExpectedOutput("GetArg:3 M:3 final:4, GetArg:3 M2:4 final:4, GetArg:3 M3:3 final:4"), verify: Verification.Skipped)
+            .VerifyDiagnostics();
+
+        verifier.VerifyIL("Program.Test1", """
+{
+  // Code size       18 (0x12)
+  .maxstack  2
+  IL_0000:  nop
+  IL_0001:  ldsfld     "S1 Program.F"
+  IL_0006:  call       "int Program.GetArg()"
+  IL_000b:  call       "void E.M(S1, int)"
+  IL_0010:  nop
+  IL_0011:  ret
+}
+""");
+
+        verifier.VerifyIL("Program.Test2", """
+{
+  // Code size       18 (0x12)
+  .maxstack  2
+  IL_0000:  nop
+  IL_0001:  ldsflda    "S1 Program.F"
+  IL_0006:  call       "int Program.GetArg()"
+  IL_000b:  call       "void S1.M2(int)"
+  IL_0010:  nop
+  IL_0011:  ret
+}
+""");
+
+        verifier.VerifyIL("Program.Test3", """
+{
+  // Code size       18 (0x12)
+  .maxstack  2
+  IL_0000:  nop
+  IL_0001:  ldsfld     "S1 Program.F"
+  IL_0006:  call       "int Program.GetArg()"
+  IL_000b:  call       "void E.M3(S1, int)"
+  IL_0010:  nop
+  IL_0011:  ret
+}
+""");
+    }
+
+    [Theory]
+    [InlineData("ref")]
+    [InlineData("ref readonly")]
+    [InlineData("in")]
+    public void Invocation_LValueReceiver_02(string refKind)
+    {
+        // sibling of IndexerAccess_Get_LValueReceiver_02
+        // struct lvalue receiver passed by ref/in/ref readonly to extension method
+        var src = $$$"""
+static class E
+{
+    extension({{{refKind}}} S1 x)
+    {
+        public void M(int i) { System.Console.Write($"M:{x.F1}"); }
+    }
+
+    public static void M3(this {{{refKind}}} S1 x, int i) { System.Console.Write($"M3:{x.F1}"); }
+}
+
+struct S1
+{
+    public int F1;
+
+    public void M2(int i) { System.Console.Write($"M2:{F1}"); }
+
+    public void Test()
+    {
+        this.M(Program.GetArg());
+        System.Console.Write(", ");
+        this.M2(Program.GetArg());
+        System.Console.Write(", ");
+        this.M3(Program.GetArg());
+    }
+}
+
+class Program
+{
+    public static S1 F;
+
+    static void Main()
+    {
+        F = new S1 { F1 = 3 };
+        Test();
+        System.Console.Write($" final:{F.F1}");
+
+        System.Console.Write(", ");
+
+        F = new S1 { F1 = 3 };
+        F.Test();
+        System.Console.Write($" final:{F.F1}");
+    }
+
+    static void Test()
+    {
+        F.M(GetArg());
+        System.Console.Write(", ");
+        F.M2(GetArg());
+        System.Console.Write(", ");
+        F.M3(GetArg());
+    }
+
+    public static int GetArg() { System.Console.Write($"GetArg:{Program.F.F1} "); Program.F.F1++; return 42; }
+}
+""";
+
+        var comp = CreateCompilation([src], options: TestOptions.DebugExe);
+        var verifier = CompileAndVerify(comp, expectedOutput: "GetArg:3 M:4, GetArg:4 M2:5, GetArg:5 M3:6 final:6, GetArg:3 M:4, GetArg:4 M2:5, GetArg:5 M3:6 final:6")
+            .VerifyDiagnostics();
+
+        verifier.VerifyIL("Program.Test", $$"""
+{
+  // Code size       72 (0x48)
+  .maxstack  2
+  IL_0000:  nop
+  IL_0001:  ldsflda    "S1 Program.F"
+  IL_0006:  call       "int Program.GetArg()"
+  IL_000b:  call       "void E.M({{refKind}} S1, int)"
+  IL_0010:  nop
+  IL_0011:  ldstr      ", "
+  IL_0016:  call       "void System.Console.Write(string)"
+  IL_001b:  nop
+  IL_001c:  ldsflda    "S1 Program.F"
+  IL_0021:  call       "int Program.GetArg()"
+  IL_0026:  call       "void S1.M2(int)"
+  IL_002b:  nop
+  IL_002c:  ldstr      ", "
+  IL_0031:  call       "void System.Console.Write(string)"
+  IL_0036:  nop
+  IL_0037:  ldsflda    "S1 Program.F"
+  IL_003c:  call       "int Program.GetArg()"
+  IL_0041:  call       "void E.M3({{refKind}} S1, int)"
+  IL_0046:  nop
+  IL_0047:  ret
+}
+""");
+
+        verifier.VerifyIL("S1.Test", $$"""
+{
+  // Code size       60 (0x3c)
+  .maxstack  2
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  call       "int Program.GetArg()"
+  IL_0007:  call       "void E.M({{refKind}} S1, int)"
+  IL_000c:  nop
+  IL_000d:  ldstr      ", "
+  IL_0012:  call       "void System.Console.Write(string)"
+  IL_0017:  nop
+  IL_0018:  ldarg.0
+  IL_0019:  call       "int Program.GetArg()"
+  IL_001e:  call       "void S1.M2(int)"
+  IL_0023:  nop
+  IL_0024:  ldstr      ", "
+  IL_0029:  call       "void System.Console.Write(string)"
+  IL_002e:  nop
+  IL_002f:  ldarg.0
+  IL_0030:  call       "int Program.GetArg()"
+  IL_0035:  call       "void E.M3({{refKind}} S1, int)"
+  IL_003a:  nop
+  IL_003b:  ret
+}
+""");
+
+        var src2 = $$$"""
+static class E
+{
+    extension({{{refKind}}} S1 x)
+    {
+        public void M(int i) { }
+    }
+}
+
+struct S1;
+
+class Program
+{
+    static void Test()
+    {
+        default(S1).M(0);
+    }
+}
+""";
+
+        var comp2 = CreateCompilation([src2]);
+        if (refKind == "ref")
+        {
+            comp2.VerifyDiagnostics(
+                // (15,9): error CS1510: A ref or out value must be an assignable variable
+                //         default(S1).M(0);
+                Diagnostic(ErrorCode.ERR_RefLvalueExpected, "default(S1)").WithLocation(15, 9));
+        }
+        else if (refKind == "ref readonly")
+        {
+            comp2.VerifyDiagnostics(
+                // (15,9): warning CS9193: Argument 0 should be a variable because it is passed to a 'ref readonly' parameter
+                //         default(S1).M(0);
+                Diagnostic(ErrorCode.WRN_RefReadonlyNotVariable, "default(S1)").WithArguments("0").WithLocation(15, 9));
+        }
+        else
+        {
+            comp2.VerifyDiagnostics();
+        }
+    }
+
+    [Fact]
+    public void Invocation_LValueReceiver_03()
+    {
+        // sibling of IndexerAccess_Get_LValueReceiver_03
+        // class lvalue receiver
+        var src = """
+static class E
+{
+    extension(C1 x)
+    {
+        public void M(int i) { System.Console.Write($"M:{x.F1}"); }
+    }
+
+    public static void M3(this C1 x, int i) { System.Console.Write($"M3:{x.F1}"); }
+}
+
+class C1
+{
+    public int F1;
+}
+
+class Program
+{
+    public static C1 F;
+
+    static void Main()
+    {
+        F = new C1 { F1 = 3 };
+        Test();
+        System.Console.Write($" final:{F.F1}");
+    }
+
+    static void Test()
+    {
+        F.M(GetArg());
+        System.Console.Write(", ");
+        F.M3(GetArg());
+    }
+
+    static int GetArg()
+    {
+        System.Console.Write($"GetArg:{Program.F.F1} ");
+        Program.F = new C1 { F1 = Program.F.F1 + 1 };
+        return 42;
+    }
+}
+""";
+
+        var comp = CreateCompilation([src], options: TestOptions.DebugExe);
+        var verifier = CompileAndVerify(comp, expectedOutput: "GetArg:3 M:3, GetArg:4 M3:4 final:5")
+            .VerifyDiagnostics();
+
+        verifier.VerifyIL("Program.Test", """
+{
+  // Code size       45 (0x2d)
+  .maxstack  2
+  IL_0000:  nop
+  IL_0001:  ldsfld     "C1 Program.F"
+  IL_0006:  call       "int Program.GetArg()"
+  IL_000b:  call       "void E.M(C1, int)"
+  IL_0010:  nop
+  IL_0011:  ldstr      ", "
+  IL_0016:  call       "void System.Console.Write(string)"
+  IL_001b:  nop
+  IL_001c:  ldsfld     "C1 Program.F"
+  IL_0021:  call       "int Program.GetArg()"
+  IL_0026:  call       "void E.M3(C1, int)"
+  IL_002b:  nop
+  IL_002c:  ret
+}
+""");
+    }
+
+    [Fact]
+    public void Invocation_LValueReceiver_04()
+    {
+        // sibling of IndexerAccess_Get_LValueReceiver_04
+        // unconstrained generic extension receiver
+        var src = """
+using System.Threading.Tasks;
+
+static class E
+{
+    extension<T>(T x)
+    {
+        public void M(int i) { System.Console.Write($"M:{((S1)(object)x).F1}"); }
+    }
+
+    public static void M3<T>(this T x, int i) { System.Console.Write($"M3:{((S1)(object)x).F1}"); }
+}
+
+struct S1
+{
+    public int F1;
+}
+
+class Program<T>
+{
+    public static T F;
+}
+
+class Program
+{
+    static async Task Main()
+    {
+        Program<S1>.F = new S1 { F1 = 3 };
+        Test1(ref Program<S1>.F);
+        System.Console.Write($" final:{Program<S1>.F.F1}");
+
+        System.Console.Write(", ");
+
+        Program<S1>.F = new S1 { F1 = 3 };
+        Test2(ref Program<S1>.F);
+        System.Console.Write($" final:{Program<S1>.F.F1}");
+    }
+
+    static void Test1<T>(ref T f)
+    {
+        f.M(GetArg());
+        System.Console.Write(", ");
+        f.M3(GetArg());
+    }
+
+    static void Test2<T>(ref T f) where T : struct
+    {
+        f.M(GetArg());
+        System.Console.Write(", ");
+        f.M3(GetArg());
+    }
+
+    static int GetArg()
+    {
+        System.Console.Write($"GetArg:{Program<S1>.F.F1} ");
+        Program<S1>.F.F1++;
+        return 42;
+    }
+}
+""";
+
+        var comp = CreateCompilation([src], options: TestOptions.DebugExe);
+        var verifier = CompileAndVerify(comp, expectedOutput: "GetArg:3 M:3, GetArg:4 M3:4 final:5, GetArg:3 M:3, GetArg:4 M3:4 final:5")
+            .VerifyDiagnostics();
+
+        verifier.VerifyIL("Program.Test1<T>(ref T)", """
+{
+  // Code size       47 (0x2f)
+  .maxstack  2
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  ldobj      "T"
+  IL_0007:  call       "int Program.GetArg()"
+  IL_000c:  call       "void E.M<T>(T, int)"
+  IL_0011:  nop
+  IL_0012:  ldstr      ", "
+  IL_0017:  call       "void System.Console.Write(string)"
+  IL_001c:  nop
+  IL_001d:  ldarg.0
+  IL_001e:  ldobj      "T"
+  IL_0023:  call       "int Program.GetArg()"
+  IL_0028:  call       "void E.M3<T>(T, int)"
+  IL_002d:  nop
+  IL_002e:  ret
+}
+""");
+
+        verifier.VerifyIL("Program.Test2<T>(ref T)", """
+{
+  // Code size       47 (0x2f)
+  .maxstack  2
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  ldobj      "T"
+  IL_0007:  call       "int Program.GetArg()"
+  IL_000c:  call       "void E.M<T>(T, int)"
+  IL_0011:  nop
+  IL_0012:  ldstr      ", "
+  IL_0017:  call       "void System.Console.Write(string)"
+  IL_001c:  nop
+  IL_001d:  ldarg.0
+  IL_001e:  ldobj      "T"
+  IL_0023:  call       "int Program.GetArg()"
+  IL_0028:  call       "void E.M3<T>(T, int)"
+  IL_002d:  nop
+  IL_002e:  ret
+}
+""");
+    }
+
+    [Fact]
+    public void Invocation_LValueReceiver_05()
+    {
+        // sibling of IndexerAccess_Get_LValueReceiver_05
+        // 'ref T' (struct) extension receiver
+        var src = """
+using System.Threading.Tasks;
+
+static class E
+{
+    extension<T>(ref T x) where T : struct
+    {
+        public void M(int i) { System.Console.Write($"M:{((S1)(object)x).F1}"); }
+    }
+
+    public static void M3<T>(this ref T x, int i) where T : struct { System.Console.Write($"M3:{((S1)(object)x).F1}"); }
+}
+
+struct S1
+{
+    public int F1;
+}
+
+class Program<T>
+{
+    public static T F;
+}
+
+class Program
+{
+    static async Task Main()
+    {
+        Program<S1>.F = new S1 { F1 = 3 };
+        Test2(ref Program<S1>.F);
+        System.Console.Write($" final:{Program<S1>.F.F1}");
+
+        System.Console.Write(", ");
+
+        Program<S1>.F = new S1 { F1 = 3 };
+        await Test3<S1>();
+        System.Console.Write($" final:{Program<S1>.F.F1}");
+    }
+
+    static void Test2<T>(ref T f) where T : struct
+    {
+        f.M(GetArg());
+        System.Console.Write(", ");
+        f.M3(GetArg());
+    }
+
+    static int GetArg()
+    {
+        System.Console.Write($"GetArg:{Program<S1>.F.F1} ");
+        Program<S1>.F.F1++;
+        return 42;
+    }
+
+    static async Task Test3<T>() where T : struct
+    {
+        Program<T>.F.M(await GetArgAsync());
+        System.Console.Write(", ");
+        Program<T>.F.M3(await GetArgAsync());
+    }
+
+    static async Task<int> GetArgAsync()
+    {
+        System.Console.Write($"GetArg:{Program<S1>.F.F1} ");
+        Program<S1>.F.F1++;
+        await Task.Yield();
+        return 42;
+    }
+}
+""";
+
+        var comp = CreateCompilation([src], options: TestOptions.DebugExe);
+        var verifier = CompileAndVerify(comp, expectedOutput: "GetArg:3 M:4, GetArg:4 M3:5 final:5, GetArg:3 M:4, GetArg:4 M3:5 final:5")
+            .VerifyDiagnostics();
+
+        verifier.VerifyIL("Program.Test2<T>(ref T)", """
+{
+  // Code size       37 (0x25)
+  .maxstack  2
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  call       "int Program.GetArg()"
+  IL_0007:  call       "void E.M<T>(ref T, int)"
+  IL_000c:  nop
+  IL_000d:  ldstr      ", "
+  IL_0012:  call       "void System.Console.Write(string)"
+  IL_0017:  nop
+  IL_0018:  ldarg.0
+  IL_0019:  call       "int Program.GetArg()"
+  IL_001e:  call       "void E.M3<T>(ref T, int)"
+  IL_0023:  nop
+  IL_0024:  ret
+}
+""");
+
+        var src2 = """
+static class E
+{
+    extension<T>(ref T x) where T : struct
+    {
+        public void M(int i) { }
+    }
+}
+
+class Program
+{
+    static void Test<T>() where T : struct
+    {
+        default(T).M(0);
+    }
+}
+""";
+
+        var comp2 = CreateCompilation([src2]);
+        comp2.VerifyDiagnostics(
+            // (13,9): error CS1510: A ref or out value must be an assignable variable
+            //         default(T).M(0);
+            Diagnostic(ErrorCode.ERR_RefLvalueExpected, "default(T)").WithLocation(13, 9));
+    }
+
+    [Fact]
+    public void Invocation_LValueReceiver_06()
+    {
+        // sibling of IndexerAccess_Get_LValueReceiver_06
+        // unconstrained generic extension receiver with class type at runtime.
+        var src = """
+using System.Threading.Tasks;
+
+static class E
+{
+    extension<T>(T x)
+    {
+        public void M(int i) { System.Console.Write($"M:{((C1)(object)x).F1}"); }
+    }
+
+    public static void M3<T>(this T x, int i) { System.Console.Write($"M3:{((C1)(object)x).F1}"); }
+}
+
+class C1
+{
+    public int F1;
+}
+
+class Program<T>
+{
+    public static T F;
+}
+
+class Program
+{
+    static async Task Main()
+    {
+        Program<C1>.F = new C1 { F1 = 3 };
+        Test1(ref Program<C1>.F);
+        System.Console.Write($" final:{Program<C1>.F.F1}");
+
+        System.Console.Write(", ");
+
+        Program<C1>.F = new C1 { F1 = 3 };
+        Test2(ref Program<C1>.F);
+        System.Console.Write($" final:{Program<C1>.F.F1}");
+    }
+
+    static void Test1<T>(ref T f)
+    {
+        f.M(GetArg());
+        System.Console.Write(", ");
+        f.M3(GetArg());
+    }
+
+    static void Test2<T>(ref T f) where T : class
+    {
+        f.M(GetArg());
+        System.Console.Write(", ");
+        f.M3(GetArg());
+    }
+
+    static int GetArg()
+    {
+        System.Console.Write($"GetArg:{Program<C1>.F.F1} ");
+        Program<C1>.F = new C1 { F1 = Program<C1>.F.F1 + 1 };
+        return 42;
+    }
+}
+""";
+
+        var comp = CreateCompilation([src], options: TestOptions.DebugExe);
+        var verifier = CompileAndVerify(comp, expectedOutput: "GetArg:3 M:3, GetArg:4 M3:4 final:5, GetArg:3 M:3, GetArg:4 M3:4 final:5")
+            .VerifyDiagnostics();
+
+        verifier.VerifyIL("Program.Test1<T>(ref T)", """
+{
+  // Code size       47 (0x2f)
+  .maxstack  2
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  ldobj      "T"
+  IL_0007:  call       "int Program.GetArg()"
+  IL_000c:  call       "void E.M<T>(T, int)"
+  IL_0011:  nop
+  IL_0012:  ldstr      ", "
+  IL_0017:  call       "void System.Console.Write(string)"
+  IL_001c:  nop
+  IL_001d:  ldarg.0
+  IL_001e:  ldobj      "T"
+  IL_0023:  call       "int Program.GetArg()"
+  IL_0028:  call       "void E.M3<T>(T, int)"
+  IL_002d:  nop
+  IL_002e:  ret
+}
+""");
+
+        verifier.VerifyIL("Program.Test2<T>(ref T)", """
+{
+  // Code size       47 (0x2f)
+  .maxstack  2
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  ldobj      "T"
+  IL_0007:  call       "int Program.GetArg()"
+  IL_000c:  call       "void E.M<T>(T, int)"
+  IL_0011:  nop
+  IL_0012:  ldstr      ", "
+  IL_0017:  call       "void System.Console.Write(string)"
+  IL_001c:  nop
+  IL_001d:  ldarg.0
+  IL_001e:  ldobj      "T"
+  IL_0023:  call       "int Program.GetArg()"
+  IL_0028:  call       "void E.M3<T>(T, int)"
+  IL_002d:  nop
+  IL_002e:  ret
+}
+""");
+    }
+
+    [Fact]
+    public void Invocation_RValueReceiver_01()
+    {
+        // sibling of IndexerAccess_Get_RValueReceiver_01
+        // struct rvalue receiver
+        var src = """
+static class E
+{
+    extension(S1 x)
+    {
+        public void M(int i) { System.Console.Write($"M:{x.F1} "); }
+    }
+}
+
+public struct S1
+{
+    public int F1;
+}
+
+class Program
+{
+    static void Main()
+    {
+        Test();
+    }
+
+    static void Test()
+    {
+        GetS1().M(GetArg());
+    }
+
+    static S1 GetS1() => new S1 { F1 = 3 };
+
+    public static int GetArg() => 42;
+}
+""";
+
+        var comp = CreateCompilation([src], options: TestOptions.DebugExe);
+        var verifier = CompileAndVerify(comp, expectedOutput: "M:3").VerifyDiagnostics();
+
+        verifier.VerifyIL("Program.Test", """
+{
+  // Code size       18 (0x12)
+  .maxstack  2
+  IL_0000:  nop
+  IL_0001:  call       "S1 Program.GetS1()"
+  IL_0006:  call       "int Program.GetArg()"
+  IL_000b:  call       "void E.M(S1, int)"
+  IL_0010:  nop
+  IL_0011:  ret
+}
+""");
+    }
+
+    [Theory]
+    [InlineData("ref")]
+    [InlineData("ref readonly")]
+    [InlineData("in")]
+    public void Invocation_RValueReceiver_02(string refKind)
+    {
+        // sibling of IndexerAccess_Get_RValueReceiver_02
+        // struct rvalue receiver with ref/in/ref readonly extension parameter
+        var src = $$$"""
+static class E
+{
+    extension({{{refKind}}} S1 x)
+    {
+        public void M(int i) { System.Console.Write($"M:{x.F1} "); }
+    }
+}
+
+struct S1
+{
+    public int F1;
+}
+
+class Program
+{
+    static void Main()
+    {
+        Test();
+    }
+
+    static void Test()
+    {
+        GetS1().M(GetArg());
+    }
+
+    static S1 GetS1() => new S1 { F1 = 3 };
+
+    public static int GetArg() => 42;
+}
+""";
+
+        var comp = CreateCompilation([src], options: TestOptions.DebugExe.WithAllowUnsafe(true));
+        if (refKind == "ref")
+        {
+            comp.VerifyEmitDiagnostics(
+                // (23,9): error CS1510: A ref or out value must be an assignable variable
+                //         GetS1().M(GetArg());
+                Diagnostic(ErrorCode.ERR_RefLvalueExpected, "GetS1()").WithLocation(23, 9));
+            return;
+        }
+        else if (refKind == "ref readonly")
+        {
+            comp.VerifyEmitDiagnostics(
+                // (23,9): warning CS9193: Argument 0 should be a variable because it is passed to a 'ref readonly' parameter
+                //         GetS1().M(GetArg());
+                Diagnostic(ErrorCode.WRN_RefReadonlyNotVariable, "GetS1()").WithArguments("0").WithLocation(23, 9));
+        }
+        else
+        {
+            comp.VerifyEmitDiagnostics();
+        }
+
+        var verifier = CompileAndVerify(comp, expectedOutput: "M:3");
+
+        verifier.VerifyIL("Program.Test", $$"""
+{
+  // Code size       21 (0x15)
+  .maxstack  2
+  .locals init (S1 V_0)
+  IL_0000:  nop
+  IL_0001:  call       "S1 Program.GetS1()"
+  IL_0006:  stloc.0
+  IL_0007:  ldloca.s   V_0
+  IL_0009:  call       "int Program.GetArg()"
+  IL_000e:  call       "void E.M({{refKind}} S1, int)"
+  IL_0013:  nop
+  IL_0014:  ret
+}
+""");
+    }
+
+    [Fact]
+    public void Invocation_RValueReceiver_03()
+    {
+        // sibling of IndexerAccess_Get_RValueReceiver_03
+        // class rvalue receiver
+        var src = """
+static class E
+{
+    extension(C1 x)
+    {
+        public void M(int i) { System.Console.Write($"M:{x.F1} "); }
+    }
+}
+
+class C1
+{
+    public int F1;
+}
+
+class Program
+{
+    static void Main()
+    {
+        Test();
+    }
+
+    static void Test()
+    {
+        GetC1().M(GetArg());
+    }
+
+    static C1 GetC1() => new C1 { F1 = 3 };
+
+    static int GetArg() => 42;
+}
+""";
+
+        var comp = CreateCompilation([src], options: TestOptions.DebugExe);
+        var verifier = CompileAndVerify(comp, expectedOutput: "M:3").VerifyDiagnostics();
+
+        verifier.VerifyIL("Program.Test", """
+{
+  // Code size       18 (0x12)
+  .maxstack  2
+  IL_0000:  nop
+  IL_0001:  call       "C1 Program.GetC1()"
+  IL_0006:  call       "int Program.GetArg()"
+  IL_000b:  call       "void E.M(C1, int)"
+  IL_0010:  nop
+  IL_0011:  ret
+}
+""");
+    }
+
+    [Fact]
+    public void Invocation_RValueReceiver_04()
+    {
+        // sibling of IndexerAccess_Get_RValueReceiver_04
+        // unconstrained generic extension receiver
+        var src = """
+using System.Threading.Tasks;
+
+static class E
+{
+    extension<T>(T x)
+    {
+        public void M(int i) { System.Console.Write($"M:{((S1)(object)x).F1} "); }
+    }
+}
+
+struct S1
+{
+    public int F1;
+}
+
+class Program
+{
+    static async Task Main()
+    {
+        Test1<S1>();
+
+        System.Console.Write(", ");
+
+        Test2<S1>();
+
+        System.Console.Write(", ");
+
+        await Test3<S1>();
+    }
+
+    static T GetT<T>() => (T)(object)new S1 { F1 = 3 };
+
+    static void Test1<T>()
+    {
+        GetT<T>().M(GetArg());
+    }
+
+    static void Test2<T>() where T : struct
+    {
+        GetT<T>().M(GetArg());
+    }
+
+    static int GetArg() => 42;
+
+    static async Task Test3<T>()
+    {
+        GetT<T>().M(await GetArgAsync());
+    }
+
+    static async Task<int> GetArgAsync()
+    {
+        await Task.Yield();
+        return 42;
+    }
+}
+""";
+
+        var comp = CreateCompilation([src], options: TestOptions.DebugExe);
+        var verifier = CompileAndVerify(comp, expectedOutput: "M:3 , M:3 , M:3").VerifyDiagnostics();
+
+        verifier.VerifyIL("Program.Test1<T>()", """
+{
+  // Code size       18 (0x12)
+  .maxstack  2
+  IL_0000:  nop
+  IL_0001:  call       "T Program.GetT<T>()"
+  IL_0006:  call       "int Program.GetArg()"
+  IL_000b:  call       "void E.M<T>(T, int)"
+  IL_0010:  nop
+  IL_0011:  ret
+}
+""");
+
+        verifier.VerifyIL("Program.Test2<T>()", """
+{
+  // Code size       18 (0x12)
+  .maxstack  2
+  IL_0000:  nop
+  IL_0001:  call       "T Program.GetT<T>()"
+  IL_0006:  call       "int Program.GetArg()"
+  IL_000b:  call       "void E.M<T>(T, int)"
+  IL_0010:  nop
+  IL_0011:  ret
+}
+""");
+    }
+
+    [Fact]
+    public void Invocation_RValueReceiver_05()
+    {
+        // sibling of IndexerAccess_Get_RValueReceiver_05
+        // 'ref T' (struct) extension receiver
+        var src = """
+using System.Threading.Tasks;
+
+static class E
+{
+    extension<T>(ref T x) where T : struct
+    {
+        public void M(int i) { }
+    }
+}
+
+struct S1
+{
+    public int F1;
+}
+
+class Program
+{
+    static async Task Main()
+    {
+        Test2<S1>();
+
+        System.Console.Write(":");
+
+        await Test3<S1>();
+    }
+
+    static void Test2<T>() where T : struct
+    {
+        GetT<T>().M(GetArg());
+    }
+
+    static T GetT<T>() => (T)(object)new S1 { F1 = 3 };
+
+    static int GetArg() => 42;
+
+    static async Task Test3<T>() where T : struct
+    {
+        GetT<T>().M(await GetArgAsync());
+    }
+
+    static async Task<int> GetArgAsync()
+    {
+        await Task.Yield();
+        return 42;
+    }
+}
+""";
+
+        var comp = CreateCompilation([src], options: TestOptions.DebugExe);
+        comp.VerifyEmitDiagnostics(
+            // (29,9): error CS1510: A ref or out value must be an assignable variable
+            //         GetT<T>().M(GetArg());
+            Diagnostic(ErrorCode.ERR_RefLvalueExpected, "GetT<T>()").WithLocation(29, 9),
+            // (38,9): error CS1510: A ref or out value must be an assignable variable
+            //         GetT<T>().M(await GetArgAsync());
+            Diagnostic(ErrorCode.ERR_RefLvalueExpected, "GetT<T>()").WithLocation(38, 9));
+    }
+
+    [Fact]
+    public void Invocation_RValueReceiver_06()
+    {
+        // sibling of IndexerAccess_Get_RValueReceiver_06
+        // unconstrained generic extension receiver with class type at runtime
+        var src = """
+using System.Threading.Tasks;
+
+static class E
+{
+    extension<T>(T x)
+    {
+        public void M(int i) { System.Console.Write($"M:{((C1)(object)x).F1} "); }
+    }
+}
+
+class C1
+{
+    public int F1;
+}
+
+class Program
+{
+    static async Task Main()
+    {
+        Test1<C1>();
+
+        System.Console.Write(", ");
+
+        Test2<C1>();
+
+        System.Console.Write(", ");
+
+        await Test3<C1>();
+    }
+
+    static T GetT<T>() => (T)(object)new C1 { F1 = 3 };
+
+    static void Test1<T>()
+    {
+        GetT<T>().M(GetArg());
+    }
+
+    static void Test2<T>() where T : class
+    {
+        GetT<T>().M(GetArg());
+    }
+
+    static int GetArg() => 42;
+
+    static async Task Test3<T>()
+    {
+        GetT<T>().M(await GetArgAsync());
+    }
+
+    static async Task<int> GetArgAsync()
+    {
+        await Task.Yield();
+        return 42;
+    }
+}
+""";
+
+        var comp = CreateCompilation([src], options: TestOptions.DebugExe);
+        var verifier = CompileAndVerify(comp, expectedOutput: "M:3 , M:3 , M:3").VerifyDiagnostics();
+
+        verifier.VerifyIL("Program.Test1<T>()", """
+{
+  // Code size       18 (0x12)
+  .maxstack  2
+  IL_0000:  nop
+  IL_0001:  call       "T Program.GetT<T>()"
+  IL_0006:  call       "int Program.GetArg()"
+  IL_000b:  call       "void E.M<T>(T, int)"
+  IL_0010:  nop
+  IL_0011:  ret
+}
+""");
+
+        verifier.VerifyIL("Program.Test2<T>()", """
+{
+  // Code size       18 (0x12)
+  .maxstack  2
+  IL_0000:  nop
+  IL_0001:  call       "T Program.GetT<T>()"
+  IL_0006:  call       "int Program.GetArg()"
+  IL_000b:  call       "void E.M<T>(T, int)"
+  IL_0010:  nop
+  IL_0011:  ret
+}
+""");
+    }
+
+    [Theory]
+    [CombinatorialData]
+    public void EffectivelyReadOnly_01_Val_Receiver(
+        [CombinatorialValues("", "readonly ")] string structModifier,
+        [CombinatorialValues("", "ref ", "ref readonly ")] string localModifier)
+    {
+        var src = $$$"""
+public {{{structModifier}}}struct S1
+{
+}
+
+public static class Extensions
+{
+    extension(S1 s1)
+    {
+        public int SomeProp
+        {
+            get { System.Console.Write("Get"); return 0; }
+            set { System.Console.Write("Set"); System.Console.Write(value); }
+        }
+
+        public void M() {}
+    }
+}
+
+public static class Program
+{
+    public static void Main()
+    {
+        S1[] lst = [new S1()];
+        Test1(lst);
+    }
+
+    public static void Test1(System.Span<S1> lst)
+    {
+        foreach ({{{localModifier}}}var b in lst)
+        {
+            b.SomeProp = 123;
+        }
+    }
+}
+""";
+
+        var comp = CreateCompilation([src], targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
+
+        static void verifySymbols(ModuleSymbol module)
+        {
+            NamedTypeSymbol extension = module.GlobalNamespace.GetTypeMember("Extensions").GetTypeMember("");
+            MethodSymbol getter = extension.GetMember<MethodSymbol>("get_SomeProp");
+            Assert.False(getter.IsDeclaredReadOnly);
+            Assert.True(getter.IsEffectivelyReadOnly);
+            MethodSymbol setter = extension.GetMember<MethodSymbol>("set_SomeProp");
+            Assert.False(setter.IsDeclaredReadOnly);
+            Assert.True(setter.IsEffectivelyReadOnly);
+            var m = extension.GetMember<MethodSymbol>("M");
+            Assert.False(m.IsDeclaredReadOnly);
+            Assert.True(m.IsEffectivelyReadOnly);
+            var mImpl = m.TryGetCorrespondingExtensionImplementationMethod();
+            Assert.False(mImpl.IsDeclaredReadOnly);
+            Assert.False(mImpl.IsEffectivelyReadOnly);
+            MethodSymbol mReduced = mImpl.ReduceExtensionMethod();
+            Assert.False(mReduced.IsDeclaredReadOnly);
+            Assert.True(mReduced.IsEffectivelyReadOnly);
+        }
+
+        var verifier = CompileAndVerify(comp, symbolValidator: verifySymbols, sourceSymbolValidator: verifySymbols, expectedOutput: ExpectedOutput("Set123"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        verifier.VerifyIL("Program.Test1", """
+{
+  // Code size       41 (0x29)
+  .maxstack  2
+  .locals init (System.Span<S1> V_0,
+            int V_1)
+  IL_0000:  ldarg.0
+  IL_0001:  stloc.0
+  IL_0002:  ldc.i4.0
+  IL_0003:  stloc.1
+  IL_0004:  br.s       IL_001e
+  IL_0006:  ldloca.s   V_0
+  IL_0008:  ldloc.1
+  IL_0009:  call       "ref S1 System.Span<S1>.this[int].get"
+  IL_000e:  ldobj      "S1"
+  IL_0013:  ldc.i4.s   123
+  IL_0015:  call       "void Extensions.set_SomeProp(S1, int)"
+  IL_001a:  ldloc.1
+  IL_001b:  ldc.i4.1
+  IL_001c:  add
+  IL_001d:  stloc.1
+  IL_001e:  ldloc.1
+  IL_001f:  ldloca.s   V_0
+  IL_0021:  call       "int System.Span<S1>.Length.get"
+  IL_0026:  blt.s      IL_0006
+  IL_0028:  ret
+}
+"""
+);
+    }
+
+    [Theory]
+    [CombinatorialData]
+    public void EffectivelyReadOnly_02_Val_Var(
+        [CombinatorialValues("", "readonly ")] string structModifier,
+        [CombinatorialValues("in ", "ref readonly ")] string receiverModifier)
+    {
+        var src = $$$"""
+public {{{structModifier}}}struct S1
+{
+}
+
+public static class Extensions
+{
+    extension({{{receiverModifier}}}S1 s1)
+    {
+        public int SomeProp
+        {
+            get { System.Console.Write("Get"); return 0; }
+            set { System.Console.Write("Set"); System.Console.Write(value); }
+        }
+
+        public void M() {}
+    }
+}
+
+public static class Program
+{
+    public static void Main()
+    {
+        S1[] lst = [new S1()];
+        Test1(lst);
+    }
+
+    public static void Test1(System.Span<S1> lst)
+    {
+        foreach (var b in lst)
+        {
+            b.SomeProp = 123;
+        }
+    }
+}
+""";
+
+        var comp = CreateCompilation([src], targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
+
+        static void verifySymbols(ModuleSymbol module)
+        {
+            NamedTypeSymbol extension = module.GlobalNamespace.GetTypeMember("Extensions").GetTypeMember("");
+            MethodSymbol getter = extension.GetMember<MethodSymbol>("get_SomeProp");
+            Assert.False(getter.IsDeclaredReadOnly);
+            Assert.True(getter.IsEffectivelyReadOnly);
+            MethodSymbol setter = extension.GetMember<MethodSymbol>("set_SomeProp");
+            Assert.False(setter.IsDeclaredReadOnly);
+            Assert.True(setter.IsEffectivelyReadOnly);
+            var m = extension.GetMember<MethodSymbol>("M");
+            Assert.False(m.IsDeclaredReadOnly);
+            Assert.True(m.IsEffectivelyReadOnly);
+            var mImpl = m.TryGetCorrespondingExtensionImplementationMethod();
+            Assert.False(mImpl.IsDeclaredReadOnly);
+            Assert.False(mImpl.IsEffectivelyReadOnly);
+            MethodSymbol mReduced = mImpl.ReduceExtensionMethod();
+            Assert.False(mReduced.IsDeclaredReadOnly);
+            Assert.True(mReduced.IsEffectivelyReadOnly);
+        }
+
+        var verifier = CompileAndVerify(comp, symbolValidator: verifySymbols, sourceSymbolValidator: verifySymbols, expectedOutput: ExpectedOutput("Set123"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        verifier.VerifyIL("Program.Test1", $$$"""
+{
+  // Code size       44 (0x2c)
+  .maxstack  2
+  .locals init (System.Span<S1> V_0,
+                int V_1,
+                S1 V_2) //b
+  IL_0000:  ldarg.0
+  IL_0001:  stloc.0
+  IL_0002:  ldc.i4.0
+  IL_0003:  stloc.1
+  IL_0004:  br.s       IL_0021
+  IL_0006:  ldloca.s   V_0
+  IL_0008:  ldloc.1
+  IL_0009:  call       "ref S1 System.Span<S1>.this[int].get"
+  IL_000e:  ldobj      "S1"
+  IL_0013:  stloc.2
+  IL_0014:  ldloca.s   V_2
+  IL_0016:  ldc.i4.s   123
+  IL_0018:  call       "void Extensions.set_SomeProp({{{receiverModifier}}}S1, int)"
+  IL_001d:  ldloc.1
+  IL_001e:  ldc.i4.1
+  IL_001f:  add
+  IL_0020:  stloc.1
+  IL_0021:  ldloc.1
+  IL_0022:  ldloca.s   V_0
+  IL_0024:  call       "int System.Span<S1>.Length.get"
+  IL_0029:  blt.s      IL_0006
+  IL_002b:  ret
+}
+"""
+);
+    }
+
+    [Theory]
+    [CombinatorialData]
+    public void EffectivelyReadOnly_03(
+        [CombinatorialValues("", "readonly ")] string structModifier,
+        [CombinatorialValues("in ", "ref readonly ")] string receiverModifier,
+        [CombinatorialValues("ref ", "ref readonly ")] string localModifier)
+    {
+        var src = $$$"""
+public {{{structModifier}}}struct S1
+{
+}
+
+public static class Extensions
+{
+    extension({{{receiverModifier}}}S1 s1)
+    {
+        public int SomeProp
+        {
+            get { System.Console.Write("Get"); return 0; }
+            set { System.Console.Write("Set"); System.Console.Write(value); }
+        }
+
+        public void M() {}
+    }
+}
+
+public static class Program
+{
+    public static void Main()
+    {
+        S1[] lst = [new S1()];
+        Test1(lst);
+    }
+
+    public static void Test1(System.Span<S1> lst)
+    {
+        foreach ({{{localModifier}}}var b in lst)
+        {
+            b.SomeProp = 123;
+        }
+    }
+}
+""";
+
+        var comp = CreateCompilation([src], targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
+
+        static void verifySymbols(ModuleSymbol module)
+        {
+            NamedTypeSymbol extension = module.GlobalNamespace.GetTypeMember("Extensions").GetTypeMember("");
+            MethodSymbol getter = extension.GetMember<MethodSymbol>("get_SomeProp");
+            Assert.False(getter.IsDeclaredReadOnly);
+            Assert.True(getter.IsEffectivelyReadOnly);
+            MethodSymbol setter = extension.GetMember<MethodSymbol>("set_SomeProp");
+            Assert.False(setter.IsDeclaredReadOnly);
+            Assert.True(setter.IsEffectivelyReadOnly);
+            var m = extension.GetMember<MethodSymbol>("M");
+            Assert.False(m.IsDeclaredReadOnly);
+            Assert.True(m.IsEffectivelyReadOnly);
+            var mImpl = m.TryGetCorrespondingExtensionImplementationMethod();
+            Assert.False(mImpl.IsDeclaredReadOnly);
+            Assert.False(mImpl.IsEffectivelyReadOnly);
+            MethodSymbol mReduced = mImpl.ReduceExtensionMethod();
+            Assert.False(mReduced.IsDeclaredReadOnly);
+            Assert.True(mReduced.IsEffectivelyReadOnly);
+        }
+
+        var verifier = CompileAndVerify(comp, symbolValidator: verifySymbols, sourceSymbolValidator: verifySymbols, expectedOutput: ExpectedOutput("Set123"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        verifier.VerifyIL("Program.Test1", $$$"""
+{
+  // Code size       36 (0x24)
+  .maxstack  2
+  .locals init (System.Span<S1> V_0,
+                int V_1)
+  IL_0000:  ldarg.0
+  IL_0001:  stloc.0
+  IL_0002:  ldc.i4.0
+  IL_0003:  stloc.1
+  IL_0004:  br.s       IL_0019
+  IL_0006:  ldloca.s   V_0
+  IL_0008:  ldloc.1
+  IL_0009:  call       "ref S1 System.Span<S1>.this[int].get"
+  IL_000e:  ldc.i4.s   123
+  IL_0010:  call       "void Extensions.set_SomeProp({{{receiverModifier}}}S1, int)"
+  IL_0015:  ldloc.1
+  IL_0016:  ldc.i4.1
+  IL_0017:  add
+  IL_0018:  stloc.1
+  IL_0019:  ldloc.1
+  IL_001a:  ldloca.s   V_0
+  IL_001c:  call       "int System.Span<S1>.Length.get"
+  IL_0021:  blt.s      IL_0006
+  IL_0023:  ret
+}
+"""
+);
+    }
+
+    [Theory]
+    [CombinatorialData]
+    public void EffectivelyReadOnly_04_Ref_Receiver(
+        [CombinatorialValues("", "readonly ")] string structModifier,
+        [CombinatorialValues("", "ref readonly ")] string localModifier)
+    {
+        var src1 = $$$"""
+public {{{structModifier}}}struct S1
+{
+}
+
+public static class Extensions
+{
+    extension(ref S1 s1)
+    {
+        public int SomeProp
+        {
+            get { System.Console.Write("Get"); return 0; }
+            set { System.Console.Write("Set"); System.Console.Write(value); }
+        }
+
+        public void M() {}
+    }
+}
+""";
+        var src2 = $$$"""
+public static class Program
+{
+    public static void Test1(System.Span<S1> lst)
+    {
+        foreach ({{{localModifier}}}var b in lst)
+        {
+            b.SomeProp = 123;
+        }
+    }
+}
+""";
+
+        var comp1 = CreateCompilation([src1]);
+
+        static void verifySymbols(ModuleSymbol module)
+        {
+            NamedTypeSymbol extension = module.GlobalNamespace.GetTypeMember("Extensions").GetTypeMember("");
+            MethodSymbol getter = extension.GetMember<MethodSymbol>("get_SomeProp");
+            Assert.False(getter.IsDeclaredReadOnly);
+            Assert.False(getter.IsEffectivelyReadOnly);
+            MethodSymbol setter = extension.GetMember<MethodSymbol>("set_SomeProp");
+            Assert.False(setter.IsDeclaredReadOnly);
+            Assert.False(setter.IsEffectivelyReadOnly);
+            var m = extension.GetMember<MethodSymbol>("M");
+            Assert.False(m.IsDeclaredReadOnly);
+            Assert.False(m.IsEffectivelyReadOnly);
+            var mImpl = m.TryGetCorrespondingExtensionImplementationMethod();
+            Assert.False(mImpl.IsDeclaredReadOnly);
+            Assert.False(mImpl.IsEffectivelyReadOnly);
+            MethodSymbol mReduced = mImpl.ReduceExtensionMethod();
+            Assert.False(mReduced.IsDeclaredReadOnly);
+            Assert.False(mReduced.IsEffectivelyReadOnly);
+        }
+
+        CompileAndVerify(comp1, symbolValidator: verifySymbols, sourceSymbolValidator: verifySymbols).VerifyDiagnostics();
+
+        var comp2 = CreateCompilation([src1, src2], targetFramework: TargetFramework.Net80);
+
+        comp2.VerifyDiagnostics(
+            // (7,13): error CS1657: Cannot use 'b' as a ref or out value because it is a 'foreach iteration variable'
+            //             b.SomeProp = 123;
+            Diagnostic(ErrorCode.ERR_RefReadonlyLocalCause, "b").WithArguments("b", "foreach iteration variable").WithLocation(7, 13)
+            );
+    }
+
+    [Theory]
+    [CombinatorialData]
+    public void EffectivelyReadOnly_05_Ref_Receiver_Ref_Var(
+        [CombinatorialValues("", "readonly ")] string structModifier)
+    {
+        var src = $$$"""
+public {{{structModifier}}}struct S1
+{
+}
+
+public static class Extensions
+{
+    extension(ref S1 s1)
+    {
+        public int SomeProp
+        {
+            get { System.Console.Write("Get"); return 0; }
+            set { System.Console.Write("Set"); System.Console.Write(value); }
+        }
+
+        public void M() {}
+    }
+}
+
+public static class Program
+{
+    public static void Main()
+    {
+        S1[] lst = [new S1()];
+        Test1(lst);
+    }
+
+    public static void Test1(System.Span<S1> lst)
+    {
+        foreach (ref var b in lst)
+        {
+            b.SomeProp = 123;
+        }
+    }
+}
+""";
+
+        var comp = CreateCompilation([src], targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
+
+        static void verifySymbols(ModuleSymbol module)
+        {
+            NamedTypeSymbol extension = module.GlobalNamespace.GetTypeMember("Extensions").GetTypeMember("");
+            MethodSymbol getter = extension.GetMember<MethodSymbol>("get_SomeProp");
+            Assert.False(getter.IsDeclaredReadOnly);
+            Assert.False(getter.IsEffectivelyReadOnly);
+            MethodSymbol setter = extension.GetMember<MethodSymbol>("set_SomeProp");
+            Assert.False(setter.IsDeclaredReadOnly);
+            Assert.False(setter.IsEffectivelyReadOnly);
+            var m = extension.GetMember<MethodSymbol>("M");
+            Assert.False(m.IsDeclaredReadOnly);
+            Assert.False(m.IsEffectivelyReadOnly);
+            var mImpl = m.TryGetCorrespondingExtensionImplementationMethod();
+            Assert.False(mImpl.IsDeclaredReadOnly);
+            Assert.False(mImpl.IsEffectivelyReadOnly);
+            MethodSymbol mReduced = mImpl.ReduceExtensionMethod();
+            Assert.False(mReduced.IsDeclaredReadOnly);
+            Assert.False(mReduced.IsEffectivelyReadOnly);
+        }
+
+        var verifier = CompileAndVerify(comp, symbolValidator: verifySymbols, sourceSymbolValidator: verifySymbols, expectedOutput: ExpectedOutput("Set123"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        verifier.VerifyIL("Program.Test1", """
+{
+  // Code size       36 (0x24)
+  .maxstack  2
+  .locals init (System.Span<S1> V_0,
+            int V_1)
+  IL_0000:  ldarg.0
+  IL_0001:  stloc.0
+  IL_0002:  ldc.i4.0
+  IL_0003:  stloc.1
+  IL_0004:  br.s       IL_0019
+  IL_0006:  ldloca.s   V_0
+  IL_0008:  ldloc.1
+  IL_0009:  call       "ref S1 System.Span<S1>.this[int].get"
+  IL_000e:  ldc.i4.s   123
+  IL_0010:  call       "void Extensions.set_SomeProp(ref S1, int)"
+  IL_0015:  ldloc.1
+  IL_0016:  ldc.i4.1
+  IL_0017:  add
+  IL_0018:  stloc.1
+  IL_0019:  ldloc.1
+  IL_001a:  ldloca.s   V_0
+  IL_001c:  call       "int System.Span<S1>.Length.get"
+  IL_0021:  blt.s      IL_0006
+  IL_0023:  ret
+}
+"""
+);
+    }
+
+    [Fact]
+    public void EffectivelyReadOnly_06_Val_Receiver_Class()
+    {
+        var src = """
+public class S1
+{
+}
+
+public static class Extensions
+{
+    extension(S1 s1)
+    {
+        public int SomeProp
+        {
+            get { System.Console.Write("Get"); return 0; }
+            set { System.Console.Write("Set"); System.Console.Write(value); }
+        }
+
+        public void M() {}
+    }
+}
+
+public static class Program
+{
+    public static void Main()
+    {
+        S1[] lst = [new S1()];
+        Test1(lst);
+    }
+
+    public static void Test1(System.Span<S1> lst)
+    {
+        foreach (var b in lst)
+        {
+            b.SomeProp = 123;
+        }
+    }
+}
+""";
+
+        var comp = CreateCompilation([src], targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
+
+        static void verifySymbols(ModuleSymbol module)
+        {
+            NamedTypeSymbol extension = module.GlobalNamespace.GetTypeMember("Extensions").GetTypeMember("");
+            MethodSymbol getter = extension.GetMember<MethodSymbol>("get_SomeProp");
+            Assert.False(getter.IsDeclaredReadOnly);
+            Assert.False(getter.IsEffectivelyReadOnly);
+            MethodSymbol setter = extension.GetMember<MethodSymbol>("set_SomeProp");
+            Assert.False(setter.IsDeclaredReadOnly);
+            Assert.False(setter.IsEffectivelyReadOnly);
+            var m = extension.GetMember<MethodSymbol>("M");
+            Assert.False(m.IsDeclaredReadOnly);
+            Assert.False(m.IsEffectivelyReadOnly);
+            var mImpl = m.TryGetCorrespondingExtensionImplementationMethod();
+            Assert.False(mImpl.IsDeclaredReadOnly);
+            Assert.False(mImpl.IsEffectivelyReadOnly);
+            MethodSymbol mReduced = mImpl.ReduceExtensionMethod();
+            Assert.False(mReduced.IsDeclaredReadOnly);
+            Assert.False(mReduced.IsEffectivelyReadOnly);
+        }
+
+        var verifier = CompileAndVerify(comp, symbolValidator: verifySymbols, sourceSymbolValidator: verifySymbols, expectedOutput: ExpectedOutput("Set123"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void EffectivelyReadOnly_07_Static()
+    {
+        var src = """
+public struct S1
+{
+}
+
+public static class Extensions
+{
+    extension(S1 s1)
+    {
+        public static int SomeProp
+        {
+            get { System.Console.Write("Get"); return 0; }
+            set { System.Console.Write("Set"); System.Console.Write(value); }
+        }
+
+        public static void M() {}
+    }
+}
+""";
+
+        var comp = CreateCompilation([src]);
+
+        static void verifySymbols(ModuleSymbol module)
+        {
+            NamedTypeSymbol extension = module.GlobalNamespace.GetTypeMember("Extensions").GetTypeMember("");
+            MethodSymbol getter = extension.GetMember<MethodSymbol>("get_SomeProp");
+            Assert.False(getter.IsDeclaredReadOnly);
+            Assert.False(getter.IsEffectivelyReadOnly);
+            MethodSymbol setter = extension.GetMember<MethodSymbol>("set_SomeProp");
+            Assert.False(setter.IsDeclaredReadOnly);
+            Assert.False(setter.IsEffectivelyReadOnly);
+            var m = extension.GetMember<MethodSymbol>("M");
+            Assert.False(m.IsDeclaredReadOnly);
+            Assert.False(m.IsEffectivelyReadOnly);
+            var mImpl = m.TryGetCorrespondingExtensionImplementationMethod();
+            Assert.False(mImpl.IsDeclaredReadOnly);
+            Assert.False(mImpl.IsEffectivelyReadOnly);
+            Assert.False(mImpl.IsExtensionMethod);
+        }
+
+        CompileAndVerify(comp, symbolValidator: verifySymbols, sourceSymbolValidator: verifySymbols).VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void EffectivelyReadOnly_08_InitOnly()
+    {
+        var src = """
+public struct S1
+{
+}
+
+public static class Extensions
+{
+    extension(S1 s1)
+    {
+        public int SomeProp
+        {
+            get { System.Console.Write("Get"); return 0; }
+            init { System.Console.Write("Set"); System.Console.Write(value); }
+        }
+    }
+}
+""";
+
+        var comp = CreateCompilation([src], targetFramework: TargetFramework.Net80);
+        comp.VerifyDiagnostics(
+            // (12,13): error CS9304: 'Extensions.extension(S1).SomeProp': cannot declare init-only accessors in an extension block
+            //             init { System.Console.Write("Set"); System.Console.Write(value); }
+            Diagnostic(ErrorCode.ERR_InitInExtension, "init").WithArguments("Extensions.extension(S1).SomeProp").WithLocation(12, 13)
+            );
+
+        NamedTypeSymbol extension = comp.SourceModule.GlobalNamespace.GetTypeMember("Extensions").GetTypeMember("");
+        var p = extension.GetMember<PropertySymbol>("SomeProp");
+        MethodSymbol getter = p.GetMethod;
+        Assert.False(getter.IsInitOnly);
+        Assert.False(getter.IsDeclaredReadOnly);
+        Assert.True(getter.IsEffectivelyReadOnly);
+        Assert.False(getter.TryGetCorrespondingExtensionImplementationMethod().IsExtensionMethod);
+        MethodSymbol setter = p.SetMethod;
+        Assert.True(setter.IsInitOnly);
+        Assert.False(setter.IsDeclaredReadOnly);
+        Assert.False(setter.IsEffectivelyReadOnly);
+        Assert.False(setter.TryGetCorrespondingExtensionImplementationMethod().IsExtensionMethod);
+    }
+
+    [Fact]
+    public void EffectivelyReadOnly_09_Readonly()
+    {
+        var src = """
+public struct S1
+{
+}
+
+public static class Extensions
+{
+    extension(ref S1 s1)
+    {
+        public readonly int SomeProp
+        {
+            get { System.Console.Write("Get"); return 0; }
+            set { System.Console.Write("Set"); System.Console.Write(value); }
+        }
+
+        public readonly void M() {}
+    }
+}
+""";
+
+        var comp = CreateCompilation([src], targetFramework: TargetFramework.Net80);
+        comp.VerifyDiagnostics(
+            // (9,29): error CS0106: The modifier 'readonly' is not valid for this item
+            //         public readonly int SomeProp
+            Diagnostic(ErrorCode.ERR_BadMemberFlag, "SomeProp").WithArguments("readonly").WithLocation(9, 29),
+            // (15,30): error CS0106: The modifier 'readonly' is not valid for this item
+            //         public readonly void M() {}
+            Diagnostic(ErrorCode.ERR_BadMemberFlag, "M").WithArguments("readonly").WithLocation(15, 30)
+            );
+
+        NamedTypeSymbol extension = comp.SourceModule.GlobalNamespace.GetTypeMember("Extensions").GetTypeMember("");
+        MethodSymbol getter = extension.GetMember<MethodSymbol>("get_SomeProp");
+        Assert.False(getter.IsDeclaredReadOnly);
+        Assert.False(getter.IsEffectivelyReadOnly);
+        MethodSymbol setter = extension.GetMember<MethodSymbol>("set_SomeProp");
+        Assert.False(setter.IsDeclaredReadOnly);
+        Assert.False(setter.IsEffectivelyReadOnly);
+        var m = extension.GetMember<MethodSymbol>("M");
+        Assert.False(m.IsDeclaredReadOnly);
+        Assert.False(m.IsEffectivelyReadOnly);
+        var mImpl = m.TryGetCorrespondingExtensionImplementationMethod();
+        Assert.False(mImpl.IsDeclaredReadOnly);
+        Assert.False(mImpl.IsEffectivelyReadOnly);
+        MethodSymbol mReduced = mImpl.ReduceExtensionMethod();
+        Assert.False(mReduced.IsDeclaredReadOnly);
+        Assert.False(mReduced.IsEffectivelyReadOnly);
+    }
+
+    [Theory]
+    [CombinatorialData]
+    public void EffectivelyReadOnly_10_GenericSubstitution(
+        [CombinatorialValues("", "in ", "ref readonly ")] string receiverModifier)
+    {
+        var src = $$$"""
+public struct S1<T>
+{
+}
+
+public static class Extensions
+{
+    extension<T>({{{receiverModifier}}}S1<T> s1)
+    {
+        public int SomeProp
+        {
+            get { System.Console.Write("Get"); return 0; }
+            set { System.Console.Write("Set"); System.Console.Write(value); }
+        }
+
+        public void M<U>() {}
+    }
+}
+""";
+
+        var comp = CreateCompilation([src]);
+        comp.VerifyDiagnostics();
+
+        NamedTypeSymbol extension = comp.SourceModule.GlobalNamespace.GetTypeMember("Extensions").GetTypeMember("");
+        MethodSymbol getter = extension.GetMember<MethodSymbol>("get_SomeProp");
+        Assert.True(getter.IsEffectivelyReadOnly);
+        Assert.False(getter.GetPublicSymbol().IsReadOnly);
+        MethodSymbol setter = extension.GetMember<MethodSymbol>("set_SomeProp");
+        Assert.True(setter.IsEffectivelyReadOnly);
+        Assert.False(setter.GetPublicSymbol().IsReadOnly);
+        var m = extension.GetMember<MethodSymbol>("M");
+        Assert.True(m.IsEffectivelyReadOnly);
+        Assert.False(m.GetPublicSymbol().IsReadOnly);
+        MethodSymbol mConstructed = m.Construct(getter.ReturnType);
+        Assert.True(mConstructed.IsEffectivelyReadOnly);
+        Assert.False(mConstructed.GetPublicSymbol().IsReadOnly);
+        var mImplReduced = m.TryGetCorrespondingExtensionImplementationMethod().ReduceExtensionMethod();
+        Assert.True(mImplReduced.IsEffectivelyReadOnly);
+        Assert.True(mImplReduced.GetPublicSymbol().IsReadOnly);
+
+        extension = extension.Construct(getter.ReturnType);
+
+        getter = extension.GetMember<MethodSymbol>("get_SomeProp");
+        Assert.True(getter.IsEffectivelyReadOnly);
+        Assert.False(getter.GetPublicSymbol().IsReadOnly);
+        setter = extension.GetMember<MethodSymbol>("set_SomeProp");
+        Assert.True(setter.IsEffectivelyReadOnly);
+        Assert.False(setter.GetPublicSymbol().IsReadOnly);
+        m = extension.GetMember<MethodSymbol>("M");
+        Assert.True(m.IsEffectivelyReadOnly);
+        Assert.False(m.GetPublicSymbol().IsReadOnly);
+        mConstructed = m.Construct(getter.ReturnType);
+        Assert.True(mConstructed.IsEffectivelyReadOnly);
+        Assert.False(mConstructed.GetPublicSymbol().IsReadOnly);
+    }
+
+    [Theory, CombinatorialData]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/86257")]
+    public void EffectivelyReadOnly_11_GenericSubstitution(
+        [CombinatorialValues("", "in", "ref readonly")] string modifier)
+    {
+        var src = $$$"""
+    public static class C
+    {
+        public static void M<T>(this {{{modifier}}} int receiver, T value) { }
+    }
+    """;
+
+        var comp = CreateCompilation(src);
+        comp.VerifyDiagnostics();
+
+        var m = comp.GetMember<MethodSymbol>("C.M");
+        Assert.False(m.IsEffectivelyReadOnly);
+        Assert.False(m.GetPublicSymbol().IsReadOnly);
+
+        MethodSymbol mReduced = m.ReduceExtensionMethod();
+        Assert.True(mReduced.IsEffectivelyReadOnly);
+        Assert.True(mReduced.GetPublicSymbol().IsReadOnly);
+
+        MethodSymbol mReducedConstructed = mReduced.Construct(m.Parameters[0].Type);
+        Assert.True(mReducedConstructed.IsEffectivelyReadOnly);
+        Assert.True(mReducedConstructed.GetPublicSymbol().IsReadOnly);
+
+        MethodSymbol mConstructed = m.Construct(m.Parameters[0].Type);
+        MethodSymbol mConstructedReduced = mConstructed.ReduceExtensionMethod();
+        Assert.True(mConstructedReduced.IsEffectivelyReadOnly);
+        Assert.True(mConstructedReduced.GetPublicSymbol().IsReadOnly);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/86257")]
+    public void EffectivelyReadOnly_12_GenericSubstitution()
+    {
+        var src = """
+    public static class C
+    {
+        public static void M<T>(this ref int receiver, T value) { }
+    }
+    """;
+
+        var comp = CreateCompilation(src);
+        comp.VerifyDiagnostics();
+
+        var m = comp.GetMember<MethodSymbol>("C.M");
+        Assert.False(m.IsEffectivelyReadOnly);
+        Assert.False(m.GetPublicSymbol().IsReadOnly);
+
+        MethodSymbol mReduced = m.ReduceExtensionMethod();
+        Assert.False(mReduced.IsEffectivelyReadOnly);
+        Assert.False(mReduced.GetPublicSymbol().IsReadOnly);
+
+        MethodSymbol mReducedConstructed = mReduced.Construct(m.Parameters[0].Type);
+        Assert.False(mReducedConstructed.IsEffectivelyReadOnly);
+        Assert.False(mReducedConstructed.GetPublicSymbol().IsReadOnly);
+
+        MethodSymbol mConstructed = m.Construct(m.Parameters[0].Type);
+        MethodSymbol mConstructedReduced = mConstructed.ReduceExtensionMethod();
+        Assert.False(mConstructedReduced.IsEffectivelyReadOnly);
+        Assert.False(mConstructedReduced.GetPublicSymbol().IsReadOnly);
+    }
+}

@@ -5,6 +5,7 @@
 #nullable enable
 using System;
 using System.ComponentModel;
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.FlowAnalysis;
 using Microsoft.CodeAnalysis.Operations;
 namespace Microsoft.CodeAnalysis
@@ -285,5 +286,7 @@ namespace Microsoft.CodeAnalysis
         CollectionExpression = 0x7f,
         /// <summary>Indicates an <see cref="ISpreadOperation"/>.</summary>
         Spread = 0x80,
+        /// <summary>Indicates an <see cref="ICollectionExpressionElementsPlaceholderOperation"/>.</summary>
+        CollectionExpressionElementsPlaceholder = 0x81,
     }
 }

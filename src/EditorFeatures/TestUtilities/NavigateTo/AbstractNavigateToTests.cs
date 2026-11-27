@@ -262,7 +262,7 @@ public abstract partial class AbstractNavigateToTests
     [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
     protected sealed class TestWorkspaceNavigateToSearchHostService() : IWorkspaceNavigateToSearcherHostService
     {
-        public ValueTask<bool> IsFullyLoadedAsync(CancellationToken cancellationToken)
-            => new(true);
+        public async ValueTask<bool> IsFullyLoadedAsync(CancellationToken cancellationToken)
+            => true;
     }
 }

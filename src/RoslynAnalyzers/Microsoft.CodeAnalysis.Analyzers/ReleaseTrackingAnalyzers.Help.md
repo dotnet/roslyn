@@ -57,9 +57,9 @@ Consider the following example:
 
     ### Changed Rules
 
-    Rule ID | Category | Severity | Notes
-    --------|----------|----------|--------------------
-    CA2000  | Security | Disabled | CA2000_AnalyzerName, [Documentation](CA2000_Documentation_Link)
+    Rule ID | New Category | New Severity | Old Category | Old Severity | Notes
+    --------|--------------|--------------|--------------|--------------|-------
+    CA2000  | Security     | Disabled     | Security     |  Info        | CA2000_AnalyzerName, [Documentation](CA2000_Documentation_Link)
     ```
 
 2. `AnalyzerReleases.Unshipped.md`:
@@ -76,7 +76,7 @@ Consider the following example:
 Analyzer author has shipped 2 analyzer releases:
 
 1. Version 1.0 shipped three rules: CA1000, CA2000 and CA3000.
-2. Version 2.0 changed the default severity of a shipped rule CA2000 from 'Warning' to 'Disabled'. It removed a shipped rule CA3000 and added a new rule CA4000.
+2. Version 2.0 changed the default severity of a shipped rule CA2000 from 'Info' to 'Disabled'. It removed a shipped rule CA3000 and added a new rule CA4000.
 3. Upcoming release will add 2 new rules CA5000 and CA6000.
 
 When the next release is shipped, say version '3.0', a new release section for 3.0 should be created at the end of the shipped file and the entries from unshipped file should be moved under it. The files will change as below:
@@ -111,10 +111,9 @@ When the next release is shipped, say version '3.0', a new release section for 3
 
     ### Changed Rules
 
-    Rule ID | Category | Severity | Notes
-    --------|----------|----------|--------------------
-    CA2000  | Security | Disabled | CA2000_AnalyzerName, [Documentation](CA2000_Documentation_Link)
-
+    Rule ID | New Category | New Severity | Old Category | Old Severity | Notes
+    --------|--------------|--------------|--------------|--------------|-------
+    CA2000  | Security     | Disabled     | Security     |  Info        | CA2000_AnalyzerName, [Documentation](CA2000_Documentation_Link)
 
     ## Release 3.0
 

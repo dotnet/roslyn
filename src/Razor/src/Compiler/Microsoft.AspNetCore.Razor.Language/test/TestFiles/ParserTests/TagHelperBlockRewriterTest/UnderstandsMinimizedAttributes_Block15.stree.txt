@@ -1,0 +1,45 @@
+﻿RazorDocument - [0..46)::46 - [@{<input string-prefix-value='some string' />}]
+    MarkupBlock - [0..46)::46
+        MarkupTextLiteral - [0..0)::0 - [] - Gen<Markup>
+            Marker;[];
+        CSharpCodeBlock - [0..46)::46
+            CSharpStatement - [0..46)::46
+                CSharpTransition - [0..1)::1 - Gen<None>
+                    Transition;[@];
+                CSharpStatementBody - [1..46)::45
+                    RazorMetaCode - [1..2)::1 - Gen<None>
+                        LeftBrace;[{];
+                    CSharpCodeBlock - [2..45)::43
+                        MarkupBlock - [2..45)::43
+                            MarkupTagHelperElement - [2..45)::43 - input[SelfClosing] - InputTagHelper3
+                                MarkupTagHelperStartTag - [2..45)::43 - [<input string-prefix-value='some string' />] - Gen<Markup>
+                                    OpenAngle;[<];
+                                    Text;[input];
+                                    MarkupTagHelperAttribute - [8..42)::34 - string-prefix-value - SingleQuotes - Bound - [ string-prefix-value='some string']
+                                        MarkupTextLiteral - [8..9)::1 - [ ] - Gen<Markup>
+                                            Whitespace;[ ];
+                                        MarkupTextLiteral - [9..28)::19 - [string-prefix-value] - Gen<Markup>
+                                            Text;[string-prefix-value];
+                                        Equals;[=];
+                                        MarkupTextLiteral - [29..30)::1 - ['] - Gen<Markup>
+                                            SingleQuote;['];
+                                        MarkupTagHelperAttributeValue - [30..41)::11
+                                            MarkupTextLiteral - [30..34)::4 - [some] - Gen<Markup>
+                                                Text;[some];
+                                            MarkupTextLiteral - [34..41)::7 - [ string] - Gen<Markup>
+                                                Whitespace;[ ];
+                                                Text;[string];
+                                        MarkupTextLiteral - [41..42)::1 - ['] - Gen<Markup>
+                                            SingleQuote;['];
+                                    MarkupMiscAttributeContent - [42..43)::1
+                                        MarkupTextLiteral - [42..43)::1 - [ ] - Gen<Markup>
+                                            Whitespace;[ ];
+                                    ForwardSlash;[/];
+                                    CloseAngle;[>];
+                        CSharpStatementLiteral - [45..45)::0 - [] - Gen<Stmt>
+                            Marker;[];
+                    RazorMetaCode - [45..46)::1 - Gen<None>
+                        RightBrace;[}];
+        MarkupTextLiteral - [46..46)::0 - [] - Gen<Markup>
+            Marker;[];
+    EndOfFile;[];

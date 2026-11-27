@@ -135,7 +135,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             /// that the variable in VariableIdentifier.Symbol is a root, i.e. not nested within another
             /// tracked variable. Slots less than 0 are illegal.
             /// </summary>
-            private readonly ArrayBuilder<VariableIdentifier> _variableBySlot = ArrayBuilder<VariableIdentifier>.GetInstance(1, default);
+            private readonly ArrayBuilder<VariableIdentifier> _variableBySlot = ArrayBuilder<VariableIdentifier>.GetInstance(1, fillWithValue: default);
 
             internal static Variables Create(Symbol? symbol)
             {
@@ -195,7 +195,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             internal void Free()
             {
-                Container?.Free();
                 _variableBySlot.Free();
                 _variableTypes.Free();
                 _variableSlot.Free();

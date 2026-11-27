@@ -86,7 +86,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Test
             }
             catch (Exception e)
             {
-                Assert.False(true, "Unexpected exception: " + e);
+                Assert.Fail("Unexpected exception: " + e);
             }
 
             Assert.False(noException);

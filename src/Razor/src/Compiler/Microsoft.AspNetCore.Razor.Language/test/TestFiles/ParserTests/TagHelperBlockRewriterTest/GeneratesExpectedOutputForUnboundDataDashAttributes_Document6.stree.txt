@@ -1,0 +1,49 @@
+﻿RazorDocument - [0..82)::82 - [<input pre-attribute data-required='prefix @DateTime.Now suffix' post-attribute />]
+    MarkupBlock - [0..82)::82
+        MarkupTagHelperElement - [0..82)::82 - input[SelfClosing] - inputtaghelper
+            MarkupTagHelperStartTag - [0..82)::82 - [<input pre-attribute data-required='prefix @DateTime.Now suffix' post-attribute />] - Gen<Markup>
+                OpenAngle;[<];
+                Text;[input];
+                MarkupMinimizedTagHelperAttribute - [6..20)::14 - pre-attribute - Minimized - Unbound - [ pre-attribute]
+                    MarkupTextLiteral - [6..7)::1 - [ ] - Gen<Markup>
+                        Whitespace;[ ];
+                    MarkupTextLiteral - [7..20)::13 - [pre-attribute] - Gen<Markup>
+                        Text;[pre-attribute];
+                MarkupTagHelperAttribute - [20..64)::44 - data-required - SingleQuotes - Unbound - [ data-required='prefix @DateTime.Now suffix']
+                    MarkupTextLiteral - [20..21)::1 - [ ] - Gen<Markup>
+                        Whitespace;[ ];
+                    MarkupTextLiteral - [21..34)::13 - [data-required] - Gen<Markup>
+                        Text;[data-required];
+                    Equals;[=];
+                    MarkupTextLiteral - [35..36)::1 - ['] - Gen<Markup>
+                        SingleQuote;['];
+                    MarkupTagHelperAttributeValue - [36..63)::27
+                        MarkupTextLiteral - [36..43)::7 - [prefix ] - Gen<Markup>
+                            Text;[prefix];
+                            Whitespace;[ ];
+                        CSharpCodeBlock - [43..56)::13
+                            CSharpImplicitExpression - [43..56)::13
+                                CSharpTransition - [43..44)::1 - Gen<None>
+                                    Transition;[@];
+                                CSharpImplicitExpressionBody - [44..56)::12
+                                    CSharpCodeBlock - [44..56)::12
+                                        CSharpExpressionLiteral - [44..56)::12 - [DateTime.Now] - Gen<Expr>
+                                            Identifier;[DateTime];
+                                            Dot;[.];
+                                            Identifier;[Now];
+                        MarkupTextLiteral - [56..63)::7 - [ suffix] - Gen<Markup>
+                            Whitespace;[ ];
+                            Text;[suffix];
+                    MarkupTextLiteral - [63..64)::1 - ['] - Gen<Markup>
+                        SingleQuote;['];
+                MarkupMinimizedTagHelperAttribute - [64..79)::15 - post-attribute - Minimized - Unbound - [ post-attribute]
+                    MarkupTextLiteral - [64..65)::1 - [ ] - Gen<Markup>
+                        Whitespace;[ ];
+                    MarkupTextLiteral - [65..79)::14 - [post-attribute] - Gen<Markup>
+                        Text;[post-attribute];
+                MarkupMiscAttributeContent - [79..80)::1
+                    MarkupTextLiteral - [79..80)::1 - [ ] - Gen<Markup>
+                        Whitespace;[ ];
+                ForwardSlash;[/];
+                CloseAngle;[>];
+    EndOfFile;[];

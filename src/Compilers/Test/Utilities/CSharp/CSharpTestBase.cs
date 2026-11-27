@@ -29,7 +29,6 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.Metadata.Tools;
 using Roslyn.Test.Utilities;
-using Roslyn.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
@@ -37,6 +36,27 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
     public abstract class CSharpTestBase : CommonTestBase
     {
         public static readonly TheoryData<LanguageVersion> LanguageVersions13AndNewer = new TheoryData<LanguageVersion>([LanguageVersion.CSharp13, LanguageVersion.Preview, LanguageVersion.CSharp14]);
+
+        protected static readonly string IUnionSource = @"
+namespace System.Runtime.CompilerServices
+{
+    public interface IUnion
+    {
+#nullable enable
+#line 100000
+        object? Value { get; }
+#nullable disable
+    }
+}
+";
+        protected static readonly string UnionAttributeSource = @"
+namespace System.Runtime.CompilerServices
+{
+    public class UnionAttribute : System.Attribute
+    {
+    }
+}
+";
 
         protected static readonly string NullableAttributeDefinition = @"
 namespace System.Runtime.CompilerServices
@@ -226,6 +246,17 @@ namespace System.Diagnostics.CodeAnalysis
                     }
 
                     public string ParameterName { get; }
+                }
+            }
+            """;
+
+        protected static readonly string IsClosedTypeAttributeDefinition = """
+            namespace System.Runtime.CompilerServices
+            {
+                [AttributeUsage(AttributeTargets.Class, AllowMultiple = false, Inherited = false)]
+                public sealed class IsClosedTypeAttribute : Attribute
+                {
+                    public Type[] DerivedTypes { get; set; }
                 }
             }
             """;
@@ -678,6 +709,26 @@ namespace System.Runtime.CompilerServices
 
         protected static MetadataReference RefSafetyRulesAttributeLib =>
             CreateCompilation(RefSafetyRulesAttributeDefinition).EmitToImageReference();
+
+        protected static readonly string MemorySafetyRulesAttributeDefinition = """
+            namespace System.Runtime.CompilerServices
+            {
+                [AttributeUsage(AttributeTargets.Module, Inherited = false, AllowMultiple = false)] 
+                public sealed class MemorySafetyRulesAttribute : Attribute
+                {
+                    public MemorySafetyRulesAttribute(int version) { Version = version; }
+                    public int Version { get; }
+                }
+            }
+            """;
+
+        protected static readonly string RequiresUnsafeAttributeDefinition = """
+            namespace System.Diagnostics.CodeAnalysis
+            {
+                [AttributeUsage(AttributeTargets.Constructor | AttributeTargets.Event | AttributeTargets.Field | AttributeTargets.Method | AttributeTargets.Property, Inherited = false, AllowMultiple = false)]
+                public sealed class RequiresUnsafeAttribute : Attribute { }
+            }
+            """;
 
         protected static readonly string RequiredMemberAttribute = @"
 namespace System.Runtime.CompilerServices
@@ -1291,20 +1342,23 @@ class ExpressionPrinter : System.Linq.Expressions.ExpressionVisitor
         internal const string RuntimeAsyncMethodGenerationAttributeDefinition = """
             namespace System.Runtime.CompilerServices;
 
+            #pragma warning disable CS9113 // Unread primary constructor parameter
+
             [AttributeUsage(AttributeTargets.Method)]
             public class RuntimeAsyncMethodGenerationAttribute(bool runtimeAsync) : Attribute();
+            #pragma warning restore CS9113 // Unread primary constructor parameter
             """;
 
-        protected static T GetSyntax<T>(SyntaxTree tree, string text)
+        protected static T GetSyntax<T>(SyntaxTree tree, string text, bool descendIntoTrivia = false)
             where T : notnull
         {
-            return GetSyntaxes<T>(tree, text).Single();
+            return GetSyntaxes<T>(tree, text, descendIntoTrivia).Single();
         }
 
-        protected static IEnumerable<T> GetSyntaxes<T>(SyntaxTree tree, string text)
+        protected static IEnumerable<T> GetSyntaxes<T>(SyntaxTree tree, string text, bool descendIntoTrivia = false)
             where T : notnull
         {
-            return tree.GetRoot().DescendantNodes().OfType<T>().Where(e => e.ToString() == text);
+            return tree.GetRoot().DescendantNodes(descendIntoTrivia: descendIntoTrivia).OfType<T>().Where(e => e.ToString() == text);
         }
 
         protected static CSharpCompilationOptions WithNullableEnable(CSharpCompilationOptions? options = null)
@@ -2075,7 +2129,7 @@ class ExpressionPrinter : System.Linq.Expressions.ExpressionVisitor
             try
             {
                 CompileAndVerify(comp, expectedOutput: "", verify: verify); //need expected output to force execution
-                Assert.False(true, string.Format("Expected exception {0}({1})", typeof(T).Name, expectedMessage));
+                Assert.Fail(string.Format("Expected exception {0}({1})", typeof(T).Name, expectedMessage));
             }
             catch (TargetInvocationException x)
             {
@@ -3204,7 +3258,7 @@ namespace System.Runtime.CompilerServices
 
         #region Runtime Async
 
-        internal static CSharpParseOptions WithRuntimeAsync(CSharpParseOptions options) => options.WithFeature("runtime-async", "on");
+        internal static CSharpParseOptions WithRuntimeAsync(CSharpParseOptions options) => options.WithFeature(Feature.RuntimeAsync, "on");
 
         internal static CSharpCompilation CreateRuntimeAsyncCompilation(CSharpTestSource source, CSharpCompilationOptions? options = null, CSharpParseOptions? parseOptions = null, bool includeSuppression = true)
         {
@@ -3221,6 +3275,44 @@ namespace System.Runtime.CompilerServices
             }
 
             return CreateCompilation(source, options: options, parseOptions: parseOptions, targetFramework: TargetFramework.Net100);
+        }
+
+        /// <summary>
+        /// Dumps all the cref xml doc nodes with their associated symbols in a format convenient for testing.
+        /// </summary>
+        internal static IEnumerable<string> PrintXmlCrefSymbols(SyntaxTree tree, SemanticModel model)
+        {
+            var docComments = tree.GetCompilationUnitRoot().DescendantTrivia().Select(trivia => trivia.GetStructure()).OfType<DocumentationCommentTriviaSyntax>();
+            var crefs = docComments.SelectMany(doc => doc.DescendantNodes().OfType<XmlCrefAttributeSyntax>());
+            var result = crefs.Select(name => print(name));
+            return result;
+
+            string print(XmlCrefAttributeSyntax cref)
+            {
+                CrefSyntax crefSyntax = cref.Cref;
+                var symbol = model.GetSymbolInfo(crefSyntax).Symbol;
+                var symbolDisplay = symbol is null ? "null" : symbol.ToTestDisplayString();
+                return (crefSyntax, symbolDisplay).ToString();
+            }
+        }
+
+        /// <summary>
+        /// Dumps all the name xml doc attributes with their associated symbols in a format convenient for testing.
+        /// </summary>
+        internal static IEnumerable<string> PrintXmlNameSymbols(SyntaxTree tree, SemanticModel model)
+        {
+            var docComments = tree.GetCompilationUnitRoot().DescendantTrivia().Select(trivia => trivia.GetStructure()).OfType<DocumentationCommentTriviaSyntax>();
+            var xmlNames = docComments.SelectMany(doc => doc.DescendantNodes().OfType<XmlNameAttributeSyntax>());
+            var result = xmlNames.Select(name => print(name));
+            return result;
+
+            string print(XmlNameAttributeSyntax name)
+            {
+                IdentifierNameSyntax identifier = name.Identifier;
+                var symbol = model.GetSymbolInfo(identifier).Symbol;
+                var symbolDisplay = symbol is null ? "null" : symbol.ToTestDisplayString();
+                return (identifier, symbolDisplay).ToString();
+            }
         }
 
         #endregion
@@ -3247,5 +3339,47 @@ namespace System
     }
 }
 ";
+
+        protected static void VerifyDecisionDagDump<T>(Compilation comp, string expectedDecisionDag, int index = 0, bool forLowering = false)
+            where T : CSharpSyntaxNode
+        {
+#if DEBUG
+            var tree = comp.SyntaxTrees.First();
+            var node = tree.GetRoot().DescendantNodes().OfType<T>().ElementAt(index);
+            var model = (CSharpSemanticModel)comp.GetSemanticModel(tree);
+            var binder = model.GetEnclosingBinder(node.SpanStart);
+            BoundDecisionDag decisionDag;
+
+            switch (node)
+            {
+                case SwitchStatementSyntax n:
+                    {
+                        var b = (BoundSwitchStatement)binder.BindStatement(n, BindingDiagnosticBag.Discarded);
+                        decisionDag = forLowering ? b.GetDecisionDagForLowering((CSharpCompilation)comp, out _) : b.ReachabilityDecisionDag;
+                    }
+                    break;
+
+                case SwitchExpressionSyntax n:
+                    {
+                        var b = (BoundSwitchExpression)binder.BindExpression(n, BindingDiagnosticBag.Discarded);
+                        decisionDag = forLowering ? b.GetDecisionDagForLowering((CSharpCompilation)comp, out _) : b.ReachabilityDecisionDag;
+                    }
+                    break;
+
+                case IsPatternExpressionSyntax:
+                case BinaryExpressionSyntax n when n.Kind() == SyntaxKind.IsExpression:
+                    {
+                        var b = (BoundIsPatternExpression)binder.BindExpression((ExpressionSyntax)(object)node, BindingDiagnosticBag.Discarded);
+                        decisionDag = forLowering ? b.GetDecisionDagForLowering((CSharpCompilation)comp) : b.ReachabilityDecisionDag;
+                    }
+                    break;
+
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(node);
+            }
+
+            AssertEx.Equal(expectedDecisionDag, decisionDag.Dump());
+#endif
+        }
     }
 }

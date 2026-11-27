@@ -1,0 +1,16 @@
+﻿get_Header: 
+	IL_0000: (9,48)-(9,52) ""
+set_Header: 
+	IL_0000: (9,53)-(9,57) ""
+get_ChildContent: 
+	IL_0000: (12,46)-(12,50) ""
+set_ChildContent: 
+	IL_0000: (12,51)-(12,55) ""
+get_Footer: 
+	IL_0000: (15,40)-(15,44) ""
+set_Footer: 
+	IL_0000: (15,45)-(15,49) ""
+BuildRenderTree: 
+	IL_0001: (1,4)-(21,2) "x:\dir\subdir\Test\TestComponent.cshtml"
+<BuildRenderTree>b__2: 
+	IL_000e: (1,56)-(1,83) "x:\dir\subdir\Test\TestComponent.cshtml"

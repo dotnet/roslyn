@@ -30,13 +30,12 @@ internal sealed partial class UseThrowExpressionCodeFixProvider() : SyntaxEditor
     protected override bool IncludeDiagnosticDuringFixAll(Diagnostic diagnostic)
         => !diagnostic.Descriptor.ImmutableCustomTags().Contains(WellKnownDiagnosticTags.Unnecessary);
 
-    public override Task RegisterCodeFixesAsync(CodeFixContext context)
+    public override async Task RegisterCodeFixesAsync(CodeFixContext context)
     {
         RegisterCodeFix(context, AnalyzersResources.Use_throw_expression, nameof(AnalyzersResources.Use_throw_expression));
-        return Task.CompletedTask;
     }
 
-    protected override Task FixAllAsync(
+    protected override async Task FixAllAsync(
         Document document, ImmutableArray<Diagnostic> diagnostics,
         SyntaxEditor editor, CancellationToken cancellationToken)
     {
@@ -78,7 +77,5 @@ internal sealed partial class UseThrowExpressionCodeFixProvider() : SyntaxEditor
                 }
             }
         }
-
-        return Task.CompletedTask;
     }
 }

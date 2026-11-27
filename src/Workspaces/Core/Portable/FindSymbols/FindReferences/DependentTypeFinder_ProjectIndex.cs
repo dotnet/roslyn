@@ -102,6 +102,7 @@ internal static partial class DependentTypeFinder
                             break;
                         case DeclaredSymbolInfoKind.Struct:
                         case DeclaredSymbolInfoKind.RecordStruct:
+                        case DeclaredSymbolInfoKind.Union:
                             valueTypes.Add(documentId, info);
                             break;
                         case DeclaredSymbolInfoKind.Delegate:

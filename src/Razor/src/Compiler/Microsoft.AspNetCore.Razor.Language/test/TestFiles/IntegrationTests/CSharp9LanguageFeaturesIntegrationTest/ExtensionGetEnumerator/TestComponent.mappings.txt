@@ -1,0 +1,15 @@
+﻿Source Location: (2:0,2 [78] x:\dir\subdir\Test\TestComponent.razor)
+|
+    foreach (var value in new Numbers())
+    {
+        _ = value;
+    }
+|
+Generated Location: (733:21,0 [78] )
+|
+    foreach (var value in new Numbers())
+    {
+        _ = value;
+    }
+|
+

@@ -11,7 +11,7 @@ namespace Test.Utilities
 {
     public static class AdditionalMetadataReferences
     {
-        public static ReferenceAssemblies DefaultNetCore { get; } = ReferenceAssemblies.Net.Net90
+        public static ReferenceAssemblies DefaultNetCore { get; } = ReferenceAssemblies.Net.Net100
                 .AddPackages(ImmutableArray.Create(
                     new PackageIdentity("Microsoft.CodeAnalysis", "3.0.0"),
                     new PackageIdentity("System.Runtime.Serialization.Formatters", "4.3.0"),

@@ -4,11 +4,16 @@
 
 using System;
 using System.Diagnostics.CodeAnalysis;
+using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Completion.Providers;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionProviders;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -832,5 +837,100 @@ public sealed class AwaitCompletionProviderTests : AbstractCSharpCompletionProvi
             await VerifyKeywordAsync(code);
         else
             await VerifyAbsenceAsync(code);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/razor/issues/11569")]
+    public async Task TestDotAwait_WithAdditionalTypedCharacters_DoesNotLeaveResidualText()
+    {
+        // Simulate the scenario where item.Span is stale: completion triggers at the dot,
+        // user types "aw" before committing. GetChangeAsync receives the current document
+        // (with "aw") but item.Span.End still points to the position right after the dot.
+        var code = """
+            using System.Threading.Tasks;
+
+            class C
+            {
+                async Task F()
+                {
+                    Task.Delay(100).$$
+                }
+            }
+            """;
+
+        using var workspace = EditorTestWorkspace.Create(LanguageNames.CSharp,
+            new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary),
+            new CSharpParseOptions(LanguageVersion.Default),
+            [code],
+            composition: GetComposition());
+
+        var testDocument = workspace.Documents.Single();
+        var document = workspace.CurrentSolution.GetRequiredDocument(testDocument.Id);
+        var position = testDocument.CursorPosition!.Value;
+
+        var service = GetCompletionService(document.Project);
+        var completionList = await GetCompletionListAsync(service, document, position, CompletionTrigger.Invoke);
+        var awaitItem = completionList.ItemsList.First(i => i.DisplayText == "await");
+
+        // Now simulate the user typing "aw" after the dot by inserting text at the trigger position
+        var text = await document.GetTextAsync();
+        var newText = text.WithChanges(new TextChange(new TextSpan(position, 0), "aw"));
+        var modifiedDocument = document.WithText(newText);
+
+        // GetChangeAsync should produce a clean result even with stale item.Span
+        var change = await service.GetChangeAsync(modifiedDocument, awaitItem, commitCharacter: null, CancellationToken.None);
+
+        var finalText = newText.WithChanges(change.TextChange);
+        var finalCode = finalText.ToString();
+
+        // The result should contain "await Task.Delay(100)" without residual "aw"
+        Assert.Contains("await Task.Delay(100)", finalCode);
+        Assert.DoesNotContain("await Task.Delay(100)aw", finalCode);
+        Assert.DoesNotContain(".aw", finalCode);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/razor/issues/11569")]
+    public async Task TestAwaitKeyword_WithAdditionalTypedCharacters_DoesNotLeaveResidualText()
+    {
+        // Same scenario but for the "await at current position" path (non-dot context).
+        // The method is non-async so committing "await" makes it async (complex text edit).
+        var code = """
+            using System.Threading.Tasks;
+
+            class C
+            {
+                Task F()
+                {
+                    $$
+                }
+            }
+            """;
+
+        using var workspace = EditorTestWorkspace.Create(LanguageNames.CSharp,
+            new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary),
+            new CSharpParseOptions(LanguageVersion.CSharp9),
+            [code],
+            composition: GetComposition());
+
+        var testDocument = workspace.Documents.Single();
+        var document = workspace.CurrentSolution.GetRequiredDocument(testDocument.Id);
+        var position = testDocument.CursorPosition!.Value;
+
+        var service = GetCompletionService(document.Project);
+        var completionList = await GetCompletionListAsync(service, document, position, CompletionTrigger.Invoke);
+        var awaitItem = completionList.ItemsList.First(i => i.DisplayText == "await");
+
+        // Simulate the user typing "aw" at the trigger position
+        var text = await document.GetTextAsync();
+        var newText = text.WithChanges(new TextChange(new TextSpan(position, 0), "aw"));
+        var modifiedDocument = document.WithText(newText);
+
+        var change = await service.GetChangeAsync(modifiedDocument, awaitItem, commitCharacter: null, CancellationToken.None);
+
+        var finalText = newText.WithChanges(change.TextChange);
+        var finalCode = finalText.ToString();
+
+        // Should produce clean "await" without leaving residual "aw"
+        Assert.Contains("await", finalCode);
+        Assert.DoesNotContain("awaitaw", finalCode);
     }
 }

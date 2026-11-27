@@ -12,6 +12,7 @@ using System.Threading;
 using System.Diagnostics;
 using Roslyn.Utilities;
 using Microsoft.CodeAnalysis.Symbols;
+using System.Runtime.CompilerServices;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -195,7 +196,7 @@ namespace Microsoft.CodeAnalysis
         /// <exception cref="ArgumentException"><paramref name="modules"/> is default value.</exception>
         /// <exception cref="ArgumentNullException"><paramref name="modules"/> contains null elements.</exception>
         /// <exception cref="ArgumentException"><paramref name="modules"/> is empty or contains a module that doesn't own its image (was created via <see cref="Metadata.Copy"/>).</exception>
-        public static AssemblyMetadata Create(ImmutableArray<ModuleMetadata> modules)
+        public static AssemblyMetadata Create(params ImmutableArray<ModuleMetadata> modules)
         {
             if (modules.IsDefaultOrEmpty)
             {
@@ -240,6 +241,7 @@ namespace Microsoft.CodeAnalysis
         /// <exception cref="ArgumentException"><paramref name="modules"/> is default value.</exception>
         /// <exception cref="ArgumentNullException"><paramref name="modules"/> contains null elements.</exception>
         /// <exception cref="ArgumentException"><paramref name="modules"/> is empty or contains a module that doesn't own its image (was created via <see cref="Metadata.Copy"/>).</exception>
+        [OverloadResolutionPriority(-1)]
         public static AssemblyMetadata Create(params ModuleMetadata[] modules)
         {
             return Create(ImmutableArray.CreateRange(modules));

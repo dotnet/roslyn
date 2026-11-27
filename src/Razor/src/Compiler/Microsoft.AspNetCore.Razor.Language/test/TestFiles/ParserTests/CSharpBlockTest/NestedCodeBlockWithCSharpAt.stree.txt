@@ -1,0 +1,52 @@
+﻿RazorDocument - [0..50)::50 - [@{ if (true) { var val = @x; if (val != 3) { } } }]
+    MarkupBlock - [0..50)::50
+        MarkupTextLiteral - [0..0)::0 - [] - Gen<Markup>
+            Marker;[];
+        CSharpCodeBlock - [0..50)::50
+            CSharpStatement - [0..50)::50
+                CSharpTransition - [0..1)::1 - Gen<None>
+                    Transition;[@];
+                CSharpStatementBody - [1..50)::49
+                    RazorMetaCode - [1..2)::1 - Gen<None>
+                        LeftBrace;[{];
+                    CSharpCodeBlock - [2..49)::47
+                        CSharpStatementLiteral - [2..49)::47 - [ if (true) { var val = @x; if (val != 3) { } } ] - Gen<Stmt>
+                            Whitespace;[ ];
+                            Keyword;[if];
+                            Whitespace;[ ];
+                            LeftParenthesis;[(];
+                            Keyword;[true];
+                            RightParenthesis;[)];
+                            Whitespace;[ ];
+                            LeftBrace;[{];
+                            Whitespace;[ ];
+                            Keyword;[var];
+                            Whitespace;[ ];
+                            Identifier;[val];
+                            Whitespace;[ ];
+                            Assign;[=];
+                            Whitespace;[ ];
+                            Identifier;[@x];
+                            Semicolon;[;];
+                            Whitespace;[ ];
+                            Keyword;[if];
+                            Whitespace;[ ];
+                            LeftParenthesis;[(];
+                            Identifier;[val];
+                            Whitespace;[ ];
+                            CSharpOperator;[!=];
+                            Whitespace;[ ];
+                            NumericLiteral;[3];
+                            RightParenthesis;[)];
+                            Whitespace;[ ];
+                            LeftBrace;[{];
+                            Whitespace;[ ];
+                            RightBrace;[}];
+                            Whitespace;[ ];
+                            RightBrace;[}];
+                            Whitespace;[ ];
+                    RazorMetaCode - [49..50)::1 - Gen<None>
+                        RightBrace;[}];
+        MarkupTextLiteral - [50..50)::0 - [] - Gen<Markup>
+            Marker;[];
+    EndOfFile;[];

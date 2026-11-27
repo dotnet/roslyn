@@ -65,7 +65,7 @@ internal abstract partial class AbstractFullyQualifyService<TSimpleNameSyntax> :
         using (Logger.LogBlock(FunctionId.Refactoring_FullyQualify, cancellationToken))
         {
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var node = root.FindToken(span.Start).GetAncestors<SyntaxNode>().First(n => n.Span.Contains(span));
+            var node = root.FindToken(span.Start, findInsideTrivia: true).GetAncestors<SyntaxNode>().FirstOrDefault(n => n.Span.Contains(span));
 
             // Has to be a simple identifier or generic name.
             if (node == null || !CanFullyQualify(node, out var simpleName))

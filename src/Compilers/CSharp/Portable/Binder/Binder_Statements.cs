@@ -188,7 +188,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var fixedBinder = this.GetBinder(node);
             Debug.Assert(fixedBinder != null);
 
-            fixedBinder.ReportUnsafeIfNotAllowed(node, diagnostics);
+            fixedBinder.ReportUnsafeIfNotAllowed(node, diagnostics, disallowedUnder: MemorySafetyRulesVersion.Version1);
 
             return fixedBinder.BindFixedStatementParts(node, diagnostics);
         }
@@ -1384,7 +1384,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (elementConversionClassification.IsValid)
             {
                 elementPlaceholder = new BoundValuePlaceholder(initializerSyntax, pointerType).MakeCompilerGenerated();
-                elementConversion = CreateConversion(initializerSyntax, elementPlaceholder, elementConversionClassification, isCast: false, conversionGroupOpt: null, declType,
+                elementConversion = CreateConversion(initializerSyntax, elementPlaceholder, elementConversionClassification, isCast: false,
+                    conversionGroupOpt: null, InConversionGroupFlags.Unspecified, declType,
                     elementConversionClassification.IsImplicit ? diagnostics : BindingDiagnosticBag.Discarded);
             }
             else
@@ -1612,14 +1613,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     switch (op1)
                     {
-                        case BoundPropertyAccess { PropertySymbol.SetMethod: { } propSet, ReceiverOpt: var receiver } when propSet.IsExtensionBlockMember():
-                            var methodInvocationInfo = MethodInvocationInfo.FromCallParts(propSet, receiver, args: [op2], receiverIsSubjectToCloning: ThreeState.Unknown);
-                            handleExtensionSetter(in methodInvocationInfo);
+                        case BoundPropertyAccess { PropertySymbol.SetMethod: { } propSet } property:
+                            var methodInvocationInfo = MethodInvocationInfo.FromCallParts(propSet, property.ReceiverOpt, args: [op2], receiverIsSubjectToCloning: property.InitialBindingReceiverIsSubjectToCloning);
+                            analyzeSetterInvocation(in methodInvocationInfo);
                             return;
-                        case BoundIndexerAccess { Indexer.SetMethod: { } indexerSet } indexer when indexerSet.IsExtensionBlockMember():
-                            methodInvocationInfo = MethodInvocationInfo.FromIndexerAccess(indexer);
-                            Debug.Assert(ReferenceEquals(methodInvocationInfo.MethodInfo.Method, indexerSet));
-                            handleExtensionSetter(in methodInvocationInfo);
+                        case BoundIndexerAccess { Indexer.SetMethod: { } indexerSet } indexer:
+                            methodInvocationInfo = MethodInvocationInfo.FromCallParts(indexerSet, indexer.ReceiverOpt, args: [.. indexer.Arguments, op2], receiverIsSubjectToCloning: indexer.InitialBindingReceiverIsSubjectToCloning);
+                            analyzeSetterInvocation(in methodInvocationInfo);
                             return;
                     }
                 }
@@ -1650,12 +1650,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return "";
             }
 
-            void handleExtensionSetter(ref readonly MethodInvocationInfo methodInvocationInfo)
+            void analyzeSetterInvocation(ref readonly MethodInvocationInfo methodInvocationInfo)
             {
                 // Analyze as if this is a call to the setter directly, not an assignment.
                 var localMethodInvocationInfo = ReplaceWithExtensionImplementationIfNeeded(in methodInvocationInfo);
                 Debug.Assert(methodInvocationInfo.MethodInfo.Method is not null);
-                CheckInvocationArgMixing(node, in localMethodInvocationInfo, methodInvocationInfo.MethodInfo.Method, diagnostics);
+
+                CheckInvocationArgMixing(node, in localMethodInvocationInfo,
+                    symbolForReporting: methodInvocationInfo.MethodInfo.Method.AssociatedSymbol, diagnostics);
             }
         }
     }
@@ -2028,7 +2030,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 diagnostics = BindingDiagnosticBag.Discarded;
             }
 
-            return CreateConversion(expression.Syntax, expression, conversion, isCast: false, conversionGroupOpt: null, targetType, diagnostics);
+            return CreateConversion(expression.Syntax, expression, conversion, isCast: false, conversionGroupOpt: null, InConversionGroupFlags.Unspecified, targetType, diagnostics);
         }
 
 #nullable enable
@@ -2310,9 +2312,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else if (conversion.ResultKind == LookupResultKind.OverloadResolutionFailure)
                 {
-                    Debug.Assert(conversion.IsUserDefined);
+                    Debug.Assert(conversion.IsUserDefined || conversion.IsUnion);
 
-                    ImmutableArray<MethodSymbol> originalUserDefinedConversions = conversion.OriginalUserDefinedConversions;
+                    ImmutableArray<MethodSymbol> originalUserDefinedConversions = conversion.OriginalUserDefinedOrUnionConversions;
                     if (originalUserDefinedConversions.Length > 1)
                     {
                         Error(diagnostics, ErrorCode.ERR_AmbigUDConv, syntax, originalUserDefinedConversions[0], originalUserDefinedConversions[1], sourceType, targetType);
@@ -2689,7 +2691,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // The expression could not be bound. Insert a fake conversion
                 // around it to bool and keep on going.
                 // NOTE: no user-defined conversion candidates.
-                return BoundConversion.Synthesized(node, BindToTypeForErrorRecovery(expr), Conversion.NoConversion, false, explicitCastInCode: false, conversionGroupOpt: null, ConstantValue.NotAvailable, boolean, hasErrors: true);
+                return BoundConversion.Synthesized(node, BindToTypeForErrorRecovery(expr), Conversion.NoConversion, false, explicitCastInCode: false, conversionGroupOpt: null, InConversionGroupFlags.Unspecified, ConstantValue.NotAvailable, boolean, hasErrors: true);
             }
 
             // Oddly enough, "if(dyn)" is bound not as a dynamic conversion to bool, but as a dynamic
@@ -2741,6 +2743,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     conversion: conversion,
                     isCast: false,
                     conversionGroupOpt: null,
+                    InConversionGroupFlags.Unspecified,
                     wasCompilerGenerated: true,
                     destination: boolean,
                     diagnostics: diagnostics);
@@ -2756,7 +2759,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 // No. Give a "not convertible to bool" error.
                 GenerateImplicitConversionError(diagnostics, node, conversion, expr, boolean);
-                return BoundConversion.Synthesized(node, expr, Conversion.NoConversion, false, explicitCastInCode: false, conversionGroupOpt: null, ConstantValue.NotAvailable, boolean, hasErrors: true);
+                return BoundConversion.Synthesized(node, expr, Conversion.NoConversion, false, explicitCastInCode: false, conversionGroupOpt: null, InConversionGroupFlags.Unspecified, ConstantValue.NotAvailable, boolean, hasErrors: true);
             }
 
             UnaryOperatorSignature signature = best.Signature;
@@ -2767,6 +2770,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 best.Conversion,
                 isCast: false,
                 conversionGroupOpt: null,
+                InConversionGroupFlags.Unspecified,
                 destination: best.Signature.OperandType,
                 diagnostics: diagnostics);
 
@@ -2942,27 +2946,51 @@ namespace Microsoft.CodeAnalysis.CSharp
             return this.Next.BindForEachDeconstruction(diagnostics, originalBinder);
         }
 
+#nullable enable
         private BoundStatement BindBreak(BreakStatementSyntax node, BindingDiagnosticBag diagnostics)
-        {
-            var target = this.BreakLabel;
-            if ((object)target == null)
-            {
-                Error(diagnostics, ErrorCode.ERR_NoBreakOrCont, node);
-                return new BoundBadStatement(node, ImmutableArray<BoundNode>.Empty, hasErrors: true);
-            }
-            return new BoundBreakStatement(node, target);
-        }
+            => BindBreakOrContinue(node, node.Name, diagnostics, isBreak: true);
 
         private BoundStatement BindContinue(ContinueStatementSyntax node, BindingDiagnosticBag diagnostics)
+            => BindBreakOrContinue(node, node.Name, diagnostics, isBreak: false);
+
+        private BoundStatement BindBreakOrContinue(
+            StatementSyntax node,
+            IdentifierNameSyntax? name,
+            BindingDiagnosticBag diagnostics,
+            bool isBreak)
         {
-            var target = this.ContinueLabel;
-            if ((object)target == null)
+            var labelName = name?.Identifier.ValueText;
+            if (labelName != null)
             {
-                Error(diagnostics, ErrorCode.ERR_NoBreakOrCont, node);
-                return new BoundBadStatement(node, ImmutableArray<BoundNode>.Empty, hasErrors: true);
+                Debug.Assert(name != null);
+                MessageID.IDS_FeatureLabeledBreakContinue.CheckFeatureAvailability(diagnostics, node, name.GetLocation());
             }
-            return new BoundContinueStatement(node, target);
+
+            var hasErrors = false;
+            LabelSymbol? target = isBreak ? this.GetBreakLabel(labelName) : this.GetContinueLabel(labelName);
+
+            // If we didn't get a target, still try to bind the label name to get a BoundLabel for error recovery.
+            // But pass in a discarded diagnostics bag since we'll just want to report our own specific error below.
+            BoundLabel? label = name == null ? null : BindLabel(name, target != null ? diagnostics : BindingDiagnosticBag.Discarded) as BoundLabel;
+            if (target is null)
+            {
+                Error(diagnostics,
+                    labelName != null ? (isBreak ? ErrorCode.ERR_NoBreakId : ErrorCode.ERR_NoContinueId) : ErrorCode.ERR_NoBreakOrCont,
+                    name ?? (SyntaxNode)node,
+                    labelName == null ? [] : [labelName]);
+
+                target = label?.Label;
+                hasErrors = true;
+            }
+
+            if (target is null)
+                return new BoundBadStatement(node, childBoundNodes: [], hasErrors);
+
+            return isBreak
+                ? new BoundBreakStatement(node, target, label, hasErrors)
+                : new BoundContinueStatement(node, target, label, hasErrors);
         }
+#nullable disable
 
         private static SwitchBinder GetSwitchBinder(Binder binder)
         {
@@ -3180,6 +3208,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             Conversion conversion;
             bool badAsyncReturnAlreadyReported = false;
+            bool hasImplicitConversionError = false;
             CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
             if (IsInAsyncMethod())
             {
@@ -3230,7 +3259,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                         else
                         {
-                            GenerateImplicitConversionError(diagnostics, argument.Syntax, conversion, argument, returnType);
+                            var conversionDiagnostics = BindingDiagnosticBag.GetInstance(diagnostics);
+                            GenerateImplicitConversionError(conversionDiagnostics, argument.Syntax, conversion, argument, returnType);
+
+                            hasImplicitConversionError = conversionDiagnostics.AccumulatesDiagnostics && conversionDiagnostics.HasAnyResolvedErrors();
+                            diagnostics.AddRangeAndFree(conversionDiagnostics);
+
                             if (this.ContainingMemberOrLambda is LambdaSymbol)
                             {
                                 ReportCantConvertLambdaReturn(argument.Syntax, diagnostics);
@@ -3240,7 +3274,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            return CreateConversion(argument.Syntax, argument, conversion, isCast: false, conversionGroupOpt: null, returnType, diagnostics);
+            return CreateConversion(
+                argument.Syntax,
+                argument,
+                conversion,
+                isCast: false,
+                conversionGroupOpt: null,
+                InConversionGroupFlags.Unspecified,
+                returnType,
+                hasImplicitConversionError
+                    ? BindingDiagnosticBag.Discarded
+                    : diagnostics);
         }
 
         private BoundTryStatement BindTryStatement(TryStatementSyntax node, BindingDiagnosticBag diagnostics)
@@ -3770,13 +3814,19 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             bool thisInitializer = initializer?.IsKind(SyntaxKind.ThisConstructorInitializer) == true;
             if (!thisInitializer &&
-                hasPrimaryConstructor())
+                isInstanceConstructor(out MethodSymbol constructorSymbol))
             {
-                if (isInstanceConstructor(out MethodSymbol constructorSymbol) &&
-                    !SynthesizedRecordCopyCtor.IsCopyConstructor(constructorSymbol))
+                if (hasPrimaryConstructor())
                 {
-                    // Note: we check the constructor initializer of copy constructors elsewhere
-                    Error(diagnostics, ErrorCode.ERR_UnexpectedOrMissingConstructorInitializerInRecord, initializer?.ThisOrBaseKeyword ?? constructor.Identifier);
+                    if (!SynthesizedRecordCopyCtor.IsCopyConstructor(constructorSymbol))
+                    {
+                        // Note: we check the constructor initializer of copy constructors elsewhere
+                        Error(diagnostics, ErrorCode.ERR_UnexpectedOrMissingConstructorInitializerInRecord, initializer?.ThisOrBaseKeyword ?? constructor.Identifier);
+                    }
+                }
+                else if (ContainingType is SourceMemberContainerTypeSymbol { IsUnionDeclaration: true })
+                {
+                    Error(diagnostics, ErrorCode.ERR_UnionConstructorCallsDefaultConstructor, initializer?.ThisOrBaseKeyword ?? constructor.Identifier);
                 }
             }
 
@@ -3784,10 +3834,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                 && ContainingType.IsDefaultValueTypeConstructor(initializer);
 
             if (isDefaultValueTypeInitializer &&
-                isInstanceConstructor(out _) &&
-                hasPrimaryConstructor())
+                isInstanceConstructor(out _))
             {
-                Error(diagnostics, ErrorCode.ERR_RecordStructConstructorCallsDefaultConstructor, initializer.ThisOrBaseKeyword);
+                if (hasPrimaryConstructor())
+                {
+                    Error(diagnostics, ErrorCode.ERR_RecordStructConstructorCallsDefaultConstructor, initializer.ThisOrBaseKeyword);
+                }
+                else if (ContainingType is SourceMemberContainerTypeSymbol { IsUnionDeclaration: true })
+                {
+                    Error(diagnostics, ErrorCode.ERR_UnionConstructorCallsDefaultConstructor, initializer.ThisOrBaseKeyword);
+                }
             }
 
             // Using BindStatement to bind block to make sure we are reusing results of partial binding in SemanticModel
@@ -3910,6 +3966,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             // there is no need to look up "x".
             Binder outerBinder;
 
+            var flags = BinderFlags.ConstructorInitializer;
+
             if ((object?)sourceConstructor == null)
             {
                 // The constructor is implicit. We need to get the binder for the body
@@ -3939,6 +3997,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // as an approximation - the extra symbols won't matter because there are no identifiers to bind.
 
                         outerBinder = binderFactory.GetBinder(ctorDecl.ParameterList);
+
+                        if (ctorDecl.Modifiers.Any(SyntaxKind.UnsafeKeyword))
+                        {
+                            flags |= BinderFlags.UnsafeRegion;
+                        }
+
                         break;
 
                     case TypeDeclarationSyntax typeDecl:
@@ -3952,7 +4016,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // wrap in ConstructorInitializerBinder for appropriate errors
             // Handle scoping for possible pattern variables declared in the initializer
-            Binder initializerBinder = outerBinder.WithAdditionalFlagsAndContainingMemberOrLambda(BinderFlags.ConstructorInitializer, constructor);
+            Binder initializerBinder = outerBinder.WithAdditionalFlagsAndContainingMemberOrLambda(flags, constructor);
 
             return initializerBinder.BindConstructorInitializer(null, constructor, diagnostics);
         }

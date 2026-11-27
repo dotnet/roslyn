@@ -61,7 +61,7 @@ public abstract class ExtractMethodBase
         }
 
         if (expected == "")
-            Assert.True(false, subjectBuffer.CurrentSnapshot.GetText());
+            Assert.Fail(subjectBuffer.CurrentSnapshot.GetText());
 
         Assert.Equal(expected, subjectBuffer.CurrentSnapshot.GetText());
     }

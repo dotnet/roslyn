@@ -1,0 +1,21 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <NoWarn>$(NoWarn);RS0016;RS0017;RS0018;RS0022;RS0026;RS0027</NoWarn>
+    <AddPublicApiAnalyzers>false</AddPublicApiAnalyzers>
+    <TargetFrameworks>$(NetVSAndVSCode)</TargetFrameworks>
+    <TargetFrameworks Condition="'$(OS)' == 'Windows_NT'">$(TargetFrameworks);$(NetFxVS)</TargetFrameworks>
+    <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
+    <IsShipping>false</IsShipping>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Microsoft.AspNetCore.Razor.Test.Common\Microsoft.AspNetCore.Razor.Test.Common.csproj" />
+    <ProjectReference Include="..\Microsoft.AspNetCore.Razor.Utilities.Shared\Microsoft.AspNetCore.Razor.Utilities.Shared.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Xunit.Combinatorial" />
+  </ItemGroup>
+
+</Project>

@@ -1,0 +1,21 @@
+﻿Document - 
+    NamespaceDeclaration -  - Test
+        UsingDirective - (3:1,1 [20] ) - global::System
+        UsingDirective - (26:2,1 [40] ) - global::System.Collections.Generic
+        UsingDirective - (69:3,1 [25] ) - global::System.Linq
+        UsingDirective - (97:4,1 [36] ) - global::System.Threading.Tasks
+        UsingDirective - (136:5,1 [45] ) - global::Microsoft.AspNetCore.Components
+        ClassDeclaration -  - public partial - TestComponent - global::Microsoft.AspNetCore.Components.ComponentBase - 
+            MethodDeclaration -  - protected override - void - BuildRenderTree
+                CSharpCode - (2:0,2 [87] x:\dir\subdir\Test\TestComponent.razor)
+                    LazyIntermediateToken - (2:0,2 [87] x:\dir\subdir\Test\TestComponent.razor) - CSharp - \n    var content = new Test.SlotContent(new MarkupString("<strong>hello</strong>"));\n
+                Component - (94:4,0 [24] x:\dir\subdir\Test\TestComponent.razor) - Slot
+                    ComponentAttribute - (109:4,15 [5] x:\dir\subdir\Test\TestComponent.razor) - Content - Content - AttributeStructure.DoubleQuotes
+                        HtmlContent - (109:4,15 [5] x:\dir\subdir\Test\TestComponent.razor)
+                            IntermediateToken - (109:4,15 [5] x:\dir\subdir\Test\TestComponent.razor) - Html - hello
+                HtmlContent - (118:4,24 [2] x:\dir\subdir\Test\TestComponent.razor)
+                    LazyIntermediateToken - (118:4,24 [2] x:\dir\subdir\Test\TestComponent.razor) - Html - \n
+                Component - (120:5,0 [27] x:\dir\subdir\Test\TestComponent.razor) - Slot
+                    ComponentAttribute - (135:5,15 [8] x:\dir\subdir\Test\TestComponent.razor) - Content - Content - AttributeStructure.DoubleQuotes
+                        CSharpExpression - (136:5,16 [7] x:\dir\subdir\Test\TestComponent.razor)
+                            LazyIntermediateToken - (136:5,16 [7] x:\dir\subdir\Test\TestComponent.razor) - CSharp - content

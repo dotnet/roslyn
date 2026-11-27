@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.QuickInfo;
 internal static class QuickInfoUtilities
 {
     public static Task<QuickInfoItem> CreateQuickInfoItemAsync(SolutionServices services, SemanticModel semanticModel, TextSpan span, ImmutableArray<ISymbol> symbols, SymbolDescriptionOptions options, CancellationToken cancellationToken)
-        => CreateQuickInfoItemAsync(services, semanticModel, span, symbols, supportedPlatforms: null, showAwaitReturn: false, nullabilityInfo: null, options, onTheFlyDocsInfo: null, cancellationToken);
+        => CreateQuickInfoItemAsync(services, semanticModel, span, symbols, supportedPlatforms: null, showAwaitReturn: false, nullabilityInfo: null, interceptorDisplayParts: default, options, onTheFlyDocsInfo: null, cancellationToken);
 
     public static async Task<QuickInfoItem> CreateQuickInfoItemAsync(
         SolutionServices services,
@@ -29,6 +29,7 @@ internal static class QuickInfoUtilities
         SupportedPlatformData? supportedPlatforms,
         bool showAwaitReturn,
         string? nullabilityInfo,
+        ImmutableArray<TaggedText> interceptorDisplayParts,
         SymbolDescriptionOptions options,
         OnTheFlyDocsInfo? onTheFlyDocsInfo,
         CancellationToken cancellationToken)
@@ -133,6 +134,19 @@ internal static class QuickInfoUtilities
 
         if (nullabilityInfo != null)
             AddSection(QuickInfoSectionKinds.NullabilityAnalysis, [new TaggedText(TextTags.Text, nullabilityInfo)]);
+
+        if (!interceptorDisplayParts.IsDefaultOrEmpty)
+        {
+            var defaultSymbol = "{0}";
+            var symbolIndex = FeaturesResources.Intercepted_by_0.IndexOf(defaultSymbol);
+
+            var builder = ImmutableArray.CreateBuilder<TaggedText>();
+            builder.AddText(FeaturesResources.Intercepted_by_0[..symbolIndex]);
+            builder.AddRange(interceptorDisplayParts);
+            builder.AddText(FeaturesResources.Intercepted_by_0[(symbolIndex + defaultSymbol.Length)..]);
+
+            AddSection(QuickInfoSectionKinds.InterceptedBy, builder.ToImmutable());
+        }
 
         if (TryGetGroupText(SymbolDescriptionGroups.Exceptions, out var exceptionsText))
             AddSection(QuickInfoSectionKinds.Exception, exceptionsText);

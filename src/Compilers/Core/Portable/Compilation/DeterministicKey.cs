@@ -4,6 +4,7 @@
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.IO;
 using System.Threading;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Emit;
@@ -57,10 +58,13 @@ namespace Microsoft.CodeAnalysis
             ImmutableArray<ISourceGenerator> generators = default,
             ImmutableArray<KeyValuePair<string, string>> pathMap = default,
             EmitOptions? emitOptions = null,
+            Stream? sourceLinkStream = null,
+            ImmutableArray<ResourceDescription> resources = default,
             DeterministicKeyOptions options = DeterministicKeyOptions.Default,
             CancellationToken cancellationToken = default)
         {
-            return GetDeterministicKey(
+            var keyBuilder = compilationOptions.CreateDeterministicKeyBuilder();
+            return keyBuilder.GetKey(
                 compilationOptions,
                 syntaxTrees.SelectAsArray(static t => SyntaxTreeKey.Create(t)),
                 references,
@@ -70,34 +74,8 @@ namespace Microsoft.CodeAnalysis
                 generators,
                 pathMap,
                 emitOptions,
-                options,
-                cancellationToken);
-        }
-
-        public static string GetDeterministicKey(
-            CompilationOptions compilationOptions,
-            ImmutableArray<SyntaxTreeKey> syntaxTrees,
-            ImmutableArray<MetadataReference> references,
-            ImmutableArray<byte> publicKey,
-            ImmutableArray<AdditionalText> additionalTexts = default,
-            ImmutableArray<DiagnosticAnalyzer> analyzers = default,
-            ImmutableArray<ISourceGenerator> generators = default,
-            ImmutableArray<KeyValuePair<string, string>> pathMap = default,
-            EmitOptions? emitOptions = null,
-            DeterministicKeyOptions options = DeterministicKeyOptions.Default,
-            CancellationToken cancellationToken = default)
-        {
-            var keyBuilder = compilationOptions.CreateDeterministicKeyBuilder();
-            return keyBuilder.GetKey(
-                compilationOptions,
-                syntaxTrees,
-                references,
-                publicKey,
-                additionalTexts.NullToEmpty(),
-                analyzers.NullToEmpty(),
-                generators.NullToEmpty(),
-                pathMap.NullToEmpty(),
-                emitOptions,
+                sourceLinkStream,
+                resources,
                 options,
                 cancellationToken);
         }

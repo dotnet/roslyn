@@ -1,0 +1,11 @@
+﻿is_global = true
+
+# API-related warnings do not make sense in API shim files
+# CA1816: Call GC.SuppressFinalize correctly
+dotnet_diagnostic.CA1816.severity = none
+
+# CA2231: Implement the equality operators and make their behavior identical to that of the Equals method
+dotnet_diagnostic.CA2231.severity = none
+
+# IDE0060: Remove unused parameter
+dotnet_diagnostic.IDE0060.severity = none

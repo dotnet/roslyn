@@ -1,0 +1,28 @@
+﻿Document - 
+    NamespaceDeclaration -  - Test
+        UsingDirective - (3:1,1 [20] ) - global::System
+        UsingDirective - (26:2,1 [40] ) - global::System.Collections.Generic
+        UsingDirective - (69:3,1 [25] ) - global::System.Linq
+        UsingDirective - (97:4,1 [36] ) - global::System.Threading.Tasks
+        UsingDirective - (136:5,1 [45] ) - global::Microsoft.AspNetCore.Components
+        ClassDeclaration -  - public partial - TestComponent - global::Microsoft.AspNetCore.Components.ComponentBase - 
+            MethodDeclaration -  - protected override - void - BuildRenderTree
+                CSharpCode - (2:0,2 [60] x:\dir\subdir\Test\TestComponent.cshtml)
+                    LazyIntermediateToken - (2:0,2 [60] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp -  var parentKey = new object(); var childKey = new object(); 
+                Component - (65:1,0 [144] x:\dir\subdir\Test\TestComponent.cshtml) - Grid
+                    ComponentChildContent -  - ChildContent - context
+                        Component - (130:2,4 [70] x:\dir\subdir\Test\TestComponent.cshtml) - Column
+                            SetKey - (145:2,19 [8] x:\dir\subdir\Test\TestComponent.cshtml) - childKey
+                            ComponentAttribute -  - Title -  - AttributeStructure.DoubleQuotes
+                                HtmlContent - (162:2,36 [5] x:\dir\subdir\Test\TestComponent.cshtml)
+                                    LazyIntermediateToken - (162:2,36 [5] x:\dir\subdir\Test\TestComponent.cshtml) - Html - Hello
+                            ComponentAttribute -  - Another -  - AttributeStructure.DoubleQuotes
+                                CSharpExpression - (178:2,52 [18] x:\dir\subdir\Test\TestComponent.cshtml)
+                                    LazyIntermediateToken - (179:2,53 [17] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - DateTime.MinValue
+                    SetKey - (78:1,13 [9] x:\dir\subdir\Test\TestComponent.cshtml) - parentKey
+                    ComponentAttribute - (96:1,31 [26] x:\dir\subdir\Test\TestComponent.cshtml) - Items - Items - AttributeStructure.DoubleQuotes
+                        LazyIntermediateToken - (98:1,33 [23] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - Array.Empty<DateTime>()
+    NamespaceDeclaration -  - __Blazor.Test.TestComponent
+        ClassDeclaration -  - internal static - TypeInference -  - 
+            ComponentTypeInferenceMethod -  - __Blazor.Test.TestComponent.TypeInference - CreateGrid_0
+            ComponentTypeInferenceMethod -  - __Blazor.Test.TestComponent.TypeInference - CreateColumn_1

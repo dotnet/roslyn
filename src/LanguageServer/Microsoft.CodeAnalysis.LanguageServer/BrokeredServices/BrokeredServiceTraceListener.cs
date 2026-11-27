@@ -2,27 +2,25 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Composition;
 using System.Diagnostics;
-using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.Extensions.Logging;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.BrokeredServices;
 
-[Export, Shared]
 internal sealed class BrokeredServiceTraceListener : TraceListener
 {
     private readonly ILogger _logger;
 
-    public TraceSource Source { get; }
-
-    [ImportingConstructor]
-    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public BrokeredServiceTraceListener(ILoggerFactory loggerFactory)
+    private BrokeredServiceTraceListener(ILoggerFactory loggerFactory)
     {
         _logger = loggerFactory.CreateLogger(nameof(BrokeredServiceTraceListener));
-        Source = new TraceSource("ServiceBroker", SourceLevels.All);
-        Source.Listeners.Add(this);
+    }
+
+    public static TraceSource CreateTraceSource(ILoggerFactory loggerFactory)
+    {
+        var traceSource = new TraceSource("ServiceBroker", SourceLevels.All);
+        traceSource.Listeners.Add(new BrokeredServiceTraceListener(loggerFactory));
+        return traceSource;
     }
 
     public override void Write(string? message)

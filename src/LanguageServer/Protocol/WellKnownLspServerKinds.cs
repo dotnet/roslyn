@@ -7,11 +7,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer;
 internal enum WellKnownLspServerKinds
 {
     /// <summary>
-    /// Roslyn LSP server for razor c# requests.
-    /// </summary>
-    RazorLspServer,
-
-    /// <summary>
     /// Roslyn LSP server for liveshare guests.
     /// </summary>
     LiveShareLspServer,
@@ -25,12 +20,6 @@ internal enum WellKnownLspServerKinds
     /// Roslyn LSP server for non-VS use cases.
     /// </summary>
     CSharpVisualBasicLspServer,
-
-    /// <summary>
-    /// XAML LSP servers.
-    /// </summary>
-    XamlLspServer,
-    XamlLspServerDisableUX,
 
     /// <summary>
     /// LSP server for TypeScript
@@ -50,14 +39,11 @@ internal static class WellKnownLspServerExtensions
     {
         return server switch
         {
-            WellKnownLspServerKinds.RazorLspServer => "Razor C# Language Server Client",
             WellKnownLspServerKinds.LiveShareLspServer => "Live Share C#/Visual Basic Language Server Client",
             WellKnownLspServerKinds.AlwaysActiveVSLspServer => "Roslyn Language Server Client",
             WellKnownLspServerKinds.CSharpVisualBasicLspServer => "Roslyn Language Server Client",
 
             // When updating the string of Name, please make sure to update the same string in Microsoft.VisualStudio.LanguageServer.Client.ExperimentalSnippetSupport.AllowList
-            WellKnownLspServerKinds.XamlLspServer => "XAML Language Server Client (Experimental)",
-            WellKnownLspServerKinds.XamlLspServerDisableUX => "XAML Language Server Client for LiveShare and Codespaces",
             WellKnownLspServerKinds.RoslynTypeScriptLspServer => "Roslyn TypeScript Language Server Client",
             _ => throw ExceptionUtilities.UnexpectedValue(server),
         };
@@ -67,9 +53,6 @@ internal static class WellKnownLspServerExtensions
     {
         return server switch
         {
-            // Telemetry was previously reported as RazorInProcLanguageClient.GetType().Name
-            WellKnownLspServerKinds.RazorLspServer => "RazorInProcLanguageClient",
-
             // Telemtry was previously reported as LiveShareInProcLanguageClient.GetType().Name
             WellKnownLspServerKinds.LiveShareLspServer => "LiveShareInProcLanguageClient",
 
@@ -78,12 +61,6 @@ internal static class WellKnownLspServerExtensions
 
             // Telemetry was previously reported as CSharpVisualBasicLanguageServerFactory.GetType().Name
             WellKnownLspServerKinds.CSharpVisualBasicLspServer => "CSharpVisualBasicLanguageServerFactory",
-
-            // Telemetry was previously reported as XamlInProcLanguageClient.GetType().Name
-            WellKnownLspServerKinds.XamlLspServer => "XamlInProcLanguageClient",
-
-            // Telemetry was previously reported as XamlInProcLanguageClientDisableUX.GetType().Name
-            WellKnownLspServerKinds.XamlLspServerDisableUX => "XamlInProcLanguageClientDisableUX",
 
             WellKnownLspServerKinds.RoslynTypeScriptLspServer => "RoslynTypeScriptLspServer",
             _ => throw ExceptionUtilities.UnexpectedValue(server),
@@ -94,12 +71,9 @@ internal static class WellKnownLspServerExtensions
     {
         return server switch
         {
-            WellKnownLspServerKinds.RazorLspServer => ProtocolConstants.RoslynLspLanguagesContract,
             WellKnownLspServerKinds.LiveShareLspServer => ProtocolConstants.RoslynLspLanguagesContract,
             WellKnownLspServerKinds.AlwaysActiveVSLspServer => ProtocolConstants.RoslynLspLanguagesContract,
             WellKnownLspServerKinds.CSharpVisualBasicLspServer => ProtocolConstants.RoslynLspLanguagesContract,
-            WellKnownLspServerKinds.XamlLspServer => "XamlLspLanguages",
-            WellKnownLspServerKinds.XamlLspServerDisableUX => "XamlLspLanguages",
             WellKnownLspServerKinds.RoslynTypeScriptLspServer => ProtocolConstants.TypeScriptLanguageContract,
             _ => throw ExceptionUtilities.UnexpectedValue(server),
         };

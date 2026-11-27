@@ -233,6 +233,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal sealed override bool HasDeclaredRequiredMembers => !_unbound && OriginalDefinition.HasDeclaredRequiredMembers;
 
+        internal sealed override bool IsClosed => OriginalDefinition.IsClosed;
+
+        internal sealed override ImmutableArray<NamedTypeSymbol> CandidateClosedSubtypeDefinitions => OriginalDefinition.CandidateClosedSubtypeDefinitions;
+
         public sealed override ImmutableArray<Symbol> GetMembers()
         {
             if (!_lazyMembers.IsDefault)
@@ -491,6 +495,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         internal sealed override bool HasCompilerLoweringPreserveAttribute => _underlyingType.HasCompilerLoweringPreserveAttribute;
+
+        internal override bool IsUnionTypeCore => _underlyingType.IsUnionTypeCore;
 
 #nullable enable
         internal sealed override ParameterSymbol? ExtensionParameter

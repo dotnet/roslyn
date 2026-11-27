@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
         {
             var compilerServerHost = new TestableCompilerServerHost(delegate
             {
-                Assert.True(false, "Should not reach compilation");
+                Assert.Fail("Should not reach compilation");
                 throw new Exception("");
             });
             var clientConnectionHandler = new ClientConnectionHandler(compilerServerHost);
@@ -83,7 +83,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
             var compilerServerHost = new TestableCompilerServerHost(delegate
             {
                 hitCompilation = true;
-                Assert.True(false, "Should not reach compilation when compilations are disallowed");
+                Assert.Fail("Should not reach compilation when compilations are disallowed");
                 throw new Exception("");
             });
 

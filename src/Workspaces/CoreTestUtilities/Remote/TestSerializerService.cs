@@ -21,9 +21,6 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.UnitTests.Remote;
 
-#if NET
-[SupportedOSPlatform("windows")]
-#endif
 [method: Obsolete(MefConstruction.FactoryMethodMessage, error: true)]
 internal sealed class TestSerializerService(
     ConcurrentDictionary<Guid, TestGeneratorReference> sharedTestGeneratorReferences,
@@ -38,6 +35,8 @@ internal sealed class TestSerializerService(
         .Add(TestBase.SystemRuntimeFacadeRef, nameof(TestBase.SystemRuntimeFacadeRef));
     private static readonly ImmutableDictionary<string, MetadataReference> s_wellKnownReferences = ImmutableDictionary.Create<string, MetadataReference>()
         .AddRange(s_wellKnownReferenceNames.Select(pair => KeyValuePair.Create(pair.Value!, pair.Key)));
+
+    private static readonly ConcurrentDictionary<string, AnalyzerFileReference> s_cachedAnalyzerFileReferences = new();
 
     private readonly ConcurrentDictionary<Guid, TestGeneratorReference> _sharedTestGeneratorReferences = sharedTestGeneratorReferences;
 
@@ -108,6 +107,22 @@ internal sealed class TestSerializerService(
         {
             return base.ReadAnalyzerReferenceFrom(reader);
         }
+    }
+
+    protected override AnalyzerFileReference GetOrCreateAnalyzerFileReference(string filePath)
+    {
+        if (!s_cachedAnalyzerFileReferences.TryGetValue(filePath, out var analyzerFileReference))
+        {
+            analyzerFileReference = base.GetOrCreateAnalyzerFileReference(filePath);
+            s_cachedAnalyzerFileReferences.TryAdd(filePath, analyzerFileReference);
+        }
+
+        return analyzerFileReference;
+    }
+
+    public static void ClearCachedTestReferences()
+    {
+        s_cachedAnalyzerFileReferences.Clear();
     }
 
     [ExportWorkspaceServiceFactory(typeof(ISerializerService), layer: ServiceLayer.Test), Shared, PartNotDiscoverable]

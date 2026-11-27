@@ -387,11 +387,6 @@
         <target state="translated">无法打开项目“{0}”， 因为文件扩展名“{1}”没有与某种语言关联。</target>
         <note />
       </trans-unit>
-      <trans-unit id="Cannot_open_project_0_because_the_language_1_is_not_supported">
-        <source>Cannot open project '{0}' because the language '{1}' is not supported.</source>
-        <target state="translated">无法打开项目“{0}”，因为语言“{1}”不受支持。</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Invalid_project_file_path_colon_0">
         <source>Invalid project file path: '{0}'</source>
         <target state="translated">无效的项目文件路径:“{0}”</target>

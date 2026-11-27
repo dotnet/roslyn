@@ -34,14 +34,18 @@ internal sealed class FindImplementationsHandler : ILspServiceDocumentRequestHan
 
     public LSP.TextDocumentIdentifier GetTextDocumentIdentifier(LSP.TextDocumentPositionParams request) => request.TextDocument;
 
-    public Task<LSP.Location[]> HandleRequestAsync(LSP.TextDocumentPositionParams request, RequestContext context, CancellationToken cancellationToken)
+    public async Task<LSP.Location[]> HandleRequestAsync(LSP.TextDocumentPositionParams request, RequestContext context, CancellationToken cancellationToken)
     {
-        var document = context.GetRequiredDocument();
+        var document = await context.GetRequiredDocumentAsync(cancellationToken).ConfigureAwait(false);
         var supportsVisualStudioExtensions = context.GetRequiredClientCapabilities().HasVisualStudioLspCapability();
         var linePosition = ProtocolConversions.PositionToLinePosition(request.Position);
         var classificationOptions = _globalOptions.GetClassificationOptionsProvider();
 
-        return FindImplementationsAsync(document, linePosition, classificationOptions, supportsVisualStudioExtensions, cancellationToken);
+        var locations = await FindImplementationsAsync(document, linePosition, classificationOptions, supportsVisualStudioExtensions, cancellationToken).ConfigureAwait(false);
+        if (locations.Length == 0)
+            await context.GetRequiredLspService<RequestTelemetryLogger>().ReportEmptySymbolResultAsync(LSP.Methods.TextDocumentImplementationName, document, request.Position, cancellationToken).ConfigureAwait(false);
+
+        return locations;
     }
 
     internal static async Task<LSP.Location[]> FindImplementationsAsync(Document document, LinePosition linePosition, OptionsProvider<ClassificationOptions> classificationOptions, bool supportsVisualStudioExtensions, CancellationToken cancellationToken)
@@ -59,13 +63,20 @@ internal sealed class FindImplementationsHandler : ILspServiceDocumentRequestHan
             var text = definition.GetClassifiedText();
             foreach (var sourceSpan in definition.SourceSpans)
             {
+                // Use a zero-length span at the start of the source span to navigate to a
+                // position rather than selecting the entire span.
+                // Navigating to a span selects the text, which regresses screen readers (which then only read
+                // the selected word instead of the whole line).
+                // Additionally, since results are not live, spans may grow stale after edits - navigating to a position avoids a bogus selection of arbitrary text.
+                // See https://github.com/dotnet/roslyn/pull/75418
+                var positionSpan = new DocumentSpan(sourceSpan.Document, new TextSpan(sourceSpan.SourceSpan.Start, 0));
                 if (supportsVisualStudioExtensions)
                 {
-                    locations.AddIfNotNull(await ProtocolConversions.DocumentSpanToLocationWithTextAsync(sourceSpan, text, cancellationToken).ConfigureAwait(false));
+                    locations.AddIfNotNull(await ProtocolConversions.DocumentSpanToLocationWithTextAsync(positionSpan, text, cancellationToken).ConfigureAwait(false));
                 }
                 else
                 {
-                    locations.AddIfNotNull(await ProtocolConversions.DocumentSpanToLocationAsync(sourceSpan, cancellationToken).ConfigureAwait(false));
+                    locations.AddIfNotNull(await ProtocolConversions.DocumentSpanToLocationAsync(positionSpan, cancellationToken).ConfigureAwait(false));
                 }
             }
         }

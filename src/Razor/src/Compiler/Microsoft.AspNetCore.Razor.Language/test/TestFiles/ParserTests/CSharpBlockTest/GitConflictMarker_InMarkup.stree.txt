@@ -1,0 +1,108 @@
+﻿RazorDocument - [0..109)::109 - [<div>LF<<<<<<< HEADLF<p>Current changes</p>LF=======LF<p>Incoming changes</p>LF>>>>>>> feature-branchLF</div>]
+    MarkupBlock - [0..109)::109
+        MarkupElement - [0..109)::109
+            MarkupStartTag - [0..5)::5 - [<div>] - Gen<Markup>
+                OpenAngle;[<];
+                Text;[div];
+                CloseAngle;[>];
+            MarkupTextLiteral - [5..7)::2 - [LF] - Gen<Markup>
+                NewLine;[LF];
+            MarkupElement - [7..8)::1
+                MarkupStartTag - [7..8)::1 - [<] - Gen<Markup>
+                    OpenAngle;[<];
+                    Text;[<Missing>];
+                    CloseAngle;[<Missing>];
+            MarkupElement - [8..9)::1
+                MarkupStartTag - [8..9)::1 - [<] - Gen<Markup>
+                    OpenAngle;[<];
+                    Text;[<Missing>];
+                    CloseAngle;[<Missing>];
+            MarkupElement - [9..10)::1
+                MarkupStartTag - [9..10)::1 - [<] - Gen<Markup>
+                    OpenAngle;[<];
+                    Text;[<Missing>];
+                    CloseAngle;[<Missing>];
+            MarkupElement - [10..11)::1
+                MarkupStartTag - [10..11)::1 - [<] - Gen<Markup>
+                    OpenAngle;[<];
+                    Text;[<Missing>];
+                    CloseAngle;[<Missing>];
+            MarkupElement - [11..12)::1
+                MarkupStartTag - [11..12)::1 - [<] - Gen<Markup>
+                    OpenAngle;[<];
+                    Text;[<Missing>];
+                    CloseAngle;[<Missing>];
+            MarkupElement - [12..13)::1
+                MarkupStartTag - [12..13)::1 - [<] - Gen<Markup>
+                    OpenAngle;[<];
+                    Text;[<Missing>];
+                    CloseAngle;[<Missing>];
+            MarkupElement - [13..21)::8
+                MarkupStartTag - [13..21)::8 - [< HEADLF] - Gen<Markup>
+                    OpenAngle;[<];
+                    Text;[<Missing>];
+                    MarkupMinimizedAttributeBlock - [14..19)::5 - [ HEAD]
+                        MarkupTextLiteral - [14..15)::1 - [ ] - Gen<Markup>
+                            Whitespace;[ ];
+                        MarkupTextLiteral - [15..19)::4 - [HEAD] - Gen<Markup>
+                            Text;[HEAD];
+                    MarkupMiscAttributeContent - [19..21)::2
+                        MarkupTextLiteral - [19..21)::2 - [LF] - Gen<Markup>
+                            NewLine;[LF];
+                    CloseAngle;[<Missing>];
+            MarkupElement - [21..43)::22
+                MarkupStartTag - [21..24)::3 - [<p>] - Gen<Markup>
+                    OpenAngle;[<];
+                    Text;[p];
+                    CloseAngle;[>];
+                MarkupTextLiteral - [24..39)::15 - [Current changes] - Gen<Markup>
+                    Text;[Current];
+                    Whitespace;[ ];
+                    Text;[changes];
+                MarkupEndTag - [39..43)::4 - [</p>] - Gen<Markup>
+                    OpenAngle;[<];
+                    ForwardSlash;[/];
+                    Text;[p];
+                    CloseAngle;[>];
+            MarkupTextLiteral - [43..54)::11 - [LF=======LF] - Gen<Markup>
+                NewLine;[LF];
+                Equals;[=];
+                Equals;[=];
+                Equals;[=];
+                Equals;[=];
+                Equals;[=];
+                Equals;[=];
+                Equals;[=];
+                NewLine;[LF];
+            MarkupElement - [54..77)::23
+                MarkupStartTag - [54..57)::3 - [<p>] - Gen<Markup>
+                    OpenAngle;[<];
+                    Text;[p];
+                    CloseAngle;[>];
+                MarkupTextLiteral - [57..73)::16 - [Incoming changes] - Gen<Markup>
+                    Text;[Incoming];
+                    Whitespace;[ ];
+                    Text;[changes];
+                MarkupEndTag - [73..77)::4 - [</p>] - Gen<Markup>
+                    OpenAngle;[<];
+                    ForwardSlash;[/];
+                    Text;[p];
+                    CloseAngle;[>];
+            MarkupTextLiteral - [77..103)::26 - [LF>>>>>>> feature-branchLF] - Gen<Markup>
+                NewLine;[LF];
+                CloseAngle;[>];
+                CloseAngle;[>];
+                CloseAngle;[>];
+                CloseAngle;[>];
+                CloseAngle;[>];
+                CloseAngle;[>];
+                CloseAngle;[>];
+                Whitespace;[ ];
+                Text;[feature-branch];
+                NewLine;[LF];
+            MarkupEndTag - [103..109)::6 - [</div>] - Gen<Markup>
+                OpenAngle;[<];
+                ForwardSlash;[/];
+                Text;[div];
+                CloseAngle;[>];
+    EndOfFile;[];

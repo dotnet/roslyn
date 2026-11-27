@@ -21,6 +21,15 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
+    <PackageReference Include="SourceGear.Sqlite3" GeneratePathProperty="true" ExcludeAssets="all" PrivateAssets="all" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="$(PkgSourceGear_Sqlite3)\runtimes\win-x64\native\e_sqlite3.dll">
+      <Link>e_sqlite3.dll</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <IncludeInVSIX>true</IncludeInVSIX>
+      <Visible>false</Visible>
+    </Content>
     <None Include="source.extension.vsixmanifest">
       <SubType>Designer</SubType>
     </None>

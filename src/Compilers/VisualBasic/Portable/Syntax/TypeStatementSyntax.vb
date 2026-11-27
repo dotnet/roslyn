@@ -54,7 +54,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
         End Function
 
         <EditorBrowsable(EditorBrowsableState.Never)>
-        <Obsolete("This member is obsolete.", True)>
+        <Obsolete("This member is obsolete. Use ModuleKeyword instead.", True)>
         Public Shadows ReadOnly Property Keyword As SyntaxToken
             Get
                 Return DeclarationKeyword
@@ -62,7 +62,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
         End Property
 
         <EditorBrowsable(EditorBrowsableState.Never)>
-        <Obsolete("This member is obsolete.", True)>
+        <Obsolete("This member is obsolete. Use WithModuleKeyword instead.", True)>
         Public Shadows Function WithKeyword(keyword As SyntaxToken) As ModuleStatementSyntax
             Return WithModuleKeyword(keyword)
         End Function
@@ -82,7 +82,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
         End Function
 
         <EditorBrowsable(EditorBrowsableState.Never)>
-        <Obsolete("This member is obsolete.", True)>
+        <Obsolete("This member is obsolete. Use StructureKeyword instead.", True)>
         Public Shadows ReadOnly Property Keyword As SyntaxToken
             Get
                 Return DeclarationKeyword
@@ -90,7 +90,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
         End Property
 
         <EditorBrowsable(EditorBrowsableState.Never)>
-        <Obsolete("This member is obsolete.", True)>
+        <Obsolete("This member is obsolete. Use WithStructureKeyword instead.", True)>
         Public Shadows Function WithKeyword(keyword As SyntaxToken) As StructureStatementSyntax
             Return WithStructureKeyword(keyword)
         End Function
@@ -110,7 +110,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
         End Function
 
         <EditorBrowsable(EditorBrowsableState.Never)>
-        <Obsolete("This member is obsolete.", True)>
+        <Obsolete("This member is obsolete. Use ClassKeyword instead.", True)>
         Public Shadows ReadOnly Property Keyword As SyntaxToken
             Get
                 Return DeclarationKeyword
@@ -118,7 +118,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
         End Property
 
         <EditorBrowsable(EditorBrowsableState.Never)>
-        <Obsolete("This member is obsolete.", True)>
+        <Obsolete("This member is obsolete. Use WithClassKeyword instead.", True)>
         Public Shadows Function WithKeyword(keyword As SyntaxToken) As ClassStatementSyntax
             Return WithClassKeyword(keyword)
         End Function
@@ -138,7 +138,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
         End Function
 
         <EditorBrowsable(EditorBrowsableState.Never)>
-        <Obsolete("This member is obsolete.", True)>
+        <Obsolete("This member is obsolete. Use InterfaceKeyword instead.", True)>
         Public Shadows ReadOnly Property Keyword As SyntaxToken
             Get
                 Return DeclarationKeyword
@@ -146,7 +146,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
         End Property
 
         <EditorBrowsable(EditorBrowsableState.Never)>
-        <Obsolete("This member is obsolete.", True)>
+        <Obsolete("This member is obsolete. Use WithInterfaceKeyword instead.", True)>
         Public Shadows Function WithKeyword(keyword As SyntaxToken) As InterfaceStatementSyntax
             Return WithInterfaceKeyword(keyword)
         End Function

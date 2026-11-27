@@ -184,10 +184,10 @@ internal sealed partial class FindReferencesSearchEngine(
         // out.
         if (!symbolToGroup.TryGetValue(symbol, out var group))
         {
-            var linkedSymbols = await SymbolFinder.FindLinkedSymbolsAsync(symbol, _solution, cancellationToken).ConfigureAwait(false);
-            Contract.ThrowIfFalse(linkedSymbols.Contains(symbol), "Linked symbols did not contain the very symbol we started with.");
+            var sameSymbols = await FindSameSymbolsAsync(symbol, _solution, cancellationToken).ConfigureAwait(false);
+            Contract.ThrowIfFalse(sameSymbols.Contains(symbol), "Same symbols did not contain the very symbol we started with.");
 
-            group = new SymbolGroup(linkedSymbols);
+            group = new SymbolGroup(sameSymbols);
             Contract.ThrowIfFalse(group.Symbols.Contains(symbol), "Symbol group did not contain the very symbol we started with.");
 
             foreach (var groupSymbol in group.Symbols)
@@ -301,7 +301,7 @@ internal sealed partial class FindReferencesSearchEngine(
         await Parallel.ForEachAsync(
             symbolsToSearchFor,
             GetParallelOptions(cancellationToken),
-            (kvp, cancellationToken) =>
+            async (kvp, cancellationToken) =>
             {
                 var (symbolToSearchFor, symbolGroup) = kvp;
 
@@ -311,7 +311,6 @@ internal sealed partial class FindReferencesSearchEngine(
                     cache, TryGet(symbolToGlobalAliases, symbolToSearchFor));
 
                 ProcessDocument(symbolToSearchFor, symbolGroup, state, onReferenceFound);
-                return ValueTask.CompletedTask;
             }).ConfigureAwait(false);
 
         return;

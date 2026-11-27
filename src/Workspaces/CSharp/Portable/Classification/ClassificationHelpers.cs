@@ -256,6 +256,17 @@ internal static class ClassificationHelpers
         }
         else if (token.Parent is ParameterSyntax parameterSyntax && parameterSyntax.Identifier == token)
         {
+            if (token.Text == "_" && parameterSyntax.Parent is ParameterListSyntax { Parent: AnonymousFunctionExpressionSyntax } parameterList)
+            {
+                foreach (var otherParameter in parameterList.Parameters)
+                {
+                    if (otherParameter != parameterSyntax && otherParameter.Identifier.Text == "_")
+                    {
+                        return ClassificationTypeNames.Keyword;
+                    }
+                }
+            }
+
             return ClassificationTypeNames.ParameterName;
         }
         else if (token.Parent is ForEachStatementSyntax forEachStatementSyntax && forEachStatementSyntax.Identifier == token)
@@ -296,6 +307,9 @@ internal static class ClassificationHelpers
             SyntaxKind.RecordDeclaration => ClassificationTypeNames.RecordClassName,
             SyntaxKind.RecordStructDeclaration => ClassificationTypeNames.RecordStructName,
             SyntaxKind.StructDeclaration => ClassificationTypeNames.StructName,
+            // Tracked by https://github.com/dotnet/roslyn/issues/82607
+            // Consider using a separate classification type for unions so users can color them differently
+            SyntaxKind.UnionDeclaration => ClassificationTypeNames.StructName,
             _ => null
         };
 
@@ -342,6 +356,7 @@ internal static class ClassificationHelpers
             SyntaxKind.ClassDeclaration => ClassificationTypeNames.ClassName,
             SyntaxKind.EnumDeclaration => ClassificationTypeNames.EnumName,
             SyntaxKind.StructDeclaration => ClassificationTypeNames.StructName,
+            SyntaxKind.UnionDeclaration => ClassificationTypeNames.StructName,
             SyntaxKind.InterfaceDeclaration => ClassificationTypeNames.InterfaceName,
             SyntaxKind.RecordDeclaration => ClassificationTypeNames.RecordClassName,
             SyntaxKind.RecordStructDeclaration => ClassificationTypeNames.RecordStructName,

@@ -71,6 +71,41 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         #endregion
 
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/86102")]
+        [InlineData("a b implicit operator")]
+        [InlineData("a b explicit operator")]
+        [InlineData("class C { a b implicit operator }")]
+        [InlineData("class C { a b explicit operator }")]
+        [InlineData("class C { } a b implicit operator C")]
+        [InlineData("a A.B.implicit operator int")]
+        [InlineData("a I<T>.explicit operator int")]
+        [InlineData("a /* before */ b /* after */ implicit operator")]
+        [InlineData("b implicit operator")]
+        [InlineData("a b implicit")]
+        [InlineData("a b operator")]
+        public void MalformedConversionOperatorRoundTrips(string text)
+        {
+            var root = SyntaxFactory.ParseCompilationUnit(text);
+
+            Assert.Equal(text, root.ToFullString());
+            Assert.Equal(text.Length, root.FullSpan.Length);
+
+            var tree = CSharpSyntaxTree.ParseText(text);
+            Assert.Equal(text, tree.GetRoot().ToFullString());
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/86102")]
+        public void MalformedConversionOperatorPreservesTokenPosition()
+        {
+            const string text = "class C { } a b implicit operator C";
+            var position = text.LastIndexOf('C');
+            var token = SyntaxFactory.ParseCompilationUnit(text).FindToken(position);
+
+            Assert.Equal(SyntaxKind.IdentifierToken, token.Kind());
+            Assert.Equal(position, token.SpanStart);
+            Assert.Equal("C", token.ValueText);
+        }
+
         [Fact]
         public void AutoPropInitializers()
         {
@@ -511,7 +546,14 @@ partial class PartialPartial
     }
 }
 ";
-            ParseAndRoundTripping(text, -1);
+            ParseAndRoundTripping(text);
+            CSharpTestBase.CreateCompilation(text).VerifyDiagnostics(
+                // (5,13): error CS1004: Duplicate 'partial' modifier
+                //     partial partial void PM();
+                TestHelpers.Diagnostic(ErrorCode.ERR_DuplicateModifier, "partial").WithArguments("partial").WithLocation(5, 13),
+                // (6,13): error CS1004: Duplicate 'partial' modifier
+                //     partial partial void PM()
+                TestHelpers.Diagnostic(ErrorCode.ERR_DuplicateModifier, "partial").WithArguments("partial").WithLocation(6, 13));
         }
 
         [Fact]

@@ -91,15 +91,18 @@ internal abstract class AbstractRemoveRedundantEqualityDiagnosticAnalyzer(ISynta
             return;
         }
 
+        IOperation? nonLiteralOperand;
         var properties = ImmutableDictionary.CreateBuilder<string, string?>();
         if (TryGetLiteralValue(rightOperand) is bool rightBool)
         {
+            nonLiteralOperand = leftOperand;
             properties.Add(RedundantEqualityConstants.RedundantSide, RedundantEqualityConstants.Right);
             if (rightBool != isOperatorEquals)
                 properties.Add(RedundantEqualityConstants.Negate, RedundantEqualityConstants.Negate);
         }
         else if (TryGetLiteralValue(leftOperand) is bool leftBool)
         {
+            nonLiteralOperand = rightOperand;
             properties.Add(RedundantEqualityConstants.RedundantSide, RedundantEqualityConstants.Left);
             if (leftBool != isOperatorEquals)
                 properties.Add(RedundantEqualityConstants.Negate, RedundantEqualityConstants.Negate);
@@ -108,6 +111,16 @@ internal abstract class AbstractRemoveRedundantEqualityDiagnosticAnalyzer(ISynta
         {
             return;
         }
+
+        // If the comparison itself performs a user-defined implicit conversion to
+        // bool, it isn't redundant: removing the comparison would drop the conversion
+        // and change the type of the expression (or break the build). For example,
+        // 'flag == true' where Flag has an implicit operator bool. An explicit cast
+        // in source, '(bool)flag == true', is still reported: the code fix keeps the
+        // cast, so the conversion and the type are kept.
+        // See https://github.com/dotnet/roslyn/issues/86479.
+        if (nonLiteralOperand is IConversionOperation { Conversion.IsUserDefined: true, IsImplicit: true })
+            return;
 
         context.ReportDiagnostic(Diagnostic.Create(Descriptor,
             operatorToken.GetLocation(),

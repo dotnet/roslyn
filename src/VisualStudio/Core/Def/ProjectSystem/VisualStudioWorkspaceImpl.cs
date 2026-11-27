@@ -90,6 +90,10 @@ internal abstract partial class VisualStudioWorkspaceImpl : VisualStudioWorkspac
     /// <remarks>Should be updated with <see cref="ImmutableInterlocked"/>.</remarks>
     private ImmutableDictionary<ProjectId, Func<string?>> _projectToRuleSetFilePath = ImmutableDictionary<ProjectId, Func<string?>>.Empty;
 
+    /// <summary>
+    /// Mapping from project system name to a list of projects.
+    /// Only access when holding <see cref="_gate"/>
+    /// </summary>
     private readonly Dictionary<string, List<ProjectSystemProject>> _projectSystemNameToProjectsMap = [];
 
     /// <summary>
@@ -138,7 +142,7 @@ internal abstract partial class VisualStudioWorkspaceImpl : VisualStudioWorkspac
         FileChangeWatcher = exportProvider.GetExportedValue<FileChangeWatcherProvider>().Watcher;
 
         ProjectSystemProjectFactory = new ProjectSystemProjectFactory(
-            this, FileChangeWatcher, CheckForAddedFileBeingOpenMaybeAsync, RemoveProjectFromMaps, _threadingContext.DisposalToken);
+            this, FileChangeWatcher, CheckForAddedFileBeingOpenMaybeAsync, RemoveProjectFromMaps);
 
         _solutionClosingContext = UIContext.FromUIContextGuid(VSConstants.UICONTEXT.SolutionClosing_guid);
         _solutionClosingContext.UIContextChanged += SolutionClosingContext_UIContextChanged;
@@ -154,15 +158,20 @@ internal abstract partial class VisualStudioWorkspaceImpl : VisualStudioWorkspac
 
         _updateUIContextJoinableTasks = new JoinableTaskCollection(_threadingContext.JoinableTaskContext);
 
-        // Set up our telemetry session and log an event for the version
-        var logDelta = _globalOptions.GetOption(DiagnosticOptionsStorage.LogTelemetryForBackgroundAnalyzerExecution);
-        var telemetryService = (VisualStudioWorkspaceTelemetryService)Services.GetRequiredService<IWorkspaceTelemetryService>();
-        telemetryService.InitializeTelemetrySession(TelemetryService.DefaultSession, logDelta);
+        InitializeTelemetrySession();
 
         Logger.Log(FunctionId.Run_Environment, KeyValueLogMessage.Create(
             static m => m["Version"] = FileVersionInfo.GetVersionInfo(typeof(VisualStudioWorkspace).Assembly.Location).FileVersion));
 
         SubscribeToSourceGeneratorImpactingEvents();
+    }
+
+    protected virtual void InitializeTelemetrySession()
+    {
+        // Set up our telemetry session and log an event for the version
+        var logDelta = _globalOptions.GetOption(DiagnosticOptionsStorage.LogTelemetryForBackgroundAnalyzerExecution);
+        var telemetryService = (VisualStudioWorkspaceTelemetryService)Services.GetRequiredService<IWorkspaceTelemetryService>();
+        telemetryService.InitializeTelemetrySession(TelemetryService.DefaultSession, logDelta);
     }
 
     private void SolutionClosingContext_UIContextChanged(object sender, UIContextChangedEventArgs e)
@@ -792,7 +801,7 @@ internal abstract partial class VisualStudioWorkspaceImpl : VisualStudioWorkspac
         foreach (var folder in folders)
         {
             var items = GetAllItems(project.ProjectItems);
-            var folderItem = items.FirstOrDefault(p => StringComparer.OrdinalIgnoreCase.Compare(p.Name, folder) == 0);
+            var folderItem = items.FirstOrDefault(p => StringComparer.OrdinalIgnoreCase.Equals(p.Name, folder));
             if (folderItem == null || folderItem.Kind != EnvDTE.Constants.vsProjectItemKindPhysicalFile)
             {
                 yield return folder;
@@ -1448,6 +1457,8 @@ internal abstract partial class VisualStudioWorkspaceImpl : VisualStudioWorkspac
             // if we don't unsubscribe, it will leak our workspace object which can cause memory leaks in tests that create a whole MEF container
             // per test.
             _solutionClosingContext?.UIContextChanged -= SolutionClosingContext_UIContextChanged;
+
+            ProjectSystemProjectFactory.Dispose();
         }
 
         base.Dispose(finalize);
@@ -1559,21 +1570,24 @@ internal abstract partial class VisualStudioWorkspaceImpl : VisualStudioWorkspac
 
     internal void RemoveProjectFromMaps(CodeAnalysis.Project project)
     {
-        foreach (var (projectName, projects) in _projectSystemNameToProjectsMap)
+        using (_gate.DisposableWait())
         {
-            if (projects.RemoveAll(p => p.Id == project.Id) > 0)
+            foreach (var (projectName, projects) in _projectSystemNameToProjectsMap)
             {
-                if (projects.Count == 0)
+                if (projects.RemoveAll(p => p.Id == project.Id) > 0)
                 {
-                    _projectSystemNameToProjectsMap.Remove(projectName);
+                    if (projects.Count == 0)
+                    {
+                        _projectSystemNameToProjectsMap.Remove(projectName);
+                    }
+
+                    break;
                 }
-
-                break;
             }
-        }
 
-        _projectToHierarchyMap = _projectToHierarchyMap.Remove(project.Id);
-        _projectToGuidMap = _projectToGuidMap.Remove(project.Id);
+            _projectToHierarchyMap = _projectToHierarchyMap.Remove(project.Id);
+            _projectToGuidMap = _projectToGuidMap.Remove(project.Id);
+        }
 
         ImmutableInterlocked.TryRemove(ref _projectToRuleSetFilePath, project.Id, out _);
 

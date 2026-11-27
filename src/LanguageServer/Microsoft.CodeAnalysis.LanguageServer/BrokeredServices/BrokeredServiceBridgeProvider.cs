@@ -16,33 +16,31 @@ using Nerdbank.Streams;
 namespace Microsoft.CodeAnalysis.LanguageServer.BrokeredServices;
 
 [Export, Shared]
-internal sealed class BrokeredServiceBridgeProvider
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal sealed class BrokeredServiceBridgeProvider()
 {
     private const string ServiceBrokerChannelName = "serviceBroker";
-
-    private readonly ILogger _logger;
-    private readonly TraceSource _brokeredServiceTraceSource;
-
-    [ImportingConstructor]
-    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public BrokeredServiceBridgeProvider(ILoggerFactory loggerFactory, BrokeredServiceTraceListener brokeredServiceTraceListener)
-    {
-        _logger = loggerFactory.CreateLogger<BrokeredServiceBridgeProvider>();
-        _brokeredServiceTraceSource = brokeredServiceTraceListener.Source;
-    }
 
     /// <summary>
     /// Creates the brokered service bridge to the remote process.
     /// We expose the services from our container to the remote and consume services
     /// from the remote by proffering them into our container.
     /// </summary>
-    /// <param name="brokeredServicePipeName">the pipe name we use for the connection.</param>
-    /// <param name="container">our local container.</param>
-    /// <param name="cancellationToken">a cancellation token.</param>
-    /// <returns>a task that represents the lifetime of the bridge.  It will complete when the bridge closes.</returns>
-    public async Task SetupBrokeredServicesBridgeAsync(string brokeredServicePipeName, BrokeredServiceContainer container, CancellationToken cancellationToken)
+    /// <param name="brokeredServicePipeName">The pipe name we use for the connection.</param>
+    /// <param name="container">Our local container.</param>
+    /// <param name="onServicesAvailable">Invoked when remote services are available from the container.</param>
+    /// <param name="cancellationToken">A cancellation token.</param>
+    /// <returns>A task that represents the lifetime of the bridge. It will complete when the bridge closes.</returns>
+    public async Task SetupBrokeredServicesBridgeAsync(
+        string brokeredServicePipeName,
+        BrokeredServiceContainer container,
+        ILogger logger,
+        TraceSource traceSource,
+        Func<CancellationToken, ValueTask> onServicesAvailable,
+        CancellationToken cancellationToken)
     {
-        _logger.LogDebug("Setting up brokered service bridge");
+        logger.LogDebug("Setting up brokered service bridge");
         using var bridgeStream = await ServerFactory.ConnectAsync(brokeredServicePipeName, cancellationToken);
         using var bridgeMxStream = await MultiplexingStream.CreateAsync(bridgeStream, cancellationToken);
 
@@ -55,23 +53,29 @@ internal sealed class BrokeredServiceBridgeProvider
             var serviceBroker = container.GetLimitedAccessServiceBroker(ServiceAudience.Local, ImmutableDictionary<string, string>.Empty, ClientCredentialsPolicy.RequestOverridesDefault);
             using IpcRelayServiceBroker relayServiceBroker = new(serviceBroker);
 
+            // ConstructRpc starts listening here, so every inbound request that activates a service through
+            // this broker is dispatched on this execution context and inherits the owning server's telemetry.
             FrameworkServices.RemoteServiceBroker
-                .WithTraceSource(_brokeredServiceTraceSource)
+                .WithTraceSource(traceSource)
                 .ConstructRpc(relayServiceBroker, profferedServiceBrokerChannel);
 
-            await relayServiceBroker.Completion;
+            await relayServiceBroker.Completion.WaitAsync(cancellationToken);
         }
 
         async Task ConsumeServicesFromRemoteAsync()
         {
             using var consumingServiceBrokerChannel = await bridgeMxStream.AcceptChannelAsync(ServiceBrokerChannelName, cancellationToken);
             var remoteClient = FrameworkServices.RemoteServiceBroker
-                .WithTraceSource(_brokeredServiceTraceSource)
+                .WithTraceSource(traceSource)
                 .ConstructRpc<IRemoteServiceBroker>(consumingServiceBrokerChannel);
 
             using (container.ProfferRemoteBroker(remoteClient, bridgeMxStream, ServiceSource.OtherProcessOnSameMachine, [.. Descriptors.RemoteServicesToRegister.Keys]))
             {
-                await consumingServiceBrokerChannel.Completion;
+                // Remote brokered services are available now: the channel has been accepted, the remote RPC broker constructed,
+                // and the remote broker proffered into the local container.
+                await onServicesAvailable(cancellationToken);
+
+                await consumingServiceBrokerChannel.Completion.WaitAsync(cancellationToken);
             }
         }
     }

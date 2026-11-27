@@ -1,0 +1,13 @@
+﻿Source Location: (2:0,2 [65] x:\dir\subdir\Test\TestComponent.razor)
+|
+    System.IntPtr value = 1;
+    value += 2;
+    _ = value;
+|
+Generated Location: (733:21,0 [65] )
+|
+    System.IntPtr value = 1;
+    value += 2;
+    _ = value;
+|
+

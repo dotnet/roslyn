@@ -1,0 +1,16 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <DeployExtension>true</DeployExtension>
+    <ComponentArchitecture>x64</ComponentArchitecture>    
+  </PropertyGroup>
+
+  <Import Project="../CoreComponents.props"/>
+  
+  <ItemGroup>
+    <None Include="source.extension.vsixmanifest">
+      <SubType>Designer</SubType>
+    </None>
+  </ItemGroup>
+</Project>
+

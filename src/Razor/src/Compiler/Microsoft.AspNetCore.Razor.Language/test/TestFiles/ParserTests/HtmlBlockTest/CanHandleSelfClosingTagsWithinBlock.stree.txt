@@ -1,0 +1,39 @@
+﻿RazorDocument - [0..21)::21 - [@{<foo><bar /></foo>}]
+    MarkupBlock - [0..21)::21
+        MarkupTextLiteral - [0..0)::0 - [] - Gen<Markup>
+            Marker;[];
+        CSharpCodeBlock - [0..21)::21
+            CSharpStatement - [0..21)::21
+                CSharpTransition - [0..1)::1 - Gen<None>
+                    Transition;[@];
+                CSharpStatementBody - [1..21)::20
+                    RazorMetaCode - [1..2)::1 - Gen<None>
+                        LeftBrace;[{];
+                    CSharpCodeBlock - [2..20)::18
+                        MarkupBlock - [2..20)::18
+                            MarkupElement - [2..20)::18
+                                MarkupStartTag - [2..7)::5 - [<foo>] - Gen<Markup>
+                                    OpenAngle;[<];
+                                    Text;[foo];
+                                    CloseAngle;[>];
+                                MarkupElement - [7..14)::7
+                                    MarkupStartTag - [7..14)::7 - [<bar />] - Gen<Markup>
+                                        OpenAngle;[<];
+                                        Text;[bar];
+                                        MarkupMiscAttributeContent - [11..12)::1
+                                            MarkupTextLiteral - [11..12)::1 - [ ] - Gen<Markup>
+                                                Whitespace;[ ];
+                                        ForwardSlash;[/];
+                                        CloseAngle;[>];
+                                MarkupEndTag - [14..20)::6 - [</foo>] - Gen<Markup>
+                                    OpenAngle;[<];
+                                    ForwardSlash;[/];
+                                    Text;[foo];
+                                    CloseAngle;[>];
+                        CSharpStatementLiteral - [20..20)::0 - [] - Gen<Stmt>
+                            Marker;[];
+                    RazorMetaCode - [20..21)::1 - Gen<None>
+                        RightBrace;[}];
+        MarkupTextLiteral - [21..21)::0 - [] - Gen<Markup>
+            Marker;[];
+    EndOfFile;[];

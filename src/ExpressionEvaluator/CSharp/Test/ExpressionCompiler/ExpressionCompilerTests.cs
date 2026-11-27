@@ -793,6 +793,45 @@ class B : A
 }");
         }
 
+        /// <summary>
+        /// Evaluating expressions inside a ref-returning method should
+        /// produce a query method that returns by value, not by ref.
+        /// </summary>
+        [Fact]
+        public void EvaluateExpressionInRefReturningMethod()
+        {
+            var source =
+@"struct TestStruct
+{
+    public int Value;
+}
+class C
+{
+    static TestStruct _field;
+    ref readonly TestStruct GetValue(ulong id)
+    {
+        return ref _field;
+    }
+}";
+            var testData = Evaluate(
+                source,
+                OutputKind.DynamicallyLinkedLibrary,
+                methodName: "C.GetValue",
+                expr: "id");
+            var methodData = testData.GetMethodData("<>x.<>m0");
+            var method = (MethodSymbol)methodData.Method;
+            Assert.Equal(RefKind.None, method.RefKind);
+
+            testData = Evaluate(
+                source,
+                OutputKind.DynamicallyLinkedLibrary,
+                methodName: "C.GetValue",
+                expr: "id == 1");
+            methodData = testData.GetMethodData("<>x.<>m0");
+            method = (MethodSymbol)methodData.Method;
+            Assert.Equal(RefKind.None, method.RefKind);
+        }
+
         [Fact]
         public void EvaluateStaticMethodParameters()
         {
@@ -2352,10 +2391,11 @@ class C
         }
 
         /// <remarks>
-        /// This would be illegal in any non-debugger context.
+        /// This would be illegal in any non-debugger context before the unsafe evolution feature.
         /// </remarks>
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1075258")]
-        public void AwaitInUnsafeContext()
+        [Theory, CombinatorialData, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1075258")]
+        public void AwaitInUnsafeContext(
+            [CombinatorialValues(LanguageVersion.CSharp14, LanguageVersionFacts.CSharpNext, LanguageVersion.Preview)] LanguageVersion langVersion)
         {
             var source = @"
 using System;
@@ -2375,7 +2415,9 @@ class C
     }
 }
 ";
-            var comp = CreateCompilationWithMscorlib461(source, options: TestOptions.UnsafeDebugDll);
+            var comp = CreateCompilationWithMscorlib461(source,
+                parseOptions: TestOptions.Regular.WithLanguageVersion(langVersion),
+                options: TestOptions.UnsafeDebugDll);
             WithRuntimeInstance(comp, runtime =>
             {
                 var context = CreateMethodContext(runtime, "C.Main");
@@ -2386,6 +2428,56 @@ class C
     unsafe 
     {
         return await F();
+    }
+})", out error, testData);
+                Assert.Null(error);
+            });
+        }
+
+        /// <remarks>
+        /// 'await' inside a 'fixed' statement is illegal in any non-debugger context,
+        /// but the debugger sets <see cref="BinderFlags.AllowAwaitInUnsafeContext"/>, which
+        /// also lifts the 'fixed' restriction.
+        /// </remarks>
+        [Theory, CombinatorialData]
+        public void AwaitInFixedStatement(
+            [CombinatorialValues(LanguageVersion.CSharp14, LanguageVersionFacts.CSharpNext, LanguageVersion.Preview)] LanguageVersion langVersion)
+        {
+            var source = @"
+using System;
+using System.Threading.Tasks;
+
+class C
+{
+    static async Task<object> F()
+    {
+        return null;
+    }
+    static void G(Func<Task<object>> f)
+    {
+    }
+    static void Main()
+    {
+    }
+}
+";
+            var comp = CreateCompilationWithMscorlib461(source,
+                parseOptions: TestOptions.Regular.WithLanguageVersion(langVersion),
+                options: TestOptions.UnsafeDebugDll);
+            WithRuntimeInstance(comp, runtime =>
+            {
+                var context = CreateMethodContext(runtime, "C.Main");
+                string error;
+                var testData = new CompilationTestData();
+                context.CompileExpression(@"G(async() => 
+{
+    int[] a = new int[1];
+    unsafe 
+    {
+        fixed (int* p = a)
+        {
+            return await F();
+        }
     }
 })", out error, testData);
                 Assert.Null(error);
@@ -5513,6 +5605,49 @@ class C
             });
         }
 
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/26084")]
+        public void StaticTypeImport_Enum()
+        {
+            var source = @"
+using static ConsoleApplication1.MyEnumType;
+
+namespace ConsoleApplication1
+{
+    public enum MyEnumType
+    {
+        thing1,
+        thing2,
+    }
+
+    class Program
+    {
+        static void Main()
+        {
+            var value = thing1;
+        }
+    }
+}";
+            var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll);
+            WithRuntimeInstance(compilation0, runtime =>
+            {
+                var context = CreateMethodContext(runtime, "ConsoleApplication1.Program.Main");
+                ResultProperties resultProperties;
+                string error;
+                var testData = new CompilationTestData();
+                context.CompileExpression("thing2", out resultProperties, out error, testData);
+                Assert.Null(error);
+                Assert.Equal(DkmClrCompilationResultFlags.ReadOnlyResult, resultProperties.Flags);
+                testData.GetMethodData("<>x.<>m0").VerifyIL(
+    @"{
+  // Code size        2 (0x2)
+  .maxstack  1
+  .locals init (ConsoleApplication1.MyEnumType V_0) //value
+  IL_0000:  ldc.i4.1
+  IL_0001:  ret
+}");
+            });
+        }
+
         [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1014763")]
         public void NonStateMachineTypeParameter()
         {
@@ -6076,6 +6211,7 @@ public class C
                     typeName: out typeName,
                     testData: null);
                 AssertEx.SetEqual(locals.Select(l => l.LocalName), "x", "y");
+                locals.Free();
             }
         }
 

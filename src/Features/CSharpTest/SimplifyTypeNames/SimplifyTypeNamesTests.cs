@@ -177,7 +177,7 @@ public sealed partial class SimplifyTypeNamesTests(ITestOutputHelper logger) : A
                     MyType c;
                 }
             }
-            """);
+            """.NormalizeLineEndings());
 
     [Fact]
     public Task UseAlias00_FileScopedNamespace()
@@ -3559,6 +3559,27 @@ new TestParameters(Options.Script));
             }
             """);
 
+    [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/84553")]
+    [InlineData("class, ", "static abstract int Baz { get; }")]
+    [InlineData("", "static abstract int Baz { get; }")]
+    [InlineData("class, ", "static virtual int Baz => 0;")]
+    [InlineData("", "static virtual int Baz => 0;")]
+    public Task TestDoNotSimplifyStaticAbstractOrVirtualInterfaceMemberAccess(string classConstraint, string memberDeclaration)
+        => TestMissingInRegularAndScriptAsync(
+            $$"""
+            interface IFoo
+            {
+                int Bar { get; }
+            }
+
+            interface IFoo<TSelf> : IFoo where TSelf : {{classConstraint}}IFoo<TSelf>
+            {
+                {{memberDeclaration}}
+
+                int IFoo.Bar => [|TSelf|].Baz;
+            }
+            """);
+
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/551040")]
     public Task TestSimplifyNestedType()
         => TestInRegularAndScriptAsync("""
@@ -6720,7 +6741,7 @@ new TestParameters(Options.Script));
             {
                 nint i;
             }
-            """, new(options: featureOptions));
+            """.NormalizeLineEndings(), new(options: featureOptions));
     }
 
     [Fact]
@@ -6789,7 +6810,7 @@ new TestParameters(Options.Script));
             {
                 nuint i;
             }
-            """, new(options: featureOptions));
+            """.NormalizeLineEndings(), new(options: featureOptions));
     }
 
     [Fact]

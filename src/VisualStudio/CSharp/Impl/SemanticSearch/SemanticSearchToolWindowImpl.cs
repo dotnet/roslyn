@@ -101,6 +101,7 @@ internal sealed partial class SemanticSearchToolWindowImpl(
 
     public void Dispose()
     {
+        _lazyLogQueue?.Dispose();
         _lazyContent?.Dispose();
     }
 
@@ -412,8 +413,7 @@ internal sealed partial class SemanticSearchToolWindowImpl(
                     pane.OutputStringThreadSafe(message + Environment.NewLine);
                 }
             },
-            _asyncListener,
-            cancellationToken: CancellationToken.None);
+            _asyncListener);
 
         var (presenterContext, presenterCancellationToken) = resultsPresenter.StartSearch(ServicesVSResources.Semantic_search_results, StreamingFindUsagesPresenterOptions.Default);
         presenterCancellationToken.Register(() => cancellationSource?.Cancel());

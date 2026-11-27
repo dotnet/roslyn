@@ -1,0 +1,2 @@
+﻿(1,2): Error RZ1035: Missing close angle for tag helper 'input'.
+(1,2): Error RZ1042: Component or tag helper 'input' must be self-closing because it's named like an HTML void element. To use child content, qualify such components with their namespace or use prefixes with such tag helpers.

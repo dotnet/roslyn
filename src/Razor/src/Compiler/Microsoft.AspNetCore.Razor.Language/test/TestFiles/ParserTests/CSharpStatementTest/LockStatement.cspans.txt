@@ -1,0 +1,4 @@
+﻿Markup span at (0:0,0 [0] ) - Parent: Markup block at (0:0,0 [21] )
+Transition span at (0:0,0 [1] ) - Parent: Statement block at (0:0,0 [21] )
+Code span at (1:0,1 [20] ) - Parent: Statement block at (0:0,0 [21] )
+Markup span at (21:0,21 [0] ) - Parent: Markup block at (0:0,0 [21] )

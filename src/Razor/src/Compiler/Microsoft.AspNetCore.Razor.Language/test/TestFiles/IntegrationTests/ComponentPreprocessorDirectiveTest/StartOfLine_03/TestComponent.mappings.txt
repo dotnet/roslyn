@@ -1,0 +1,20 @@
+﻿Source Location: (2:0,2 [52] x:\dir\subdir\Test\TestComponent.razor)
+|
+#pragma warning disable 219
+var x = 1; #if true
+|
+Generated Location: (733:21,0 [52] )
+|
+#pragma warning disable 219
+var x = 1; #if true
+|
+
+Source Location: (59:4,2 [21] x:\dir\subdir\Test\TestComponent.razor)
+|
+var y = 2; #endif
+|
+Generated Location: (916:31,0 [21] )
+|
+var y = 2; #endif
+|
+

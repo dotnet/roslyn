@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Diagnostics;
 using System.IO;
@@ -15,7 +13,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.EditAndContinue;
 using Microsoft.DiaSymReader;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Debugging;
 
@@ -43,8 +40,8 @@ internal abstract class DebugInformationReaderProvider : IDisposable
     {
         private readonly MetadataReaderProvider _pdbReaderProvider = pdbReaderProvider;
 
-        public override EditAndContinueMethodDebugInfoReader CreateEditAndContinueMethodDebugInfoReader()
-            => EditAndContinueMethodDebugInfoReader.Create(_pdbReaderProvider.GetMetadataReader());
+        public override EditAndContinueDebugInfoReader CreateEditAndContinueDebugInfoReader()
+            => EditAndContinueDebugInfoReader.Create(_pdbReaderProvider.GetMetadataReader());
 
         public override ValueTask CopyContentToAsync(Stream stream, CancellationToken cancellationToken)
         {
@@ -66,10 +63,10 @@ internal abstract class DebugInformationReaderProvider : IDisposable
     {
         private readonly Stream _stream = stream;
         private readonly int _version = version;
-        private ISymUnmanagedReader5 _symReader = symReader;
+        private ISymUnmanagedReader5? _symReader = symReader;
 
-        public override EditAndContinueMethodDebugInfoReader CreateEditAndContinueMethodDebugInfoReader()
-            => EditAndContinueMethodDebugInfoReader.Create(_symReader, _version);
+        public override EditAndContinueDebugInfoReader CreateEditAndContinueDebugInfoReader()
+            => EditAndContinueDebugInfoReader.Create(_symReader ?? throw new ObjectDisposedException(GetType().FullName), _version);
 
         public override async ValueTask CopyContentToAsync(Stream stream, CancellationToken cancellationToken)
         {
@@ -90,12 +87,20 @@ internal abstract class DebugInformationReaderProvider : IDisposable
             _stream.Dispose();
 
             var symReader = Interlocked.Exchange(ref _symReader, null);
-            if (symReader != null && Marshal.IsComObject(symReader))
-            {
 #if NET
-                Debug.Assert(OperatingSystem.IsWindows());
+            Debug.Assert(OperatingSystem.IsWindows());
 #endif
+            // On .NET the reader is a source-generated COM object, which is released by
+            // disposing it. Marshal.ReleaseComObject is not supported for such objects (SYSLIB1099).
+            if (symReader is IDisposable disposable)
+            {
+                disposable.Dispose();
+            }
+            else if (symReader != null && Marshal.IsComObject(symReader))
+            {
+#pragma warning disable SYSLIB1099 // Marshal.ReleaseComObject is not supported for source-generated COM objects.
                 Marshal.ReleaseComObject(symReader);
+#pragma warning restore SYSLIB1099
             }
         }
     }
@@ -105,7 +110,7 @@ internal abstract class DebugInformationReaderProvider : IDisposable
     /// <summary>
     /// Creates EnC debug information reader.
     /// </summary>
-    public abstract EditAndContinueMethodDebugInfoReader CreateEditAndContinueMethodDebugInfoReader();
+    public abstract EditAndContinueDebugInfoReader CreateEditAndContinueDebugInfoReader();
 
     public abstract ValueTask CopyContentToAsync(Stream stream, CancellationToken cancellationToken);
 

@@ -311,6 +311,86 @@ public class C {
         }
 
         [Fact]
+        public void TestAwaitInfo_RuntimeAsync_NullableTaskOperand()
+        {
+            var text = """
+                #nullable enable
+                using System.Threading.Tasks;
+
+                await M(null);
+
+                Task? M(object o) => throw null!;
+                """;
+
+            var comp = CreateRuntimeAsyncCompilation(text);
+            comp.VerifyDiagnostics(
+                // (4,7): warning CS8604: Possible null reference argument for parameter 'task' in 'void AsyncHelpers.Await(Task task)'.
+                // await M(null);
+                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "M(null)").WithArguments("task", "void AsyncHelpers.Await(Task task)").WithLocation(4, 7),
+                // (4,9): warning CS8625: Cannot convert null literal to non-nullable reference type.
+                // await M(null);
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(4, 9));
+
+            var tree = comp.SyntaxTrees[0];
+            var syntaxNode = (AwaitExpressionSyntax)tree.FindNodeOrTokenByKind(SyntaxKind.AwaitExpression).AsNode();
+            var treeModel = comp.GetSemanticModel(tree);
+            var info = treeModel.GetAwaitExpressionInfo(syntaxNode);
+
+            Assert.Null(info.GetAwaiterMethod);
+            Assert.Null(info.GetResultMethod);
+            Assert.Null(info.IsCompletedProperty);
+            AssertEx.Equal("void System.Runtime.CompilerServices.AsyncHelpers.Await(System.Threading.Tasks.Task! task)", info.RuntimeAwaitMethod.ToTestDisplayString(includeNonNullable: true));
+        }
+
+        [Fact]
+        public void TestAwaitInfo_RuntimeAsync_NullableTaskLikeAwaiter()
+        {
+            var text = """
+                #nullable enable
+                using System;
+                using System.Runtime.CompilerServices;
+
+                await M(null);
+
+                MyTask M(object o) => throw null!;
+
+                public class MyTask
+                {
+                    public MyAwaiter? GetAwaiter() => throw null!;
+                }
+
+                public class MyAwaiter : ICriticalNotifyCompletion
+                {
+                    public bool IsCompleted => false;
+                    public void GetResult() { }
+                    public void OnCompleted(Action continuation) { }
+                    public void UnsafeOnCompleted(Action continuation) { }
+                }
+                """;
+
+            var comp = CreateRuntimeAsyncCompilation(text);
+            comp.VerifyDiagnostics(
+                // (5,7): warning CS8631: The type 'MyAwaiter?' cannot be used as type parameter 'TAwaiter' in the generic type or method 'AsyncHelpers.UnsafeAwaitAwaiter<TAwaiter>(TAwaiter)'. Nullability of type argument 'MyAwaiter?' doesn't match constraint type 'System.Runtime.CompilerServices.ICriticalNotifyCompletion'.
+                // await M(null);
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint, "M").WithArguments("System.Runtime.CompilerServices.AsyncHelpers.UnsafeAwaitAwaiter<TAwaiter>(TAwaiter)", "System.Runtime.CompilerServices.ICriticalNotifyCompletion", "TAwaiter", "MyAwaiter?").WithLocation(5, 7),
+                // (5,9): warning CS8625: Cannot convert null literal to non-nullable reference type.
+                // await M(null);
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(5, 9));
+
+            var tree = comp.SyntaxTrees[0];
+            var syntaxNode = (AwaitExpressionSyntax)tree.FindNodeOrTokenByKind(SyntaxKind.AwaitExpression).AsNode();
+            var treeModel = comp.GetSemanticModel(tree);
+            var info = treeModel.GetAwaitExpressionInfo(syntaxNode);
+
+            AssertEx.Equal("MyAwaiter? MyTask.GetAwaiter()", info.GetAwaiterMethod.ToTestDisplayString());
+            AssertEx.Equal("void MyAwaiter.GetResult()", info.GetResultMethod.ToTestDisplayString());
+            AssertEx.Equal("System.Boolean MyAwaiter.IsCompleted { get; }", info.IsCompletedProperty.ToTestDisplayString());
+            AssertEx.Equal("void System.Runtime.CompilerServices.AsyncHelpers.UnsafeAwaitAwaiter<MyAwaiter?>(MyAwaiter? awaiter)", info.RuntimeAwaitMethod.ToTestDisplayString(includeNonNullable: true));
+            Assert.Equal(global::Microsoft.CodeAnalysis.NullableAnnotation.Annotated, info.RuntimeAwaitMethod.TypeArguments.Single().NullableAnnotation);
+            Assert.Equal(global::Microsoft.CodeAnalysis.NullableAnnotation.Annotated, info.RuntimeAwaitMethod.Parameters.Single().Type.NullableAnnotation);
+        }
+
+        [Fact]
         [WorkItem(744146, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/744146")]
         public void DefaultAwaitExpressionInfo()
         {

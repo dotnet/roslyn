@@ -135,7 +135,7 @@ internal sealed class CompleteStatementCommandHandler(
         {
             if (!speculative)
             {
-                var edit = args.SubjectBuffer.CreateEdit();
+                using var edit = args.SubjectBuffer.CreateEdit();
                 edit.Insert(caret, "();");
                 edit.Apply();
             }
@@ -350,8 +350,14 @@ internal sealed class CompleteStatementCommandHandler(
         return SemicolonBehavior.None;
     }
 
+    /// <param name="statementNode">The statement that may already be followed by a semicolon</param>
+    /// <returns>Whether we need to actively move the caret to `targetPosition` (overtype)</returns>
     private static bool AdjustPositionForExistingSemicolon(SyntaxNode statementNode, ref SnapshotPoint targetPosition)
     {
+        // Short-circuit if we are at the position in the file
+        if (targetPosition.Position >= targetPosition.Snapshot.Length)
+            return false;
+
         var existingSemicolon = statementNode.FindTokenOnRightOfPosition(targetPosition, includeSkipped: true);
         if (existingSemicolon.IsKind(SyntaxKind.SemicolonToken) && !existingSemicolon.IsMissing)
         {

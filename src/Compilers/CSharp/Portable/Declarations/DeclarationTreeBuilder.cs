@@ -109,6 +109,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 DeclarationKind.Class or
                 DeclarationKind.Interface or
                 DeclarationKind.Struct or
+                DeclarationKind.Union or
                 DeclarationKind.Enum or
                 DeclarationKind.Script or
                 DeclarationKind.Submission or
@@ -661,7 +662,24 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override SingleNamespaceOrTypeDeclaration VisitStructDeclaration(StructDeclarationSyntax node)
         {
-            return VisitTypeDeclaration(node, DeclarationKind.Struct);
+            var declarationKind = node.Kind() switch
+            {
+                SyntaxKind.StructDeclaration => DeclarationKind.Struct,
+                _ => throw ExceptionUtilities.UnexpectedValue(node.Kind())
+            };
+
+            return VisitTypeDeclaration(node, declarationKind);
+        }
+
+        public override SingleNamespaceOrTypeDeclaration VisitUnionDeclaration(UnionDeclarationSyntax node)
+        {
+            var declarationKind = node.Kind() switch
+            {
+                SyntaxKind.UnionDeclaration => DeclarationKind.Union,
+                _ => throw ExceptionUtilities.UnexpectedValue(node.Kind())
+            };
+
+            return VisitTypeDeclaration(node, declarationKind);
         }
 
         public override SingleNamespaceOrTypeDeclaration VisitInterfaceDeclaration(InterfaceDeclarationSyntax node)
@@ -703,7 +721,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Symbol.ReportErrorIfHasConstraints(node.ConstraintClauses, diagnostics);
             }
 
-            var hasPrimaryCtor = node.ParameterList != null && node is RecordDeclarationSyntax or ClassDeclarationSyntax or StructDeclarationSyntax;
+            var hasPrimaryCtor =
+                node.ParameterList != null &&
+                node is RecordDeclarationSyntax or
+                        ClassDeclarationSyntax or
+                        StructDeclarationSyntax;
+
             if (hasPrimaryCtor)
             {
                 declFlags |= SingleTypeDeclaration.TypeDeclarationFlags.HasAnyNontypeMembers;
@@ -717,6 +740,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                         break;
                     }
                 }
+            }
+            else if (node.Kind() is SyntaxKind.UnionDeclaration)
+            {
+                declFlags |= SingleTypeDeclaration.TypeDeclarationFlags.HasAnyNontypeMembers;
             }
 
             var memberNames = GetNonTypeMemberNames(
@@ -752,8 +779,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                     MessageID.IDS_FeaturePrimaryConstructors.CheckFeatureAvailability(diagnostics, node, node.SemicolonToken.GetLocation());
                 }
             }
+            else if (node.Kind() is SyntaxKind.UnionDeclaration)
+            {
+                MessageID.IDS_FeatureUnions.CheckFeatureAvailability(diagnostics, node, node.Keyword.GetLocation());
+            }
 
-            var modifiers = node.Modifiers.ToDeclarationModifiers(isForTypeDeclaration: true, diagnostics: diagnostics);
+            // Extensions never allow 'partial'.
+            var modifiers = node.Modifiers.ToDeclarationModifiers(allowsPartialModifier: kind != DeclarationKind.Extension, diagnostics);
+
             var quickAttributes = GetQuickAttributes(node.AttributeLists);
 
             foreach (var modifier in node.Modifiers)
@@ -818,7 +851,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             declFlags |= SingleTypeDeclaration.TypeDeclarationFlags.HasAnyNontypeMembers;
 
-            var modifiers = node.Modifiers.ToDeclarationModifiers(isForTypeDeclaration: true, diagnostics: diagnostics);
+            var modifiers = node.Modifiers.ToDeclarationModifiers(allowsPartialModifier: false, diagnostics);
+
             var quickAttributes = DeclarationTreeBuilder.GetQuickAttributes(node.AttributeLists);
 
             return new SingleTypeDeclaration(
@@ -851,7 +885,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             var memberNames = GetEnumMemberNames(node, ref declFlags);
 
             var diagnostics = DiagnosticBag.GetInstance();
-            var modifiers = node.Modifiers.ToDeclarationModifiers(isForTypeDeclaration: true, diagnostics: diagnostics);
+            var modifiers = node.Modifiers.ToDeclarationModifiers(allowsPartialModifier: false, diagnostics);
+
             var quickAttributes = DeclarationTreeBuilder.GetQuickAttributes(node.AttributeLists);
 
             if (node.OpenBraceToken == default && node.CloseBraceToken == default && node.SemicolonToken != default)
@@ -1103,6 +1138,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 case SyntaxKind.ClassDeclaration:
                 case SyntaxKind.StructDeclaration:
+                case SyntaxKind.UnionDeclaration:
                 case SyntaxKind.InterfaceDeclaration:
                 case SyntaxKind.EnumDeclaration:
                 case SyntaxKind.RecordDeclaration:

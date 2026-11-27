@@ -1,0 +1,10 @@
+﻿Document - 
+    RazorCompiledItemAttribute - 
+    NamespaceDeclaration -  - Razor
+        RazorSourceChecksumAttribute - 
+        ClassDeclaration -  - public - Template - global::LegacyTemplateBase - 
+            MethodDeclaration -  - public async override - global::System.Threading.Tasks.Task - ExecuteAsync
+                HtmlContent - (38:1,0 [2] TestFiles\IntegrationTests\CSharp12LanguageFeaturesIntegrationTest_Legacy\TestView.cshtml)
+                    LazyIntermediateToken - (38:1,0 [2] TestFiles\IntegrationTests\CSharp12LanguageFeaturesIntegrationTest_Legacy\TestView.cshtml) - Html - \n
+                CSharpCode - (42:2,2 [75] TestFiles\IntegrationTests\CSharp12LanguageFeaturesIntegrationTest_Legacy\TestView.cshtml)
+                    LazyIntermediateToken - (42:2,2 [75] TestFiles\IntegrationTests\CSharp12LanguageFeaturesIntegrationTest_Legacy\TestView.cshtml) - CSharp - \n    var formatter = (int value = 1) => value + 1;\n    _ = formatter();\n

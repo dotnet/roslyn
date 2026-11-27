@@ -28,21 +28,62 @@ namespace Microsoft.CodeAnalysis
         {
             private readonly StateTableStore.Builder _stateTableBuilder = new StateTableStore.Builder();
             private readonly DriverStateTable _previousTable;
+            private readonly ImmutableArray<SyntaxInputNode> _syntaxInputNodes;
             private readonly CancellationToken _cancellationToken;
+            private readonly Compilation _initialCompilation;
+            private Compilation? _compilation;
+            private SyntaxStore.Builder? _syntaxStore;
 
             internal GeneratorDriverState DriverState { get; }
 
-            public Compilation Compilation { get; }
+            internal bool IsCompilationAvailable => _compilation is not null;
 
-            internal SyntaxStore.Builder SyntaxStore { get; }
-
-            public Builder(Compilation compilation, GeneratorDriverState driverState, SyntaxStore.Builder syntaxStore, CancellationToken cancellationToken = default)
+            public Compilation Compilation
             {
-                Compilation = compilation;
+                get
+                {
+                    Debug.Assert(_compilation is not null, "Compilation should only be read after the pre-compilation phase has completed; if this fires a driver-internal caller is reading it too early.");
+                    return _compilation;
+                }
+            }
+
+            /// <summary>
+            /// The compilation options from the user-supplied compilation. Available in all
+            /// phases, including pre-compilation, because options are unaffected by source
+            /// generation.
+            /// </summary>
+            internal CompilationOptions InitialCompilationOptions => _initialCompilation.Options;
+
+            /// <summary>
+            /// The metadata references from the user-supplied compilation. Available in all
+            /// phases, including pre-compilation, because references are unaffected by source
+            /// generation.
+            /// </summary>
+            internal ImmutableArray<MetadataReference> InitialMetadataReferences => _initialCompilation.ExternalReferences;
+
+            internal SyntaxStore.Builder SyntaxStore
+            {
+                get
+                {
+                    Debug.Assert(_syntaxStore is not null, "SyntaxStore should only be read after the pre-compilation phase has completed; if this fires a driver-internal caller is reading it too early.");
+                    return _syntaxStore;
+                }
+            }
+
+            public Builder(GeneratorDriverState driverState, Compilation initialCompilation, ImmutableArray<SyntaxInputNode> syntaxInputNodes, CancellationToken cancellationToken = default)
+            {
                 DriverState = driverState;
                 _previousTable = driverState.StateTable;
+                _initialCompilation = initialCompilation;
+                _syntaxInputNodes = syntaxInputNodes;
                 _cancellationToken = cancellationToken;
-                SyntaxStore = syntaxStore;
+            }
+
+            public void SetCompilation(Compilation compilation)
+            {
+                Debug.Assert(_compilation is null, "SetCompilation should only be called once.");
+                _compilation = compilation;
+                _syntaxStore = DriverState.SyntaxStore.ToBuilder(compilation, _syntaxInputNodes, DriverState.TrackIncrementalSteps, _cancellationToken);
             }
 
             public NodeStateTable<T> GetLatestStateTableForNode<T>(IIncrementalGeneratorNode<T> source)

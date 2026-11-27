@@ -19,6 +19,7 @@ internal sealed class RecordKeywordRecommender() : AbstractSyntacticSingleKeywor
             SyntaxKind.InternalKeyword,
             SyntaxKind.PrivateKeyword,
             SyntaxKind.AbstractKeyword,
+            SyntaxKind.ClosedKeyword,
             SyntaxKind.SealedKeyword,
             SyntaxKind.StaticKeyword,
             SyntaxKind.UnsafeKeyword,

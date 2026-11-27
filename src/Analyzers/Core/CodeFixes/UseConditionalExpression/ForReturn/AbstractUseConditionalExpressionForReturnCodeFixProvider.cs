@@ -31,14 +31,13 @@ internal abstract class AbstractUseConditionalExpressionForReturnCodeFixProvider
     public override ImmutableArray<string> FixableDiagnosticIds
         => [IDEDiagnosticIds.UseConditionalExpressionForReturnDiagnosticId];
 
-    public override Task RegisterCodeFixesAsync(CodeFixContext context)
+    public override async Task RegisterCodeFixesAsync(CodeFixContext context)
     {
         var (title, key) = context.Diagnostics.First().Properties.ContainsKey(UseConditionalExpressionHelpers.CanSimplifyName)
             ? (AnalyzersResources.Simplify_check, nameof(AnalyzersResources.Simplify_check))
             : (AnalyzersResources.Convert_to_conditional_expression, nameof(AnalyzersResources.Convert_to_conditional_expression));
 
         RegisterCodeFix(context, title, key);
-        return Task.CompletedTask;
     }
 
     protected override async Task FixOneAsync(
@@ -49,7 +48,9 @@ internal abstract class AbstractUseConditionalExpressionForReturnCodeFixProvider
         CancellationToken cancellationToken)
     {
         var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
-        var ifStatement = (TIfStatementSyntax)diagnostic.AdditionalLocations[0].FindNode(cancellationToken);
+
+        // May be at the top level, pass `getInnermostNodeForTie: true` to peer into the global statement.
+        var ifStatement = (TIfStatementSyntax)diagnostic.AdditionalLocations[0].FindNode(getInnermostNodeForTie: true, cancellationToken);
 
         var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
         var ifOperation = (IConditionalOperation)semanticModel.GetOperation(ifStatement, cancellationToken)!;

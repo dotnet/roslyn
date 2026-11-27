@@ -19,15 +19,13 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument;
 [method: ImportingConstructor]
 [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code")]
 internal sealed class PdbFileLocatorService(
-    [Import(AllowDefault = true)] ISourceLinkService? sourceLinkService,
     [Import(AllowDefault = true)] IPdbSourceDocumentLogger? logger) : IPdbFileLocatorService
 {
     private const int SymbolLocatorTimeout = 2000;
 
-    private readonly ISourceLinkService? _sourceLinkService = sourceLinkService;
     private readonly IPdbSourceDocumentLogger? _logger = logger;
 
-    public async Task<DocumentDebugInfoReader?> GetDocumentDebugInfoReaderAsync(string dllPath, bool useDefaultSymbolServers, TelemetryMessage telemetry, CancellationToken cancellationToken)
+    public async Task<DocumentDebugInfoReader?> GetDocumentDebugInfoReaderAsync(string dllPath, bool useDefaultSymbolServers, TelemetryMessage telemetry, ISourceLinkService? sourceLinkService, CancellationToken cancellationToken)
     {
         var dllStream = IOUtilities.PerformIO(() => ReadFileIfExists(dllPath));
         if (dllStream is null)
@@ -59,7 +57,7 @@ internal sealed class PdbFileLocatorService(
 
             if (result is null)
             {
-                if (_sourceLinkService is null)
+                if (sourceLinkService is null)
                 {
                     _logger?.Log(FeaturesResources.Could_not_find_PDB_on_disk_or_embedded);
                 }
@@ -67,7 +65,7 @@ internal sealed class PdbFileLocatorService(
                 {
                     var delay = Task.Delay(SymbolLocatorTimeout, cancellationToken);
                     // Call the debugger to find the PDB from a symbol server etc.
-                    var pdbResultTask = _sourceLinkService.GetPdbFilePathAsync(dllPath, peReader, useDefaultSymbolServers, cancellationToken);
+                    var pdbResultTask = sourceLinkService.GetPdbFilePathAsync(dllPath, peReader, useDefaultSymbolServers, cancellationToken);
 
                     var winner = await Task.WhenAny(pdbResultTask, delay).ConfigureAwait(false);
 

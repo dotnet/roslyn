@@ -1,0 +1,36 @@
+﻿RazorDocument - [0..24)::24 - [@if(foo) { @<p>Bar</p> }]
+    MarkupBlock - [0..24)::24
+        MarkupTextLiteral - [0..0)::0 - [] - Gen<Markup>
+            Marker;[];
+        CSharpCodeBlock - [0..24)::24
+            CSharpTransition - [0..1)::1 - Gen<None>
+                Transition;[@];
+            CSharpStatementLiteral - [1..10)::9 - [if(foo) {] - Gen<Stmt>
+                Keyword;[if];
+                LeftParenthesis;[(];
+                Identifier;[foo];
+                RightParenthesis;[)];
+                Whitespace;[ ];
+                LeftBrace;[{];
+            MarkupBlock - [10..23)::13
+                MarkupTextLiteral - [10..11)::1 - [ ] - Gen<Markup>
+                    Whitespace;[ ];
+                MarkupTransition - [11..12)::1 - Gen<None>
+                    Transition;[@];
+                MarkupElement - [12..22)::10
+                    MarkupStartTag - [12..15)::3 - [<p>] - Gen<Markup>
+                        OpenAngle;[<];
+                        Text;[p];
+                        CloseAngle;[>];
+                    MarkupTextLiteral - [15..18)::3 - [Bar] - Gen<Markup>
+                        Text;[Bar];
+                    MarkupEndTag - [18..22)::4 - [</p>] - Gen<Markup>
+                        OpenAngle;[<];
+                        ForwardSlash;[/];
+                        Text;[p];
+                        CloseAngle;[>];
+                MarkupTextLiteral - [22..23)::1 - [ ] - Gen<Markup>
+                    Whitespace;[ ];
+            CSharpStatementLiteral - [23..24)::1 - [}] - Gen<Stmt>
+                RightBrace;[}];
+    EndOfFile;[];

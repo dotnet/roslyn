@@ -20,29 +20,28 @@ internal static partial class EditAndContinueDiagnosticSource
     private sealed class ProjectSource(Project project, ImmutableArray<DiagnosticData> diagnostics) : AbstractProjectDiagnosticSource(project)
     {
 
-        public override Task<ImmutableArray<DiagnosticData>> GetDiagnosticsAsync(RequestContext context, CancellationToken cancellationToken)
-            => Task.FromResult(diagnostics);
+        public override async Task<ImmutableArray<DiagnosticData>> GetDiagnosticsAsync(RequestContext context, CancellationToken cancellationToken)
+            => diagnostics;
     }
 
     private sealed class ClosedDocumentSource(TextDocument document, ImmutableArray<DiagnosticData> diagnostics) : AbstractWorkspaceDocumentDiagnosticSource(document)
     {
 
-        public override Task<ImmutableArray<DiagnosticData>> GetDiagnosticsAsync(RequestContext context, CancellationToken cancellationToken)
-            => Task.FromResult(diagnostics);
+        public override async Task<ImmutableArray<DiagnosticData>> GetDiagnosticsAsync(RequestContext context, CancellationToken cancellationToken)
+            => diagnostics;
     }
 
-    public static async ValueTask<ImmutableArray<IDiagnosticSource>> CreateWorkspaceDiagnosticSourcesAsync(Solution solution, Func<Document, bool> isDocumentOpen, CancellationToken cancellationToken)
+    public static async ValueTask<ImmutableArray<IDiagnosticSource>> CreateWorkspaceDiagnosticSourcesAsync(Solution solution, IEditAndContinueSessionTracker sessionTracker, Func<Document, bool> isDocumentOpen, CancellationToken cancellationToken)
     {
         // Do not report EnC diagnostics for a non-host workspace, or if Hot Reload/EnC session is not active.
-        if (solution.WorkspaceKind != WorkspaceKind.Host ||
-            solution.Services.GetService<IEditAndContinueWorkspaceService>()?.SessionTracker is not { IsSessionActive: true } sessionStateTracker)
+        if (solution.WorkspaceKind != WorkspaceKind.Host || !sessionTracker.IsSessionActive)
         {
             return [];
         }
 
         using var _ = ArrayBuilder<IDiagnosticSource>.GetInstance(out var sources);
 
-        var applyDiagnostics = sessionStateTracker.ApplyChangesDiagnostics;
+        var applyDiagnostics = sessionTracker.ApplyChangesDiagnostics;
 
         var dataByDocument = from data in applyDiagnostics
                              where data.DocumentId != null

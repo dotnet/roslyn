@@ -1,0 +1,41 @@
+﻿RazorDocument - [0..45)::45 - [@{LF#if trueLF    <p>Some text</p>LF#endifLF}]
+    MarkupBlock - [0..45)::45
+        MarkupTextLiteral - [0..0)::0 - [] - Gen<Markup>
+            Marker;[];
+        CSharpCodeBlock - [0..45)::45
+            CSharpStatement - [0..45)::45
+                CSharpTransition - [0..1)::1 - Gen<None>
+                    Transition;[@];
+                CSharpStatementBody - [1..45)::44
+                    RazorMetaCode - [1..2)::1 - Gen<None>
+                        LeftBrace;[{];
+                    CSharpCodeBlock - [2..44)::42
+                        CSharpStatementLiteral - [2..14)::12 - [LF#if trueLF] - Gen<Stmt>
+                            NewLine;[LF];
+                            CSharpDirective;[#if trueLF];
+                        MarkupBlock - [14..36)::22
+                            MarkupTextLiteral - [14..18)::4 - [    ] - Gen<Markup>
+                                Whitespace;[    ];
+                            MarkupElement - [18..34)::16
+                                MarkupStartTag - [18..21)::3 - [<p>] - Gen<Markup>
+                                    OpenAngle;[<];
+                                    Text;[p];
+                                    CloseAngle;[>];
+                                MarkupTextLiteral - [21..30)::9 - [Some text] - Gen<Markup>
+                                    Text;[Some];
+                                    Whitespace;[ ];
+                                    Text;[text];
+                                MarkupEndTag - [30..34)::4 - [</p>] - Gen<Markup>
+                                    OpenAngle;[<];
+                                    ForwardSlash;[/];
+                                    Text;[p];
+                                    CloseAngle;[>];
+                            MarkupTextLiteral - [34..36)::2 - [LF] - Gen<Markup>
+                                NewLine;[LF];
+                        CSharpStatementLiteral - [36..44)::8 - [#endifLF] - Gen<Stmt>
+                            CSharpDirective;[#endifLF];
+                    RazorMetaCode - [44..45)::1 - Gen<None>
+                        RightBrace;[}];
+        MarkupTextLiteral - [45..45)::0 - [] - Gen<Markup>
+            Marker;[];
+    EndOfFile;[];

@@ -1,0 +1,24 @@
+﻿Source Location: (2:0,2 [70] x:\dir\subdir\Test\TestComponent.razor)
+|
+    var value = $"{
+        1 + 1
+    }";
+    _ = value.Length;
+|
+Generated Location: (733:21,0 [70] )
+|
+    var value = $"{
+        1 + 1
+    }";
+    _ = value.Length;
+|
+
+Source Location: (79:7,2 [18] x:\dir\subdir\Test\TestComponent.razor)
+|$"{
+    1 + 1
+}"|
+Generated Location: (962:33,24 [18] )
+|$"{
+    1 + 1
+}"|
+

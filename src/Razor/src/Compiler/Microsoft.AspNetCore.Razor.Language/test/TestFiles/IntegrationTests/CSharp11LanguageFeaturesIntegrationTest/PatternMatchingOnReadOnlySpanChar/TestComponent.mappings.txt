@@ -1,0 +1,11 @@
+﻿Source Location: (2:0,2 [108] x:\dir\subdir\Test\TestComponent.razor)
+|
+    System.ReadOnlySpan<char> value = new char[] { 'R', 'a', 'z', 'o', 'r' };
+    _ = value is "Razor";
+|
+Generated Location: (733:21,0 [108] )
+|
+    System.ReadOnlySpan<char> value = new char[] { 'R', 'a', 'z', 'o', 'r' };
+    _ = value is "Razor";
+|
+

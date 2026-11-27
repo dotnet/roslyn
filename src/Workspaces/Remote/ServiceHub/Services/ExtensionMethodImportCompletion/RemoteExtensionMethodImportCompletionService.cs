@@ -61,11 +61,10 @@ internal sealed class RemoteExtensionMemberImportCompletionService(
 
     public ValueTask WarmUpCacheAsync(Checksum solutionChecksum, ProjectId projectId, CancellationToken cancellationToken)
     {
-        return RunServiceAsync(solutionChecksum, solution =>
+        return RunServiceAsync(solutionChecksum, async solution =>
         {
             var project = solution.GetRequiredProject(projectId);
             ExtensionMemberImportCompletionHelper.WarmUpCacheInCurrentProcess(project);
-            return ValueTask.CompletedTask;
         }, cancellationToken);
     }
 }

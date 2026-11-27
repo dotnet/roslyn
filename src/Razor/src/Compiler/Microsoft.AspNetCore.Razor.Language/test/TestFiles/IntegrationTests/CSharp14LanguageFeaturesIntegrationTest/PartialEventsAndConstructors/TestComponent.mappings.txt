@@ -1,0 +1,13 @@
+﻿Source Location: (2:0,2 [96] x:\dir\subdir\Test\TestComponent.razor)
+|
+    var value = new Example();
+    value.Updated += static () => { };
+    _ = value.Value;
+|
+Generated Location: (733:21,0 [96] )
+|
+    var value = new Example();
+    value.Updated += static () => { };
+    _ = value.Value;
+|
+

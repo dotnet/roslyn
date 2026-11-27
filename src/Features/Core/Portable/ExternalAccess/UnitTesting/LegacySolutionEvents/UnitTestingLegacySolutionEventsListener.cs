@@ -45,10 +45,10 @@ internal sealed class UnitTestingLegacySolutionEventsListener : ILegacySolutionE
         return service.HasRegisteredAnalyzerProviders;
     }
 
-    public ValueTask OnWorkspaceChangedAsync(WorkspaceChangeEventArgs args, CancellationToken cancellationToken)
+    public ValueTask OnWorkspaceChangedAsync(WorkspaceChangeEventArgs args, bool processSourceGeneratedDocuments, CancellationToken cancellationToken)
     {
         var coordinator = GetCoordinator(args.NewSolution);
-        coordinator?.OnWorkspaceChanged(args);
+        coordinator?.OnWorkspaceChanged(args, processSourceGeneratedDocuments);
         return ValueTask.CompletedTask;
     }
 }

@@ -48,12 +48,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     else if (!actualHadNext)
                     {
                         Assert.True(expectedHadNext);
-                        AssertEx.Fail("Unmatched expected: " + expectedEnumerator.Current);
+                        Assert.Fail("Unmatched expected: " + expectedEnumerator.Current);
                     }
                     else if (!expectedHadNext)
                     {
                         Assert.True(actualHadNext);
-                        AssertEx.Fail("Unmatched actual: " + expectedEnumerator.Current);
+                        Assert.Fail("Unmatched actual: " + expectedEnumerator.Current);
                     }
 
                     var actualToken = actualEnumerator.Current;

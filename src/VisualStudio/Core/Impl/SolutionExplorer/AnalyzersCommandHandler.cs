@@ -96,33 +96,31 @@ internal sealed class AnalyzersCommandHandler : IAnalyzersCommandHandler, IVsUpd
     /// <summary>
     /// Hook up the context menu handlers.
     /// </summary>
-    public async Task InitializeAsync(IMenuCommandService menuCommandService, CancellationToken cancellationToken)
+    public void Initialize(ThreadSafeMenuCommandService menuCommandService)
     {
         if (menuCommandService != null)
         {
-            await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
-
             // Analyzers folder context menu items
-            _addMenuItem = AddCommandHandler(menuCommandService, ID.RoslynCommands.AddAnalyzer, AddAnalyzerHandler);
-            _ = AddCommandHandler(menuCommandService, ID.RoslynCommands.OpenRuleSet, OpenRuleSetHandler);
+            _addMenuItem = menuCommandService.AddCommand(Guids.RoslynGroupId, ID.RoslynCommands.AddAnalyzer, AddAnalyzerHandler);
+            _ = menuCommandService.AddCommand(Guids.RoslynGroupId, ID.RoslynCommands.OpenRuleSet, OpenRuleSetHandler);
 
             // Analyzer context menu items
-            _removeMenuItem = AddCommandHandler(menuCommandService, ID.RoslynCommands.RemoveAnalyzer, RemoveAnalyzerHandler);
+            _removeMenuItem = menuCommandService.AddCommand(Guids.RoslynGroupId, ID.RoslynCommands.RemoveAnalyzer, RemoveAnalyzerHandler);
 
             // Diagnostic context menu items
-            _setSeverityDefaultMenuItem = AddCommandHandler(menuCommandService, ID.RoslynCommands.SetSeverityDefault, SetSeverityHandler);
-            _setSeverityErrorMenuItem = AddCommandHandler(menuCommandService, ID.RoslynCommands.SetSeverityError, SetSeverityHandler);
-            _setSeverityWarningMenuItem = AddCommandHandler(menuCommandService, ID.RoslynCommands.SetSeverityWarning, SetSeverityHandler);
-            _setSeverityInfoMenuItem = AddCommandHandler(menuCommandService, ID.RoslynCommands.SetSeverityInfo, SetSeverityHandler);
-            _setSeverityHiddenMenuItem = AddCommandHandler(menuCommandService, ID.RoslynCommands.SetSeverityHidden, SetSeverityHandler);
-            _setSeverityNoneMenuItem = AddCommandHandler(menuCommandService, ID.RoslynCommands.SetSeverityNone, SetSeverityHandler);
-            _openHelpLinkMenuItem = AddCommandHandler(menuCommandService, ID.RoslynCommands.OpenDiagnosticHelpLink, OpenDiagnosticHelpLinkHandler);
+            _setSeverityDefaultMenuItem = menuCommandService.AddCommand(Guids.RoslynGroupId, ID.RoslynCommands.SetSeverityDefault, SetSeverityHandler);
+            _setSeverityErrorMenuItem = menuCommandService.AddCommand(Guids.RoslynGroupId, ID.RoslynCommands.SetSeverityError, SetSeverityHandler);
+            _setSeverityWarningMenuItem = menuCommandService.AddCommand(Guids.RoslynGroupId, ID.RoslynCommands.SetSeverityWarning, SetSeverityHandler);
+            _setSeverityInfoMenuItem = menuCommandService.AddCommand(Guids.RoslynGroupId, ID.RoslynCommands.SetSeverityInfo, SetSeverityHandler);
+            _setSeverityHiddenMenuItem = menuCommandService.AddCommand(Guids.RoslynGroupId, ID.RoslynCommands.SetSeverityHidden, SetSeverityHandler);
+            _setSeverityNoneMenuItem = menuCommandService.AddCommand(Guids.RoslynGroupId, ID.RoslynCommands.SetSeverityNone, SetSeverityHandler);
+            _openHelpLinkMenuItem = menuCommandService.AddCommand(Guids.RoslynGroupId, ID.RoslynCommands.OpenDiagnosticHelpLink, OpenDiagnosticHelpLinkHandler);
 
             // Other menu items
-            _projectAddMenuItem = AddCommandHandler(menuCommandService, ID.RoslynCommands.ProjectAddAnalyzer, AddAnalyzerHandler);
-            _projectContextAddMenuItem = AddCommandHandler(menuCommandService, ID.RoslynCommands.ProjectContextAddAnalyzer, AddAnalyzerHandler);
-            _referencesContextAddMenuItem = AddCommandHandler(menuCommandService, ID.RoslynCommands.ReferencesContextAddAnalyzer, AddAnalyzerHandler);
-            _setActiveRuleSetMenuItem = AddCommandHandler(menuCommandService, ID.RoslynCommands.SetActiveRuleSet, SetActiveRuleSetHandler);
+            _projectAddMenuItem = menuCommandService.AddCommand(Guids.RoslynGroupId, ID.RoslynCommands.ProjectAddAnalyzer, AddAnalyzerHandler);
+            _projectContextAddMenuItem = menuCommandService.AddCommand(Guids.RoslynGroupId, ID.RoslynCommands.ProjectContextAddAnalyzer, AddAnalyzerHandler);
+            _referencesContextAddMenuItem = menuCommandService.AddCommand(Guids.RoslynGroupId, ID.RoslynCommands.ReferencesContextAddAnalyzer, AddAnalyzerHandler);
+            _setActiveRuleSetMenuItem = menuCommandService.AddCommand(Guids.RoslynGroupId, ID.RoslynCommands.SetActiveRuleSet, SetActiveRuleSetHandler);
 
             UpdateOtherMenuItemsVisibility();
 
@@ -213,15 +211,6 @@ internal sealed class AnalyzersCommandHandler : IAnalyzersCommandHandler, IVsUpd
         UpdateSeverityMenuItemsChecked();
         UpdateSeverityMenuItemsEnabled();
         UpdateOpenHelpLinkMenuItemVisibility();
-    }
-
-    private static MenuCommand AddCommandHandler(IMenuCommandService menuCommandService, int roslynCommand, EventHandler handler)
-    {
-        var commandID = new CommandID(Guids.RoslynGroupId, roslynCommand);
-        var menuCommand = new MenuCommand(handler, commandID);
-        menuCommandService.AddCommand(menuCommand);
-
-        return menuCommand;
     }
 
     private void SelectedHierarchyItemChangedHandler(object sender, EventArgs e)

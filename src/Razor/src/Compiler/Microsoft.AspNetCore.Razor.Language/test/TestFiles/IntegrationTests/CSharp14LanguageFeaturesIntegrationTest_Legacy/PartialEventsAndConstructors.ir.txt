@@ -1,0 +1,14 @@
+﻿Document - 
+    RazorCompiledItemAttribute - 
+    NamespaceDeclaration -  - Razor
+        RazorSourceChecksumAttribute - 
+        ClassDeclaration -  - public - Template - global::LegacyTemplateBase - 
+            MethodDeclaration -  - public async override - global::System.Threading.Tasks.Task - ExecuteAsync
+                HtmlContent - (38:1,0 [2] TestFiles\IntegrationTests\CSharp14LanguageFeaturesIntegrationTest_Legacy\TestView.cshtml)
+                    LazyIntermediateToken - (38:1,0 [2] TestFiles\IntegrationTests\CSharp14LanguageFeaturesIntegrationTest_Legacy\TestView.cshtml) - Html - \n
+                CSharpCode - (42:2,2 [96] TestFiles\IntegrationTests\CSharp14LanguageFeaturesIntegrationTest_Legacy\TestView.cshtml)
+                    LazyIntermediateToken - (42:2,2 [96] TestFiles\IntegrationTests\CSharp14LanguageFeaturesIntegrationTest_Legacy\TestView.cshtml) - CSharp - \n    var value = new Example();\n    value.Updated += static () => { };\n    _ = value.Value;\n
+                HtmlContent - (141:7,0 [2] TestFiles\IntegrationTests\CSharp14LanguageFeaturesIntegrationTest_Legacy\TestView.cshtml)
+                    LazyIntermediateToken - (141:7,0 [2] TestFiles\IntegrationTests\CSharp14LanguageFeaturesIntegrationTest_Legacy\TestView.cshtml) - Html - \n
+            CSharpCode - (155:8,12 [376] TestFiles\IntegrationTests\CSharp14LanguageFeaturesIntegrationTest_Legacy\TestView.cshtml)
+                LazyIntermediateToken - (155:8,12 [376] TestFiles\IntegrationTests\CSharp14LanguageFeaturesIntegrationTest_Legacy\TestView.cshtml) - CSharp - \n    public partial class Example\n    {\n        public partial event System.Action Updated;\n        public partial event System.Action Updated\n        {\n            add { }\n            remove { }\n        }\n\n        public int Value { get; }\n\n        public partial Example();\n        public partial Example()\n        {\n            Value = 1;\n        }\n    }\n

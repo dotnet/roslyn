@@ -213,7 +213,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
                 if (intersects)
                 {
-                    info[pair.i].LocalDefs.Free();
+                    info[pair.i].Free();
                     info.Remove(pair.i);
                 }
                 else
@@ -1003,7 +1003,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 // but when a pointer is converted to a user-defined ref local, it becomes a use of a "safe" feature where we should guarantee the ref is tracked by GC.
                 else if (localSymbol.RefKind != RefKind.None &&
                     localSymbol.SynthesizedKind == SynthesizedLocalKind.UserDefined &&
-                    right.Kind == BoundKind.PointerIndirectionOperator)
+                    PointerIndirectionMayFlowToRefResultVisitor.Check(right, _recursionDepth))
                 {
                     ShouldNotSchedule(localSymbol);
                 }
@@ -1079,6 +1079,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     return true;
 
                 case BoundKind.Sequence:
+                    // The assignment should have been pushed inside the sequence during lowering,
+                    // so instead of `{...side-effects..., val} = something` we should get here with `{...side-effects..., (val = something)}`.
                     Debug.Assert(!IsIndirectAssignment(node.Update(((BoundSequence)node.Left).Value, node.Right, node.IsRef, node.Type)),
                         "indirect assignment to a sequence is unexpected");
                     return false;
@@ -1178,7 +1180,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
                     _counter += 1;
 
-                    if ((method.IsAbstract || method.IsVirtual) && receiver is BoundTypeExpression { Type: { TypeKind: TypeKind.TypeParameter } } typeExpression)
+                    if ((method.IsAbstract || method.IsVirtual) && receiver is BoundTypeExpression { Type: TypeParameterSymbol or NamedTypeSymbol { IsUnionType: true } } typeExpression)
                     {
                         receiver = typeExpression.Update(aliasOpt: null, boundContainingTypeOpt: null, boundDimensionsOpt: ImmutableArray<BoundExpression>.Empty,
                             typeWithAnnotations: typeExpression.TypeWithAnnotations, type: this.VisitType(typeExpression.Type));
@@ -1800,12 +1802,20 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         public override BoundNode VisitAddressOfOperator(BoundAddressOfOperator node)
         {
             BoundExpression visitedOperand = this.VisitExpression(node.Operand, ExprContext.Address);
-            return node.Update(visitedOperand, node.IsManaged, node.Type);
+            return node.Update(visitedOperand, node.IsManaged, node.RequiresAssignedOperand, node.Type);
+        }
+
+        public override BoundNode VisitRefAccess(BoundRefAccess node)
+        {
+            BoundExpression visitedOperand = this.VisitExpression(node.Expression, ExprContext.Address);
+            return node.Update(node.RefKind, visitedOperand, node.Type);
         }
 
         public override BoundNode VisitReturnStatement(BoundReturnStatement node)
         {
-            BoundExpression expressionOpt = (BoundExpression)this.Visit(node.ExpressionOpt);
+            BoundExpression expressionOpt = node.RefKind == RefKind.None
+                ? (BoundExpression)this.Visit(node.ExpressionOpt)
+                : VisitExpression(node.ExpressionOpt, ExprContext.Address);
 
             // must not have locals on stack when returning
             EnsureOnlyEvalStack();
@@ -2027,6 +2037,53 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 }
             }
         }
+
+        /// <summary>
+        /// Checks whether there is a pointer indirection that may directly contribute to the final by-ref result of the visited expression.
+        /// For example, <c>*ptr</c> or <c>ptr->Field</c>, but not <c>Method(ref *ptr)</c>.
+        /// If such expression is assigned to a ref local, we cannot optimize that local away, so that GC can retrack the address.
+        /// This is a conservative check (we prefer correctness over optimization).
+        /// </summary>
+        private sealed class PointerIndirectionMayFlowToRefResultVisitor : BoundTreeWalkerWithStackGuardWithoutRecursionOnTheLeftOfBinaryOperator
+        {
+            private bool _pointerIndirectionMayFlowToRefResult;
+
+            private PointerIndirectionMayFlowToRefResultVisitor(int recursionDepth) : base(recursionDepth) { }
+
+            public static bool Check(BoundExpression expression, int recursionDepth)
+            {
+                var visitor = new PointerIndirectionMayFlowToRefResultVisitor(recursionDepth);
+                visitor.Visit(expression);
+                return visitor._pointerIndirectionMayFlowToRefResult;
+            }
+
+            public override BoundNode Visit(BoundNode node)
+            {
+                if (_pointerIndirectionMayFlowToRefResult)
+                {
+                    // No need to continue visiting nodes if the result is `true`.
+                    return node;
+                }
+
+                return base.Visit(node);
+            }
+
+            public override BoundNode VisitPointerIndirectionOperator(BoundPointerIndirectionOperator node)
+            {
+                _pointerIndirectionMayFlowToRefResult = true;
+                return node;
+            }
+
+            public override BoundNode VisitCall(BoundCall node)
+            {
+                return node;
+            }
+
+            public override BoundNode VisitFunctionPointerInvocation(BoundFunctionPointerInvocation node)
+            {
+                return node;
+            }
+        }
     }
 
     // Rewrites the tree to account for destructive nature of stack local reads.
@@ -2129,7 +2186,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
         private static bool IsLastAccess(LocalDefUseInfo locInfo, int counter)
         {
-            return locInfo.LocalDefs.Any((d) => counter == d.Start && counter == d.End);
+            return locInfo.LocalDefs.Any(static (d, counter) => counter == d.Start && counter == d.End, counter);
         }
 
         public override BoundNode VisitLocal(BoundLocal node)
@@ -2143,7 +2200,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             // not the last access, emit Dup.
             if (!IsLastAccess(locInfo, _nodeCounter))
             {
-                return new BoundDup(node.Syntax, node.LocalSymbol.RefKind, node.Type);
+                bool isAlive = locInfo.LocalDefs.Any(static (d, c) => c == d.Start, _nodeCounter);
+                return new BoundDup(node.Syntax, node.LocalSymbol.RefKind, isAlive, node.Type);
             }
 
             // last access - leave the node as is. Emit will do nothing expecting the node on the stack
@@ -2198,17 +2256,17 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
             if (isLast)
             {
-                if (node.IsRef &&
-                    !node.WasCompilerGenerated &&
-                    left.LocalSymbol.RefKind == RefKind.Ref &&
-                    right is BoundArrayAccess arrayAccess &&
-                    // Value types do not need runtime element type checks.
-                    !arrayAccess.Type.IsValueType)
+                if (node.IsRef)
                 {
-                    return new BoundRefArrayAccess(arrayAccess.Syntax, arrayAccess);
+                    return new BoundRefAccess(node.Syntax, left.LocalSymbol.RefKind, right, right.Type);
                 }
 
-                // assigned local is not used later => just emit the Right
+                // assigned local is not used later => just emit the Right as value.
+                if (CodeGenerator.IsRef(right))
+                {
+                    return new BoundPassByCopy(node.Syntax, right, right.Type);
+                }
+
                 return right;
             }
             else
@@ -2272,7 +2330,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 {
                     _nodeCounter++;
 
-                    if (receiverOpt is BoundTypeExpression { AliasOpt: null, BoundContainingTypeOpt: null, BoundDimensionsOpt: { IsEmpty: true }, Type: { TypeKind: TypeKind.TypeParameter } } typeExpression)
+                    if (receiverOpt is BoundTypeExpression { AliasOpt: null, BoundContainingTypeOpt: null, BoundDimensionsOpt: { IsEmpty: true }, Type: TypeParameterSymbol or NamedTypeSymbol { IsUnionType: true } } typeExpression)
                     {
                         receiverOpt = typeExpression.Update(aliasOpt: null, boundContainingTypeOpt: null, boundDimensionsOpt: ImmutableArray<BoundExpression>.Empty,
                             typeWithAnnotations: typeExpression.TypeWithAnnotations, type: this.VisitType(typeExpression.Type));

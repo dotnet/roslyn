@@ -1,0 +1,9 @@
+﻿Source Location: (2:0,2 [44] x:\dir\subdir\Test\TestComponent.razor)
+|
+    _ = OverloadPriorityHelpers.Pick(1);
+|
+Generated Location: (733:21,0 [44] )
+|
+    _ = OverloadPriorityHelpers.Pick(1);
+|
+

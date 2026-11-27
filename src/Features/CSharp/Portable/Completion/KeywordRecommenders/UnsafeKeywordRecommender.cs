@@ -19,6 +19,7 @@ internal sealed class UnsafeKeywordRecommender() : AbstractSyntacticSingleKeywor
         SyntaxKind.PublicKeyword,
         SyntaxKind.PrivateKeyword,
         SyntaxKind.ProtectedKeyword,
+        SyntaxKind.ClosedKeyword,
         SyntaxKind.SealedKeyword,
         SyntaxKind.StaticKeyword,
         SyntaxKind.FileKeyword,

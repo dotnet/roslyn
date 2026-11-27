@@ -978,6 +978,12 @@ End Class"
                 End Get
             End Property
 
+            Public Overrides ReadOnly Property MethodImplSupported As Boolean
+                Get
+                    Return _builder.MethodImplSupported
+                End Get
+            End Property
+
             Public Overrides ReadOnly Property SourceAssemblyOpt As ISourceAssemblySymbolInternal
                 Get
                     Return _builder.SourceAssemblyOpt

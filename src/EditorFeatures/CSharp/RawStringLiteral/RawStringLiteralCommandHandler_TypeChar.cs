@@ -61,6 +61,8 @@ internal partial class RawStringLiteralCommandHandler : IChainedCommandHandler<T
         if (textChangeOpt is not TextChange textChange)
             return false;
 
+        Contract.ThrowIfNull(textChange.NewText);
+
         // Looks good.  First, let the quote get added by the normal type char handlers.  Then make our text change.
         // We do this in two steps so that undo can work properly.
         nextCommandHandler();
@@ -68,7 +70,7 @@ internal partial class RawStringLiteralCommandHandler : IChainedCommandHandler<T
         using var transaction = CaretPreservingEditTransaction.TryCreate(
             CSharpEditorResources.Grow_raw_string, textView, _undoHistoryRegistry, _editorOperationsFactoryService);
 
-        var edit = subjectBuffer.CreateEdit();
+        using var edit = subjectBuffer.CreateEdit();
         edit.Insert(textChange.Span.Start, textChange.NewText);
         edit.Apply();
 

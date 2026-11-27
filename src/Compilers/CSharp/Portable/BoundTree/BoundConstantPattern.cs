@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Diagnostics;
+using Microsoft.CodeAnalysis.CSharp.Symbols;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -10,8 +11,21 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         private partial void Validate()
         {
-            Debug.Assert(NarrowedType.Equals(InputType, TypeCompareKind.AllIgnoreOptions) ||
-                         NarrowedType.Equals(Value.Type, TypeCompareKind.AllIgnoreOptions));
+            Debug.Assert(UnionMatchingMode is UnionMatchingMode.None or UnionMatchingMode.UnionValue or (UnionMatchingMode.UnionValue | UnionMatchingMode.UnionInstance));
+
+            if (UnionMatchingMode != UnionMatchingMode.None)
+            {
+                Debug.Assert(NarrowedType.IsObjectType() ||
+                             NarrowedType.Equals(Value.Type, TypeCompareKind.AllIgnoreOptions) ||
+                             (ConstantValue == ConstantValue.Null && (InputType.IsNullableType() || !InputType.IsValueType) && NarrowedType.Equals(InputType, TypeCompareKind.AllIgnoreOptions)));
+            }
+            else
+            {
+                Debug.Assert(NarrowedType.Equals(InputType, TypeCompareKind.AllIgnoreOptions) ||
+                             NarrowedType.Equals(Value.Type, TypeCompareKind.AllIgnoreOptions));
+            }
         }
+
+        public override bool IsUnionMatching => UnionMatchingMode is not UnionMatchingMode.None;
     }
 }

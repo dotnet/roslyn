@@ -768,7 +768,7 @@ public sealed class CSharpCodeActions() : AbstractEditorTest(nameof(CSharpCodeAc
                 builder.AppendLine($"Error list result {i}: {actualContents}");
             }
 
-            AssertEx.Fail(builder.ToString());
+            Assert.Fail(builder.ToString());
         }
     }
 
@@ -850,7 +850,7 @@ public sealed class CSharpCodeActions() : AbstractEditorTest(nameof(CSharpCodeAc
                 builder.AppendLine($"Error list result {i}: {actualContents}");
             }
 
-            AssertEx.Fail(builder.ToString());
+            Assert.Fail(builder.ToString());
         }
     }
 
@@ -978,7 +978,7 @@ public sealed class CSharpCodeActions() : AbstractEditorTest(nameof(CSharpCodeAc
                     return;
             }
 
-            AssertEx.Fail(builder.ToString());
+            Assert.Fail(builder.ToString());
         }
     }
 

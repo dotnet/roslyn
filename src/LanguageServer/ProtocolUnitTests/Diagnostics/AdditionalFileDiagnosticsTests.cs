@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Immutable;
 using System.Composition;
+using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -33,12 +34,17 @@ public sealed class AdditionalFileDiagnosticsTests : AbstractPullDiagnosticTests
     [Theory, CombinatorialData, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/2531252")]
     public async Task TestDocumentDiagnosticsReportsAdditionalFileDiagnostic(bool useVSDiagnostics, bool mutatingLspWorkspace)
     {
+        var testRoot = TempRoot.Root;
+        var projFilePath = Path.Combine(testRoot, "CSProj1.csproj");
+        var csFilePath = Path.Combine(testRoot, "C.cs");
+        var xamlFilePath = Path.Combine(testRoot, "Test.xaml");
+
         var workspaceXml =
             $"""
             <Workspace>
-                <Project Language="C#" CommonReferences="true" AssemblyName="CSProj1" FilePath="C:\CSProj1.csproj">
-                    <Document FilePath="C:\C.cs"></Document>
-                    <AdditionalDocument FilePath="C:\Test.xaml"></AdditionalDocument>
+                <Project Language="C#" CommonReferences="true" AssemblyName="CSProj1" FilePath="{projFilePath}">
+                    <Document FilePath="{csFilePath}"></Document>
+                    <AdditionalDocument FilePath="{xamlFilePath}"></AdditionalDocument>
                 </Project>
             </Workspace>
             """;
@@ -48,120 +54,140 @@ public sealed class AdditionalFileDiagnosticsTests : AbstractPullDiagnosticTests
         var additionalDocument = testLspServer.GetCurrentSolution().Projects.Single().AdditionalDocuments.Single();
         await testLspServer.OpenDocumentAsync(additionalDocument.GetURI());
 
-        var results = await RunGetDocumentPullDiagnosticsAsync(testLspServer, additionalDocument.GetURI(), useVSDiagnostics, category: TestAdditionalFileDocumentSourceProvider.DiagnosticSourceProviderName);
+        var results = await RunGetDocumentPullDiagnosticsAsync(testLspServer, additionalDocument.GetURI(), category: TestAdditionalFileDocumentSourceProvider.DiagnosticSourceProviderName);
         Assert.NotEmpty(results);
         AssertEx.Equal(
         [
-            @$"C:\Test.xaml: [{MockAdditionalFileDiagnosticAnalyzer.Id}]",
-        ], results.Select(r => $"{r.Uri.GetRequiredParsedUri().LocalPath}: [{string.Join(", ", r.Diagnostics!.Select(d => d.Code?.Value?.ToString()))}]"));
+            @$"{ProtocolConversions.CreateAbsoluteDocumentUri(xamlFilePath)}: [{MockAdditionalFileDiagnosticAnalyzer.Id}]",
+        ], results.Select(r => $"{r.Uri}: [{string.Join(", ", r.Diagnostics!.Select(d => d.Code?.Value?.ToString()))}]"));
     }
 
     [Theory, CombinatorialData]
     public async Task TestWorkspaceDiagnosticsReportsAdditionalFileDiagnostic(bool useVSDiagnostics, bool mutatingLspWorkspace)
     {
+        var testRoot = TempRoot.Root;
+        var projFilePath = Path.Combine(testRoot, "CSProj1.csproj");
+        var csFilePath = Path.Combine(testRoot, "C.cs");
+        var txtFilePath = Path.Combine(testRoot, "Test.txt");
+
         var workspaceXml =
             $"""
             <Workspace>
-                <Project Language="C#" CommonReferences="true" AssemblyName="CSProj1" FilePath="C:\CSProj1.csproj">
-                    <Document FilePath="C:\C.cs"></Document>
-                    <AdditionalDocument FilePath="C:\Test.txt"></AdditionalDocument>
+                <Project Language="C#" CommonReferences="true" AssemblyName="CSProj1" FilePath="{projFilePath}">
+                    <Document FilePath="{csFilePath}"></Document>
+                    <AdditionalDocument FilePath="{txtFilePath}"></AdditionalDocument>
                 </Project>
             </Workspace>
             """;
 
         await using var testLspServer = await CreateTestWorkspaceFromXmlAsync(workspaceXml, mutatingLspWorkspace, BackgroundAnalysisScope.FullSolution, useVSDiagnostics);
 
-        var results = await RunGetWorkspacePullDiagnosticsAsync(testLspServer, useVSDiagnostics);
+        var results = await RunGetWorkspacePullDiagnosticsAsync(testLspServer);
         AssertEx.Equal(
         [
-            @"C:\C.cs: []",
-            @$"C:\Test.txt: [{MockAdditionalFileDiagnosticAnalyzer.Id}]",
-            @"C:\CSProj1.csproj: []"
-        ], results.Select(r => $"{r.Uri.GetRequiredParsedUri().LocalPath}: [{string.Join(", ", r.Diagnostics!.Select(d => d.Code?.Value?.ToString()))}]"));
+            @$"{ProtocolConversions.CreateAbsoluteDocumentUri(csFilePath)}: []",
+            @$"{ProtocolConversions.CreateAbsoluteDocumentUri(txtFilePath)}: [{MockAdditionalFileDiagnosticAnalyzer.Id}]",
+            @$"{ProtocolConversions.CreateAbsoluteDocumentUri(projFilePath)}: []"
+        ], results.Select(r => $"{r.Uri}: [{string.Join(", ", r.Diagnostics!.Select(d => d.Code?.Value?.ToString()))}]"));
 
         // Asking again should give us back an unchanged diagnostic.
-        var results2 = await RunGetWorkspacePullDiagnosticsAsync(testLspServer, useVSDiagnostics, previousResults: CreateDiagnosticParamsFromPreviousReports(results));
+        var results2 = await RunGetWorkspacePullDiagnosticsAsync(testLspServer, previousResults: CreateDiagnosticParamsFromPreviousReports(results));
         Assert.Empty(results2);
     }
 
     [Theory, CombinatorialData]
     public async Task TestWorkspaceDiagnosticsWithRemovedAdditionalFile(bool useVSDiagnostics, bool mutatingLspWorkspace)
     {
+        var testRoot = TempRoot.Root;
+        var projFilePath = Path.Combine(testRoot, "CSProj1.csproj");
+        var csFilePath = Path.Combine(testRoot, "C.cs");
+        var txtFilePath = Path.Combine(testRoot, "Test.txt");
+
         var workspaceXml =
             $"""
             <Workspace>
-                <Project Language="C#" CommonReferences="true" AssemblyName="CSProj1" FilePath="C:\CSProj1.csproj">
-                    <Document FilePath="C:\C.cs"></Document>
-                    <AdditionalDocument FilePath="C:\Test.txt"></AdditionalDocument>
+                <Project Language="C#" CommonReferences="true" AssemblyName="CSProj1" FilePath="{projFilePath}">
+                    <Document FilePath="{csFilePath}"></Document>
+                    <AdditionalDocument FilePath="{txtFilePath}"></AdditionalDocument>
                 </Project>
             </Workspace>
             """;
 
         await using var testLspServer = await CreateTestWorkspaceFromXmlAsync(workspaceXml, mutatingLspWorkspace, BackgroundAnalysisScope.FullSolution, useVSDiagnostics);
 
-        var results = await RunGetWorkspacePullDiagnosticsAsync(testLspServer, useVSDiagnostics);
+        var results = await RunGetWorkspacePullDiagnosticsAsync(testLspServer);
         Assert.Equal(3, results.Length);
 
         AssertEx.Empty(results[0].Diagnostics);
         Assert.Equal(MockAdditionalFileDiagnosticAnalyzer.Id, results[1].Diagnostics!.Single().Code);
-        Assert.Equal(@"C:\Test.txt", results[1].Uri.GetRequiredParsedUri().LocalPath);
+        Assert.Equal(ProtocolConversions.CreateAbsoluteDocumentUri(txtFilePath), results[1].Uri);
         AssertEx.Empty(results[2].Diagnostics);
 
         var initialSolution = testLspServer.GetCurrentSolution();
         var newSolution = initialSolution.RemoveAdditionalDocument(initialSolution.Projects.Single().AdditionalDocumentIds.Single());
         await testLspServer.TestWorkspace.ChangeSolutionAsync(newSolution);
 
-        var results2 = await RunGetWorkspacePullDiagnosticsAsync(testLspServer, useVSDiagnostics, previousResults: CreateDiagnosticParamsFromPreviousReports(results));
+        var results2 = await RunGetWorkspacePullDiagnosticsAsync(testLspServer, previousResults: CreateDiagnosticParamsFromPreviousReports(results));
 
         // We should get a single report for the removed additional file, the rest are unchanged and do not report.
         Assert.Equal(1, results2.Length);
-        Assert.Equal(useVSDiagnostics ? null : [], results2[0].Diagnostics);
+        Assert.Empty(results2[0].Diagnostics!);
         Assert.Null(results2[0].ResultId);
     }
 
     [Theory, CombinatorialData]
     public async Task TestWorkspaceDiagnosticsWithAdditionalFileInMultipleProjects(bool mutatingLspWorkspace)
     {
+        var testRoot = TempRoot.Root;
+        var projFilePath = Path.Combine(testRoot, "CSProj1.csproj");
+        var csFilePathA = Path.Combine(testRoot, "A.cs");
+        var csFilePathB = Path.Combine(testRoot, "B.cs");
+        var txtFilePath = Path.Combine(testRoot, "Test.txt");
+
         var workspaceXml =
             $"""
             <Workspace>
-                <Project Language="C#" CommonReferences="true" AssemblyName="CSProj1" FilePath="C:\CSProj1.csproj">
-                    <Document FilePath="C:\A.cs"></Document>
-                    <AdditionalDocument FilePath="C:\Test.txt"></AdditionalDocument>
+                <Project Language="C#" CommonReferences="true" AssemblyName="CSProj1" FilePath="{projFilePath}">
+                    <Document FilePath="{csFilePathA}"></Document>
+                    <AdditionalDocument FilePath="{txtFilePath}"></AdditionalDocument>
                 </Project>
-                <Project Language="C#" CommonReferences="true" AssemblyName="CSProj2" FilePath="C:\CSProj1.csproj">
-                    <Document FilePath="C:\B.cs"></Document>
-                    <AdditionalDocument FilePath="C:\Test.txt"></AdditionalDocument>
+                <Project Language="C#" CommonReferences="true" AssemblyName="CSProj2" FilePath="{projFilePath}">
+                    <Document FilePath="{csFilePathB}"></Document>
+                    <AdditionalDocument FilePath="{txtFilePath}"></AdditionalDocument>
                 </Project>
             </Workspace>
             """;
 
         await using var testLspServer = await CreateTestWorkspaceFromXmlAsync(workspaceXml, mutatingLspWorkspace, BackgroundAnalysisScope.FullSolution, useVSDiagnostics: true);
 
-        var results = await RunGetWorkspacePullDiagnosticsAsync(testLspServer, useVSDiagnostics: true);
+        var results = await RunGetWorkspacePullDiagnosticsAsync(testLspServer);
         Assert.Equal(6, results.Length);
 
         Assert.Equal(MockAdditionalFileDiagnosticAnalyzer.Id, results[1].Diagnostics!.Single().Code);
-        Assert.Equal(@"C:\Test.txt", results[1].Uri.GetRequiredParsedUri().LocalPath);
+        Assert.Equal(ProtocolConversions.CreateAbsoluteDocumentUri(txtFilePath), results[1].Uri);
         Assert.Equal("CSProj1", ((LSP.VSDiagnostic)results[1].Diagnostics!.Single()).Projects!.First().ProjectName);
         Assert.Equal(MockAdditionalFileDiagnosticAnalyzer.Id, results[4].Diagnostics!.Single().Code);
-        Assert.Equal(@"C:\Test.txt", results[4].Uri.GetRequiredParsedUri().LocalPath);
+        Assert.Equal(ProtocolConversions.CreateAbsoluteDocumentUri(txtFilePath), results[4].Uri);
         Assert.Equal("CSProj2", ((LSP.VSDiagnostic)results[4].Diagnostics!.Single()).Projects!.First().ProjectName);
 
         // Asking again should give us back an unchanged diagnostic.
-        var results2 = await RunGetWorkspacePullDiagnosticsAsync(testLspServer, useVSDiagnostics: true, previousResults: CreateDiagnosticParamsFromPreviousReports(results));
+        var results2 = await RunGetWorkspacePullDiagnosticsAsync(testLspServer, previousResults: CreateDiagnosticParamsFromPreviousReports(results));
         AssertEx.Empty(results2);
     }
 
     [Theory, CombinatorialData]
     public async Task TestWorkspaceDiagnosticsReportsSourceGeneratorDiagnosticInAdditionalFile(bool useVSDiagnostics, bool mutatingLspWorkspace)
     {
-        var additionaFilePath = @"C:\File.razor";
+        var testRoot = TempRoot.Root;
+        var projFilePath = Path.Combine(testRoot, "CSProj1.csproj");
+        var csFilePath = Path.Combine(testRoot, "C.cs");
+        var additionaFilePath = Path.Combine(testRoot, "File.razor");
+
         var workspaceXml =
             $"""
             <Workspace>
-                <Project Language="C#" CommonReferences="true" AssemblyName="CSProj1" FilePath="C:\CSProj1.csproj">
-                    <Document FilePath="C:\C.cs"></Document>
+                <Project Language="C#" CommonReferences="true" AssemblyName="CSProj1" FilePath="{projFilePath}">
+                    <Document FilePath="{csFilePath}"></Document>
                     <AdditionalDocument FilePath="{additionaFilePath}">Hello</AdditionalDocument>
                 </Project>
             </Workspace>
@@ -180,13 +206,13 @@ public sealed class AdditionalFileDiagnosticsTests : AbstractPullDiagnosticTests
             new TestGeneratorReference(generator));
         await testLspServer.WaitForSourceGeneratorsAsync();
 
-        var results = await RunGetWorkspacePullDiagnosticsAsync(testLspServer, useVSDiagnostics);
+        var results = await RunGetWorkspacePullDiagnosticsAsync(testLspServer);
         AssertEx.Equal(
         [
-            @"C:\C.cs: []",
-            @$"C:\File.razor: [{DiagnosticProducingGenerator.Descriptor.Id}, {MockAdditionalFileDiagnosticAnalyzer.Id}]",
-            @"C:\CSProj1.csproj: []"
-        ], results.Select(r => $"{r.Uri.GetRequiredParsedUri().LocalPath}: [{string.Join(", ", r.Diagnostics!.Select(d => d.Code?.Value?.ToString()))}]"));
+            @$"{ProtocolConversions.CreateAbsoluteDocumentUri(csFilePath)}: []",
+            @$"{ProtocolConversions.CreateAbsoluteDocumentUri(additionaFilePath)}: [{DiagnosticProducingGenerator.Descriptor.Id}, {MockAdditionalFileDiagnosticAnalyzer.Id}]",
+            @$"{ProtocolConversions.CreateAbsoluteDocumentUri(projFilePath)}: []"
+        ], results.Select(r => $"{r.Uri}: [{string.Join(", ", r.Diagnostics!.Select(d => d.Code?.Value?.ToString()))}]"));
     }
 
     protected override TestComposition Composition => base.Composition.AddParts(typeof(MockAdditionalFileDiagnosticAnalyzer), typeof(TestAdditionalFileDocumentSourceProvider));
@@ -225,25 +251,29 @@ public sealed class AdditionalFileDiagnosticsTests : AbstractPullDiagnosticTests
 
         string IDiagnosticSourceProvider.Name => DiagnosticSourceProviderName;
 
+        bool IDiagnosticSourceProvider.HasInterFileDependencies => true;
+
         bool IDiagnosticSourceProvider.IsEnabled(LSP.ClientCapabilities clientCapabilities) => true;
 
-        ValueTask<ImmutableArray<IDiagnosticSource>> IDiagnosticSourceProvider.CreateDiagnosticSourcesAsync(RequestContext context, CancellationToken cancellationToken)
+        async ValueTask<ImmutableArray<IDiagnosticSource>> IDiagnosticSourceProvider.CreateDiagnosticSourcesAsync(RequestContext context, CancellationToken cancellationToken)
         {
-            if (context.TextDocument is not null && context.TextDocument is not Document)
+            var textDocument = await context.GetTextDocumentAsync(cancellationToken).ConfigureAwait(false);
+            if (textDocument is not null and not Document)
             {
-                return new([new TestAdditionalFileDocumentSource(context.TextDocument)]);
+                return [new TestAdditionalFileDocumentSource(textDocument)];
             }
 
-            return new([]);
+            return [];
         }
 
         private class TestAdditionalFileDocumentSource(TextDocument textDocument) : IDiagnosticSource
         {
-            public Task<ImmutableArray<DiagnosticData>> GetDiagnosticsAsync(RequestContext context, CancellationToken cancellationToken)
+            public async Task<ImmutableArray<DiagnosticData>> GetDiagnosticsAsync(RequestContext context, CancellationToken cancellationToken)
             {
+                var textDocument = await context.GetRequiredTextDocumentAsync(cancellationToken).ConfigureAwait(false);
                 var diagnostic = Diagnostic.Create(MockAdditionalFileDiagnosticAnalyzer.Descriptor,
-                    location: Location.Create(context.TextDocument!.FilePath!, Text.TextSpan.FromBounds(0, 0), new Text.LinePositionSpan(new Text.LinePosition(0, 0), new Text.LinePosition(0, 0))), "args");
-                return Task.FromResult<ImmutableArray<DiagnosticData>>([DiagnosticData.Create(diagnostic, context.TextDocument.Project)]);
+                    location: Location.Create(textDocument.FilePath!, Text.TextSpan.FromBounds(0, 0), new Text.LinePositionSpan(new Text.LinePosition(0, 0), new Text.LinePosition(0, 0))), "args");
+                return [DiagnosticData.Create(diagnostic, textDocument.Project)];
             }
 
             public LSP.TextDocumentIdentifier? GetDocumentIdentifier() => new()

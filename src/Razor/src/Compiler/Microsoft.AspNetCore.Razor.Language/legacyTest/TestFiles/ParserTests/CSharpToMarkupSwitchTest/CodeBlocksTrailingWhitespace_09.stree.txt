@@ -1,0 +1,36 @@
+﻿RazorDocument - [0..28)::28 - [@code {LF   LF}<div></div>LF]
+    MarkupBlock - [0..28)::28
+        MarkupTextLiteral - [0..0)::0 - [] - Gen<Markup> - SpanEditHandler;Accepts:Any
+            Marker;[];
+        CSharpCodeBlock - [0..15)::15
+            RazorDirective - [0..15)::15 - Directive:{code;CodeBlock;Unrestricted}
+                CSharpTransition - [0..1)::1 - Gen<None> - SpanEditHandler;Accepts:None
+                    Transition;[@];
+                RazorDirectiveBody - [1..15)::14
+                    RazorMetaCode - [1..5)::4 - Gen<None> - SpanEditHandler;Accepts:None
+                        Identifier;[code];
+                    CSharpCodeBlock - [5..15)::10
+                        UnclassifiedTextLiteral - [5..6)::1 - [ ] - Gen<None> - SpanEditHandler;Accepts:AllWhitespace
+                            Whitespace;[ ];
+                        RazorMetaCode - [6..7)::1 - Gen<None> - AutoCompleteEditHandler;Accepts:None,AutoComplete:[<null>];AtEnd
+                            LeftBrace;[{];
+                        CSharpCodeBlock - [7..14)::7
+                            CSharpStatementLiteral - [7..14)::7 - [LF   LF] - Gen<Stmt> - CodeBlockEditHandler;Accepts:Any;CodeBlock
+                                NewLine;[LF];
+                                Whitespace;[   ];
+                                NewLine;[LF];
+                        RazorMetaCode - [14..15)::1 - Gen<None> - SpanEditHandler;Accepts:None
+                            RightBrace;[}];
+        MarkupElement - [15..26)::11
+            MarkupStartTag - [15..20)::5 - [<div>] - Gen<Markup> - SpanEditHandler;Accepts:Any
+                OpenAngle;[<];
+                Text;[div];
+                CloseAngle;[>];
+            MarkupEndTag - [20..26)::6 - [</div>] - Gen<Markup> - SpanEditHandler;Accepts:Any
+                OpenAngle;[<];
+                ForwardSlash;[/];
+                Text;[div];
+                CloseAngle;[>];
+        MarkupTextLiteral - [26..28)::2 - [LF] - Gen<Markup> - SpanEditHandler;Accepts:Any
+            NewLine;[LF];
+    EndOfFile;[];

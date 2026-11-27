@@ -160,7 +160,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 get { return _name; }
             }
 
-            internal sealed override bool IsMetadataNewSlot(bool ignoreInterfaceImplementationChanges = false)
+            internal sealed override bool IsMetadataNewSlot(ModuleSymbol context, bool ignoreInterfaceImplementationChanges = false)
             {
                 return false;
             }

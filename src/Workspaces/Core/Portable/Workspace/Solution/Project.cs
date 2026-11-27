@@ -446,6 +446,7 @@ public partial class Project
                 case DeclaredSymbolInfoKind.Record:
                 case DeclaredSymbolInfoKind.RecordStruct:
                 case DeclaredSymbolInfoKind.Struct:
+                case DeclaredSymbolInfoKind.Union:
                     return (filter & SymbolFilter.Type) != 0;
                 case DeclaredSymbolInfoKind.Constant:
                 case DeclaredSymbolInfoKind.Constructor:

@@ -1,0 +1,73 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>$(NetFxVS)</TargetFramework>
+    <Description>Razor is a markup syntax for adding server-side logic to web pages. This package contains the Razor design-time infrastructure for Visual Studio.</Description>
+    <EnableApiCheck>false</EnableApiCheck>
+    <IsShippingPackage>false</IsShippingPackage>
+    <ExcludeFromSourceOnlyBuild>true</ExcludeFromSourceOnlyBuild>
+    <IsPackable Condition="'$(OS)' != 'Windows_NT'">false</IsPackable>
+    <RootNamespace>Microsoft.VisualStudio.Razor</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <AdditionalFiles Include="$(RepositoryRoot)BannedSymbols.MEFv2.txt" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.VisualStudio.Editor" />
+    <PackageReference Include="Microsoft.VisualStudio.ProjectSystem" />
+    <ProjectReference Include="..\..\..\..\..\VisualStudio\Core\Def\Microsoft.VisualStudio.LanguageServices.csproj" />
+    <PackageReference Include="Microsoft.Internal.VisualStudio.Interop" />
+
+    <PackageReference Include="Microsoft.VisualStudio.LiveShare" />
+    <PackageReference Include="Microsoft.VisualStudio.Shell.15.0" />
+    <!-- Manually upgrade to address CG alert. When the VS packages
+         pull in the right version, this can be removed. -->
+    <PackageReference Include="Microsoft.IO.Redist" Condition="'$(TargetFramework)' == '$(NetFxVS)'" />
+
+    <!--
+      Pinning packages to avoid misaligned reference CI failures.
+      CI builds here: https://github.com/dotnet/razor-tooling/issues/4327
+      Now we aren't sure why this exposes a "flaky" issue; however, to workaround the break we pin the following packages to workaround the issue.
+    -->
+    <PackageReference Include="Microsoft.VisualStudio.RpcContracts" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Microsoft.CodeAnalysis.Razor.Workspaces\Microsoft.CodeAnalysis.Razor.Workspaces.csproj" />
+    <ProjectReference Include="..\Microsoft.VisualStudio.LanguageServer.ContainedLanguage\Microsoft.VisualStudio.LanguageServer.ContainedLanguage.csproj" />
+  </ItemGroup>
+
+  <ItemGroup Label="String Resources">
+    <EmbeddedResource Update="Resources\SR.resx">
+      <GenerateSource>true</GenerateSource>
+      <Namespace>$(ProjectName).Resources</Namespace>
+    </EmbeddedResource>
+
+    <Using Include="$(ProjectName).Resources" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <AdditionalFiles Include="PublicAPI\PublicAPI.Shipped.txt" />
+    <AdditionalFiles Include="PublicAPI\PublicAPI.Unshipped.txt" />
+    <AdditionalFiles Include="$(RepoRoot)src\Razor\src\Razor\vs-threading.MainThreadAssertingMethods.txt" Link="AnalyzerConfig\vs-threading.MainThreadAssertingMethods.txt" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Include="..\Microsoft.CodeAnalysis.Razor.Workspaces\GlobalUsings.cs" Link="GlobalUsings.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="DynamicProxyGenAssembly2" Key="$(MoqPublicKey)" />
+    <InternalsVisibleTo Include="Microsoft.AspNetCore.Razor.Test.Common.Tooling" Key="$(RazorKey)" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Razor.Workspaces.UnitTests" Key="$(RazorKey)" />
+    <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.Razor.UnitTests" Key="$(RazorKey)" />
+    <InternalsVisibleTo Include="Microsoft.VisualStudio.Razor.IntegrationTests" Key="$(RazorKey)" />
+    <InternalsVisibleTo Include="Microsoft.VisualStudio.RazorExtension" Key="$(RazorKey)" />
+  </ItemGroup>
+
+  <Import Project="..\Microsoft.CodeAnalysis.Razor.CohostingShared\Microsoft.CodeAnalysis.Razor.CohostingShared.projitems" Label="Shared" />
+
+</Project>

@@ -30,7 +30,7 @@ internal sealed partial class CSharpUseCollectionExpressionForEmptyCodeFixProvid
 
     public override ImmutableArray<string> FixableDiagnosticIds { get; } = [IDEDiagnosticIds.UseCollectionExpressionForEmptyDiagnosticId];
 
-    protected override Task FixAsync(
+    protected override async Task FixAsync(
         Document document,
         SyntaxEditor editor,
         SyntaxNode diagnosticNode,
@@ -40,6 +40,5 @@ internal sealed partial class CSharpUseCollectionExpressionForEmptyCodeFixProvid
         editor.ReplaceNode(
             diagnosticNode,
             (current, _) => s_emptyCollection.WithTriviaFrom(current));
-        return Task.CompletedTask;
     }
 }

@@ -1,0 +1,10 @@
+﻿Document - 
+    RazorCompiledItemAttribute - 
+    NamespaceDeclaration -  - Razor
+        RazorSourceChecksumAttribute - 
+        ClassDeclaration -  - public - Template - global::LegacyTemplateBase - 
+            MethodDeclaration -  - public async override - global::System.Threading.Tasks.Task - ExecuteAsync
+                HtmlContent - (38:1,0 [2] TestFiles\IntegrationTests\CSharp13LanguageFeaturesIntegrationTest_Legacy\TestView.cshtml)
+                    LazyIntermediateToken - (38:1,0 [2] TestFiles\IntegrationTests\CSharp13LanguageFeaturesIntegrationTest_Legacy\TestView.cshtml) - Html - \n
+            CSharpCode - (52:2,12 [239] TestFiles\IntegrationTests\CSharp13LanguageFeaturesIntegrationTest_Legacy\TestView.cshtml)
+                LazyIntermediateToken - (52:2,12 [239] TestFiles\IntegrationTests\CSharp13LanguageFeaturesIntegrationTest_Legacy\TestView.cshtml) - CSharp - \n    public static async System.Threading.Tasks.Task<int> ReadAsync(int[] values)\n    {\n        ref var first = ref values[0];\n        var copy = first;\n        await System.Threading.Tasks.Task.Yield();\n        return copy;\n    }\n

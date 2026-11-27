@@ -11,39 +11,42 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Contracts.EditAndContinue;
-using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.ErrorReporting;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.EditAndContinue;
 
 /// <summary>
 /// Implements core of Edit and Continue orchestration: management of edit sessions and connecting EnC related services.
+/// In VS, this service should only be instantiated in OOP and accessed remotely via <see cref="IRemoteEditAndContinueService"/>.
+/// The service is used directly only by dotnet-watch and for testing.
 /// </summary>
-[Export(typeof(IEditAndContinueService)), Shared]
 internal sealed class EditAndContinueService : IEditAndContinueService
 {
-    [ExportWorkspaceService(typeof(IEditAndContinueWorkspaceService)), Shared]
+    [ExportWorkspaceServiceFactory(typeof(IEditAndContinueWorkspaceService)), Shared]
     [method: ImportingConstructor]
     [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    internal sealed class WorkspaceService(
-        IEditAndContinueService service,
-        [Import(AllowDefault = true)] IEditAndContinueSessionTracker? sessionTracker = null) : IEditAndContinueWorkspaceService
+    internal sealed class WorkspaceServiceFactory() : IWorkspaceServiceFactory
+    {
+        public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
+            => new WorkspaceService(
+                // The host may optionally provide a log reporter (e.g. to forward EnC logs to the debugger's hot reload
+                // logger). When not available the service logs to file only.
+                new EditAndContinueService(workspaceServices.GetService<IEditAndContinueLogReporter>()));
+    }
+
+    internal sealed class WorkspaceService(IEditAndContinueService service) : IEditAndContinueWorkspaceService
     {
         public IEditAndContinueService Service { get; } = service;
-        public IEditAndContinueSessionTracker SessionTracker { get; } = sessionTracker ?? VoidSessionTracker.Instance;
     }
 
-    private sealed class VoidSessionTracker : IEditAndContinueSessionTracker
-    {
-        public static readonly VoidSessionTracker Instance = new();
-
-        public bool IsSessionActive => false;
-        public ImmutableArray<DiagnosticData> ApplyChangesDiagnostics => [];
-    }
+    private static EditAndContinueDiagnosticLevel DiagnosticLevel
+        => byte.TryParse(Environment.GetEnvironmentVariable("Microsoft_CodeAnalysis_EditAndContinue_DiagnosticLevel"), out var level)
+            ? (EditAndContinueDiagnosticLevel)level
+            : EditAndContinueDiagnosticLevel.None;
 
     private static readonly string? s_logDir = GetLogDirectory();
 
@@ -58,10 +61,7 @@ internal sealed class EditAndContinueService : IEditAndContinueService
     private readonly List<DebuggingSession> _debuggingSessions = [];
     private static int s_debuggingSessionId;
 
-    [ImportingConstructor]
-    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public EditAndContinueService(
-        [Import(AllowDefault = true)] IEditAndContinueLogReporter? logReporter)
+    public EditAndContinueService(IEditAndContinueLogReporter? logReporter)
     {
         Log = new TraceLog("Session", logReporter);
         AnalysisLog = new TraceLog("Analysis", logReporter);
@@ -135,9 +135,9 @@ internal sealed class EditAndContinueService : IEditAndContinueService
     {
         var documentTasks =
             from project in solution.Projects
-            where project.SupportsEditAndContinue()
+            where !project.IgnoreForEditAndContinue()
             from documentState in GetDocumentStates(project.State)
-            where documentState.SupportsEditAndContinue()
+            where !documentState.IgnoreForEditAndContinue()
             select documentState.GetTextAsync(cancellationToken).AsTask();
 
         _ = await Task.WhenAll(documentTasks).ConfigureAwait(false);
@@ -150,7 +150,7 @@ internal sealed class EditAndContinueService : IEditAndContinueService
 
     public DebuggingSessionId StartDebuggingSession(
         Solution solution,
-        IManagedHotReloadService debuggerService,
+        IManagedHotReloadState debuggerService,
         IPdbMatchingSourceTextProvider sourceTextProvider,
         bool reportDiagnostics)
     {
@@ -160,7 +160,7 @@ internal sealed class EditAndContinueService : IEditAndContinueService
             solution = solution.WithUpToDateSourceGeneratorDocuments(solution.ProjectIds);
 
             var sessionId = new DebuggingSessionId(Interlocked.Increment(ref s_debuggingSessionId));
-            var session = new DebuggingSession(sessionId, solution, debuggerService, _compilationOutputsProvider, sourceTextProvider, Log, AnalysisLog, reportDiagnostics);
+            var session = new DebuggingSession(sessionId, solution, debuggerService, _compilationOutputsProvider, sourceTextProvider, Log, AnalysisLog, DiagnosticLevel, reportDiagnostics);
 
             lock (_debuggingSessions)
             {

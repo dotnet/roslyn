@@ -17,6 +17,22 @@ internal static class ValueTaskExtensions
     /// calling it from a synchronous method where you know it should have completed synchronously. This is an easy
     /// way to assert that while silencing any compiler complaints.
     /// </remarks>
+    public static void VerifyCompleted(this ValueTask task, string message = "ValueTask should have already been completed")
+    {
+        Contract.ThrowIfFalse(task.IsCompleted, message);
+
+        // Propagate any exceptions that may have been thrown.
+        task.GetAwaiter().GetResult();
+    }
+
+    /// <summary>
+    /// Asserts the <see cref="ValueTask{TResult}"/> passed has already been completed.
+    /// </summary>
+    /// <remarks>
+    /// This is useful for a specific case: sometimes you might be calling an API that is "sometimes" async, and you're
+    /// calling it from a synchronous method where you know it should have completed synchronously. This is an easy
+    /// way to assert that while silencing any compiler complaints.
+    /// </remarks>
     public static T VerifyCompleted<T>(this ValueTask<T> task, string message = "ValueTask should have already been completed")
     {
         Contract.ThrowIfFalse(task.IsCompleted, message);

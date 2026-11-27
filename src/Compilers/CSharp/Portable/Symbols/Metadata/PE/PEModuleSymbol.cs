@@ -116,6 +116,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
         private RefSafetyRulesAttributeVersion _lazyRefSafetyRulesAttributeVersion;
 
+        private SingleInitNullable<MemorySafetyRulesVersion> _lazyMemorySafetyRulesVersion;
+
 #nullable enable
         private DiagnosticInfo? _lazyCachedCompilerFeatureRequiredDiagnosticInfo = CSDiagnosticInfo.EmptyErrorInfo;
 
@@ -299,136 +301,29 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             ImmutableInterlocked.InterlockedInitialize(ref customAttributes, loaded);
         }
 
-        internal void LoadCustomAttributesFilterExtensions(EntityHandle token,
-            ref ImmutableArray<CSharpAttributeData> customAttributes)
+        public bool TryGetNonEmptyCustomAttributes(EntityHandle handle, out CustomAttributeHandleCollection attributes)
         {
-            var loadedCustomAttributes = GetCustomAttributesFilterCompilerAttributes(token, out _, out _);
-            ImmutableInterlocked.InterlockedInitialize(ref customAttributes, loadedCustomAttributes);
-        }
-
-        internal ImmutableArray<CSharpAttributeData> GetCustomAttributesForToken(EntityHandle token,
-            out CustomAttributeHandle filteredOutAttribute1,
-            AttributeDescription filterOut1)
-        {
-            return GetCustomAttributesForToken(token, out filteredOutAttribute1, filterOut1, out _, default, out _, default, out _, default, out _, default, out _, default);
-        }
-
-        internal ImmutableArray<CSharpAttributeData> GetCustomAttributesForToken(EntityHandle token,
-            out CustomAttributeHandle filteredOutAttribute1,
-            AttributeDescription filterOut1,
-            out CustomAttributeHandle filteredOutAttribute2,
-            AttributeDescription filterOut2)
-        {
-            return GetCustomAttributesForToken(token, out filteredOutAttribute1, filterOut1, out filteredOutAttribute2, filterOut2, out _, default, out _, default, out _, default, out _, default);
-        }
-
-        /// <summary>
-        /// Returns attributes with up-to 6 filters applied. For each filter, the last application of the
-        /// attribute will be tracked and returned.
-        /// </summary>
-        internal ImmutableArray<CSharpAttributeData> GetCustomAttributesForToken(EntityHandle token,
-            out CustomAttributeHandle filteredOutAttribute1,
-            AttributeDescription filterOut1,
-            out CustomAttributeHandle filteredOutAttribute2,
-            AttributeDescription filterOut2,
-            out CustomAttributeHandle filteredOutAttribute3,
-            AttributeDescription filterOut3,
-            out CustomAttributeHandle filteredOutAttribute4,
-            AttributeDescription filterOut4,
-            out CustomAttributeHandle filteredOutAttribute5,
-            AttributeDescription filterOut5,
-            out CustomAttributeHandle filteredOutAttribute6,
-            AttributeDescription filterOut6)
-        {
-            filteredOutAttribute1 = default;
-            filteredOutAttribute2 = default;
-            filteredOutAttribute3 = default;
-            filteredOutAttribute4 = default;
-            filteredOutAttribute5 = default;
-            filteredOutAttribute6 = default;
-            ArrayBuilder<CSharpAttributeData> customAttributesBuilder = null;
-
             try
             {
-                foreach (var customAttributeHandle in _module.GetCustomAttributesOrThrow(token))
-                {
-                    // It is important to capture the last application of the attribute that we run into,
-                    // it makes a difference for default and constant values.
-
-                    if (matchesFilter(customAttributeHandle, filterOut1))
-                    {
-                        filteredOutAttribute1 = customAttributeHandle;
-                        continue;
-                    }
-
-                    if (matchesFilter(customAttributeHandle, filterOut2))
-                    {
-                        filteredOutAttribute2 = customAttributeHandle;
-                        continue;
-                    }
-
-                    if (matchesFilter(customAttributeHandle, filterOut3))
-                    {
-                        filteredOutAttribute3 = customAttributeHandle;
-                        continue;
-                    }
-
-                    if (matchesFilter(customAttributeHandle, filterOut4))
-                    {
-                        filteredOutAttribute4 = customAttributeHandle;
-                        continue;
-                    }
-
-                    if (matchesFilter(customAttributeHandle, filterOut5))
-                    {
-                        filteredOutAttribute5 = customAttributeHandle;
-                        continue;
-                    }
-
-                    if (matchesFilter(customAttributeHandle, filterOut6))
-                    {
-                        filteredOutAttribute6 = customAttributeHandle;
-                        continue;
-                    }
-
-                    if (customAttributesBuilder == null)
-                    {
-                        customAttributesBuilder = ArrayBuilder<CSharpAttributeData>.GetInstance();
-                    }
-
-                    customAttributesBuilder.Add(new PEAttributeData(this, customAttributeHandle));
-                }
+                attributes = Module.MetadataReader.GetCustomAttributes(handle);
+                return attributes.Count != 0;
             }
             catch (BadImageFormatException)
-            { }
-
-            if (customAttributesBuilder != null)
             {
-                return customAttributesBuilder.ToImmutableAndFree();
+                attributes = default;
+                return false;
             }
-
-            return ImmutableArray<CSharpAttributeData>.Empty;
-
-            bool matchesFilter(CustomAttributeHandle handle, AttributeDescription filter)
-                => filter.Signatures != null && Module.GetTargetAttributeSignatureIndex(handle, filter) != -1;
         }
+
+        public bool AttributeMatchesFilter(CustomAttributeHandle handle, AttributeDescription filter)
+            => filter.Signatures != null && Module.GetTargetAttributeSignatureIndex(handle, filter) != -1;
 
         internal ImmutableArray<CSharpAttributeData> GetCustomAttributesForToken(EntityHandle token)
         {
-            // Do not filter anything and therefore ignore the out results
-            return GetCustomAttributesForToken(token, out _, default);
-        }
+            if (!TryGetNonEmptyCustomAttributes(token, out var customAttributeHandles))
+                return [];
 
-        /// <summary>
-        /// Get the custom attributes, but filter out any ParamArrayAttributes.
-        /// </summary>
-        /// <param name="token">The parameter token handle.</param>
-        /// <param name="paramArrayAttribute">Set to a ParamArrayAttribute</param>
-        /// CustomAttributeHandle if any are found. Nil token otherwise.
-        internal ImmutableArray<CSharpAttributeData> GetCustomAttributesForToken(EntityHandle token,
-            out CustomAttributeHandle paramArrayAttribute)
-        {
-            return GetCustomAttributesForToken(token, out paramArrayAttribute, AttributeDescription.ParamArrayAttribute);
+            return customAttributeHandles.SelectAsArray(static (handle, @this) => (CSharpAttributeData)new PEAttributeData(@this, handle), this);
         }
 
         internal bool HasAnyCustomAttributes(EntityHandle token)
@@ -455,26 +350,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             }
 
             return null;
-        }
-
-        /// <summary>
-        /// Filters extension attributes from the attribute results.
-        /// </summary>
-        /// <param name="token"></param>
-        /// <param name="foundExtension">True if we found an extension method, false otherwise.</param>
-        /// <returns>The attributes on the token, minus any ExtensionAttributes.</returns>
-        private ImmutableArray<CSharpAttributeData> GetCustomAttributesFilterCompilerAttributes(EntityHandle token, out bool foundExtension, out bool foundReadOnly)
-        {
-            var result = GetCustomAttributesForToken(
-                token,
-                filteredOutAttribute1: out CustomAttributeHandle extensionAttribute,
-                filterOut1: AttributeDescription.CaseSensitiveExtensionAttribute,
-                filteredOutAttribute2: out CustomAttributeHandle isReadOnlyAttribute,
-                filterOut2: AttributeDescription.IsReadOnlyAttribute);
-
-            foundExtension = !extensionAttribute.IsNil;
-            foundReadOnly = !isReadOnlyAttribute.IsNil;
-            return result;
         }
 
         internal void OnNewTypeDeclarationsLoaded(
@@ -871,6 +746,30 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                         ? RefSafetyRulesAttributeVersion.UnrecognizedAttribute
                         : RefSafetyRulesAttributeVersion.NoAttribute;
                 }
+            }
+        }
+
+        internal override MemorySafetyRulesVersion MemorySafetyRulesVersion
+        {
+            get
+            {
+                return _lazyMemorySafetyRulesVersion.Initialize(static @this =>
+                {
+                    // Returns
+                    // * recognized: 1 if the attribute is not present,
+                    // * recognized: 2 if the attribute is present and has the value 2,
+                    // * unrecognized: -1 if the attribute is present and has the value 1 or some non-integer value,
+                    // * unrecognized: the attribute's value (which is other than 1 or 2).
+                    if (@this._module.HasMemorySafetyRulesAttribute(Token, out int version, out bool foundAttributeType) &&
+                        version != (int)MemorySafetyRulesVersion.Version1)
+                    {
+                        return (MemorySafetyRulesVersion)version;
+                    }
+
+                    return foundAttributeType
+                        ? (MemorySafetyRulesVersion)(-1)
+                        : MemorySafetyRulesVersion.Version1;
+                }, this);
             }
         }
 

@@ -1,0 +1,4 @@
+﻿[0000] OpenComponent<global::Test.MyComponent>()
+[0001] AddComponentParameter("AttributeBefore", "before")
+[0002] AddMultipleAttributes(global::Microsoft.AspNetCore.Components.CompilerServices.RuntimeHelpers.TypeCheck<global::System.Collections.Generic.IEnumerable<global::System.Collections.Generic.KeyValuePair<string, object>>>( someAttributes ))
+[0003] AddComponentParameter("AttributeAfter", "after")

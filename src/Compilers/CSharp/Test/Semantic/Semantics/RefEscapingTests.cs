@@ -4,6 +4,8 @@
 
 #nullable disable
 
+using System;
+using System.Collections.Generic;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
@@ -2817,6 +2819,12 @@ class Program
                 // (48,9): error CS8350: This combination of arguments to 'S3.this[Span<int>]' is disallowed because it may expose variables referenced by parameter 'span' outside of their declaration scope
                 //         local[stackSpan]++; // 4
                 Diagnostic(ErrorCode.ERR_CallArgMixing, "local[stackSpan]").WithArguments("S3.this[System.Span<int>]", "span").WithLocation(48, 9),
+                // (48,9): error CS8350: This combination of arguments to 'S3.this[Span<int>]' is disallowed because it may expose variables referenced by parameter 'span' outside of their declaration scope
+                //         local[stackSpan]++; // 4
+                Diagnostic(ErrorCode.ERR_CallArgMixing, "local[stackSpan]").WithArguments("S3.this[System.Span<int>]", "span").WithLocation(48, 9),
+                // (48,15): error CS8352: Cannot use variable 'stackSpan' in this context because it may expose referenced variables outside of their declaration scope
+                //         local[stackSpan]++; // 4
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "stackSpan").WithArguments("stackSpan").WithLocation(48, 15),
                 // (48,15): error CS8352: Cannot use variable 'stackSpan' in this context because it may expose referenced variables outside of their declaration scope
                 //         local[stackSpan]++; // 4
                 Diagnostic(ErrorCode.ERR_EscapeVariable, "stackSpan").WithArguments("stackSpan").WithLocation(48, 15),
@@ -3160,9 +3168,18 @@ class Program
                 // (17,9): error CS8350: This combination of arguments to 'S1<T>.this[T]' is disallowed because it may expose variables referenced by parameter 't' outside of their declaration scope
                 //         local[x]++; // 3
                 Diagnostic(ErrorCode.ERR_CallArgMixing, "local[x]").WithArguments("S1<T>.this[T]", "t").WithLocation(17, 9),
+                // (17,9): error CS8350: This combination of arguments to 'S1<T>.this[T]' is disallowed because it may expose variables referenced by parameter 't' outside of their declaration scope
+                //         local[x]++; // 3
+                Diagnostic(ErrorCode.ERR_CallArgMixing, "local[x]").WithArguments("S1<T>.this[T]", "t").WithLocation(17, 9),
                 // (17,15): error CS8352: Cannot use variable 'x' in this context because it may expose referenced variables outside of their declaration scope
                 //         local[x]++; // 3
                 Diagnostic(ErrorCode.ERR_EscapeVariable, "x").WithArguments("x").WithLocation(17, 15),
+                // (17,15): error CS8352: Cannot use variable 'x' in this context because it may expose referenced variables outside of their declaration scope
+                //         local[x]++; // 3
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "x").WithArguments("x").WithLocation(17, 15),
+                // (31,9): error CS8350: This combination of arguments to 'S2<T>.this[int]' is disallowed because it may expose variables referenced by parameter 'value' outside of their declaration scope
+                //         local[0] = x; // 4
+                Diagnostic(ErrorCode.ERR_CallArgMixing, "local[0]").WithArguments("S2<T>.this[int]", "value").WithLocation(31, 9),
                 // (31,20): error CS8352: Cannot use variable 'x' in this context because it may expose referenced variables outside of their declaration scope
                 //         local[0] = x; // 4
                 Diagnostic(ErrorCode.ERR_EscapeVariable, "x").WithArguments("x").WithLocation(31, 20)
@@ -4688,10 +4705,15 @@ class X : List<int>
                 using System.Collections;
                 class C
                 {
-                    R M()
+                    R M1()
                     {
                         var local = 1;
                         return [local];
+                    }
+                    R M2()
+                    {
+                        var local = 1;
+                        return new() { local };
                     }
                 }
                 ref struct R : IEnumerable
@@ -4701,9 +4723,154 @@ class X : List<int>
                 }
                 """;
             CreateCompilation([source, UnscopedRefAttributeDefinition]).VerifyDiagnostics(
-                // (7,16): error CS9203: A collection expression of type 'R' cannot be used in this context because it may be exposed outside of the current scope.
-                //         return [local];
-                Diagnostic(ErrorCode.ERR_CollectionExpressionEscape, "[local]").WithArguments("R").WithLocation(7, 16));
+                attr == "" ? [] :
+                [
+                    // (7,16): error CS9203: A collection expression of type 'R' cannot be used in this context because it may be exposed outside of the current scope.
+                    //         return [local];
+                    Diagnostic(ErrorCode.ERR_CollectionExpressionEscape, "[local]").WithArguments("R").WithLocation(7, 16),
+                    // (12,24): error CS8168: Cannot return local 'local' by reference because it is not a ref local
+                    //         return new() { local };
+                    Diagnostic(ErrorCode.ERR_RefReturnLocal, "local").WithArguments("local").WithLocation(12, 24),
+                    // (12,24): error CS8347: Cannot use a result of 'R.Add(in int)' in this context because it may expose variables referenced by parameter 'x' outside of their declaration scope
+                    //         return new() { local };
+                    Diagnostic(ErrorCode.ERR_EscapeCall, "local").WithArguments("R.Add(in int)", "x").WithLocation(12, 24),
+                ]);
+        }
+
+        [Theory]
+        [InlineData("[System.Diagnostics.CodeAnalysis.UnscopedRef]")]
+        [InlineData("")]
+        public void CollectionExpression_AddMethod_Spread(string attr)
+        {
+            var source = $$"""
+                using System.Collections;
+                class C
+                {
+                    R M1()
+                    {
+                        var local = 1;
+                        int[] arr = [2, 3];
+                        return [local, .. arr];
+                    }
+                    R M2()
+                    {
+                        int[] arr = [2, 3];
+                        return [.. arr];
+                    }
+                    void M3()
+                    {
+                        int[] arr = [2, 3];
+                        R r = [.. arr];
+                    }
+                }
+                ref struct R : IEnumerable
+                {
+                    public void Add({{attr}} in int x) { }
+                    IEnumerator IEnumerable.GetEnumerator() => throw null;
+                }
+                """;
+            CreateCompilation([source, UnscopedRefAttributeDefinition]).VerifyDiagnostics(
+                attr == "" ? [] :
+                [
+                    // (8,16): error CS9203: A collection expression of type 'R' cannot be used in this context because it may be exposed outside of the current scope.
+                    //         return [local, .. arr];
+                    Diagnostic(ErrorCode.ERR_CollectionExpressionEscape, "[local, .. arr]").WithArguments("R").WithLocation(8, 16),
+                    // (8,24): error CS8156: An expression cannot be used in this context because it may not be passed or returned by reference
+                    //         return [local, .. arr];
+                    Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, ".. arr").WithLocation(8, 24),
+                    // (8,24): error CS8350: This combination of arguments to 'R.Add(in int)' is disallowed because it may expose variables referenced by parameter 'x' outside of their declaration scope
+                    //         return [local, .. arr];
+                    Diagnostic(ErrorCode.ERR_CallArgMixing, ".. arr").WithArguments("R.Add(in int)", "x").WithLocation(8, 24),
+                    // (13,16): error CS9203: A collection expression of type 'R' cannot be used in this context because it may be exposed outside of the current scope.
+                    //         return [.. arr];
+                    Diagnostic(ErrorCode.ERR_CollectionExpressionEscape, "[.. arr]").WithArguments("R").WithLocation(13, 16),
+                    // (13,17): error CS8156: An expression cannot be used in this context because it may not be passed or returned by reference
+                    //         return [.. arr];
+                    Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, ".. arr").WithLocation(13, 17),
+                    // (13,17): error CS8350: This combination of arguments to 'R.Add(in int)' is disallowed because it may expose variables referenced by parameter 'x' outside of their declaration scope
+                    //         return [.. arr];
+                    Diagnostic(ErrorCode.ERR_CallArgMixing, ".. arr").WithArguments("R.Add(in int)", "x").WithLocation(13, 17),
+                    // (18,16): error CS8156: An expression cannot be used in this context because it may not be passed or returned by reference
+                    //         R r = [.. arr];
+                    Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, ".. arr").WithLocation(18, 16),
+                    // (18,16): error CS8350: This combination of arguments to 'R.Add(in int)' is disallowed because it may expose variables referenced by parameter 'x' outside of their declaration scope
+                    //         R r = [.. arr];
+                    Diagnostic(ErrorCode.ERR_CallArgMixing, ".. arr").WithArguments("R.Add(in int)", "x").WithLocation(18, 16),
+                ]);
+        }
+
+        [Fact]
+        public void CollectionExpression_AddMethod_Spread_CallerContext()
+        {
+            // Verifies that when spreading a collection whose Current property returns a CallingMethod-scoped
+            // ref struct value, the resulting collection expression is also CallingMethod-scoped and can be returned.
+            var source = """
+                using System;
+                using System.Collections;
+                using System.Collections.Generic;
+
+                ref struct MySource
+                {
+                    public MyEnumerator GetEnumerator() => new();
+                }
+
+                ref struct MyEnumerator
+                {
+                    public Span<int> Current => new int[1];
+                    public bool MoveNext() => false;
+                }
+
+                ref struct MyCollection : IEnumerable<Span<int>>
+                {
+                    private Span<int> _stored;
+
+                    public void Add(Span<int> item)
+                    {
+                        _stored = item;
+                    }
+
+                    public IEnumerator<Span<int>> GetEnumerator() => throw null;
+                    IEnumerator IEnumerable.GetEnumerator() => throw null;
+                }
+
+                class C
+                {
+                    static MyCollection M1()
+                    {
+                        MySource source = default;
+                        MyCollection result = [..source];
+                        return result;
+                    }
+
+                    static MyCollection M1s()
+                    {
+                        scoped MySource source = default;
+                        MyCollection result = [..source]; // 1
+                        return result; // 2
+                    }
+
+                    static MyCollection M2()
+                    {
+                        MySource source = default;
+                        MyCollection result = new();
+                        foreach (var el in source)
+                        {
+                            result.Add(el);
+                        }
+                        return result;
+                    }
+                }
+                """;
+            CreateCompilation(source, targetFramework: TargetFramework.Net100).VerifyDiagnostics(
+                // (41,32): error CS8352: Cannot use variable '..source' in this context because it may expose referenced variables outside of their declaration scope
+                //         MyCollection result = [..source]; // 1
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "..source").WithArguments("..source").WithLocation(41, 32),
+                // (41,32): error CS8350: This combination of arguments to 'MyCollection.Add(Span<int>)' is disallowed because it may expose variables referenced by parameter 'item' outside of their declaration scope
+                //         MyCollection result = [..source]; // 1
+                Diagnostic(ErrorCode.ERR_CallArgMixing, "..source").WithArguments("MyCollection.Add(System.Span<int>)", "item").WithLocation(41, 32),
+                // (42,16): error CS8352: Cannot use variable 'result' in this context because it may expose referenced variables outside of their declaration scope
+                //         return result; // 2
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "result").WithArguments("result").WithLocation(42, 16));
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75802")]
@@ -4737,6 +4904,2435 @@ class X : List<int>
                 // (10,16): error CS9203: A collection expression of type 'R' cannot be used in this context because it may be exposed outside of the current scope.
                 //         return [local];
                 Diagnostic(ErrorCode.ERR_CollectionExpressionEscape, "[local]").WithArguments("R").WithLocation(10, 16));
+        }
+
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/75802")]
+        [InlineData("")]
+        [InlineData("in ")]
+        [InlineData("[System.Diagnostics.CodeAnalysis.UnscopedRef] in ")]
+        public void CollectionExpression_Builder_With1_A(string modifier)
+        {
+            var source = $$"""
+                using System;
+                using System.Collections;
+                using System.Collections.Generic;
+                using System.Runtime.CompilerServices;
+                class C
+                {
+                    R M()
+                    {
+                        var local = 1;
+                        return [with(local)];
+                    }
+                }
+                [CollectionBuilder(typeof(Builder), nameof(Builder.Create))]
+                ref struct R : IEnumerable<int>
+                {
+                    public IEnumerator<int> GetEnumerator() => throw null;
+                    IEnumerator IEnumerable.GetEnumerator() => throw null;
+                }
+                static class Builder
+                {
+                    public static R Create({{modifier}} int a, ReadOnlySpan<int> x) => throw null;
+                }
+                """;
+
+            if (modifier == "")
+            {
+                CreateCompilationWithSpan([source, CollectionBuilderAttributeDefinition, UnscopedRefAttributeDefinition]).VerifyDiagnostics();
+            }
+            else
+            {
+                CreateCompilationWithSpan([source, CollectionBuilderAttributeDefinition, UnscopedRefAttributeDefinition]).VerifyDiagnostics(
+                    // (10,16): error CS9203: A collection expression of type 'R' cannot be used in this context because it may be exposed outside of the current scope.
+                    //         return [with(local)];
+                    Diagnostic(ErrorCode.ERR_CollectionExpressionEscape, "[with(local)]").WithArguments("R").WithLocation(10, 16));
+            }
+        }
+
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/75802")]
+        [InlineData("")]
+        [InlineData("in ")]
+        [InlineData("[System.Diagnostics.CodeAnalysis.UnscopedRef] in ")]
+        public void CollectionExpression_Builder_With1_B(string modifier)
+        {
+            var source = $$"""
+                using System;
+                using System.Collections;
+                using System.Collections.Generic;
+                using System.Runtime.CompilerServices;
+                class C
+                {
+                    R M()
+                    {
+                        return [with(1)];
+                    }
+                }
+                [CollectionBuilder(typeof(Builder), nameof(Builder.Create))]
+                ref struct R : IEnumerable<int>
+                {
+                    public IEnumerator<int> GetEnumerator() => throw null;
+                    IEnumerator IEnumerable.GetEnumerator() => throw null;
+                }
+                static class Builder
+                {
+                    public static R Create({{modifier}} int a, ReadOnlySpan<int> x) => throw null;
+                }
+                """;
+
+            if (modifier == "")
+            {
+                CreateCompilationWithSpan([source, CollectionBuilderAttributeDefinition, UnscopedRefAttributeDefinition]).VerifyDiagnostics();
+            }
+            else
+            {
+                CreateCompilationWithSpan([source, CollectionBuilderAttributeDefinition, UnscopedRefAttributeDefinition]).VerifyDiagnostics(
+                    // (9,16): error CS9203: A collection expression of type 'R' cannot be used in this context because it may be exposed outside of the current scope.
+                    //         return [with(1)];
+                    Diagnostic(ErrorCode.ERR_CollectionExpressionEscape, "[with(1)]").WithArguments("R").WithLocation(9, 16));
+            }
+        }
+
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/75802")]
+        [InlineData("")]
+        [InlineData("in ")]
+        [InlineData("[System.Diagnostics.CodeAnalysis.UnscopedRef] in ")]
+        public void CollectionExpression_Builder_With1_C(string modifier)
+        {
+            var source = $$"""
+                using System;
+                using System.Collections;
+                using System.Collections.Generic;
+                using System.Runtime.CompilerServices;
+                class C
+                {
+                    void M(ref R r)
+                    {
+                        var local = 1;
+                        r = [with(local)];
+                    }
+                }
+                [CollectionBuilder(typeof(Builder), nameof(Builder.Create))]
+                ref struct R : IEnumerable<int>
+                {
+                    public IEnumerator<int> GetEnumerator() => throw null;
+                    IEnumerator IEnumerable.GetEnumerator() => throw null;
+                }
+                static class Builder
+                {
+                    public static R Create({{modifier}} int a, ReadOnlySpan<int> x) => throw null;
+                }
+                """;
+
+            if (modifier == "")
+            {
+                CreateCompilationWithSpan([source, CollectionBuilderAttributeDefinition, UnscopedRefAttributeDefinition]).VerifyDiagnostics();
+            }
+            else
+            {
+                CreateCompilationWithSpan([source, CollectionBuilderAttributeDefinition, UnscopedRefAttributeDefinition]).VerifyDiagnostics(
+                    // (10,13): error CS9203: A collection expression of type 'R' cannot be used in this context because it may be exposed outside of the current scope.
+                    //         r = [with(local)];
+                    Diagnostic(ErrorCode.ERR_CollectionExpressionEscape, "[with(local)]").WithArguments("R").WithLocation(10, 13));
+            }
+        }
+
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/75802")]
+        [InlineData("")]
+        [InlineData("in ")]
+        [InlineData("[System.Diagnostics.CodeAnalysis.UnscopedRef] in ")]
+        public void CollectionExpression_Builder_With1_D(string modifier)
+        {
+            var source = $$"""
+                using System;
+                using System.Collections;
+                using System.Collections.Generic;
+                using System.Runtime.CompilerServices;
+                class C
+                {
+                    void M(ref R r)
+                    {
+                        r = [with(1)];
+                    }
+                }
+                [CollectionBuilder(typeof(Builder), nameof(Builder.Create))]
+                ref struct R : IEnumerable<int>
+                {
+                    public IEnumerator<int> GetEnumerator() => throw null;
+                    IEnumerator IEnumerable.GetEnumerator() => throw null;
+                }
+                static class Builder
+                {
+                    public static R Create({{modifier}} int a, ReadOnlySpan<int> x) => throw null;
+                }
+                """;
+
+            if (modifier == "")
+            {
+                CreateCompilationWithSpan([source, CollectionBuilderAttributeDefinition, UnscopedRefAttributeDefinition]).VerifyDiagnostics();
+            }
+            else
+            {
+                CreateCompilationWithSpan([source, CollectionBuilderAttributeDefinition, UnscopedRefAttributeDefinition]).VerifyDiagnostics(
+                    // (9,13): error CS9203: A collection expression of type 'R' cannot be used in this context because it may be exposed outside of the current scope.
+                    //         r = [with(1)];
+                    Diagnostic(ErrorCode.ERR_CollectionExpressionEscape, "[with(1)]").WithArguments("R").WithLocation(9, 13));
+            }
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75802")]
+        public void CollectionExpression_Builder_With2_A()
+        {
+            var source = $$"""
+                using System;
+                using System.Collections;
+                using System.Collections.Generic;
+                using System.Runtime.CompilerServices;
+                class C
+                {
+                    R M()
+                    {
+                        return [with()];
+                    }
+                }
+                [CollectionBuilder(typeof(Builder), nameof(Builder.Create))]
+                ref struct R : IEnumerable<int>
+                {
+                    public IEnumerator<int> GetEnumerator() => throw null;
+                    IEnumerator IEnumerable.GetEnumerator() => throw null;
+                }
+                static class Builder
+                {
+                    public static R Create(ReadOnlySpan<int> x) => throw null;
+                }
+                """;
+
+            CreateCompilationWithSpan([source, CollectionBuilderAttributeDefinition, UnscopedRefAttributeDefinition]).VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75802")]
+        public void CollectionExpression_Builder_With2_B()
+        {
+            var source = $$"""
+                using System;
+                using System.Collections;
+                using System.Collections.Generic;
+                using System.Runtime.CompilerServices;
+                class C
+                {
+                    void M(ref R r)
+                    {
+                        r = [with()];
+                    }
+                }
+                [CollectionBuilder(typeof(Builder), nameof(Builder.Create))]
+                ref struct R : IEnumerable<int>
+                {
+                    public IEnumerator<int> GetEnumerator() => throw null;
+                    IEnumerator IEnumerable.GetEnumerator() => throw null;
+                }
+                static class Builder
+                {
+                    public static R Create(ReadOnlySpan<int> x) => throw null;
+                }
+                """;
+
+            CreateCompilationWithSpan([source, CollectionBuilderAttributeDefinition, UnscopedRefAttributeDefinition]).VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75802")]
+        public void CollectionExpression_Builder_With3_A()
+        {
+            var source = $$"""
+                using System;
+                using System.Collections;
+                using System.Collections.Generic;
+                using System.Runtime.CompilerServices;
+                class C
+                {
+                    R M()
+                    {
+                        int local = 1;
+                        return [with(), local];
+                    }
+                }
+                [CollectionBuilder(typeof(Builder), nameof(Builder.Create))]
+                ref struct R : IEnumerable<int>
+                {
+                    public IEnumerator<int> GetEnumerator() => throw null;
+                    IEnumerator IEnumerable.GetEnumerator() => throw null;
+                }
+                static class Builder
+                {
+                    public static R Create(ReadOnlySpan<int> x) => throw null;
+                }
+                """;
+
+            CreateCompilationWithSpan([source, CollectionBuilderAttributeDefinition, UnscopedRefAttributeDefinition]).VerifyDiagnostics(
+                // (10,16): error CS9203: A collection expression of type 'R' cannot be used in this context because it may be exposed outside of the current scope.
+                //         return [with(), local];
+                Diagnostic(ErrorCode.ERR_CollectionExpressionEscape, "[with(), local]").WithArguments("R").WithLocation(10, 16));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75802")]
+        public void CollectionExpression_Builder_With3_B()
+        {
+            var source = $$"""
+                using System;
+                using System.Collections;
+                using System.Collections.Generic;
+                using System.Runtime.CompilerServices;
+                class C
+                {
+                    R M()
+                    {
+                        return [with(), 1];
+                    }
+                }
+                [CollectionBuilder(typeof(Builder), nameof(Builder.Create))]
+                ref struct R : IEnumerable<int>
+                {
+                    public IEnumerator<int> GetEnumerator() => throw null;
+                    IEnumerator IEnumerable.GetEnumerator() => throw null;
+                }
+                static class Builder
+                {
+                    public static R Create(ReadOnlySpan<int> x) => throw null;
+                }
+                """;
+
+            CreateCompilationWithSpan([source, CollectionBuilderAttributeDefinition, UnscopedRefAttributeDefinition]).VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75802")]
+        public void CollectionExpression_Builder_With3_C()
+        {
+            var source = $$"""
+                using System;
+                using System.Collections;
+                using System.Collections.Generic;
+                using System.Runtime.CompilerServices;
+                class C
+                {
+                    void M(ref R r)
+                    {
+                        int local = 1;
+                        r = [with(), local];
+                    }
+                }
+                [CollectionBuilder(typeof(Builder), nameof(Builder.Create))]
+                ref struct R : IEnumerable<int>
+                {
+                    public IEnumerator<int> GetEnumerator() => throw null;
+                    IEnumerator IEnumerable.GetEnumerator() => throw null;
+                }
+                static class Builder
+                {
+                    public static R Create(ReadOnlySpan<int> x) => throw null;
+                }
+                """;
+
+            CreateCompilationWithSpan([source, CollectionBuilderAttributeDefinition, UnscopedRefAttributeDefinition]).VerifyDiagnostics(
+                // (10,16): error CS9203: A collection expression of type 'R' cannot be used in this context because it may be exposed outside of the current scope.
+                //         return [with(), local];
+                Diagnostic(ErrorCode.ERR_CollectionExpressionEscape, "[with(), local]").WithArguments("R").WithLocation(10, 13));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75802")]
+        public void CollectionExpression_Builder_With3_D()
+        {
+            var source = $$"""
+                using System;
+                using System.Collections;
+                using System.Collections.Generic;
+                using System.Runtime.CompilerServices;
+                class C
+                {
+                    void M(ref R r)
+                    {
+                        r = [with(), 1];
+                    }
+                }
+                [CollectionBuilder(typeof(Builder), nameof(Builder.Create))]
+                ref struct R : IEnumerable<int>
+                {
+                    public IEnumerator<int> GetEnumerator() => throw null;
+                    IEnumerator IEnumerable.GetEnumerator() => throw null;
+                }
+                static class Builder
+                {
+                    public static R Create(ReadOnlySpan<int> x) => throw null;
+                }
+                """;
+
+            CreateCompilationWithSpan([source, CollectionBuilderAttributeDefinition, UnscopedRefAttributeDefinition]).VerifyDiagnostics();
+        }
+
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/75802")]
+        [InlineData("")]
+        [InlineData("in ")]
+        [InlineData("[System.Diagnostics.CodeAnalysis.UnscopedRef] in ")]
+        public void CollectionExpression_Builder_With4_A(string modifier)
+        {
+            var source = $$"""
+                using System;
+                using System.Collections;
+                using System.Collections.Generic;
+                using System.Runtime.CompilerServices;
+                class C
+                {
+                    R M()
+                    {
+                        var local = 1;
+                        return [with(local), local];
+                    }
+                }
+                [CollectionBuilder(typeof(Builder), nameof(Builder.Create))]
+                ref struct R : IEnumerable<int>
+                {
+                    public IEnumerator<int> GetEnumerator() => throw null;
+                    IEnumerator IEnumerable.GetEnumerator() => throw null;
+                }
+                static class Builder
+                {
+                    public static R Create({{modifier}} int a, ReadOnlySpan<int> x) => throw null;
+                }
+                """;
+
+            CreateCompilationWithSpan([source, CollectionBuilderAttributeDefinition, UnscopedRefAttributeDefinition]).VerifyDiagnostics(
+                // (10,16): error CS9203: A collection expression of type 'R' cannot be used in this context because it may be exposed outside of the current scope.
+                //         return [with(local), local];
+                Diagnostic(ErrorCode.ERR_CollectionExpressionEscape, "[with(local), local]").WithArguments("R").WithLocation(10, 16));
+        }
+
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/75802")]
+        [InlineData("")]
+        [InlineData("in ")]
+        [InlineData("[System.Diagnostics.CodeAnalysis.UnscopedRef] in ")]
+        public void CollectionExpression_Builder_With4_B(string modifier)
+        {
+            var source = $$"""
+                using System;
+                using System.Collections;
+                using System.Collections.Generic;
+                using System.Runtime.CompilerServices;
+                class C
+                {
+                    R M()
+                    {
+                        return [with(1), 1];
+                    }
+                }
+                [CollectionBuilder(typeof(Builder), nameof(Builder.Create))]
+                ref struct R : IEnumerable<int>
+                {
+                    public IEnumerator<int> GetEnumerator() => throw null;
+                    IEnumerator IEnumerable.GetEnumerator() => throw null;
+                }
+                static class Builder
+                {
+                    public static R Create({{modifier}} int a, ReadOnlySpan<int> x) => throw null;
+                }
+                """;
+
+            if (modifier == "")
+            {
+                CreateCompilationWithSpan([source, CollectionBuilderAttributeDefinition, UnscopedRefAttributeDefinition]).VerifyDiagnostics();
+            }
+            else
+            {
+                CreateCompilationWithSpan([source, CollectionBuilderAttributeDefinition, UnscopedRefAttributeDefinition]).VerifyDiagnostics(
+                    // (9,16): error CS9203: A collection expression of type 'R' cannot be used in this context because it may be exposed outside of the current scope.
+                    //         return [with(1), 1];
+                    Diagnostic(ErrorCode.ERR_CollectionExpressionEscape, "[with(1), 1]").WithArguments("R").WithLocation(9, 16));
+            }
+        }
+
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/75802")]
+        [InlineData("")]
+        [InlineData("in ")]
+        [InlineData("[System.Diagnostics.CodeAnalysis.UnscopedRef] in ")]
+        public void CollectionExpression_Builder_With4_C(string modifier)
+        {
+            var source = $$"""
+                using System;
+                using System.Collections;
+                using System.Collections.Generic;
+                using System.Runtime.CompilerServices;
+                class C
+                {
+                    void M(ref R r)
+                    {
+                        var local = 1;
+                        r = [with(local), local];
+                    }
+                }
+                [CollectionBuilder(typeof(Builder), nameof(Builder.Create))]
+                ref struct R : IEnumerable<int>
+                {
+                    public IEnumerator<int> GetEnumerator() => throw null;
+                    IEnumerator IEnumerable.GetEnumerator() => throw null;
+                }
+                static class Builder
+                {
+                    public static R Create({{modifier}} int a, ReadOnlySpan<int> x) => throw null;
+                }
+                """;
+
+            CreateCompilationWithSpan([source, CollectionBuilderAttributeDefinition, UnscopedRefAttributeDefinition]).VerifyDiagnostics(
+                // (10,13): error CS9203: A collection expression of type 'R' cannot be used in this context because it may be exposed outside of the current scope.
+                //         r = [with(local), local];
+                Diagnostic(ErrorCode.ERR_CollectionExpressionEscape, "[with(local), local]").WithArguments("R").WithLocation(10, 13));
+        }
+
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/75802")]
+        [InlineData("")]
+        [InlineData("in ")]
+        [InlineData("[System.Diagnostics.CodeAnalysis.UnscopedRef] in ")]
+        public void CollectionExpression_Builder_With4_D(string modifier)
+        {
+            var source = $$"""
+                using System;
+                using System.Collections;
+                using System.Collections.Generic;
+                using System.Runtime.CompilerServices;
+                class C
+                {
+                    void M(ref R r)
+                    {
+                        r = [with(1), 1];
+                    }
+                }
+                [CollectionBuilder(typeof(Builder), nameof(Builder.Create))]
+                ref struct R : IEnumerable<int>
+                {
+                    public IEnumerator<int> GetEnumerator() => throw null;
+                    IEnumerator IEnumerable.GetEnumerator() => throw null;
+                }
+                static class Builder
+                {
+                    public static R Create({{modifier}} int a, ReadOnlySpan<int> x) => throw null;
+                }
+                """;
+
+            if (modifier == "")
+            {
+                CreateCompilationWithSpan([source, CollectionBuilderAttributeDefinition, UnscopedRefAttributeDefinition]).VerifyDiagnostics();
+            }
+            else
+            {
+                CreateCompilationWithSpan([source, CollectionBuilderAttributeDefinition, UnscopedRefAttributeDefinition]).VerifyDiagnostics(
+                    // (9,13): error CS9203: A collection expression of type 'R' cannot be used in this context because it may be exposed outside of the current scope.
+                    //         r = [with(1), 1];
+                    Diagnostic(ErrorCode.ERR_CollectionExpressionEscape, "[with(1), 1]").WithArguments("R").WithLocation(9, 13));
+            }
+        }
+
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/75802")]
+        [InlineData("")]
+        [InlineData("in ")]
+        [InlineData("[System.Diagnostics.CodeAnalysis.UnscopedRef] in ")]
+        public void CollectionExpression_Builder_With5_A(string modifier)
+        {
+            var source = $$"""
+                using System;
+                using System.Collections;
+                using System.Collections.Generic;
+                using System.Runtime.CompilerServices;
+                class C
+                {
+                    R M()
+                    {
+                        int local = 1;
+                        return [with(local), 1];
+                    }
+                }
+                [CollectionBuilder(typeof(Builder), nameof(Builder.Create))]
+                ref struct R : IEnumerable<int>
+                {
+                    public IEnumerator<int> GetEnumerator() => throw null;
+                    IEnumerator IEnumerable.GetEnumerator() => throw null;
+                }
+                static class Builder
+                {
+                    public static R Create({{modifier}} int a, ReadOnlySpan<int> x) => throw null;
+                }
+                """;
+
+            if (modifier == "")
+            {
+                CreateCompilationWithSpan([source, CollectionBuilderAttributeDefinition, UnscopedRefAttributeDefinition]).VerifyDiagnostics();
+            }
+            else
+            {
+                CreateCompilationWithSpan([source, CollectionBuilderAttributeDefinition, UnscopedRefAttributeDefinition]).VerifyDiagnostics(
+                    // (10,16): error CS9203: A collection expression of type 'R' cannot be used in this context because it may be exposed outside of the current scope.
+                    //         return [with(local), 1];
+                    Diagnostic(ErrorCode.ERR_CollectionExpressionEscape, "[with(local), 1]").WithArguments("R").WithLocation(10, 16));
+            }
+        }
+
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/75802")]
+        [InlineData("")]
+        [InlineData("in ")]
+        [InlineData("[System.Diagnostics.CodeAnalysis.UnscopedRef] in ")]
+        public void CollectionExpression_Builder_With5_B(string modifier)
+        {
+            var source = $$"""
+                using System;
+                using System.Collections;
+                using System.Collections.Generic;
+                using System.Runtime.CompilerServices;
+                class C
+                {
+                    R M()
+                    {
+                        int local = 1;
+                        return [with(1), local];
+                    }
+                }
+                [CollectionBuilder(typeof(Builder), nameof(Builder.Create))]
+                ref struct R : IEnumerable<int>
+                {
+                    public IEnumerator<int> GetEnumerator() => throw null;
+                    IEnumerator IEnumerable.GetEnumerator() => throw null;
+                }
+                static class Builder
+                {
+                    public static R Create({{modifier}} int a, ReadOnlySpan<int> x) => throw null;
+                }
+                """;
+
+            CreateCompilationWithSpan([source, CollectionBuilderAttributeDefinition, UnscopedRefAttributeDefinition]).VerifyDiagnostics(
+                // (10,16): error CS9203: A collection expression of type 'R' cannot be used in this context because it may be exposed outside of the current scope.
+                //         return [with(1), local];
+                Diagnostic(ErrorCode.ERR_CollectionExpressionEscape, "[with(1), local]").WithArguments("R").WithLocation(10, 16));
+        }
+
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/75802")]
+        [InlineData("")]
+        [InlineData("in ")]
+        [InlineData("[System.Diagnostics.CodeAnalysis.UnscopedRef] in ")]
+        public void CollectionExpression_Builder_With5_C(string modifier)
+        {
+            var source = $$"""
+                using System;
+                using System.Collections;
+                using System.Collections.Generic;
+                using System.Runtime.CompilerServices;
+                class C
+                {
+                    void M(ref R r)
+                    {
+                        int local = 1;
+                        r = [with(local), 1];
+                    }
+                }
+                [CollectionBuilder(typeof(Builder), nameof(Builder.Create))]
+                ref struct R : IEnumerable<int>
+                {
+                    public IEnumerator<int> GetEnumerator() => throw null;
+                    IEnumerator IEnumerable.GetEnumerator() => throw null;
+                }
+                static class Builder
+                {
+                    public static R Create({{modifier}} int a, ReadOnlySpan<int> x) => throw null;
+                }
+                """;
+
+            if (modifier == "")
+            {
+                CreateCompilationWithSpan([source, CollectionBuilderAttributeDefinition, UnscopedRefAttributeDefinition]).VerifyDiagnostics();
+            }
+            else
+            {
+                CreateCompilationWithSpan([source, CollectionBuilderAttributeDefinition, UnscopedRefAttributeDefinition]).VerifyDiagnostics(
+                    // (10,13): error CS9203: A collection expression of type 'R' cannot be used in this context because it may be exposed outside of the current scope.
+                    //         r = [with(local), 1];
+                    Diagnostic(ErrorCode.ERR_CollectionExpressionEscape, "[with(local), 1]").WithArguments("R").WithLocation(10, 13));
+            }
+        }
+
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/75802")]
+        [InlineData("")]
+        [InlineData("in ")]
+        [InlineData("[System.Diagnostics.CodeAnalysis.UnscopedRef] in ")]
+        public void CollectionExpression_Builder_With5_D(string modifier)
+        {
+            var source = $$"""
+                using System;
+                using System.Collections;
+                using System.Collections.Generic;
+                using System.Runtime.CompilerServices;
+                class C
+                {
+                    void M(ref R r)
+                    {
+                        int local = 1;
+                        r = [with(1), local];
+                    }
+                }
+                [CollectionBuilder(typeof(Builder), nameof(Builder.Create))]
+                ref struct R : IEnumerable<int>
+                {
+                    public IEnumerator<int> GetEnumerator() => throw null;
+                    IEnumerator IEnumerable.GetEnumerator() => throw null;
+                }
+                static class Builder
+                {
+                    public static R Create({{modifier}} int a, ReadOnlySpan<int> x) => throw null;
+                }
+                """;
+
+            CreateCompilationWithSpan([source, CollectionBuilderAttributeDefinition, UnscopedRefAttributeDefinition]).VerifyDiagnostics(
+                // (10,13): error CS9203: A collection expression of type 'R' cannot be used in this context because it may be exposed outside of the current scope.
+                //         r = [with(1), local];
+                Diagnostic(ErrorCode.ERR_CollectionExpressionEscape, "[with(1), local]").WithArguments("R").WithLocation(10, 13));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75802")]
+        public void CollectionExpression_Builder_With6_A()
+        {
+            var source = $$"""
+                using System;
+                using System.Collections;
+                using System.Collections.Generic;
+                using System.Runtime.CompilerServices;
+                class C
+                {
+                    R M(ref int a)
+                    {
+                        return [with(ref a)];
+                    }
+                }
+                [CollectionBuilder(typeof(Builder), nameof(Builder.Create))]
+                ref struct R : IEnumerable<int>
+                {
+                    public IEnumerator<int> GetEnumerator() => throw null;
+                    IEnumerator IEnumerable.GetEnumerator() => throw null;
+                }
+                static class Builder
+                {
+                    public static R Create(ref int a, ReadOnlySpan<int> x) => throw null;
+                }
+                """;
+
+            CreateCompilationWithSpan([source, CollectionBuilderAttributeDefinition, UnscopedRefAttributeDefinition]).VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75802")]
+        public void CollectionExpression_Builder_With6_B()
+        {
+            var source = $$"""
+                using System;
+                using System.Collections;
+                using System.Collections.Generic;
+                using System.Runtime.CompilerServices;
+                class C
+                {
+                    R M(ref int a)
+                    {
+                        return [with(ref a)];
+                    }
+                }
+                [CollectionBuilder(typeof(Builder), nameof(Builder.Create))]
+                ref struct R : IEnumerable<int>
+                {
+                    public IEnumerator<int> GetEnumerator() => throw null;
+                    IEnumerator IEnumerable.GetEnumerator() => throw null;
+                }
+                static class Builder
+                {
+                    public static R Create(scoped ref int a, ReadOnlySpan<int> x) => throw null;
+                }
+                """;
+
+            CreateCompilationWithSpan([source, CollectionBuilderAttributeDefinition, UnscopedRefAttributeDefinition]).VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75802")]
+        public void CollectionExpression_Builder_With6_C()
+        {
+            var source = $$"""
+                using System;
+                using System.Collections;
+                using System.Collections.Generic;
+                using System.Runtime.CompilerServices;
+                class C
+                {
+                    R M(scoped ref int a)
+                    {
+                        return [with(ref a)];
+                    }
+                }
+                [CollectionBuilder(typeof(Builder), nameof(Builder.Create))]
+                ref struct R : IEnumerable<int>
+                {
+                    public IEnumerator<int> GetEnumerator() => throw null;
+                    IEnumerator IEnumerable.GetEnumerator() => throw null;
+                }
+                static class Builder
+                {
+                    public static R Create(ref int a, ReadOnlySpan<int> x) => throw null;
+                }
+                """;
+
+            CreateCompilationWithSpan([source, CollectionBuilderAttributeDefinition, UnscopedRefAttributeDefinition]).VerifyDiagnostics(
+                // (9,16): error CS9203: A collection expression of type 'R' cannot be used in this context because it may be exposed outside of the current scope.
+                //         return [with(ref a)];
+                Diagnostic(ErrorCode.ERR_CollectionExpressionEscape, "[with(ref a)]").WithArguments("R").WithLocation(9, 16));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75802")]
+        public void CollectionExpression_Builder_With6_D()
+        {
+            var source = $$"""
+                using System;
+                using System.Collections;
+                using System.Collections.Generic;
+                using System.Runtime.CompilerServices;
+                class C
+                {
+                    R M(scoped ref int a)
+                    {
+                        return [with(ref a)];
+                    }
+                }
+                [CollectionBuilder(typeof(Builder), nameof(Builder.Create))]
+                ref struct R : IEnumerable<int>
+                {
+                    public IEnumerator<int> GetEnumerator() => throw null;
+                    IEnumerator IEnumerable.GetEnumerator() => throw null;
+                }
+                static class Builder
+                {
+                    public static R Create(scoped ref int a, ReadOnlySpan<int> x) => throw null;
+                }
+                """;
+
+            CreateCompilationWithSpan([source, CollectionBuilderAttributeDefinition, UnscopedRefAttributeDefinition]).VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75802")]
+        public void CollectionExpression_Builder_With7_A()
+        {
+            var source = $$"""
+                using System;
+                using System.Collections;
+                using System.Collections.Generic;
+                using System.Runtime.CompilerServices;
+                class C
+                {
+                    void M()
+                    {
+                        Span<int> stackSpan = stackalloc int[] { 13 };
+                        Span<int> heapSpan = default;
+
+                        R r = [with(ref heapSpan, stackSpan)];
+                    }
+                }
+                [CollectionBuilder(typeof(Builder), nameof(Builder.Create))]
+                ref struct R : IEnumerable<int>
+                {
+                    public IEnumerator<int> GetEnumerator() => throw null;
+                    IEnumerator IEnumerable.GetEnumerator() => throw null;
+                }
+                static class Builder
+                {
+                    public static R Create(ref Span<int> a, Span<int> b, ReadOnlySpan<int> x) => throw null;
+                }
+                """;
+
+            CreateCompilationWithSpan([source, CollectionBuilderAttributeDefinition, UnscopedRefAttributeDefinition]).VerifyDiagnostics(
+                // (12,16): error CS8350: This combination of arguments to 'Builder.Create(ref Span<int>, Span<int>, ReadOnlySpan<int>)' is disallowed because it may expose variables referenced by parameter 'b' outside of their declaration scope
+                //         R r = [with(ref heapSpan, stackSpan)];
+                Diagnostic(ErrorCode.ERR_CallArgMixing, "with(ref heapSpan, stackSpan)").WithArguments("Builder.Create(ref System.Span<int>, System.Span<int>, System.ReadOnlySpan<int>)", "b").WithLocation(12, 16),
+                // (12,35): error CS8352: Cannot use variable 'stackSpan' in this context because it may expose referenced variables outside of their declaration scope
+                //         R r = [with(ref heapSpan, stackSpan)];
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "stackSpan").WithArguments("stackSpan").WithLocation(12, 35));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75802")]
+        public void CollectionExpression_Builder_With7_B()
+        {
+            var source = $$"""
+                using System;
+                using System.Collections;
+                using System.Collections.Generic;
+                using System.Runtime.CompilerServices;
+                class C
+                {
+                    void M()
+                    {
+                        Span<int> stackSpan = stackalloc int[] { 13 };
+                        Span<int> heapSpan = default;
+
+                        R r = [with(ref stackSpan, heapSpan)];
+                    }
+                }
+                [CollectionBuilder(typeof(Builder), nameof(Builder.Create))]
+                ref struct R : IEnumerable<int>
+                {
+                    public IEnumerator<int> GetEnumerator() => throw null;
+                    IEnumerator IEnumerable.GetEnumerator() => throw null;
+                }
+                static class Builder
+                {
+                    public static R Create(ref Span<int> a, Span<int> b, ReadOnlySpan<int> x) => throw null;
+                }
+                """;
+
+            CreateCompilationWithSpan([source, CollectionBuilderAttributeDefinition, UnscopedRefAttributeDefinition]).VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75802")]
+        public void CollectionExpression_Builder_With8_A()
+        {
+            var source = $$"""
+                using System;
+                using System.Collections;
+                using System.Collections.Generic;
+                using System.Runtime.CompilerServices;
+                class C
+                {
+                    void M()
+                    {
+                        Span<int> stackSpan = stackalloc int[] { 13 };
+                        int local = 0;
+
+                        R r = [with(ref stackSpan), local];
+                    }
+                }
+                [CollectionBuilder(typeof(Builder), nameof(Builder.Create))]
+                ref struct R : IEnumerable<int>
+                {
+                    public IEnumerator<int> GetEnumerator() => throw null;
+                    IEnumerator IEnumerable.GetEnumerator() => throw null;
+                }
+                static class Builder
+                {
+                    public static R Create(ref Span<int> a, ReadOnlySpan<int> x) => throw null;
+                }
+                """;
+
+            CreateCompilationWithSpan([source, CollectionBuilderAttributeDefinition, UnscopedRefAttributeDefinition]).VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75802")]
+        public void CollectionExpression_Builder_With8_B()
+        {
+            var source = $$"""
+                using System;
+                using System.Collections;
+                using System.Collections.Generic;
+                using System.Runtime.CompilerServices;
+                class C
+                {
+                    void M()
+                    {
+                        Span<int> stackSpan = stackalloc int[] { 13 };
+                        int local = 0;
+
+                        R r = [with(ref stackSpan), local];
+                    }
+                }
+                [CollectionBuilder(typeof(Builder), nameof(Builder.Create))]
+                ref struct R : IEnumerable<int>
+                {
+                    public IEnumerator<int> GetEnumerator() => throw null;
+                    IEnumerator IEnumerable.GetEnumerator() => throw null;
+                }
+                static class Builder
+                {
+                    public static R Create(scoped ref Span<int> a, ReadOnlySpan<int> x) => throw null;
+                }
+                """;
+
+            CreateCompilationWithSpan([source, CollectionBuilderAttributeDefinition, UnscopedRefAttributeDefinition]).VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75802")]
+        public void CollectionExpression_Builder_With8_C()
+        {
+            var source = $$"""
+                using System;
+                using System.Collections;
+                using System.Collections.Generic;
+                using System.Runtime.CompilerServices;
+                class C
+                {
+                    void M()
+                    {
+                        Span<int> heapSpan = default;
+                        int local = 0;
+
+                        R r = [with(ref heapSpan), local];
+                    }
+                }
+                [CollectionBuilder(typeof(Builder), nameof(Builder.Create))]
+                ref struct R : IEnumerable<int>
+                {
+                    public IEnumerator<int> GetEnumerator() => throw null;
+                    IEnumerator IEnumerable.GetEnumerator() => throw null;
+                }
+                static class Builder
+                {
+                    public static R Create(ref Span<int> a, ReadOnlySpan<int> x) => throw null;
+                }
+                """;
+
+            CreateCompilationWithSpan([source, CollectionBuilderAttributeDefinition, UnscopedRefAttributeDefinition]).VerifyDiagnostics(
+                // (12,16): error CS8352: Cannot use variable 'with(ref heapSpan)' in this context because it may expose referenced variables outside of their declaration scope
+                //         R r = [with(ref heapSpan), local];
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "with(ref heapSpan)").WithArguments("with(ref heapSpan)").WithLocation(12, 16),
+                // (12,16): error CS8350: This combination of arguments to 'Builder.Create(ref Span<int>, ReadOnlySpan<int>)' is disallowed because it may expose variables referenced by parameter 'x' outside of their declaration scope
+                //         R r = [with(ref heapSpan), local];
+                Diagnostic(ErrorCode.ERR_CallArgMixing, "with(ref heapSpan)").WithArguments("Builder.Create(ref System.Span<int>, System.ReadOnlySpan<int>)", "x").WithLocation(12, 16));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75802")]
+        public void CollectionExpression_Builder_With8_D()
+        {
+            var source = $$"""
+                using System;
+                using System.Collections;
+                using System.Collections.Generic;
+                using System.Runtime.CompilerServices;
+                class C
+                {
+                    void M()
+                    {
+                        Span<int> heapSpan = default;
+                        int local = 0;
+
+                        R r = [with(ref heapSpan), local];
+                    }
+                }
+                [CollectionBuilder(typeof(Builder), nameof(Builder.Create))]
+                ref struct R : IEnumerable<int>
+                {
+                    public IEnumerator<int> GetEnumerator() => throw null;
+                    IEnumerator IEnumerable.GetEnumerator() => throw null;
+                }
+                static class Builder
+                {
+                    public static R Create(scoped ref Span<int> a, ReadOnlySpan<int> x) => throw null;
+                }
+                """;
+
+            CreateCompilationWithSpan([source, CollectionBuilderAttributeDefinition, UnscopedRefAttributeDefinition]).VerifyDiagnostics(
+                // (12,16): error CS8352: Cannot use variable 'with(ref heapSpan)' in this context because it may expose referenced variables outside of their declaration scope
+                //         R r = [with(ref heapSpan), local];
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "with(ref heapSpan)").WithArguments("with(ref heapSpan)").WithLocation(12, 16),
+                // (12,16): error CS8350: This combination of arguments to 'Builder.Create(scoped ref Span<int>, ReadOnlySpan<int>)' is disallowed because it may expose variables referenced by parameter 'x' outside of their declaration scope
+                //         R r = [with(ref heapSpan), local];
+                Diagnostic(ErrorCode.ERR_CallArgMixing, "with(ref heapSpan)").WithArguments("Builder.Create(scoped ref System.Span<int>, System.ReadOnlySpan<int>)", "x").WithLocation(12, 16));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75802")]
+        public void CollectionExpression_Builder_With7_Scoped_A()
+        {
+            var source = $$"""
+                using System;
+                using System.Collections;
+                using System.Collections.Generic;
+                using System.Runtime.CompilerServices;
+                class C
+                {
+                    void M()
+                    {
+                        Span<int> stackSpan = stackalloc int[] { 13 };
+                        Span<int> heapSpan = default;
+
+                        R r = [with(ref heapSpan, stackSpan)];
+                    }
+                }
+                [CollectionBuilder(typeof(Builder), nameof(Builder.Create))]
+                ref struct R : IEnumerable<int>
+                {
+                    public IEnumerator<int> GetEnumerator() => throw null;
+                    IEnumerator IEnumerable.GetEnumerator() => throw null;
+                }
+                static class Builder
+                {
+                    public static R Create(ref Span<int> a, Span<int> b, scoped ReadOnlySpan<int> x) => throw null;
+                }
+                """;
+
+            CreateCompilationWithSpan([source, CollectionBuilderAttributeDefinition, UnscopedRefAttributeDefinition]).VerifyDiagnostics(
+                // (12,16): error CS8350: This combination of arguments to 'Builder.Create(ref Span<int>, Span<int>, scoped ReadOnlySpan<int>)' is disallowed because it may expose variables referenced by parameter 'b' outside of their declaration scope
+                //         R r = [with(ref heapSpan, stackSpan)];
+                Diagnostic(ErrorCode.ERR_CallArgMixing, "with(ref heapSpan, stackSpan)").WithArguments("Builder.Create(ref System.Span<int>, System.Span<int>, scoped System.ReadOnlySpan<int>)", "b").WithLocation(12, 16),
+                // (12,35): error CS8352: Cannot use variable 'stackSpan' in this context because it may expose referenced variables outside of their declaration scope
+                //         R r = [with(ref heapSpan, stackSpan)];
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "stackSpan").WithArguments("stackSpan").WithLocation(12, 35));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75802")]
+        public void CollectionExpression_Builder_With7_Scoped_B()
+        {
+            var source = $$"""
+                using System;
+                using System.Collections;
+                using System.Collections.Generic;
+                using System.Runtime.CompilerServices;
+                class C
+                {
+                    void M()
+                    {
+                        Span<int> stackSpan = stackalloc int[] { 13 };
+                        Span<int> heapSpan = default;
+
+                        R r = [with(ref stackSpan, heapSpan)];
+                    }
+                }
+                [CollectionBuilder(typeof(Builder), nameof(Builder.Create))]
+                ref struct R : IEnumerable<int>
+                {
+                    public IEnumerator<int> GetEnumerator() => throw null;
+                    IEnumerator IEnumerable.GetEnumerator() => throw null;
+                }
+                static class Builder
+                {
+                    public static R Create(ref Span<int> a, Span<int> b, scoped ReadOnlySpan<int> x) => throw null;
+                }
+                """;
+
+            CreateCompilationWithSpan([source, CollectionBuilderAttributeDefinition, UnscopedRefAttributeDefinition]).VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75802")]
+        public void CollectionExpression_Builder_With8_Scoped_A()
+        {
+            var source = $$"""
+                using System;
+                using System.Collections;
+                using System.Collections.Generic;
+                using System.Runtime.CompilerServices;
+                class C
+                {
+                    void M()
+                    {
+                        Span<int> stackSpan = stackalloc int[] { 13 };
+                        int local = 0;
+
+                        R r = [with(ref stackSpan), local];
+                    }
+                }
+                [CollectionBuilder(typeof(Builder), nameof(Builder.Create))]
+                ref struct R : IEnumerable<int>
+                {
+                    public IEnumerator<int> GetEnumerator() => throw null;
+                    IEnumerator IEnumerable.GetEnumerator() => throw null;
+                }
+                static class Builder
+                {
+                    public static R Create(ref Span<int> a, scoped ReadOnlySpan<int> x) => throw null;
+                }
+                """;
+
+            CreateCompilationWithSpan([source, CollectionBuilderAttributeDefinition, UnscopedRefAttributeDefinition]).VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75802")]
+        public void CollectionExpression_Builder_With8_Scoped_B()
+        {
+            var source = $$"""
+                using System;
+                using System.Collections;
+                using System.Collections.Generic;
+                using System.Runtime.CompilerServices;
+                class C
+                {
+                    void M()
+                    {
+                        Span<int> stackSpan = stackalloc int[] { 13 };
+                        int local = 0;
+
+                        R r = [with(ref stackSpan), local];
+                    }
+                }
+                [CollectionBuilder(typeof(Builder), nameof(Builder.Create))]
+                ref struct R : IEnumerable<int>
+                {
+                    public IEnumerator<int> GetEnumerator() => throw null;
+                    IEnumerator IEnumerable.GetEnumerator() => throw null;
+                }
+                static class Builder
+                {
+                    public static R Create(scoped ref Span<int> a, scoped ReadOnlySpan<int> x) => throw null;
+                }
+                """;
+
+            CreateCompilationWithSpan([source, CollectionBuilderAttributeDefinition, UnscopedRefAttributeDefinition]).VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75802")]
+        public void CollectionExpression_Builder_With8_Scoped_C()
+        {
+            var source = $$"""
+                using System;
+                using System.Collections;
+                using System.Collections.Generic;
+                using System.Runtime.CompilerServices;
+                class C
+                {
+                    void M()
+                    {
+                        Span<int> heapSpan = default;
+                        int local = 0;
+
+                        R r = [with(ref heapSpan), local];
+                    }
+                }
+                [CollectionBuilder(typeof(Builder), nameof(Builder.Create))]
+                ref struct R : IEnumerable<int>
+                {
+                    public IEnumerator<int> GetEnumerator() => throw null;
+                    IEnumerator IEnumerable.GetEnumerator() => throw null;
+                }
+                static class Builder
+                {
+                    public static R Create(ref Span<int> a, scoped ReadOnlySpan<int> x) => throw null;
+                }
+                """;
+
+            CreateCompilationWithSpan([source, CollectionBuilderAttributeDefinition, UnscopedRefAttributeDefinition]).VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75802")]
+        public void CollectionExpression_Builder_With8_Scoped_D()
+        {
+            var source = $$"""
+                using System;
+                using System.Collections;
+                using System.Collections.Generic;
+                using System.Runtime.CompilerServices;
+                class C
+                {
+                    void M()
+                    {
+                        Span<int> heapSpan = default;
+                        int local = 0;
+
+                        R r = [with(ref heapSpan), local];
+                    }
+                }
+                [CollectionBuilder(typeof(Builder), nameof(Builder.Create))]
+                ref struct R : IEnumerable<int>
+                {
+                    public IEnumerator<int> GetEnumerator() => throw null;
+                    IEnumerator IEnumerable.GetEnumerator() => throw null;
+                }
+                static class Builder
+                {
+                    public static R Create(scoped ref Span<int> a, scoped ReadOnlySpan<int> x) => throw null;
+                }
+                """;
+
+            CreateCompilationWithSpan([source, CollectionBuilderAttributeDefinition, UnscopedRefAttributeDefinition]).VerifyDiagnostics();
+        }
+
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/75802")]
+        [InlineData("")]
+        [InlineData("in ")]
+        [InlineData("[System.Diagnostics.CodeAnalysis.UnscopedRef] in ")]
+        public void CollectionExpression_Constructor_With1_A(string modifier)
+        {
+            var source = $$"""
+                using System.Collections.Generic;
+                class C
+                {
+                    R M1()
+                    {
+                        var local = 1;
+                        return [with(local)];
+                    }
+                    R M2()
+                    {
+                        var local = 1;
+                        return new R(local);
+                    }
+                }
+                ref struct R : IEnumerable<int>
+                {
+                    public R({{modifier}} int a) { }
+                    public void Add(int i) { }
+                    public IEnumerator<int> GetEnumerator() => throw null;
+                    System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator() => throw null;
+                }
+                """;
+
+            CreateCompilationWithSpan([source, CollectionBuilderAttributeDefinition, UnscopedRefAttributeDefinition]).VerifyDiagnostics(
+                modifier == "" ? [] :
+                [
+                    // (7,16): error CS9203: A collection expression of type 'R' cannot be used in this context because it may be exposed outside of the current scope.
+                    //         return [with(local)];
+                    Diagnostic(ErrorCode.ERR_CollectionExpressionEscape, "[with(local)]").WithArguments("R").WithLocation(7, 16),
+                    // (12,22): error CS8168: Cannot return local 'local' by reference because it is not a ref local
+                    //         return new R(local);
+                    Diagnostic(ErrorCode.ERR_RefReturnLocal, "local").WithArguments("local").WithLocation(12, 22),
+                    // (12,16): error CS8347: Cannot use a result of 'R.R(in int)' in this context because it may expose variables referenced by parameter 'a' outside of their declaration scope
+                    //         return new R(local);
+                    Diagnostic(ErrorCode.ERR_EscapeCall, "new R(local)").WithArguments("R.R(in int)", "a").WithLocation(12, 16),
+                ]);
+        }
+
+        [Theory]
+        [InlineData("")]
+        [InlineData("in ")]
+        [InlineData("[System.Diagnostics.CodeAnalysis.UnscopedRef] in ")]
+        public void CollectionExpression_Constructor_With1_A_Spread(string modifier)
+        {
+            var source = $$"""
+                using System.Collections.Generic;
+                class C
+                {
+                    R M()
+                    {
+                        var local = 1;
+                        int[] arr = [2, 3];
+                        return [with(local), .. arr];
+                    }
+                }
+                ref struct R : IEnumerable<int>
+                {
+                    public R({{modifier}} int a) { }
+                    public void Add(int i) { }
+                    public IEnumerator<int> GetEnumerator() => throw null;
+                    System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator() => throw null;
+                }
+                """;
+
+            CreateCompilationWithSpan([source, CollectionBuilderAttributeDefinition, UnscopedRefAttributeDefinition]).VerifyDiagnostics(
+                modifier == "" ? [] :
+                [
+                    // (8,16): error CS9203: A collection expression of type 'R' cannot be used in this context because it may be exposed outside of the current scope.
+                    //         return [with(local), .. arr];
+                    Diagnostic(ErrorCode.ERR_CollectionExpressionEscape, "[with(local), .. arr]").WithArguments("R").WithLocation(8, 16),
+                ]);
+        }
+
+        [Theory]
+        [InlineData("")]
+        [InlineData("[System.Diagnostics.CodeAnalysis.UnscopedRef] in ")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/81520")]
+        public void CollectionExpression_Constructor_With_Spread_AddRef(string addAttr)
+        {
+            var source = $$"""
+                using System;
+                using System.Collections.Generic;
+                class C
+                {
+                    R M(ref Span<int> heapSpan)
+                    {
+                        int[] arr = [2, 3];
+                        return [with(ref heapSpan), .. arr];
+                    }
+                }
+                ref struct R : IEnumerable<int>
+                {
+                    public R(ref Span<int> a) { }
+                    public void Add({{addAttr}} int i) { }
+                    public IEnumerator<int> GetEnumerator() => throw null;
+                    System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator() => throw null;
+                }
+                """;
+
+            CreateCompilation([source],
+                targetFramework: TargetFramework.Net90).VerifyDiagnostics(
+                addAttr == "" ? [] : [
+                    // (8,16): error CS9203: A collection expression of type 'R' cannot be used in this context because it may be exposed outside of the current scope.
+                    //         return [with(ref heapSpan), .. arr];
+                    Diagnostic(ErrorCode.ERR_CollectionExpressionEscape, "[with(ref heapSpan), .. arr]").WithArguments("R").WithLocation(8, 16),
+                    // (8,26): error CS8350: This combination of arguments to 'R.R(ref Span<int>)' is disallowed because it may expose variables referenced by parameter 'a' outside of their declaration scope
+                    //         return [with(ref heapSpan), .. arr];
+                    Diagnostic(ErrorCode.ERR_CallArgMixing, "heapSpan").WithArguments("R.R(ref System.Span<int>)", "a").WithLocation(8, 26),
+                    // (8,37): error CS8156: An expression cannot be used in this context because it may not be passed or returned by reference
+                    //         return [with(ref heapSpan), .. arr];
+                    Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, ".. arr").WithLocation(8, 37),
+                    // (8,37): error CS8350: This combination of arguments to 'R.Add(in int)' is disallowed because it may expose variables referenced by parameter 'i' outside of their declaration scope
+                    //         return [with(ref heapSpan), .. arr];
+                    Diagnostic(ErrorCode.ERR_CallArgMixing, ".. arr").WithArguments("R.Add(in int)", "i").WithLocation(8, 37),
+                ]);
+        }
+
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/75802")]
+        [InlineData("")]
+        [InlineData("in ")]
+        [InlineData("[System.Diagnostics.CodeAnalysis.UnscopedRef] in ")]
+        public void CollectionExpression_Constructor_With1_B(string modifier)
+        {
+            var source = $$"""
+                using System.Collections.Generic;
+                class C
+                {
+                    R M1()
+                    {
+                        return [with(1)];
+                    }
+                    R M2()
+                    {
+                        return new R(1);
+                    }
+                }
+                ref struct R : IEnumerable<int>
+                {
+                    public R({{modifier}} int a) { }
+                    public void Add(int i) { }
+                    public IEnumerator<int> GetEnumerator() => throw null;
+                    System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator() => throw null;
+                }
+                """;
+
+            CreateCompilationWithSpan([source, CollectionBuilderAttributeDefinition, UnscopedRefAttributeDefinition]).VerifyDiagnostics(
+                modifier == "" ? [] :
+                [
+                    // (6,16): error CS9203: A collection expression of type 'R' cannot be used in this context because it may be exposed outside of the current scope.
+                    //         return [with(1)];
+                    Diagnostic(ErrorCode.ERR_CollectionExpressionEscape, "[with(1)]").WithArguments("R").WithLocation(6, 16),
+                    // (10,22): error CS8156: An expression cannot be used in this context because it may not be passed or returned by reference
+                    //         return new R(1);
+                    Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "1").WithLocation(10, 22),
+                    // (10,16): error CS8347: Cannot use a result of 'R.R(in int)' in this context because it may expose variables referenced by parameter 'a' outside of their declaration scope
+                    //         return new R(1);
+                    Diagnostic(ErrorCode.ERR_EscapeCall, "new R(1)").WithArguments("R.R(in int)", "a").WithLocation(10, 16),
+                ]);
+        }
+
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/75802")]
+        [InlineData("")]
+        [InlineData("in ")]
+        [InlineData("[System.Diagnostics.CodeAnalysis.UnscopedRef] in ")]
+        public void CollectionExpression_Constructor_With1_C(string modifier)
+        {
+            var source = $$"""
+                using System.Collections.Generic;
+                class C
+                {
+                    void M1(ref R r)
+                    {
+                        var local = 1;
+                        r = [with(local)];
+                    }
+                    void M2(ref R r)
+                    {
+                        var local = 1;
+                        r = new R(local);
+                    }
+                }
+                ref struct R : IEnumerable<int>
+                {
+                    public R({{modifier}} int a) { }
+                    public void Add(int i) { }
+                    public IEnumerator<int> GetEnumerator() => throw null;
+                    System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator() => throw null;
+                }
+                """;
+
+            CreateCompilationWithSpan([source, CollectionBuilderAttributeDefinition, UnscopedRefAttributeDefinition]).VerifyDiagnostics(
+                modifier == "" ? [] :
+                [
+                    // (7,13): error CS9203: A collection expression of type 'R' cannot be used in this context because it may be exposed outside of the current scope.
+                    //         r = [with(local)];
+                    Diagnostic(ErrorCode.ERR_CollectionExpressionEscape, "[with(local)]").WithArguments("R").WithLocation(7, 13),
+                    // (12,19): error CS8168: Cannot return local 'local' by reference because it is not a ref local
+                    //         r = new R(local);
+                    Diagnostic(ErrorCode.ERR_RefReturnLocal, "local").WithArguments("local").WithLocation(12, 19),
+                    // (12,13): error CS8347: Cannot use a result of 'R.R(in int)' in this context because it may expose variables referenced by parameter 'a' outside of their declaration scope
+                    //         r = new R(local);
+                    Diagnostic(ErrorCode.ERR_EscapeCall, "new R(local)").WithArguments("R.R(in int)", "a").WithLocation(12, 13),
+                ]);
+        }
+
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/75802")]
+        [InlineData("")]
+        [InlineData("in ")]
+        [InlineData("[System.Diagnostics.CodeAnalysis.UnscopedRef] in ")]
+        public void CollectionExpression_Constructor_With1_D(string modifier)
+        {
+            var source = $$"""
+                using System.Collections.Generic;
+                class C
+                {
+                    void M1(ref R r)
+                    {
+                        r = [with(1)];
+                    }
+                    void M2(ref R r)
+                    {
+                        r = new R(1);
+                    }
+                }
+                ref struct R : IEnumerable<int>
+                {
+                    public R({{modifier}} int a) { }
+                    public void Add(int i) { }
+                    public IEnumerator<int> GetEnumerator() => throw null;
+                    System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator() => throw null;
+                }
+                """;
+
+            CreateCompilationWithSpan([source, CollectionBuilderAttributeDefinition, UnscopedRefAttributeDefinition]).VerifyDiagnostics(
+                modifier == "" ? [] :
+                [
+                    // (6,13): error CS9203: A collection expression of type 'R' cannot be used in this context because it may be exposed outside of the current scope.
+                    //         r = [with(1)];
+                    Diagnostic(ErrorCode.ERR_CollectionExpressionEscape, "[with(1)]").WithArguments("R").WithLocation(6, 13),
+                    // (10,19): error CS8156: An expression cannot be used in this context because it may not be passed or returned by reference
+                    //         r = new R(1);
+                    Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "1").WithLocation(10, 19),
+                    // (10,13): error CS8347: Cannot use a result of 'R.R(in int)' in this context because it may expose variables referenced by parameter 'a' outside of their declaration scope
+                    //         r = new R(1);
+                    Diagnostic(ErrorCode.ERR_EscapeCall, "new R(1)").WithArguments("R.R(in int)", "a").WithLocation(10, 13),
+                ]);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75802")]
+        public void CollectionExpression_Constructor_With2_A()
+        {
+            var source = """
+                using System.Collections.Generic;
+                class C
+                {
+                    R M1()
+                    {
+                        return [with()];
+                    }
+                    R M2()
+                    {
+                        return new R();
+                    }
+                }
+                ref struct R : IEnumerable<int>
+                {
+                    public void Add(int i) { }
+                    public IEnumerator<int> GetEnumerator() => throw null;
+                    System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator() => throw null;
+                }
+                """;
+
+            CreateCompilationWithSpan([source, CollectionBuilderAttributeDefinition, UnscopedRefAttributeDefinition]).VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75802")]
+        public void CollectionExpression_Constructor_With2_B()
+        {
+            var source = """
+                using System.Collections.Generic;
+                class C
+                {
+                    void M1(ref R r)
+                    {
+                        r = [with()];
+                    }
+                    void M2(ref R r)
+                    {
+                        r = new R();
+                    }
+                }
+                ref struct R : IEnumerable<int>
+                {
+                    public void Add(int i) { }
+                    public IEnumerator<int> GetEnumerator() => throw null;
+                    System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator() => throw null;
+                }
+                """;
+
+            CreateCompilationWithSpan([source, CollectionBuilderAttributeDefinition, UnscopedRefAttributeDefinition]).VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75802")]
+        public void CollectionExpression_Constructor_With3_A()
+        {
+            var source = """
+                using System.Collections.Generic;
+                class C
+                {
+                    R M1()
+                    {
+                        int local = 1;
+                        return [with(), local];
+                    }
+                    R M2()
+                    {
+                        int local = 1;
+                        return new R() { local };
+                    }
+                }
+                ref struct R : IEnumerable<int>
+                {
+                    public void Add(int i) { }
+                    public IEnumerator<int> GetEnumerator() => throw null;
+                    System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator() => throw null;
+                }
+                """;
+
+            CreateCompilationWithSpan([source, CollectionBuilderAttributeDefinition, UnscopedRefAttributeDefinition]).VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75802")]
+        public void CollectionExpression_Constructor_With3_B()
+        {
+            var source = """
+                using System.Collections.Generic;
+                class C
+                {
+                    R M1()
+                    {
+                        return [with(), 1];
+                    }
+                    R M2()
+                    {
+                        return new R() { 1 };
+                    }
+                }
+                ref struct R : IEnumerable<int>
+                {
+                    public void Add(int i) { }
+                    public IEnumerator<int> GetEnumerator() => throw null;
+                    System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator() => throw null;
+                }
+                """;
+
+            CreateCompilationWithSpan([source, CollectionBuilderAttributeDefinition, UnscopedRefAttributeDefinition]).VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75802")]
+        public void CollectionExpression_Constructor_With3_C()
+        {
+            var source = """
+                using System.Collections.Generic;
+                class C
+                {
+                    void M1(ref R r)
+                    {
+                        int local = 1;
+                        r = [with(), local];
+                    }
+                    void M2(ref R r)
+                    {
+                        int local = 1;
+                        r = new R() { local };
+                    }
+                }
+                ref struct R : IEnumerable<int>
+                {
+                    public void Add(int i) { }
+                    public IEnumerator<int> GetEnumerator() => throw null;
+                    System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator() => throw null;
+                }
+                """;
+
+            CreateCompilationWithSpan([source, CollectionBuilderAttributeDefinition, UnscopedRefAttributeDefinition]).VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75802")]
+        public void CollectionExpression_Constructor_With3_D()
+        {
+            var source = """
+                using System.Collections.Generic;
+                class C
+                {
+                    void M1(ref R r)
+                    {
+                        r = [with(), 1];
+                    }
+                    void M2(ref R r)
+                    {
+                        r = new R() { 1 };
+                    }
+                }
+                ref struct R : IEnumerable<int>
+                {
+                    public void Add(int i) { }
+                    public IEnumerator<int> GetEnumerator() => throw null;
+                    System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator() => throw null;
+                }
+                """;
+
+            CreateCompilationWithSpan([source, CollectionBuilderAttributeDefinition, UnscopedRefAttributeDefinition]).VerifyDiagnostics();
+        }
+
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/75802")]
+        [InlineData("")]
+        [InlineData("in ")]
+        [InlineData("[System.Diagnostics.CodeAnalysis.UnscopedRef] in ")]
+        public void CollectionExpression_Constructor_With4_A(string modifier)
+        {
+            var source = $$"""
+                using System.Collections.Generic;
+                class C
+                {
+                    R M1()
+                    {
+                        var local = 1;
+                        return [with(local), local];
+                    }
+                    R M2()
+                    {
+                        var local = 1;
+                        return new R(local) { local };
+                    }
+                }
+                ref struct R : IEnumerable<int>
+                {
+                    public R({{modifier}} int a) { }
+                    public void Add(int i) { }
+                    public IEnumerator<int> GetEnumerator() => throw null;
+                    System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator() => throw null;
+                }
+                """;
+
+            CreateCompilationWithSpan([source, CollectionBuilderAttributeDefinition, UnscopedRefAttributeDefinition]).VerifyDiagnostics(
+                modifier == "" ? [] :
+                [
+                    // (7,16): error CS9203: A collection expression of type 'R' cannot be used in this context because it may be exposed outside of the current scope.
+                    //         return [with(local), local];
+                    Diagnostic(ErrorCode.ERR_CollectionExpressionEscape, "[with(local), local]").WithArguments("R").WithLocation(7, 16),
+                    // (12,22): error CS8168: Cannot return local 'local' by reference because it is not a ref local
+                    //         return new R(local) { local };
+                    Diagnostic(ErrorCode.ERR_RefReturnLocal, "local").WithArguments("local").WithLocation(12, 22),
+                    // (12,16): error CS8347: Cannot use a result of 'R.R(in int)' in this context because it may expose variables referenced by parameter 'a' outside of their declaration scope
+                    //         return new R(local) { local };
+                    Diagnostic(ErrorCode.ERR_EscapeCall, "new R(local) { local }").WithArguments("R.R(in int)", "a").WithLocation(12, 16),
+                ]);
+        }
+
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/75802")]
+        [InlineData("")]
+        [InlineData("in ")]
+        [InlineData("[System.Diagnostics.CodeAnalysis.UnscopedRef] in ")]
+        public void CollectionExpression_Constructor_With4_B(string modifier)
+        {
+            var source = $$"""
+                using System.Collections.Generic;
+                class C
+                {
+                    R M1()
+                    {
+                        return [with(1), 1];
+                    }
+                    R M2()
+                    {
+                        return new R(1) { 1 };
+                    }
+                }
+                ref struct R : IEnumerable<int>
+                {
+                    public R({{modifier}} int a) { }
+                    public void Add(int i) { }
+                    public IEnumerator<int> GetEnumerator() => throw null;
+                    System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator() => throw null;
+                }
+                """;
+
+            CreateCompilationWithSpan([source, CollectionBuilderAttributeDefinition, UnscopedRefAttributeDefinition]).VerifyDiagnostics(
+                modifier == "" ? [] :
+                [
+                    // (6,16): error CS9203: A collection expression of type 'R' cannot be used in this context because it may be exposed outside of the current scope.
+                    //         return [with(1), 1];
+                    Diagnostic(ErrorCode.ERR_CollectionExpressionEscape, "[with(1), 1]").WithArguments("R").WithLocation(6, 16),
+                    // (10,22): error CS8156: An expression cannot be used in this context because it may not be passed or returned by reference
+                    //         return new R(1) { 1 };
+                    Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "1").WithLocation(10, 22),
+                    // (10,16): error CS8347: Cannot use a result of 'R.R(in int)' in this context because it may expose variables referenced by parameter 'a' outside of their declaration scope
+                    //         return new R(1) { 1 };
+                    Diagnostic(ErrorCode.ERR_EscapeCall, "new R(1) { 1 }").WithArguments("R.R(in int)", "a").WithLocation(10, 16),
+                ]);
+        }
+
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/75802")]
+        [InlineData("")]
+        [InlineData("in ")]
+        [InlineData("[System.Diagnostics.CodeAnalysis.UnscopedRef] in ")]
+        public void CollectionExpression_Constructor_With4_C(string modifier)
+        {
+            var source = $$"""
+                using System.Collections.Generic;
+                class C
+                {
+                    void M1(ref R r)
+                    {
+                        var local = 1;
+                        r = [with(local), local];
+                    }
+                    void M2(ref R r)
+                    {
+                        var local = 1;
+                        r = new R(local) { local };
+                    }
+                }
+                ref struct R : IEnumerable<int>
+                {
+                    public R({{modifier}} int a) { }
+                    public void Add(int i) { }
+                    public IEnumerator<int> GetEnumerator() => throw null;
+                    System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator() => throw null;
+                }
+                """;
+
+            CreateCompilationWithSpan([source, CollectionBuilderAttributeDefinition, UnscopedRefAttributeDefinition]).VerifyDiagnostics(
+                modifier == "" ? [] :
+                [
+                    // (7,13): error CS9203: A collection expression of type 'R' cannot be used in this context because it may be exposed outside of the current scope.
+                    //         r = [with(local), local];
+                    Diagnostic(ErrorCode.ERR_CollectionExpressionEscape, "[with(local), local]").WithArguments("R").WithLocation(7, 13),
+                    // (12,19): error CS8168: Cannot return local 'local' by reference because it is not a ref local
+                    //         r = new R(local) { local };
+                    Diagnostic(ErrorCode.ERR_RefReturnLocal, "local").WithArguments("local").WithLocation(12, 19),
+                    // (12,13): error CS8347: Cannot use a result of 'R.R(in int)' in this context because it may expose variables referenced by parameter 'a' outside of their declaration scope
+                    //         r = new R(local) { local };
+                    Diagnostic(ErrorCode.ERR_EscapeCall, "new R(local) { local }").WithArguments("R.R(in int)", "a").WithLocation(12, 13),
+                ]);
+        }
+
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/75802")]
+        [InlineData("")]
+        [InlineData("in ")]
+        [InlineData("[System.Diagnostics.CodeAnalysis.UnscopedRef] in ")]
+        public void CollectionExpression_Constructor_With4_D(string modifier)
+        {
+            var source = $$"""
+                using System.Collections.Generic;
+                class C
+                {
+                    void M1(ref R r)
+                    {
+                        r = [with(1), 1];
+                    }
+                    void M2(ref R r)
+                    {
+                        r = new R(1) { 1 };
+                    }
+                }
+                ref struct R : IEnumerable<int>
+                {
+                    public R({{modifier}} int a) { }
+                    public void Add(int i) { }
+                    public IEnumerator<int> GetEnumerator() => throw null;
+                    System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator() => throw null;
+                }
+                """;
+
+            CreateCompilationWithSpan([source, CollectionBuilderAttributeDefinition, UnscopedRefAttributeDefinition]).VerifyDiagnostics(
+                modifier == "" ? [] :
+                [
+                    // (6,13): error CS9203: A collection expression of type 'R' cannot be used in this context because it may be exposed outside of the current scope.
+                    //         r = [with(1), 1];
+                    Diagnostic(ErrorCode.ERR_CollectionExpressionEscape, "[with(1), 1]").WithArguments("R").WithLocation(6, 13),
+                    // (10,19): error CS8156: An expression cannot be used in this context because it may not be passed or returned by reference
+                    //         r = new R(1) { 1 };
+                    Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "1").WithLocation(10, 19),
+                    // (10,13): error CS8347: Cannot use a result of 'R.R(in int)' in this context because it may expose variables referenced by parameter 'a' outside of their declaration scope
+                    //         r = new R(1) { 1 };
+                    Diagnostic(ErrorCode.ERR_EscapeCall, "new R(1) { 1 }").WithArguments("R.R(in int)", "a").WithLocation(10, 13),
+                ]);
+        }
+
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/75802")]
+        [InlineData("")]
+        [InlineData("in ")]
+        [InlineData("[System.Diagnostics.CodeAnalysis.UnscopedRef] in ")]
+        public void CollectionExpression_Constructor_With5_A(string modifier)
+        {
+            var source = $$"""
+                using System.Collections.Generic;
+                class C
+                {
+                    R M1()
+                    {
+                        int local = 1;
+                        return [with(local), 1];
+                    }
+                    R M2()
+                    {
+                        int local = 1;
+                        return new R(local) { 1 };
+                    }
+                }
+                ref struct R : IEnumerable<int>
+                {
+                    public R({{modifier}} int a) { }
+                    public void Add(int i) { }
+                    public IEnumerator<int> GetEnumerator() => throw null;
+                    System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator() => throw null;
+                }
+                """;
+
+            CreateCompilationWithSpan([source, CollectionBuilderAttributeDefinition, UnscopedRefAttributeDefinition]).VerifyDiagnostics(
+                modifier == "" ? [] :
+                [
+                    // (7,16): error CS9203: A collection expression of type 'R' cannot be used in this context because it may be exposed outside of the current scope.
+                    //         return [with(local), 1];
+                    Diagnostic(ErrorCode.ERR_CollectionExpressionEscape, "[with(local), 1]").WithArguments("R").WithLocation(7, 16),
+                    // (12,22): error CS8168: Cannot return local 'local' by reference because it is not a ref local
+                    //         return new R(local) { 1 };
+                    Diagnostic(ErrorCode.ERR_RefReturnLocal, "local").WithArguments("local").WithLocation(12, 22),
+                    // (12,16): error CS8347: Cannot use a result of 'R.R(in int)' in this context because it may expose variables referenced by parameter 'a' outside of their declaration scope
+                    //         return new R(local) { 1 };
+                    Diagnostic(ErrorCode.ERR_EscapeCall, "new R(local) { 1 }").WithArguments("R.R(in int)", "a").WithLocation(12, 16),
+                ]);
+        }
+
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/75802")]
+        [InlineData("")]
+        [InlineData("in ")]
+        [InlineData("[System.Diagnostics.CodeAnalysis.UnscopedRef] in ")]
+        public void CollectionExpression_Constructor_With5_B(string modifier)
+        {
+            var source = $$"""
+                using System.Collections.Generic;
+                class C
+                {
+                    R M1()
+                    {
+                        int local = 1;
+                        return [with(1), local];
+                    }
+                    R M2()
+                    {
+                        int local = 1;
+                        return new R(1) { local };
+                    }
+                }
+                ref struct R : IEnumerable<int>
+                {
+                    public R({{modifier}} int a) { }
+                    public void Add(int i) { }
+                    public IEnumerator<int> GetEnumerator() => throw null;
+                    System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator() => throw null;
+                }
+                """;
+
+            CreateCompilationWithSpan([source, CollectionBuilderAttributeDefinition, UnscopedRefAttributeDefinition]).VerifyDiagnostics(
+                modifier == "" ? [] :
+                [
+                    // (7,16): error CS9203: A collection expression of type 'R' cannot be used in this context because it may be exposed outside of the current scope.
+                    //         return [with(1), local];
+                    Diagnostic(ErrorCode.ERR_CollectionExpressionEscape, "[with(1), local]").WithArguments("R").WithLocation(7, 16),
+                    // (12,22): error CS8156: An expression cannot be used in this context because it may not be passed or returned by reference
+                    //         return new R(1) { local };
+                    Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "1").WithLocation(12, 22),
+                    // (12,16): error CS8347: Cannot use a result of 'R.R(in int)' in this context because it may expose variables referenced by parameter 'a' outside of their declaration scope
+                    //         return new R(1) { local };
+                    Diagnostic(ErrorCode.ERR_EscapeCall, "new R(1) { local }").WithArguments("R.R(in int)", "a").WithLocation(12, 16),
+                ]);
+        }
+
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/75802")]
+        [InlineData("")]
+        [InlineData("in ")]
+        [InlineData("[System.Diagnostics.CodeAnalysis.UnscopedRef] in ")]
+        public void CollectionExpression_Constructor_With5_C(string modifier)
+        {
+            var source = $$"""
+                using System.Collections.Generic;
+                class C
+                {
+                    void M1(ref R r)
+                    {
+                        int local = 1;
+                        r = [with(local), 1];
+                    }
+                    void M2(ref R r)
+                    {
+                        int local = 1;
+                        r = new R(local) { 1 };
+                    }
+                }
+                ref struct R : IEnumerable<int>
+                {
+                    public R({{modifier}} int a) { }
+                    public void Add(int i) { }
+                    public IEnumerator<int> GetEnumerator() => throw null;
+                    System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator() => throw null;
+                }
+                """;
+
+            CreateCompilationWithSpan([source, CollectionBuilderAttributeDefinition, UnscopedRefAttributeDefinition]).VerifyDiagnostics(
+                modifier == "" ? [] :
+                [
+                    // (7,13): error CS9203: A collection expression of type 'R' cannot be used in this context because it may be exposed outside of the current scope.
+                    //         r = [with(local), 1];
+                    Diagnostic(ErrorCode.ERR_CollectionExpressionEscape, "[with(local), 1]").WithArguments("R").WithLocation(7, 13),
+                    // (12,19): error CS8168: Cannot return local 'local' by reference because it is not a ref local
+                    //         r = new R(local) { 1 };
+                    Diagnostic(ErrorCode.ERR_RefReturnLocal, "local").WithArguments("local").WithLocation(12, 19),
+                    // (12,13): error CS8347: Cannot use a result of 'R.R(in int)' in this context because it may expose variables referenced by parameter 'a' outside of their declaration scope
+                    //         r = new R(local) { 1 };
+                    Diagnostic(ErrorCode.ERR_EscapeCall, "new R(local) { 1 }").WithArguments("R.R(in int)", "a").WithLocation(12, 13),
+                ]);
+        }
+
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/75802")]
+        [InlineData("")]
+        [InlineData("in ")]
+        [InlineData("[System.Diagnostics.CodeAnalysis.UnscopedRef] in ")]
+        public void CollectionExpression_Constructor_With5_D(string modifier)
+        {
+            var source = $$"""
+                using System.Collections.Generic;
+                class C
+                {
+                    void M1(ref R r)
+                    {
+                        int local = 1;
+                        r = [with(1), local];
+                    }
+                    void M2(ref R r)
+                    {
+                        int local = 1;
+                        r = new R(1) { local };
+                    }
+                }
+                ref struct R : IEnumerable<int>
+                {
+                    public R({{modifier}} int a) { }
+                    public void Add(int i) { }
+                    public IEnumerator<int> GetEnumerator() => throw null;
+                    System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator() => throw null;
+                }
+                """;
+
+            CreateCompilationWithSpan([source, CollectionBuilderAttributeDefinition, UnscopedRefAttributeDefinition]).VerifyDiagnostics(
+                modifier == "" ? [] :
+                [
+                    // (7,13): error CS9203: A collection expression of type 'R' cannot be used in this context because it may be exposed outside of the current scope.
+                    //         r = [with(1), local];
+                    Diagnostic(ErrorCode.ERR_CollectionExpressionEscape, "[with(1), local]").WithArguments("R").WithLocation(7, 13),
+                    // (12,19): error CS8156: An expression cannot be used in this context because it may not be passed or returned by reference
+                    //         r = new R(1) { local };
+                    Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "1").WithLocation(12, 19),
+                    // (12,13): error CS8347: Cannot use a result of 'R.R(in int)' in this context because it may expose variables referenced by parameter 'a' outside of their declaration scope
+                    //         r = new R(1) { local };
+                    Diagnostic(ErrorCode.ERR_EscapeCall, "new R(1) { local }").WithArguments("R.R(in int)", "a").WithLocation(12, 13),
+                ]);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75802")]
+        public void CollectionExpression_Constructor_With6_A()
+        {
+            var source = """
+                using System.Collections.Generic;
+                class C
+                {
+                    R M1(ref int a)
+                    {
+                        return [with(ref a)];
+                    }
+                    R M2(ref int a)
+                    {
+                        return new R(ref a);
+                    }
+                }
+                ref struct R : IEnumerable<int>
+                {
+                    public R(ref int a) { }
+                    public void Add(int i) { }
+                    public IEnumerator<int> GetEnumerator() => throw null;
+                    System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator() => throw null;
+                }
+                """;
+
+            CreateCompilationWithSpan([source, CollectionBuilderAttributeDefinition, UnscopedRefAttributeDefinition]).VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75802")]
+        public void CollectionExpression_Constructor_With6_B()
+        {
+            var source = """
+                using System.Collections.Generic;
+                class C
+                {
+                    R M1(ref int a)
+                    {
+                        return [with(ref a)];
+                    }
+                    R M2(ref int a)
+                    {
+                        return new R(ref a);
+                    }
+                }
+                ref struct R : IEnumerable<int>
+                {
+                    public R(scoped ref int a) { }
+                    public void Add(int i) { }
+                    public IEnumerator<int> GetEnumerator() => throw null;
+                    System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator() => throw null;
+                }
+                """;
+
+            CreateCompilationWithSpan([source, CollectionBuilderAttributeDefinition, UnscopedRefAttributeDefinition]).VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75802")]
+        public void CollectionExpression_Constructor_With6_C()
+        {
+            var source = """
+                using System.Collections.Generic;
+                class C
+                {
+                    R M1(scoped ref int a)
+                    {
+                        return [with(ref a)];
+                    }
+                    R M2(scoped ref int a)
+                    {
+                        return new R(ref a);
+                    }
+                }
+                ref struct R : IEnumerable<int>
+                {
+                    public R(ref int a) { }
+                    public void Add(int i) { }
+                    public IEnumerator<int> GetEnumerator() => throw null;
+                    System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator() => throw null;
+                }
+                """;
+
+            CreateCompilationWithSpan([source, CollectionBuilderAttributeDefinition, UnscopedRefAttributeDefinition]).VerifyDiagnostics(
+                // (6,16): error CS9203: A collection expression of type 'R' cannot be used in this context because it may be exposed outside of the current scope.
+                //         return [with(ref a)];
+                Diagnostic(ErrorCode.ERR_CollectionExpressionEscape, "[with(ref a)]").WithArguments("R").WithLocation(6, 16),
+                // (10,26): error CS9075: Cannot return a parameter by reference 'a' because it is scoped to the current method
+                //         return new R(ref a);
+                Diagnostic(ErrorCode.ERR_RefReturnScopedParameter, "a").WithArguments("a").WithLocation(10, 26),
+                // (10,16): error CS8347: Cannot use a result of 'R.R(ref int)' in this context because it may expose variables referenced by parameter 'a' outside of their declaration scope
+                //         return new R(ref a);
+                Diagnostic(ErrorCode.ERR_EscapeCall, "new R(ref a)").WithArguments("R.R(ref int)", "a").WithLocation(10, 16));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75802")]
+        public void CollectionExpression_Constructor_With6_D()
+        {
+            var source = """
+                using System.Collections.Generic;
+                class C
+                {
+                    R M1(scoped ref int a)
+                    {
+                        return [with(ref a)];
+                    }
+                    R M2(scoped ref int a)
+                    {
+                        return new R(ref a);
+                    }
+                }
+                ref struct R : IEnumerable<int>
+                {
+                    public R(scoped ref int a) { }
+                    public void Add(int i) { }
+                    public IEnumerator<int> GetEnumerator() => throw null;
+                    System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator() => throw null;
+                }
+                """;
+
+            CreateCompilationWithSpan([source, CollectionBuilderAttributeDefinition, UnscopedRefAttributeDefinition]).VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75802")]
+        public void CollectionExpression_Constructor_With7_A()
+        {
+            var source = """
+                using System;
+                using System.Collections.Generic;
+                class C
+                {
+                    void M1()
+                    {
+                        Span<int> stackSpan = stackalloc int[] { 13 };
+                        Span<int> heapSpan = default;
+
+                        R r = [with(ref heapSpan, stackSpan)];
+                    }
+                    void M2()
+                    {
+                        Span<int> stackSpan = stackalloc int[] { 13 };
+                        Span<int> heapSpan = default;
+                
+                        R r = new R(ref heapSpan, stackSpan);
+                    }
+                }
+                ref struct R : IEnumerable<int>
+                {
+                    public R(ref Span<int> a, Span<int> b) { }
+                    public void Add(int i) { }
+                    public IEnumerator<int> GetEnumerator() => throw null;
+                    System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator() => throw null;
+                }
+                """;
+
+            CreateCompilationWithSpan([source, CollectionBuilderAttributeDefinition, UnscopedRefAttributeDefinition]).VerifyDiagnostics(
+                // (10,16): error CS8350: This combination of arguments to 'R.R(ref Span<int>, Span<int>)' is disallowed because it may expose variables referenced by parameter 'b' outside of their declaration scope
+                //         R r = [with(ref heapSpan, stackSpan)];
+                Diagnostic(ErrorCode.ERR_CallArgMixing, "with(ref heapSpan, stackSpan)").WithArguments("R.R(ref System.Span<int>, System.Span<int>)", "b").WithLocation(10, 16),
+                // (10,35): error CS8352: Cannot use variable 'stackSpan' in this context because it may expose referenced variables outside of their declaration scope
+                //         R r = [with(ref heapSpan, stackSpan)];
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "stackSpan").WithArguments("stackSpan").WithLocation(10, 35),
+                // (17,15): error CS8350: This combination of arguments to 'R.R(ref Span<int>, Span<int>)' is disallowed because it may expose variables referenced by parameter 'b' outside of their declaration scope
+                //         R r = new R(ref heapSpan, stackSpan);
+                Diagnostic(ErrorCode.ERR_CallArgMixing, "new R(ref heapSpan, stackSpan)").WithArguments("R.R(ref System.Span<int>, System.Span<int>)", "b").WithLocation(17, 15),
+                // (17,35): error CS8352: Cannot use variable 'stackSpan' in this context because it may expose referenced variables outside of their declaration scope
+                //         R r = new R(ref heapSpan, stackSpan);
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "stackSpan").WithArguments("stackSpan").WithLocation(17, 35));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75802")]
+        public void CollectionExpression_Constructor_With7_B()
+        {
+            var source = """
+                using System;
+                using System.Collections.Generic;
+                class C
+                {
+                    void M1()
+                    {
+                        Span<int> stackSpan = stackalloc int[] { 13 };
+                        Span<int> heapSpan = default;
+
+                        R r = [with(ref stackSpan, heapSpan)];
+                    }
+                    void M2()
+                    {
+                        Span<int> stackSpan = stackalloc int[] { 13 };
+                        Span<int> heapSpan = default;
+                
+                        R r = new R(ref stackSpan, heapSpan);
+                    }
+                }
+                ref struct R : IEnumerable<int>
+                {
+                    public R(ref Span<int> a, Span<int> b) { }
+                    public void Add(int i) { }
+                    public IEnumerator<int> GetEnumerator() => throw null;
+                    System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator() => throw null;
+                }
+                """;
+
+            CreateCompilationWithSpan([source, CollectionBuilderAttributeDefinition, UnscopedRefAttributeDefinition]).VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75802")]
+        public void CollectionExpression_Constructor_With8_A()
+        {
+            var source = """
+                using System;
+                using System.Collections.Generic;
+                class C
+                {
+                    void M1()
+                    {
+                        Span<int> stackSpan = stackalloc int[] { 13 };
+                        int local = 0;
+
+                        R r = [with(ref stackSpan), local];
+                    }
+                    void M2()
+                    {
+                        Span<int> stackSpan = stackalloc int[] { 13 };
+                        int local = 0;
+                
+                        R r = new R(ref stackSpan) { local };
+                    }
+                }
+                ref struct R : IEnumerable<int>
+                {
+                    public R(ref Span<int> a) { }
+                    public void Add(int i) { }
+                    public IEnumerator<int> GetEnumerator() => throw null;
+                    System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator() => throw null;
+                }
+                """;
+
+            CreateCompilationWithSpan([source, CollectionBuilderAttributeDefinition, UnscopedRefAttributeDefinition]).VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75802")]
+        public void CollectionExpression_Constructor_With8_B()
+        {
+            var source = """
+                using System;
+                using System.Collections.Generic;
+                class C
+                {
+                    void M1()
+                    {
+                        Span<int> stackSpan = stackalloc int[] { 13 };
+                        int local = 0;
+
+                        R r = [with(ref stackSpan), local];
+                    }
+                    void M2()
+                    {
+                        Span<int> stackSpan = stackalloc int[] { 13 };
+                        int local = 0;
+                
+                        R r = new R(ref stackSpan) { local };
+                    }
+                }
+                ref struct R : IEnumerable<int>
+                {
+                    public R(scoped ref Span<int> a) { }
+                    public void Add(int i) { }
+                    public IEnumerator<int> GetEnumerator() => throw null;
+                    System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator() => throw null;
+                }
+                """;
+
+            CreateCompilationWithSpan([source, CollectionBuilderAttributeDefinition, UnscopedRefAttributeDefinition]).VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75802")]
+        public void CollectionExpression_Constructor_With8_C()
+        {
+            var source = """
+                using System;
+                using System.Collections.Generic;
+                class C
+                {
+                    void M1()
+                    {
+                        Span<int> heapSpan = default;
+                        int local = 0;
+
+                        R r = [with(ref heapSpan), local];
+                    }
+                    void M2()
+                    {
+                        Span<int> heapSpan = default;
+                        int local = 0;
+                
+                        R r = new R(ref heapSpan) { local };
+                    }
+                }
+                ref struct R : IEnumerable<int>
+                {
+                    public R(ref Span<int> a) { }
+                    public void Add(int i) { }
+                    public IEnumerator<int> GetEnumerator() => throw null;
+                    System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator() => throw null;
+                }
+                """;
+
+            CreateCompilationWithSpan([source, CollectionBuilderAttributeDefinition, UnscopedRefAttributeDefinition]).VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75802")]
+        public void CollectionExpression_Constructor_With8_D()
+        {
+            var source = """
+                using System;
+                using System.Collections.Generic;
+                class C
+                {
+                    void M1()
+                    {
+                        Span<int> heapSpan = default;
+                        int local = 0;
+
+                        R r = [with(ref heapSpan), local];
+                    }
+                    void M2()
+                    {
+                        Span<int> heapSpan = default;
+                        int local = 0;
+                
+                        R r = new R(ref heapSpan) { local };
+                    }
+                }
+                ref struct R : IEnumerable<int>
+                {
+                    public R(scoped ref Span<int> a) { }
+                    public void Add(int i) { }
+                    public IEnumerator<int> GetEnumerator() => throw null;
+                    System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator() => throw null;
+                }
+                """;
+
+            CreateCompilationWithSpan([source, CollectionBuilderAttributeDefinition, UnscopedRefAttributeDefinition]).VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75802")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/81520")]
+        public void CollectionExpression_Constructor_With9_A()
+        {
+            var source = """
+                using System;
+                using System.Collections.Generic;
+                class C
+                {
+                    void M1()
+                    {
+                        Span<int> stackSpan = stackalloc int[] { 13 };
+                        Span<int> heapSpan = default;
+
+                        R r = [with(ref heapSpan), stackSpan];
+                    }
+                    void M2()
+                    {
+                        Span<int> stackSpan = stackalloc int[] { 13 };
+                        Span<int> heapSpan = default;
+                
+                        R r = new R(ref heapSpan) { stackSpan };
+                    }
+                }
+                ref struct R : IEnumerable<Span<int>>
+                {
+                    public R(ref Span<int> a) { }
+                    public void Add(Span<int> i) { }
+                    public IEnumerator<Span<int>> GetEnumerator() => throw null;
+                    System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator() => throw null;
+                }
+                """;
+
+            CreateCompilation(
+                [source, CollectionBuilderAttributeDefinition, UnscopedRefAttributeDefinition],
+                targetFramework: TargetFramework.Net90).VerifyDiagnostics(
+                // (10,25): error CS8350: This combination of arguments to 'R.R(ref Span<int>)' is disallowed because it may expose variables referenced by parameter 'a' outside of their declaration scope
+                //         R r = [with(ref heapSpan), stackSpan];
+                Diagnostic(ErrorCode.ERR_CallArgMixing, "heapSpan").WithArguments("R.R(ref System.Span<int>)", "a").WithLocation(10, 25),
+                // (17,25): error CS8350: This combination of arguments to 'R.R(ref Span<int>)' is disallowed because it may expose variables referenced by parameter 'a' outside of their declaration scope
+                //         R r = new R(ref heapSpan) { stackSpan };
+                Diagnostic(ErrorCode.ERR_CallArgMixing, "heapSpan").WithArguments("R.R(ref System.Span<int>)", "a").WithLocation(17, 25));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75802")]
+        public void CollectionExpression_Constructor_With9_B()
+        {
+            var source = """
+                using System;
+                using System.Collections.Generic;
+                class C
+                {
+                    void M1()
+                    {
+                        Span<int> stackSpan = stackalloc int[] { 13 };
+                        Span<int> heapSpan = default;
+
+                        R r = [with(ref stackSpan), heapSpan];
+                    }
+                    void M2()
+                    {
+                        Span<int> stackSpan = stackalloc int[] { 13 };
+                        Span<int> heapSpan = default;
+                
+                        R r = new R(ref stackSpan) { heapSpan };
+                    }
+                }
+                ref struct R : IEnumerable<Span<int>>
+                {
+                    public R(ref Span<int> a) { }
+                    public void Add(Span<int> i) { }
+                    public IEnumerator<Span<int>> GetEnumerator() => throw null;
+                    System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator() => throw null;
+                }
+                """;
+
+            CompileAndVerify(
+                [source, CollectionBuilderAttributeDefinition, UnscopedRefAttributeDefinition],
+                targetFramework: TargetFramework.Net90,
+                verify: Verification.Fails).VerifyDiagnostics();
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/63306")]
@@ -5658,7 +8254,8 @@ public ref struct S<T>
             comp.VerifyDiagnostics();
         }
 
-        [WorkItem(35146, "https://github.com/dotnet/roslyn/issues/35146")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/35146")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/81796")]
         [Theory]
         [InlineData(LanguageVersion.CSharp10)]
         [InlineData(LanguageVersion.CSharp11)]
@@ -5679,11 +8276,7 @@ public readonly ref struct S<T>
 }
 ";
             var comp = CreateCompilationWithMscorlibAndSpan(csharp, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion), options: TestOptions.UnsafeDebugDll);
-            comp.VerifyDiagnostics(
-                // (11,15): warning CS9080: Use of variable 'x' in this context may expose referenced variables outside of their declaration scope
-                //         b.P = x;
-                Diagnostic(ErrorCode.WRN_EscapeVariable, "x").WithArguments("x").WithLocation(11, 15));
-            var verifier = CompileAndVerify(comp, verify: Verification.Skipped);
+            var verifier = CompileAndVerify(comp, verify: Verification.Skipped).VerifyDiagnostics();
             verifier.VerifyIL("S<T>.N", @"
 {
   // Code size       24 (0x18)
@@ -5708,7 +8301,8 @@ public readonly ref struct S<T>
 ");
         }
 
-        [WorkItem(35146, "https://github.com/dotnet/roslyn/issues/35146")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/35146")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/81796")]
         [Theory]
         [InlineData(LanguageVersion.CSharp10)]
         [InlineData(LanguageVersion.CSharp11)]
@@ -5729,11 +8323,7 @@ public ref struct S<T>
 }
 ";
             var comp = CreateCompilationWithMscorlibAndSpan(csharp, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion), options: TestOptions.UnsafeDebugDll);
-            comp.VerifyDiagnostics(
-                // (11,15): warning CS9080: Use of variable 'x' in this context may expose referenced variables outside of their declaration scope
-                //         b.P = x;
-                Diagnostic(ErrorCode.WRN_EscapeVariable, "x").WithArguments("x").WithLocation(11, 15));
-            var verifier = CompileAndVerify(comp, verify: Verification.Skipped);
+            var verifier = CompileAndVerify(comp, verify: Verification.Skipped).VerifyDiagnostics();
             verifier.VerifyIL("S<T>.N", @"
 {
   // Code size       24 (0x18)
@@ -5758,7 +8348,8 @@ public ref struct S<T>
 ");
         }
 
-        [WorkItem(35146, "https://github.com/dotnet/roslyn/issues/35146")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/35146")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/81796")]
         [Theory]
         [InlineData(LanguageVersion.CSharp10)]
         [InlineData(LanguageVersion.CSharp11)]
@@ -5779,11 +8370,7 @@ public ref struct S<T>
 }
 ";
             var comp = CreateCompilationWithMscorlibAndSpan(csharp, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion), options: TestOptions.UnsafeDebugDll);
-            comp.VerifyDiagnostics(
-                // (11,15): warning CS9080: Use of variable 'x' in this context may expose referenced variables outside of their declaration scope
-                //         b.P = x;
-                Diagnostic(ErrorCode.WRN_EscapeVariable, "x").WithArguments("x").WithLocation(11, 15));
-            var verifier = CompileAndVerify(comp, verify: Verification.Skipped);
+            var verifier = CompileAndVerify(comp, verify: Verification.Skipped).VerifyDiagnostics();
             verifier.VerifyIL("S<T>.N", @"
 {
   // Code size       24 (0x18)
@@ -7440,9 +10027,15 @@ public class C
 
             var comp = CreateCompilationWithSpan(tree, TestOptions.UnsafeDebugDll);
             comp.VerifyEmitDiagnostics(
+                // (17,9): error CS8350: This combination of arguments to 'S1.Span' is disallowed because it may expose variables referenced by parameter 'value' outside of their declaration scope
+                //         local.Span = stackSpan; // 1
+                Diagnostic(ErrorCode.ERR_CallArgMixing, "local.Span").WithArguments("S1.Span", "value").WithLocation(17, 9),
                 // (17,22): error CS8352: Cannot use variable 'stackSpan' in this context because it may expose referenced variables outside of their declaration scope
                 //         local.Span = stackSpan; // 1
                 Diagnostic(ErrorCode.ERR_EscapeVariable, "stackSpan").WithArguments("stackSpan").WithLocation(17, 22),
+                // (36,9): error CS8350: This combination of arguments to 'S2.Span' is disallowed because it may expose variables referenced by parameter 'value' outside of their declaration scope
+                //         local.Span = stackSpan; // 2
+                Diagnostic(ErrorCode.ERR_CallArgMixing, "local.Span").WithArguments("S2.Span", "value").WithLocation(36, 9),
                 // (36,22): error CS8352: Cannot use variable 'stackSpan' in this context because it may expose referenced variables outside of their declaration scope
                 //         local.Span = stackSpan; // 2
                 Diagnostic(ErrorCode.ERR_EscapeVariable, "stackSpan").WithArguments("stackSpan").WithLocation(36, 22),
@@ -9148,6 +11741,1702 @@ public struct Vec4
                 //         return xyzw4;
                 Diagnostic(ErrorCode.ERR_EscapeVariable, "xyzw4").WithArguments("xyzw4").WithLocation(36, 16)
                 );
+        }
+
+        [Theory, CombinatorialData]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/85694")]
+        public void LocalReceiver_EmbeddedStatement_RefAssignment(
+            [CombinatorialValues(
+                "if (condition) BODY",
+                "if (condition) { } else BODY",
+                "if (condition) { } else if (condition) BODY",
+                "while (condition) BODY",
+                "do BODY while (condition);",
+                "for (; condition;) BODY",
+                "foreach (var item in new int[1]) BODY",
+                "using (s) BODY",
+                "lock (new object()) BODY",
+                "fixed (int* p = new int[1]) BODY")] string statement,
+            bool readOnly,
+            bool useBlock)
+        {
+            var body = useBlock ? "{ c = ref s.Self; }" : "c = ref s.Self;";
+            var unsafeRegion = statement.StartsWith("fixed", StringComparison.Ordinal);
+            var source = $$"""
+                using System;
+                using System.Diagnostics.CodeAnalysis;
+
+                struct S : IDisposable
+                {
+                    [UnscopedRef] public ref S Self => ref this;
+                    public void Dispose() { }
+                }
+
+                class C
+                {
+                    static {{(unsafeRegion ? "unsafe " : "")}}void M(bool condition)
+                    {
+                        foreach (ref {{(readOnly ? "readonly " : "")}}var s in new Span<S>(new S[1]))
+                        {
+                            ref var c = ref s.Self;
+                            {{statement.Replace("BODY", body)}}
+                            c = ref s.Self;
+                        }
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source, options: TestOptions.UnsafeDebugDll, targetFramework: TargetFramework.Net70);
+            if (readOnly)
+            {
+                comp.VerifyDiagnostics(
+                    // error CS8374: Cannot ref-assign 's.Self' to 'c' because 's.Self' has a narrower escape scope than 'c'.
+                    // c = ref s.Self;
+                    Diagnostic(unsafeRegion ? ErrorCode.WRN_RefAssignNarrower : ErrorCode.ERR_RefAssignNarrower, "c = ref s.Self")
+                        .WithArguments("c", "s.Self")
+                        .WithLocation(17, 13 + statement.IndexOf("BODY", StringComparison.Ordinal) + (useBlock ? 2 : 0)));
+            }
+            else
+            {
+                comp.VerifyEmitDiagnostics();
+            }
+        }
+
+        [Theory, CombinatorialData]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/85694")]
+        public void LocalReceiver_EmbeddedStatement_HeaderScope(
+            [CombinatorialValues(
+                "while (Capture(ref s.Self, out var r)) BODY",
+                "for (; Capture(ref s.Self, out var r);) BODY",
+                "using (GetDisposable(ref s.Self, out var r)) BODY",
+                "fixed (int* p = GetArray(ref s.Self, out var r)) BODY")] string statement,
+            bool useBlock)
+        {
+            var body = useBlock ? "{ r.Value = ref s.Self; }" : "r.Value = ref s.Self;";
+            var unsafeRegion = statement.StartsWith("fixed", StringComparison.Ordinal);
+            var source = $$"""
+                using System;
+                using System.Diagnostics.CodeAnalysis;
+
+                struct S : IDisposable
+                {
+                    [UnscopedRef] public ref S Self => ref this;
+                    public void Dispose() { }
+                }
+
+                ref struct R
+                {
+                    public ref S Value;
+                }
+
+                class C
+                {
+                    static {{(unsafeRegion ? "unsafe " : "")}}void M(in S s)
+                    {
+                        {{statement.Replace("BODY", body)}}
+                    }
+
+                    static bool Capture(ref S value, out R result)
+                    {
+                        result = new R { Value = ref value };
+                        return true;
+                    }
+
+                    static S GetDisposable(ref S value, out R result)
+                    {
+                        Capture(ref value, out result);
+                        return default;
+                    }
+
+                    static int[] GetArray(ref S value, out R result)
+                    {
+                        Capture(ref value, out result);
+                        return new int[1];
+                    }
+                }
+                """;
+            CreateCompilation(source, options: TestOptions.UnsafeDebugDll, targetFramework: TargetFramework.Net70).VerifyDiagnostics(
+                // error CS8374: Cannot ref-assign 's.Self' to 'Value' because 's.Self' has a narrower escape scope than 'Value'.
+                // r.Value = ref s.Self;
+                Diagnostic(unsafeRegion ? ErrorCode.WRN_RefAssignNarrower : ErrorCode.ERR_RefAssignNarrower, "r.Value = ref s.Self")
+                    .WithArguments("Value", "s.Self")
+                    .WithLocation(19, 9 + statement.IndexOf("BODY", StringComparison.Ordinal) + (useBlock ? 2 : 0)));
+        }
+
+        [Theory, CombinatorialData]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/85694")]
+        public void LocalReceiver_ElseIfCondition_RefAssignment(bool useBlock)
+        {
+            var source = $$"""
+                using System.Diagnostics.CodeAnalysis;
+
+                struct S
+                {
+                    [UnscopedRef] public ref S Self => ref this;
+                }
+
+                class C
+                {
+                    static void M(in S s, bool condition)
+                    {
+                        ref var c = ref s.Self;
+                        if ((c = ref s.Self).Equals(default(S))) { }
+                        if (condition) { }
+                        else {{(useBlock ? "{" : "")}}
+                            if ((c = ref s.Self).Equals(default(S))) { }
+                        {{(useBlock ? "}" : "")}}
+                        c = ref s.Self;
+                    }
+                }
+                """;
+            CreateCompilation(source, targetFramework: TargetFramework.Net70).VerifyDiagnostics(
+                // (16,18): error CS8374: Cannot ref-assign 's.Self' to 'c' because 's.Self' has a narrower escape scope than 'c'.
+                //             if ((c = ref s.Self).Equals(default(S))) { }
+                Diagnostic(ErrorCode.ERR_RefAssignNarrower, "c = ref s.Self").WithArguments("c", "s.Self").WithLocation(16, 18));
+        }
+
+        [Theory, CombinatorialData]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/85694")]
+        public void LocalReceiver_ElseIfCondition_ExpressionVariables(
+            [CombinatorialValues("Capture(out var result, ref s.Self)", "Capture(ref s.Self) is var result")] string condition,
+            bool useBlock)
+        {
+            var source = $$"""
+                using System.Diagnostics.CodeAnalysis;
+
+                struct S
+                {
+                    [UnscopedRef] public ref S Self => ref this;
+                }
+
+                ref struct R
+                {
+                    public ref S Value;
+                }
+
+                class C
+                {
+                    static void M(in S s, bool condition)
+                    {
+                        ref var c = ref s.Self;
+                        if (condition) { }
+                        else {{(useBlock ? "{" : "")}}
+                            if ({{condition}} && (result.Value = ref s.Self).Equals(default(S)))
+                            {
+                                result.Value = ref s.Self;
+                            }
+                        {{(useBlock ? "}" : "")}}
+                        c = ref s.Self;
+                    }
+
+                    static bool Capture(out R result, ref S value)
+                    {
+                        result = Capture(ref value);
+                        return true;
+                    }
+
+                    static R Capture(ref S value) => new R { Value = ref value };
+                }
+                """;
+            CreateCompilation(source, targetFramework: TargetFramework.Net70).VerifyDiagnostics(
+                // (22,17): error CS8374: Cannot ref-assign 's.Self' to 'Value' because 's.Self' has a narrower escape scope than 'Value'.
+                //                 result.Value = ref s.Self;
+                Diagnostic(ErrorCode.ERR_RefAssignNarrower, "result.Value = ref s.Self").WithArguments("Value", "s.Self").WithLocation(22, 17));
+        }
+
+        [Theory, CombinatorialData]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/85694")]
+        public void LocalReceiver_EmbeddedStatement_ExpressionVariables(bool useBlock)
+        {
+            var body = "Capture(out var result, ref s.GetValue(GetInt(out var value)));";
+            var source = $$"""
+                using System.Diagnostics.CodeAnalysis;
+
+                struct S
+                {
+                    int _value;
+                    [UnscopedRef] public ref int GetValue(int value) => ref _value;
+                }
+
+                ref struct R
+                {
+                    public ref int Value;
+                }
+
+                class C
+                {
+                    static void M(in S s, bool condition)
+                    {
+                        if (condition)
+                            {{(useBlock ? $"{{ {body} }}" : body)}}
+                    }
+
+                    static void Capture(out R result, ref int value) => result = new R { Value = ref value };
+                    static int GetInt(out int value) => value = 0;
+                }
+                """;
+            CreateCompilation(source, targetFramework: TargetFramework.Net70).VerifyEmitDiagnostics();
+        }
+
+        [ConditionalFact(typeof(NoIOperationValidation), Reason = "IOperation validation has a timeout that can fail for this stress test")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/85694")]
+        public void LocalReceiver_EmbeddedStatement_LongElseIfChain()
+        {
+            var statements = string.Concat(Enumerable.Repeat("if (condition) c = ref s.Self; else ", 2000)) + "{ }";
+            var source = $$"""
+                using System.Diagnostics.CodeAnalysis;
+
+                struct S
+                {
+                    [UnscopedRef] public ref S Self => ref this;
+                }
+
+                class C
+                {
+                    static void M(ref S s, bool condition)
+                    {
+                        ref var c = ref s.Self;
+                        {{statements}}
+                        c = ref s.Self;
+                    }
+                }
+                """;
+            CreateCompilation(source, targetFramework: TargetFramework.Net70).VerifyEmitDiagnostics();
+        }
+
+        [Theory, CombinatorialData]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/85694")]
+        public void LocalReceiver_Using_RefAssignment(
+            [CombinatorialValues(".Self", ".GetSelf()", "[0]")] string access,
+            bool throughField,
+            bool usingStatement)
+        {
+            var type = throughField ? "Wrapper" : "S";
+            var receiver = throughField ? ".Field" : "";
+            var declarations = usingStatement
+                ? $"using ({type} a = default, b = default)"
+                : $"using {type} a = default, b = default;";
+            var source = $$"""
+                using System;
+                using System.Diagnostics.CodeAnalysis;
+
+                struct S : IDisposable
+                {
+                    [UnscopedRef] public ref S Self => ref this;
+                    [UnscopedRef] public ref S GetSelf() => ref this;
+                    [UnscopedRef] public ref S this[int i] => ref this;
+                    public void Dispose() { }
+                }
+
+                struct Wrapper : IDisposable
+                {
+                    public S Field = default;
+                    public Wrapper() { }
+                    public void Dispose() { }
+                }
+
+                class C
+                {
+                    static void M(bool condition)
+                    {
+                        {{declarations}}
+                        {
+                            ref var c = ref a{{receiver}}{{access}};
+                            if (condition) c = ref b{{receiver}}{{access}};
+                            if (condition)
+                            {
+                                c = ref b{{receiver}}{{access}};
+                            }
+
+                            ref var d = ref b{{receiver}}{{access}};
+                            if (condition)
+                            {
+                                d = ref a{{receiver}}{{access}};
+                            }
+                        }
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+            if (throughField)
+            {
+                comp.VerifyDiagnostics(
+                    // (26,28): error CS8374: Cannot ref-assign 'b.Field.Self' to 'c' because 'b.Field.Self' has a narrower escape scope than 'c'.
+                    //             if (condition) c = ref b.Field.Self;
+                    Diagnostic(ErrorCode.ERR_RefAssignNarrower, $"c = ref b.Field{access}").WithArguments("c", $"b.Field{access}").WithLocation(26, 28),
+                    // (29,17): error CS8374: Cannot ref-assign 'b.Field.Self' to 'c' because 'b.Field.Self' has a narrower escape scope than 'c'.
+                    //                 c = ref b.Field.Self;
+                    Diagnostic(ErrorCode.ERR_RefAssignNarrower, $"c = ref b.Field{access}").WithArguments("c", $"b.Field{access}").WithLocation(29, 17),
+                    // (35,17): error CS8374: Cannot ref-assign 'a.Field.Self' to 'd' because 'a.Field.Self' has a narrower escape scope than 'd'.
+                    //                 d = ref a.Field.Self;
+                    Diagnostic(ErrorCode.ERR_RefAssignNarrower, $"d = ref a.Field{access}").WithArguments("d", $"a.Field{access}").WithLocation(35, 17));
+            }
+            else
+            {
+                var verifier = CompileAndVerify(comp, verify: Verification.Fails.WithILVerifyMessage("""
+                    [get_Self]: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator. { Offset = 0x1 }
+                    [GetSelf]: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator. { Offset = 0x1 }
+                    [get_Item]: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator. { Offset = 0x1 }
+                    """)).VerifyDiagnostics();
+
+                // The member calls use the using locals directly, without defensive copies.
+                var memberName = access == ".Self" ? "Self.get" : "GetSelf()";
+                verifier.VerifyIL("C.M", access == "[0]" ? """
+                    {
+                      // Code size      101 (0x65)
+                      .maxstack  2
+                      .locals init (S V_0, //a
+                                    S V_1) //b
+                      IL_0000:  ldloca.s   V_0
+                      IL_0002:  initobj    "S"
+                      .try
+                      {
+                        IL_0008:  ldloca.s   V_1
+                        IL_000a:  initobj    "S"
+                        .try
+                        {
+                          IL_0010:  ldloca.s   V_0
+                          IL_0012:  ldc.i4.0
+                          IL_0013:  call       "ref S S.this[int].get"
+                          IL_0018:  pop
+                          IL_0019:  ldarg.0
+                          IL_001a:  brfalse.s  IL_0025
+                          IL_001c:  ldloca.s   V_1
+                          IL_001e:  ldc.i4.0
+                          IL_001f:  call       "ref S S.this[int].get"
+                          IL_0024:  pop
+                          IL_0025:  ldarg.0
+                          IL_0026:  brfalse.s  IL_0031
+                          IL_0028:  ldloca.s   V_1
+                          IL_002a:  ldc.i4.0
+                          IL_002b:  call       "ref S S.this[int].get"
+                          IL_0030:  pop
+                          IL_0031:  ldloca.s   V_1
+                          IL_0033:  ldc.i4.0
+                          IL_0034:  call       "ref S S.this[int].get"
+                          IL_0039:  pop
+                          IL_003a:  ldarg.0
+                          IL_003b:  brfalse.s  IL_0046
+                          IL_003d:  ldloca.s   V_0
+                          IL_003f:  ldc.i4.0
+                          IL_0040:  call       "ref S S.this[int].get"
+                          IL_0045:  pop
+                          IL_0046:  leave.s    IL_0064
+                        }
+                        finally
+                        {
+                          IL_0048:  ldloca.s   V_1
+                          IL_004a:  constrained. "S"
+                          IL_0050:  callvirt   "void System.IDisposable.Dispose()"
+                          IL_0055:  endfinally
+                        }
+                      }
+                      finally
+                      {
+                        IL_0056:  ldloca.s   V_0
+                        IL_0058:  constrained. "S"
+                        IL_005e:  callvirt   "void System.IDisposable.Dispose()"
+                        IL_0063:  endfinally
+                      }
+                      IL_0064:  ret
+                    }
+                    """ : $$"""
+                    {
+                      // Code size       96 (0x60)
+                      .maxstack  1
+                      .locals init (S V_0, //a
+                                    S V_1) //b
+                      IL_0000:  ldloca.s   V_0
+                      IL_0002:  initobj    "S"
+                      .try
+                      {
+                        IL_0008:  ldloca.s   V_1
+                        IL_000a:  initobj    "S"
+                        .try
+                        {
+                          IL_0010:  ldloca.s   V_0
+                          IL_0012:  call       "ref S S.{{memberName}}"
+                          IL_0017:  pop
+                          IL_0018:  ldarg.0
+                          IL_0019:  brfalse.s  IL_0023
+                          IL_001b:  ldloca.s   V_1
+                          IL_001d:  call       "ref S S.{{memberName}}"
+                          IL_0022:  pop
+                          IL_0023:  ldarg.0
+                          IL_0024:  brfalse.s  IL_002e
+                          IL_0026:  ldloca.s   V_1
+                          IL_0028:  call       "ref S S.{{memberName}}"
+                          IL_002d:  pop
+                          IL_002e:  ldloca.s   V_1
+                          IL_0030:  call       "ref S S.{{memberName}}"
+                          IL_0035:  pop
+                          IL_0036:  ldarg.0
+                          IL_0037:  brfalse.s  IL_0041
+                          IL_0039:  ldloca.s   V_0
+                          IL_003b:  call       "ref S S.{{memberName}}"
+                          IL_0040:  pop
+                          IL_0041:  leave.s    IL_005f
+                        }
+                        finally
+                        {
+                          IL_0043:  ldloca.s   V_1
+                          IL_0045:  constrained. "S"
+                          IL_004b:  callvirt   "void System.IDisposable.Dispose()"
+                          IL_0050:  endfinally
+                        }
+                      }
+                      finally
+                      {
+                        IL_0051:  ldloca.s   V_0
+                        IL_0053:  constrained. "S"
+                        IL_0059:  callvirt   "void System.IDisposable.Dispose()"
+                        IL_005e:  endfinally
+                      }
+                      IL_005f:  ret
+                    }
+                    """);
+            }
+        }
+
+        [Theory, CombinatorialData]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/85694")]
+        public void LocalReceiver_ForEach_RefAssignment(
+            [CombinatorialValues(".Self", ".GetSelf()", "[0]")] string access,
+            bool throughField)
+        {
+            var type = throughField ? "Wrapper" : "S";
+            var receiver = throughField ? ".Field" : "";
+            var source = $$"""
+                using System.Diagnostics.CodeAnalysis;
+
+                struct S
+                {
+                    [UnscopedRef] public ref S Self => ref this;
+                    [UnscopedRef] public ref S GetSelf() => ref this;
+                    [UnscopedRef] public ref S this[int i] => ref this;
+                }
+
+                struct Wrapper
+                {
+                    public S Field = default;
+                    public Wrapper() { }
+                }
+
+                class C
+                {
+                    static void M()
+                    {
+                        foreach (var a in new {{type}}[1])
+                        {
+                            ref var c = ref a{{receiver}}{{access}};
+                            {
+                                c = ref a{{receiver}}{{access}};
+                            }
+                        }
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+            if (throughField)
+            {
+                comp.VerifyDiagnostics(
+                    // (24,17): error CS8374: Cannot ref-assign 'a.Field.Self' to 'c' because 'a.Field.Self' has a narrower escape scope than 'c'.
+                    //                 c = ref a.Field.Self;
+                    Diagnostic(ErrorCode.ERR_RefAssignNarrower, $"c = ref a.Field{access}").WithArguments("c", $"a.Field{access}").WithLocation(24, 17));
+            }
+            else
+            {
+                var verifier = CompileAndVerify(comp, verify: Verification.Fails.WithILVerifyMessage("""
+                    [get_Self]: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator. { Offset = 0x1 }
+                    [GetSelf]: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator. { Offset = 0x1 }
+                    [get_Item]: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator. { Offset = 0x1 }
+                    """)).VerifyDiagnostics();
+
+                // The member calls use the iteration variable directly, without defensive copies.
+                var memberName = access == ".Self" ? "Self.get" : "GetSelf()";
+                verifier.VerifyIL("C.M", access == "[0]" ? """
+                    {
+                      // Code size       48 (0x30)
+                      .maxstack  2
+                      .locals init (S[] V_0,
+                                    int V_1,
+                                    S V_2) //a
+                      IL_0000:  ldc.i4.1
+                      IL_0001:  newarr     "S"
+                      IL_0006:  stloc.0
+                      IL_0007:  ldc.i4.0
+                      IL_0008:  stloc.1
+                      IL_0009:  br.s       IL_0029
+                      IL_000b:  ldloc.0
+                      IL_000c:  ldloc.1
+                      IL_000d:  ldelem     "S"
+                      IL_0012:  stloc.2
+                      IL_0013:  ldloca.s   V_2
+                      IL_0015:  ldc.i4.0
+                      IL_0016:  call       "ref S S.this[int].get"
+                      IL_001b:  pop
+                      IL_001c:  ldloca.s   V_2
+                      IL_001e:  ldc.i4.0
+                      IL_001f:  call       "ref S S.this[int].get"
+                      IL_0024:  pop
+                      IL_0025:  ldloc.1
+                      IL_0026:  ldc.i4.1
+                      IL_0027:  add
+                      IL_0028:  stloc.1
+                      IL_0029:  ldloc.1
+                      IL_002a:  ldloc.0
+                      IL_002b:  ldlen
+                      IL_002c:  conv.i4
+                      IL_002d:  blt.s      IL_000b
+                      IL_002f:  ret
+                    }
+                    """ : $$"""
+                    {
+                      // Code size       46 (0x2e)
+                      .maxstack  2
+                      .locals init (S[] V_0,
+                                    int V_1,
+                                    S V_2) //a
+                      IL_0000:  ldc.i4.1
+                      IL_0001:  newarr     "S"
+                      IL_0006:  stloc.0
+                      IL_0007:  ldc.i4.0
+                      IL_0008:  stloc.1
+                      IL_0009:  br.s       IL_0027
+                      IL_000b:  ldloc.0
+                      IL_000c:  ldloc.1
+                      IL_000d:  ldelem     "S"
+                      IL_0012:  stloc.2
+                      IL_0013:  ldloca.s   V_2
+                      IL_0015:  call       "ref S S.{{memberName}}"
+                      IL_001a:  pop
+                      IL_001b:  ldloca.s   V_2
+                      IL_001d:  call       "ref S S.{{memberName}}"
+                      IL_0022:  pop
+                      IL_0023:  ldloc.1
+                      IL_0024:  ldc.i4.1
+                      IL_0025:  add
+                      IL_0026:  stloc.1
+                      IL_0027:  ldloc.1
+                      IL_0028:  ldloc.0
+                      IL_0029:  ldlen
+                      IL_002a:  conv.i4
+                      IL_002b:  blt.s      IL_000b
+                      IL_002d:  ret
+                    }
+                    """);
+            }
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/85694")]
+        public void LocalReceiver_Using_EscapeErrors()
+        {
+            var source = """
+                using System;
+                using System.Diagnostics.CodeAnalysis;
+
+                struct S : IDisposable
+                {
+                    [UnscopedRef] public ref S Self => ref this;
+                    public void Dispose() { }
+                }
+
+                class C
+                {
+                    static readonly S field;
+
+                    static ref S M()
+                    {
+                        using var a = new S();
+                        ref var c = ref a.Self;
+                        ref readonly var r = ref a;
+                        {
+                            using var b = new S();
+                            c = ref b.Self;
+                            c = ref r.Self;
+                            c = ref field.Self;
+                        }
+                        return ref a.Self;
+                    }
+                }
+                """;
+            CreateCompilation(source, targetFramework: TargetFramework.Net70).VerifyDiagnostics(
+                // (21,13): error CS8374: Cannot ref-assign 'b.Self' to 'c' because 'b.Self' has a narrower escape scope than 'c'.
+                //             c = ref b.Self;
+                Diagnostic(ErrorCode.ERR_RefAssignNarrower, "c = ref b.Self").WithArguments("c", "b.Self").WithLocation(21, 13),
+                // (22,13): error CS8374: Cannot ref-assign 'r.Self' to 'c' because 'r.Self' has a narrower escape scope than 'c'.
+                //             c = ref r.Self;
+                Diagnostic(ErrorCode.ERR_RefAssignNarrower, "c = ref r.Self").WithArguments("c", "r.Self").WithLocation(22, 13),
+                // (23,13): error CS8374: Cannot ref-assign 'field.Self' to 'c' because 'field.Self' has a narrower escape scope than 'c'.
+                //             c = ref field.Self;
+                Diagnostic(ErrorCode.ERR_RefAssignNarrower, "c = ref field.Self").WithArguments("c", "field.Self").WithLocation(23, 13),
+                // (25,20): error CS8168: Cannot return local 'a' by reference because it is not a ref local
+                //         return ref a.Self;
+                Diagnostic(ErrorCode.ERR_RefReturnLocal, "a").WithArguments("a").WithLocation(25, 20));
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/85694")]
+        public void LocalReceiver_ForEach_EscapeErrors()
+        {
+            var source = """
+                using System;
+                using System.Diagnostics.CodeAnalysis;
+
+                struct S
+                {
+                    [UnscopedRef] public ref S Self => ref this;
+                }
+
+                class C
+                {
+                    static void Assign()
+                    {
+                        var s = new S();
+                        ref var c = ref s;
+                        foreach (var a in new S[1])
+                        {
+                            c = ref a.Self;
+                        }
+                    }
+
+                    static ref S Return()
+                    {
+                        foreach (var a in new S[1])
+                        {
+                            return ref a.Self;
+                        }
+                        throw null;
+                    }
+
+                    static void ReadOnly()
+                    {
+                        foreach (ref readonly var a in new Span<S>(new S[1]))
+                        {
+                            ref var c = ref a.Self;
+                            {
+                                c = ref a.Self;
+                            }
+                        }
+                    }
+                }
+                """;
+            CreateCompilation(source, targetFramework: TargetFramework.Net70).VerifyDiagnostics(
+                // (17,13): error CS8374: Cannot ref-assign 'a.Self' to 'c' because 'a.Self' has a narrower escape scope than 'c'.
+                //             c = ref a.Self;
+                Diagnostic(ErrorCode.ERR_RefAssignNarrower, "c = ref a.Self").WithArguments("c", "a.Self").WithLocation(17, 13),
+                // (25,24): error CS8168: Cannot return local 'a' by reference because it is not a ref local
+                //             return ref a.Self;
+                Diagnostic(ErrorCode.ERR_RefReturnLocal, "a").WithArguments("a").WithLocation(25, 24),
+                // (36,17): error CS8374: Cannot ref-assign 'a.Self' to 'c' because 'a.Self' has a narrower escape scope than 'c'.
+                //                 c = ref a.Self;
+                Diagnostic(ErrorCode.ERR_RefAssignNarrower, "c = ref a.Self").WithArguments("c", "a.Self").WithLocation(36, 17));
+        }
+
+        [Theory, CombinatorialData]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/85694")]
+        public void LocalReceiver_Using_MutatesOriginal([CombinatorialValues(".Self", ".GetSelf()", "[0]")] string access)
+        {
+            var source = $$"""
+                using System;
+                using System.Diagnostics.CodeAnalysis;
+
+                class C
+                {
+                    static void Main()
+                    {
+                        using var a = new S { Value = 1 };
+                        using var b = new S { Value = 2 };
+                        ref var c = ref a{{access}};
+                        c.Value = 3;
+                        {
+                            c = ref b{{access}};
+                            c.Value = 4;
+                        }
+                        Console.WriteLine("{0} {1}", a.Value, b.Value);
+                        {
+                            c = ref a{{access}};
+                            c.Value = 5;
+                        }
+                    }
+                }
+
+                struct S : IDisposable
+                {
+                    public int Value;
+                    [UnscopedRef] public ref S Self => ref this;
+                    [UnscopedRef] public ref S GetSelf() => ref this;
+                    [UnscopedRef] public ref S this[int i] => ref this;
+                    public void Dispose() => Console.WriteLine(Value);
+                }
+                """;
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70, options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: RefFieldTests.IncludeExpectedOutput("""
+                3 4
+                4
+                5
+                """), verify: Verification.Fails.WithILVerifyMessage("""
+                [get_Self]: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator. { Offset = 0x1 }
+                [GetSelf]: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator. { Offset = 0x1 }
+                [get_Item]: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator. { Offset = 0x1 }
+                """)).VerifyDiagnostics();
+
+            // The returned references alias the using locals, not defensive copies.
+            var memberName = access == ".Self" ? "Self.get" : "GetSelf()";
+            verifier.VerifyIL("C.Main", access == "[0]" ? """
+                {
+                  // Code size      141 (0x8d)
+                  .maxstack  3
+                  .locals init (S V_0, //a
+                                S V_1, //b
+                                S V_2)
+                  IL_0000:  ldloca.s   V_2
+                  IL_0002:  initobj    "S"
+                  IL_0008:  ldloca.s   V_2
+                  IL_000a:  ldc.i4.1
+                  IL_000b:  stfld      "int S.Value"
+                  IL_0010:  ldloc.2
+                  IL_0011:  stloc.0
+                  .try
+                  {
+                    IL_0012:  ldloca.s   V_2
+                    IL_0014:  initobj    "S"
+                    IL_001a:  ldloca.s   V_2
+                    IL_001c:  ldc.i4.2
+                    IL_001d:  stfld      "int S.Value"
+                    IL_0022:  ldloc.2
+                    IL_0023:  stloc.1
+                    .try
+                    {
+                      IL_0024:  ldloca.s   V_0
+                      IL_0026:  ldc.i4.0
+                      IL_0027:  call       "ref S S.this[int].get"
+                      IL_002c:  ldc.i4.3
+                      IL_002d:  stfld      "int S.Value"
+                      IL_0032:  ldloca.s   V_1
+                      IL_0034:  ldc.i4.0
+                      IL_0035:  call       "ref S S.this[int].get"
+                      IL_003a:  ldc.i4.4
+                      IL_003b:  stfld      "int S.Value"
+                      IL_0040:  ldstr      "{0} {1}"
+                      IL_0045:  ldloc.0
+                      IL_0046:  ldfld      "int S.Value"
+                      IL_004b:  box        "int"
+                      IL_0050:  ldloc.1
+                      IL_0051:  ldfld      "int S.Value"
+                      IL_0056:  box        "int"
+                      IL_005b:  call       "void System.Console.WriteLine(string, object, object)"
+                      IL_0060:  ldloca.s   V_0
+                      IL_0062:  ldc.i4.0
+                      IL_0063:  call       "ref S S.this[int].get"
+                      IL_0068:  ldc.i4.5
+                      IL_0069:  stfld      "int S.Value"
+                      IL_006e:  leave.s    IL_008c
+                    }
+                    finally
+                    {
+                      IL_0070:  ldloca.s   V_1
+                      IL_0072:  constrained. "S"
+                      IL_0078:  callvirt   "void System.IDisposable.Dispose()"
+                      IL_007d:  endfinally
+                    }
+                  }
+                  finally
+                  {
+                    IL_007e:  ldloca.s   V_0
+                    IL_0080:  constrained. "S"
+                    IL_0086:  callvirt   "void System.IDisposable.Dispose()"
+                    IL_008b:  endfinally
+                  }
+                  IL_008c:  ret
+                }
+                """ : $$"""
+                {
+                  // Code size      138 (0x8a)
+                  .maxstack  3
+                  .locals init (S V_0, //a
+                                S V_1, //b
+                                S V_2)
+                  IL_0000:  ldloca.s   V_2
+                  IL_0002:  initobj    "S"
+                  IL_0008:  ldloca.s   V_2
+                  IL_000a:  ldc.i4.1
+                  IL_000b:  stfld      "int S.Value"
+                  IL_0010:  ldloc.2
+                  IL_0011:  stloc.0
+                  .try
+                  {
+                    IL_0012:  ldloca.s   V_2
+                    IL_0014:  initobj    "S"
+                    IL_001a:  ldloca.s   V_2
+                    IL_001c:  ldc.i4.2
+                    IL_001d:  stfld      "int S.Value"
+                    IL_0022:  ldloc.2
+                    IL_0023:  stloc.1
+                    .try
+                    {
+                      IL_0024:  ldloca.s   V_0
+                      IL_0026:  call       "ref S S.{{memberName}}"
+                      IL_002b:  ldc.i4.3
+                      IL_002c:  stfld      "int S.Value"
+                      IL_0031:  ldloca.s   V_1
+                      IL_0033:  call       "ref S S.{{memberName}}"
+                      IL_0038:  ldc.i4.4
+                      IL_0039:  stfld      "int S.Value"
+                      IL_003e:  ldstr      "{0} {1}"
+                      IL_0043:  ldloc.0
+                      IL_0044:  ldfld      "int S.Value"
+                      IL_0049:  box        "int"
+                      IL_004e:  ldloc.1
+                      IL_004f:  ldfld      "int S.Value"
+                      IL_0054:  box        "int"
+                      IL_0059:  call       "void System.Console.WriteLine(string, object, object)"
+                      IL_005e:  ldloca.s   V_0
+                      IL_0060:  call       "ref S S.{{memberName}}"
+                      IL_0065:  ldc.i4.5
+                      IL_0066:  stfld      "int S.Value"
+                      IL_006b:  leave.s    IL_0089
+                    }
+                    finally
+                    {
+                      IL_006d:  ldloca.s   V_1
+                      IL_006f:  constrained. "S"
+                      IL_0075:  callvirt   "void System.IDisposable.Dispose()"
+                      IL_007a:  endfinally
+                    }
+                  }
+                  finally
+                  {
+                    IL_007b:  ldloca.s   V_0
+                    IL_007d:  constrained. "S"
+                    IL_0083:  callvirt   "void System.IDisposable.Dispose()"
+                    IL_0088:  endfinally
+                  }
+                  IL_0089:  ret
+                }
+                """);
+        }
+
+        [Theory, CombinatorialData]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/85694")]
+        public void LocalReceiver_ForEach_MutatesIterationVariable([CombinatorialValues(".Self", ".GetSelf()", "[0]")] string access)
+        {
+            var source = $$"""
+                using System;
+                using System.Diagnostics.CodeAnalysis;
+
+                class C
+                {
+                    static void Main()
+                    {
+                        var items = new[] { new S { Value = 1 } };
+                        foreach (var a in items)
+                        {
+                            ref var c = ref a{{access}};
+                            {
+                                c = ref a{{access}};
+                                c.Value = 2;
+                            }
+                            Console.WriteLine(a.Value);
+                        }
+                        Console.WriteLine(items[0].Value);
+                    }
+                }
+
+                struct S
+                {
+                    public int Value;
+                    [UnscopedRef] public ref S Self => ref this;
+                    [UnscopedRef] public ref S GetSelf() => ref this;
+                    [UnscopedRef] public ref S this[int i] => ref this;
+                }
+                """;
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70, options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: RefFieldTests.IncludeExpectedOutput("""
+                2
+                1
+                """), verify: Verification.Fails.WithILVerifyMessage("""
+                [get_Self]: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator. { Offset = 0x1 }
+                [GetSelf]: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator. { Offset = 0x1 }
+                [get_Item]: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator. { Offset = 0x1 }
+                """)).VerifyDiagnostics();
+
+            // Foreach copies the array element once; the member calls do not copy the iteration variable.
+            var memberName = access == ".Self" ? "Self.get" : "GetSelf()";
+            verifier.VerifyIL("C.Main", access == "[0]" ? """
+                {
+                  // Code size      109 (0x6d)
+                  .maxstack  5
+                  .locals init (S[] V_0, //items
+                                S V_1,
+                                S[] V_2,
+                                int V_3,
+                                S V_4) //a
+                  IL_0000:  ldc.i4.1
+                  IL_0001:  newarr     "S"
+                  IL_0006:  dup
+                  IL_0007:  ldc.i4.0
+                  IL_0008:  ldloca.s   V_1
+                  IL_000a:  initobj    "S"
+                  IL_0010:  ldloca.s   V_1
+                  IL_0012:  ldc.i4.1
+                  IL_0013:  stfld      "int S.Value"
+                  IL_0018:  ldloc.1
+                  IL_0019:  stelem     "S"
+                  IL_001e:  stloc.0
+                  IL_001f:  ldloc.0
+                  IL_0020:  stloc.2
+                  IL_0021:  ldc.i4.0
+                  IL_0022:  stloc.3
+                  IL_0023:  br.s       IL_0055
+                  IL_0025:  ldloc.2
+                  IL_0026:  ldloc.3
+                  IL_0027:  ldelem     "S"
+                  IL_002c:  stloc.s    V_4
+                  IL_002e:  ldloca.s   V_4
+                  IL_0030:  ldc.i4.0
+                  IL_0031:  call       "ref S S.this[int].get"
+                  IL_0036:  pop
+                  IL_0037:  ldloca.s   V_4
+                  IL_0039:  ldc.i4.0
+                  IL_003a:  call       "ref S S.this[int].get"
+                  IL_003f:  ldc.i4.2
+                  IL_0040:  stfld      "int S.Value"
+                  IL_0045:  ldloc.s    V_4
+                  IL_0047:  ldfld      "int S.Value"
+                  IL_004c:  call       "void System.Console.WriteLine(int)"
+                  IL_0051:  ldloc.3
+                  IL_0052:  ldc.i4.1
+                  IL_0053:  add
+                  IL_0054:  stloc.3
+                  IL_0055:  ldloc.3
+                  IL_0056:  ldloc.2
+                  IL_0057:  ldlen
+                  IL_0058:  conv.i4
+                  IL_0059:  blt.s      IL_0025
+                  IL_005b:  ldloc.0
+                  IL_005c:  ldc.i4.0
+                  IL_005d:  ldelema    "S"
+                  IL_0062:  ldfld      "int S.Value"
+                  IL_0067:  call       "void System.Console.WriteLine(int)"
+                  IL_006c:  ret
+                }
+                """ : $$"""
+                {
+                  // Code size      107 (0x6b)
+                  .maxstack  5
+                  .locals init (S[] V_0, //items
+                                S V_1,
+                                S[] V_2,
+                                int V_3,
+                                S V_4) //a
+                  IL_0000:  ldc.i4.1
+                  IL_0001:  newarr     "S"
+                  IL_0006:  dup
+                  IL_0007:  ldc.i4.0
+                  IL_0008:  ldloca.s   V_1
+                  IL_000a:  initobj    "S"
+                  IL_0010:  ldloca.s   V_1
+                  IL_0012:  ldc.i4.1
+                  IL_0013:  stfld      "int S.Value"
+                  IL_0018:  ldloc.1
+                  IL_0019:  stelem     "S"
+                  IL_001e:  stloc.0
+                  IL_001f:  ldloc.0
+                  IL_0020:  stloc.2
+                  IL_0021:  ldc.i4.0
+                  IL_0022:  stloc.3
+                  IL_0023:  br.s       IL_0053
+                  IL_0025:  ldloc.2
+                  IL_0026:  ldloc.3
+                  IL_0027:  ldelem     "S"
+                  IL_002c:  stloc.s    V_4
+                  IL_002e:  ldloca.s   V_4
+                  IL_0030:  call       "ref S S.{{memberName}}"
+                  IL_0035:  pop
+                  IL_0036:  ldloca.s   V_4
+                  IL_0038:  call       "ref S S.{{memberName}}"
+                  IL_003d:  ldc.i4.2
+                  IL_003e:  stfld      "int S.Value"
+                  IL_0043:  ldloc.s    V_4
+                  IL_0045:  ldfld      "int S.Value"
+                  IL_004a:  call       "void System.Console.WriteLine(int)"
+                  IL_004f:  ldloc.3
+                  IL_0050:  ldc.i4.1
+                  IL_0051:  add
+                  IL_0052:  stloc.3
+                  IL_0053:  ldloc.3
+                  IL_0054:  ldloc.2
+                  IL_0055:  ldlen
+                  IL_0056:  conv.i4
+                  IL_0057:  blt.s      IL_0025
+                  IL_0059:  ldloc.0
+                  IL_005a:  ldc.i4.0
+                  IL_005b:  ldelema    "S"
+                  IL_0060:  ldfld      "int S.Value"
+                  IL_0065:  call       "void System.Console.WriteLine(int)"
+                  IL_006a:  ret
+                }
+                """);
+        }
+
+        [Theory, CombinatorialData]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/85694")]
+        public void LocalReceiver_Conditional_MutatesOriginal(bool usingLocal, bool condition)
+        {
+            var declaration = usingLocal ? "using var a = new S();" : "foreach (var a in new S[1])";
+            var source = $$"""
+                using System;
+                using System.Diagnostics.CodeAnalysis;
+
+                class C
+                {
+                    static void Main() => M({{(condition ? "true" : "false")}});
+
+                    static void M(bool condition)
+                    {
+                        {{declaration}}
+                        {
+                            using var b = new S();
+                            ref var c = ref (condition ? ref a : ref b).Self;
+                            {
+                                c = ref (condition ? ref a : ref b).Self;
+                                c.Value = 42;
+                            }
+                            Console.WriteLine("{0}, {1}", a.Value, b.Value);
+                        }
+                    }
+                }
+
+                struct S : IDisposable
+                {
+                    public int Value;
+                    [UnscopedRef] public ref S Self => ref this;
+                    public void Dispose() { }
+                }
+                """;
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70, options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: RefFieldTests.IncludeExpectedOutput(condition ? "42, 0" : "0, 42"),
+                verify: Verification.Fails.WithILVerifyMessage("""
+                [get_Self]: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator. { Offset = 0x1 }
+                """)).VerifyDiagnostics();
+
+            // Both conditional branches supply the address of the original local, without a defensive copy.
+            verifier.VerifyIL("C.M", usingLocal ? """
+                {
+                  // Code size      115 (0x73)
+                  .maxstack  3
+                  .locals init (S V_0, //a
+                                S V_1) //b
+                  IL_0000:  ldloca.s   V_0
+                  IL_0002:  initobj    "S"
+                  .try
+                  {
+                    IL_0008:  ldloca.s   V_1
+                    IL_000a:  initobj    "S"
+                    .try
+                    {
+                      IL_0010:  ldarg.0
+                      IL_0011:  brtrue.s   IL_0017
+                      IL_0013:  ldloca.s   V_1
+                      IL_0015:  br.s       IL_0019
+                      IL_0017:  ldloca.s   V_0
+                      IL_0019:  call       "ref S S.Self.get"
+                      IL_001e:  pop
+                      IL_001f:  ldarg.0
+                      IL_0020:  brtrue.s   IL_0026
+                      IL_0022:  ldloca.s   V_1
+                      IL_0024:  br.s       IL_0028
+                      IL_0026:  ldloca.s   V_0
+                      IL_0028:  call       "ref S S.Self.get"
+                      IL_002d:  ldc.i4.s   42
+                      IL_002f:  stfld      "int S.Value"
+                      IL_0034:  ldstr      "{0}, {1}"
+                      IL_0039:  ldloc.0
+                      IL_003a:  ldfld      "int S.Value"
+                      IL_003f:  box        "int"
+                      IL_0044:  ldloc.1
+                      IL_0045:  ldfld      "int S.Value"
+                      IL_004a:  box        "int"
+                      IL_004f:  call       "void System.Console.WriteLine(string, object, object)"
+                      IL_0054:  leave.s    IL_0072
+                    }
+                    finally
+                    {
+                      IL_0056:  ldloca.s   V_1
+                      IL_0058:  constrained. "S"
+                      IL_005e:  callvirt   "void System.IDisposable.Dispose()"
+                      IL_0063:  endfinally
+                    }
+                  }
+                  finally
+                  {
+                    IL_0064:  ldloca.s   V_0
+                    IL_0066:  constrained. "S"
+                    IL_006c:  callvirt   "void System.IDisposable.Dispose()"
+                    IL_0071:  endfinally
+                  }
+                  IL_0072:  ret
+                }
+                """ : """
+                {
+                  // Code size      122 (0x7a)
+                  .maxstack  3
+                  .locals init (S[] V_0,
+                                int V_1,
+                                S V_2, //a
+                                S V_3) //b
+                  IL_0000:  ldc.i4.1
+                  IL_0001:  newarr     "S"
+                  IL_0006:  stloc.0
+                  IL_0007:  ldc.i4.0
+                  IL_0008:  stloc.1
+                  IL_0009:  br.s       IL_0073
+                  IL_000b:  ldloc.0
+                  IL_000c:  ldloc.1
+                  IL_000d:  ldelem     "S"
+                  IL_0012:  stloc.2
+                  IL_0013:  ldloca.s   V_3
+                  IL_0015:  initobj    "S"
+                  .try
+                  {
+                    IL_001b:  ldarg.0
+                    IL_001c:  brtrue.s   IL_0022
+                    IL_001e:  ldloca.s   V_3
+                    IL_0020:  br.s       IL_0024
+                    IL_0022:  ldloca.s   V_2
+                    IL_0024:  call       "ref S S.Self.get"
+                    IL_0029:  pop
+                    IL_002a:  ldarg.0
+                    IL_002b:  brtrue.s   IL_0031
+                    IL_002d:  ldloca.s   V_3
+                    IL_002f:  br.s       IL_0033
+                    IL_0031:  ldloca.s   V_2
+                    IL_0033:  call       "ref S S.Self.get"
+                    IL_0038:  ldc.i4.s   42
+                    IL_003a:  stfld      "int S.Value"
+                    IL_003f:  ldstr      "{0}, {1}"
+                    IL_0044:  ldloc.2
+                    IL_0045:  ldfld      "int S.Value"
+                    IL_004a:  box        "int"
+                    IL_004f:  ldloc.3
+                    IL_0050:  ldfld      "int S.Value"
+                    IL_0055:  box        "int"
+                    IL_005a:  call       "void System.Console.WriteLine(string, object, object)"
+                    IL_005f:  leave.s    IL_006f
+                  }
+                  finally
+                  {
+                    IL_0061:  ldloca.s   V_3
+                    IL_0063:  constrained. "S"
+                    IL_0069:  callvirt   "void System.IDisposable.Dispose()"
+                    IL_006e:  endfinally
+                  }
+                  IL_006f:  ldloc.1
+                  IL_0070:  ldc.i4.1
+                  IL_0071:  add
+                  IL_0072:  stloc.1
+                  IL_0073:  ldloc.1
+                  IL_0074:  ldloc.0
+                  IL_0075:  ldlen
+                  IL_0076:  conv.i4
+                  IL_0077:  blt.s      IL_000b
+                  IL_0079:  ret
+                }
+                """);
+        }
+
+        [Theory, CombinatorialData]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/85694")]
+        public void LocalReceiver_Conditional_EscapeErrors(bool usingLocal, bool readOnlyFirst)
+        {
+            var declaration = usingLocal ? "using var a = new S();" : "foreach (var a in new S[1])";
+            var receiver = readOnlyFirst ? "(condition ? ref r : ref a)" : "(condition ? ref a : ref r)";
+            var source = $$"""
+                using System;
+                using System.Diagnostics.CodeAnalysis;
+
+                class C
+                {
+                    static void M(bool condition)
+                    {
+                        {{declaration}}
+                        {
+                            var b = new S();
+                            ref readonly var r = ref b;
+                            ref var c = ref {{receiver}}.Self;
+                            {
+                                c = ref {{receiver}}.Self;
+                            }
+                        }
+                    }
+                }
+
+                struct S : IDisposable
+                {
+                    [UnscopedRef] public ref S Self => ref this;
+                    public void Dispose() { }
+                }
+                """;
+            CreateCompilation(source, targetFramework: TargetFramework.Net70).VerifyDiagnostics(
+                // (14,17): error CS8374: Cannot ref-assign '(condition ? ref a : ref r).Self' to 'c' because '(condition ? ref a : ref r).Self' has a narrower escape scope than 'c'.
+                //                 c = ref (condition ? ref a : ref r).Self;
+                Diagnostic(ErrorCode.ERR_RefAssignNarrower, $"c = ref {receiver}.Self").WithArguments("c", $"{receiver}.Self").WithLocation(14, 17));
+        }
+
+        [Theory, CombinatorialData]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/85694")]
+        public void LocalReceiver_RefAssignment_MutatesOriginal(bool usingLocal)
+        {
+            var declaration = usingLocal ? "using var a = new S();" : "foreach (var a in new S[1])";
+            var source = $$"""
+                using System;
+                using System.Diagnostics.CodeAnalysis;
+
+                class C
+                {
+                    static void Main()
+                    {
+                        {{declaration}}
+                        {
+                            var b = new S();
+                            ref var r = ref b;
+                            ref var c = ref (r = ref a.Self).Self;
+                            {
+                                c = ref (r = ref a.Self).Self;
+                                c.Value = 42;
+                            }
+                            Console.WriteLine("{0}, {1}", a.Value, b.Value);
+                        }
+                    }
+                }
+
+                struct S : IDisposable
+                {
+                    public int Value;
+                    [UnscopedRef] public ref S Self => ref this;
+                    public void Dispose() { }
+                }
+                """;
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70, options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: RefFieldTests.IncludeExpectedOutput("42, 0"),
+                verify: Verification.Fails.WithILVerifyMessage("""
+                [get_Self]: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator. { Offset = 0x1 }
+                """)).VerifyDiagnostics();
+
+            // The ref-assignment result is used directly as a receiver, without a defensive copy.
+            verifier.VerifyIL("C.Main", usingLocal ? """
+                {
+                  // Code size       97 (0x61)
+                  .maxstack  3
+                  .locals init (S V_0, //a
+                                S V_1) //b
+                  IL_0000:  ldloca.s   V_0
+                  IL_0002:  initobj    "S"
+                  .try
+                  {
+                    IL_0008:  ldloca.s   V_1
+                    IL_000a:  initobj    "S"
+                    IL_0010:  ldloca.s   V_0
+                    IL_0012:  call       "ref S S.Self.get"
+                    IL_0017:  call       "ref S S.Self.get"
+                    IL_001c:  pop
+                    IL_001d:  ldloca.s   V_0
+                    IL_001f:  call       "ref S S.Self.get"
+                    IL_0024:  call       "ref S S.Self.get"
+                    IL_0029:  ldc.i4.s   42
+                    IL_002b:  stfld      "int S.Value"
+                    IL_0030:  ldstr      "{0}, {1}"
+                    IL_0035:  ldloc.0
+                    IL_0036:  ldfld      "int S.Value"
+                    IL_003b:  box        "int"
+                    IL_0040:  ldloc.1
+                    IL_0041:  ldfld      "int S.Value"
+                    IL_0046:  box        "int"
+                    IL_004b:  call       "void System.Console.WriteLine(string, object, object)"
+                    IL_0050:  leave.s    IL_0060
+                  }
+                  finally
+                  {
+                    IL_0052:  ldloca.s   V_0
+                    IL_0054:  constrained. "S"
+                    IL_005a:  callvirt   "void System.IDisposable.Dispose()"
+                    IL_005f:  endfinally
+                  }
+                  IL_0060:  ret
+                }
+                """ : """
+                {
+                  // Code size      102 (0x66)
+                  .maxstack  3
+                  .locals init (S[] V_0,
+                                int V_1,
+                                S V_2, //a
+                                S V_3) //b
+                  IL_0000:  ldc.i4.1
+                  IL_0001:  newarr     "S"
+                  IL_0006:  stloc.0
+                  IL_0007:  ldc.i4.0
+                  IL_0008:  stloc.1
+                  IL_0009:  br.s       IL_005f
+                  IL_000b:  ldloc.0
+                  IL_000c:  ldloc.1
+                  IL_000d:  ldelem     "S"
+                  IL_0012:  stloc.2
+                  IL_0013:  ldloca.s   V_3
+                  IL_0015:  initobj    "S"
+                  IL_001b:  ldloca.s   V_2
+                  IL_001d:  call       "ref S S.Self.get"
+                  IL_0022:  call       "ref S S.Self.get"
+                  IL_0027:  pop
+                  IL_0028:  ldloca.s   V_2
+                  IL_002a:  call       "ref S S.Self.get"
+                  IL_002f:  call       "ref S S.Self.get"
+                  IL_0034:  ldc.i4.s   42
+                  IL_0036:  stfld      "int S.Value"
+                  IL_003b:  ldstr      "{0}, {1}"
+                  IL_0040:  ldloc.2
+                  IL_0041:  ldfld      "int S.Value"
+                  IL_0046:  box        "int"
+                  IL_004b:  ldloc.3
+                  IL_004c:  ldfld      "int S.Value"
+                  IL_0051:  box        "int"
+                  IL_0056:  call       "void System.Console.WriteLine(string, object, object)"
+                  IL_005b:  ldloc.1
+                  IL_005c:  ldc.i4.1
+                  IL_005d:  add
+                  IL_005e:  stloc.1
+                  IL_005f:  ldloc.1
+                  IL_0060:  ldloc.0
+                  IL_0061:  ldlen
+                  IL_0062:  conv.i4
+                  IL_0063:  blt.s      IL_000b
+                  IL_0065:  ret
+                }
+                """);
+        }
+
+        [Theory, CombinatorialData]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/85694")]
+        public void LocalReceiver_RefAssignment_EscapeErrors(bool usingLocal)
+        {
+            var declaration = usingLocal ? "using var a = new S();" : "foreach (var a in new S[1])";
+            var source = $$"""
+                using System;
+                using System.Diagnostics.CodeAnalysis;
+
+                class C
+                {
+                    static void M()
+                    {
+                        {{declaration}}
+                        {
+                            var b = new S();
+                            ref readonly var r = ref b;
+                            ref var c = ref (r = ref a).Self;
+                            {
+                                c = ref (r = ref a).Self;
+                            }
+                        }
+                    }
+                }
+
+                struct S : IDisposable
+                {
+                    [UnscopedRef] public ref S Self => ref this;
+                    public void Dispose() { }
+                }
+                """;
+            CreateCompilation(source, targetFramework: TargetFramework.Net70).VerifyEmitDiagnostics(
+                // (14,17): error CS8374: Cannot ref-assign '(r = ref a).Self' to 'c' because '(r = ref a).Self' has a narrower escape scope than 'c'.
+                //                 c = ref (r = ref a).Self;
+                Diagnostic(ErrorCode.ERR_RefAssignNarrower, "c = ref (r = ref a).Self").WithArguments("c", "(r = ref a).Self").WithLocation(14, 17));
+        }
+
+        [Theory, CombinatorialData]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/85694")]
+        public void LocalReceiver_Field_Mutation(
+            [CombinatorialValues(".Self", ".GetSelf()", "[0]")] string access,
+            bool isValueType,
+            bool nested)
+        {
+            var kind = isValueType ? "struct" : "class";
+            var receiver = nested ? ".Nested.Field" : ".Field";
+            var source = $$"""
+                using System;
+                using System.Diagnostics.CodeAnalysis;
+
+                class C
+                {
+                    static void Main()
+                    {
+                        using (var a = new Wrapper())
+                        {
+                            ref var c = ref a{{receiver}}{{access}};
+                            c.Value = 42;
+                            Console.WriteLine("{0} {1}", c.Value, a{{receiver}}.Value);
+                        }
+
+                        var items = new[] { new Wrapper() };
+                        foreach (var a in items)
+                        {
+                            ref var c = ref a{{receiver}}{{access}};
+                            c.Value = 42;
+                            Console.WriteLine("{0} {1}", c.Value, a{{receiver}}.Value);
+                        }
+                        Console.WriteLine(items[0]{{receiver}}.Value);
+                    }
+                }
+
+                {{kind}} Wrapper : IDisposable
+                {
+                    public S Field = default;
+                    public Nested Nested = default;
+                    public Wrapper() { }
+                    public void Dispose() { }
+                }
+
+                struct Nested
+                {
+                    public S Field = default;
+                    public Nested() { }
+                }
+
+                struct S
+                {
+                    public int Value;
+                    [UnscopedRef] public ref S Self => ref this;
+                    [UnscopedRef] public ref S GetSelf() => ref this;
+                    [UnscopedRef] public ref S this[int i] => ref this;
+                }
+                """;
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70, options: TestOptions.ReleaseExe);
+            var expectedOutput = isValueType ? """
+                42 0
+                42 0
+                0
+                """ : """
+                42 42
+                42 42
+                42
+                """;
+            var verifier = CompileAndVerify(comp, expectedOutput: RefFieldTests.IncludeExpectedOutput(expectedOutput),
+                verify: Verification.Fails.WithILVerifyMessage("""
+                    [get_Self]: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator. { Offset = 0x1 }
+                    [GetSelf]: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator. { Offset = 0x1 }
+                    [get_Item]: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator. { Offset = 0x1 }
+                    """)).VerifyDiagnostics();
+
+            if (!isValueType && nested && access == ".Self")
+            {
+                // The nested field on a class container is used without a defensive copy.
+                verifier.VerifyIL("C.Main", """
+                    {
+                      // Code size      222 (0xde)
+                      .maxstack  4
+                      .locals init (Wrapper[] V_0, //items
+                                    Wrapper V_1, //a
+                                    S& V_2, //c
+                                    Wrapper[] V_3,
+                                    int V_4,
+                                    Wrapper V_5, //a
+                                    S& V_6) //c
+                      IL_0000:  newobj     "Wrapper..ctor()"
+                      IL_0005:  stloc.1
+                      .try
+                      {
+                        IL_0006:  ldloc.1
+                        IL_0007:  ldflda     "Nested Wrapper.Nested"
+                        IL_000c:  ldflda     "S Nested.Field"
+                        IL_0011:  call       "ref S S.Self.get"
+                        IL_0016:  stloc.2
+                        IL_0017:  ldloc.2
+                        IL_0018:  ldc.i4.s   42
+                        IL_001a:  stfld      "int S.Value"
+                        IL_001f:  ldstr      "{0} {1}"
+                        IL_0024:  ldloc.2
+                        IL_0025:  ldfld      "int S.Value"
+                        IL_002a:  box        "int"
+                        IL_002f:  ldloc.1
+                        IL_0030:  ldflda     "Nested Wrapper.Nested"
+                        IL_0035:  ldflda     "S Nested.Field"
+                        IL_003a:  ldfld      "int S.Value"
+                        IL_003f:  box        "int"
+                        IL_0044:  call       "void System.Console.WriteLine(string, object, object)"
+                        IL_0049:  leave.s    IL_0055
+                      }
+                      finally
+                      {
+                        IL_004b:  ldloc.1
+                        IL_004c:  brfalse.s  IL_0054
+                        IL_004e:  ldloc.1
+                        IL_004f:  callvirt   "void System.IDisposable.Dispose()"
+                        IL_0054:  endfinally
+                      }
+                      IL_0055:  ldc.i4.1
+                      IL_0056:  newarr     "Wrapper"
+                      IL_005b:  dup
+                      IL_005c:  ldc.i4.0
+                      IL_005d:  newobj     "Wrapper..ctor()"
+                      IL_0062:  stelem.ref
+                      IL_0063:  stloc.0
+                      IL_0064:  ldloc.0
+                      IL_0065:  stloc.3
+                      IL_0066:  ldc.i4.0
+                      IL_0067:  stloc.s    V_4
+                      IL_0069:  br.s       IL_00bf
+                      IL_006b:  ldloc.3
+                      IL_006c:  ldloc.s    V_4
+                      IL_006e:  ldelem.ref
+                      IL_006f:  stloc.s    V_5
+                      IL_0071:  ldloc.s    V_5
+                      IL_0073:  ldflda     "Nested Wrapper.Nested"
+                      IL_0078:  ldflda     "S Nested.Field"
+                      IL_007d:  call       "ref S S.Self.get"
+                      IL_0082:  stloc.s    V_6
+                      IL_0084:  ldloc.s    V_6
+                      IL_0086:  ldc.i4.s   42
+                      IL_0088:  stfld      "int S.Value"
+                      IL_008d:  ldstr      "{0} {1}"
+                      IL_0092:  ldloc.s    V_6
+                      IL_0094:  ldfld      "int S.Value"
+                      IL_0099:  box        "int"
+                      IL_009e:  ldloc.s    V_5
+                      IL_00a0:  ldflda     "Nested Wrapper.Nested"
+                      IL_00a5:  ldflda     "S Nested.Field"
+                      IL_00aa:  ldfld      "int S.Value"
+                      IL_00af:  box        "int"
+                      IL_00b4:  call       "void System.Console.WriteLine(string, object, object)"
+                      IL_00b9:  ldloc.s    V_4
+                      IL_00bb:  ldc.i4.1
+                      IL_00bc:  add
+                      IL_00bd:  stloc.s    V_4
+                      IL_00bf:  ldloc.s    V_4
+                      IL_00c1:  ldloc.3
+                      IL_00c2:  ldlen
+                      IL_00c3:  conv.i4
+                      IL_00c4:  blt.s      IL_006b
+                      IL_00c6:  ldloc.0
+                      IL_00c7:  ldc.i4.0
+                      IL_00c8:  ldelem.ref
+                      IL_00c9:  ldflda     "Nested Wrapper.Nested"
+                      IL_00ce:  ldflda     "S Nested.Field"
+                      IL_00d3:  ldfld      "int S.Value"
+                      IL_00d8:  call       "void System.Console.WriteLine(int)"
+                      IL_00dd:  ret
+                    }
+                    """);
+            }
+        }
+
+        [Theory, CombinatorialData]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/85694")]
+        public void LocalReceiver_Using_RefField_RefAssignment([CombinatorialValues(".Self", ".GetSelf()", "[0]")] string access)
+        {
+            var source = $$"""
+                using System.Diagnostics.CodeAnalysis;
+
+                struct S
+                {
+                    [UnscopedRef] public ref S Self => ref this;
+                    [UnscopedRef] public ref S GetSelf() => ref this;
+                    [UnscopedRef] public ref S this[int i] => ref this;
+                }
+
+                ref struct Wrapper
+                {
+                    public ref S Field;
+                    public Wrapper(ref S value) => Field = ref value;
+                    public void Dispose() { }
+                }
+
+                class C
+                {
+                    static void M()
+                    {
+                        var s = new S();
+                        using var a = new Wrapper(ref s);
+                        ref var c = ref a.Field{{access}};
+                        {
+                            c = ref a.Field{{access}};
+                        }
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+            var verifier = CompileAndVerify(comp, verify: Verification.Fails.WithILVerifyMessage("""
+                [get_Self]: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator. { Offset = 0x1 }
+                [GetSelf]: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator. { Offset = 0x1 }
+                [get_Item]: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator. { Offset = 0x1 }
+                """)).VerifyDiagnostics();
+
+            // Loading the ref field supplies the original receiver's address, without a defensive copy.
+            var memberName = access == ".Self" ? "Self.get" : "GetSelf()";
+            verifier.VerifyIL("C.M", access == "[0]" ? """
+                {
+                  // Code size       55 (0x37)
+                  .maxstack  2
+                  .locals init (S V_0, //s
+                                Wrapper V_1) //a
+                  IL_0000:  ldloca.s   V_0
+                  IL_0002:  initobj    "S"
+                  IL_0008:  ldloca.s   V_0
+                  IL_000a:  newobj     "Wrapper..ctor(ref S)"
+                  IL_000f:  stloc.1
+                  .try
+                  {
+                    IL_0010:  ldloca.s   V_1
+                    IL_0012:  ldfld      "ref S Wrapper.Field"
+                    IL_0017:  ldc.i4.0
+                    IL_0018:  call       "ref S S.this[int].get"
+                    IL_001d:  pop
+                    IL_001e:  ldloca.s   V_1
+                    IL_0020:  ldfld      "ref S Wrapper.Field"
+                    IL_0025:  ldc.i4.0
+                    IL_0026:  call       "ref S S.this[int].get"
+                    IL_002b:  pop
+                    IL_002c:  leave.s    IL_0036
+                  }
+                  finally
+                  {
+                    IL_002e:  ldloca.s   V_1
+                    IL_0030:  call       "void Wrapper.Dispose()"
+                    IL_0035:  endfinally
+                  }
+                  IL_0036:  ret
+                }
+                """ : $$"""
+                {
+                  // Code size       53 (0x35)
+                  .maxstack  1
+                  .locals init (S V_0, //s
+                                Wrapper V_1) //a
+                  IL_0000:  ldloca.s   V_0
+                  IL_0002:  initobj    "S"
+                  IL_0008:  ldloca.s   V_0
+                  IL_000a:  newobj     "Wrapper..ctor(ref S)"
+                  IL_000f:  stloc.1
+                  .try
+                  {
+                    IL_0010:  ldloca.s   V_1
+                    IL_0012:  ldfld      "ref S Wrapper.Field"
+                    IL_0017:  call       "ref S S.{{memberName}}"
+                    IL_001c:  pop
+                    IL_001d:  ldloca.s   V_1
+                    IL_001f:  ldfld      "ref S Wrapper.Field"
+                    IL_0024:  call       "ref S S.{{memberName}}"
+                    IL_0029:  pop
+                    IL_002a:  leave.s    IL_0034
+                  }
+                  finally
+                  {
+                    IL_002c:  ldloca.s   V_1
+                    IL_002e:  call       "void Wrapper.Dispose()"
+                    IL_0033:  endfinally
+                  }
+                  IL_0034:  ret
+                }
+                """);
         }
 
         [Fact]
@@ -13362,6 +17651,94 @@ public struct Vec4
                 // (33,17): error CS8987: The 'scoped' modifier of parameter 'span' doesn't match overridden or implemented member.
                 //     public void UseSpan(Span<char> span) => Span = span;
                 Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfOverrideOrImplementation, "UseSpan").WithArguments("span").WithLocation(33, 17));
+        }
+
+        [Fact]
+        public void IncrementOperator_01()
+        {
+            var src = """
+public ref struct S
+{
+    static void M(S s)
+    {
+        _ = s++;
+    }
+
+    public static S operator ++(S s) => throw null;
+}
+""";
+            var comp = CreateCompilation(src);
+            comp.VerifyEmitDiagnostics();
+        }
+
+        [Fact]
+        public void IncrementOperator_02()
+        {
+            var code = """
+public ref struct S
+{
+    public static S operator ++(S s) => throw null;
+}
+
+ref struct S1<T> where T : new(), allows ref struct
+{
+    S this[T t] { get => throw null; set {} }
+
+    static void Test()
+    {
+        scoped T x = default;
+        T y = default;
+        S1<T> local = default;
+        local[x]++; // 1
+        local[y]++;
+    }
+}
+
+ref struct S2
+{
+    public S this[int i] { get => throw null; set { } }
+
+    static void Test()
+    {
+        S2 local = default;
+        local[0]++;
+        local[0]++;
+    }
+}
+""";
+
+            var comp = CreateCompilation(code, targetFramework: TargetFramework.Net90);
+            comp.VerifyEmitDiagnostics(
+                // (15,9): error CS8350: This combination of arguments to 'S1<T>.this[T]' is disallowed because it may expose variables referenced by parameter 't' outside of their declaration scope
+                //         local[x]++; // 1
+                Diagnostic(ErrorCode.ERR_CallArgMixing, "local[x]").WithArguments("S1<T>.this[T]", "t").WithLocation(15, 9),
+                // (15,9): error CS8350: This combination of arguments to 'S1<T>.this[T]' is disallowed because it may expose variables referenced by parameter 't' outside of their declaration scope
+                //         local[x]++; // 1
+                Diagnostic(ErrorCode.ERR_CallArgMixing, "local[x]").WithArguments("S1<T>.this[T]", "t").WithLocation(15, 9),
+                // (15,15): error CS8352: Cannot use variable 'x' in this context because it may expose referenced variables outside of their declaration scope
+                //         local[x]++; // 1
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "x").WithArguments("x").WithLocation(15, 15),
+                // (15,15): error CS8352: Cannot use variable 'x' in this context because it may expose referenced variables outside of their declaration scope
+                //         local[x]++; // 1
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "x").WithArguments("x").WithLocation(15, 15));
+        }
+
+        [Fact]
+        public void IncrementOperator_03()
+        {
+            var src = """
+public ref struct S
+{
+    static void M(S s)
+    {
+        _ = s++;
+    }
+
+    public static S operator ++(scoped S s) => throw null;
+}
+""";
+            var comp = CreateCompilation(src);
+            comp.VerifyEmitDiagnostics();
         }
     }
 }

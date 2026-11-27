@@ -664,6 +664,7 @@ class C { }";
 
         [CombinatorialData]
         [Theory, WorkItem(41713, "https://github.com/dotnet/roslyn/issues/41713")]
+        [ValidatePooledObjects(WaitForOutstandingObjectsToBeFreed = true)]
         public void TestCancellationDuringSuppressorExecution(bool concurrent)
         {
             string source = @"class C1 { }";

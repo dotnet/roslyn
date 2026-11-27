@@ -142,7 +142,7 @@ namespace Microsoft.CodeAnalysis.Text
                         // Special case splitting the CRLF at the end as the UnderlyingText doesn't view the position
                         // after between the \r and \n as on a new line whereas this subtext doesn't contain the \n
                         // and needs to view that position as on a new line.
-                        return TextLine.FromSpanUnsafe(_subText, new TextSpan(_subText.UnderlyingSpan.Length, 0));
+                        return TextLine.FromSpanUnsafe(_subText, new TextSpan(_subText.UnderlyingSpan.Length, 0), lineBreakLength: 0);
                     }
 
                     var underlyingTextLine = _subText.UnderlyingText.Lines[lineNumber + _startLineNumberInUnderlyingText];
@@ -169,7 +169,13 @@ namespace Microsoft.CodeAnalysis.Text
                     var startInSubText = startInUnderlyingText - _subText.UnderlyingSpan.Start;
 
                     var length = endInUnderlyingText - startInUnderlyingText;
-                    var resultLine = TextLine.FromSpanUnsafe(_subText, new TextSpan(startInSubText, length));
+
+                    // How much of the underlying line's break region is visible in this subtext?
+                    // The break region in underlying coordinates is [underlyingTextLine.End .. endInUnderlyingText).
+                    // If our subtext starts inside the break (e.g. the \n half of a split \r\n), clamp the start.
+                    var breakRegionStart = Math.Max(underlyingTextLine.End, startInUnderlyingText);
+                    var lineBreakLen = Math.Max(0, endInUnderlyingText - breakRegionStart);
+                    var resultLine = TextLine.FromSpanUnsafe(_subText, new TextSpan(startInSubText, length), lineBreakLen);
 
                     var shouldContainLineBreak = (lineNumber != _lineCount - 1);
                     var resultContainsLineBreak = resultLine.EndIncludingLineBreak > resultLine.End;

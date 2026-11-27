@@ -1,0 +1,6 @@
+Line Δ, Char Δ, Length, Type, Modifier(s), Text
+0 0 1 razorCommentTransition [] [@]
+0 1 1 razorCommentStar [] [*]
+0 1 11 razorComment [] [ A comment ]
+0 11 1 razorCommentStar [] [*]
+0 1 1 razorCommentTransition [] [@]

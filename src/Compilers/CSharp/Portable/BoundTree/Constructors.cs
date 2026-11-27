@@ -342,6 +342,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 @checked: false,
                 explicitCastInCode: false,
                 conversionGroupOpt: null,
+                inConversionGroupFlags: InConversionGroupFlags.Unspecified,
                 constantValueOpt: constantValueOpt,
                 type: type)
             { WasCompilerGenerated = true };
@@ -359,6 +360,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool @checked,
             bool explicitCastInCode,
             ConversionGroup? conversionGroupOpt,
+            InConversionGroupFlags inConversionGroupFlags,
             ConstantValue? constantValueOpt,
             TypeSymbol type,
             bool hasErrors = false)
@@ -370,6 +372,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 @checked,
                 explicitCastInCode: explicitCastInCode,
                 conversionGroupOpt,
+                inConversionGroupFlags,
                 constantValueOpt,
                 type,
                 hasErrors || !conversion.IsValid)
@@ -385,6 +388,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool @checked,
             bool explicitCastInCode,
             ConversionGroup? conversionGroupOpt,
+            InConversionGroupFlags inConversionGroupFlags,
             ConstantValue? constantValueOpt,
             TypeSymbol type,
             bool hasErrors = false)
@@ -397,6 +401,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 explicitCastInCode: explicitCastInCode,
                 constantValueOpt: constantValueOpt,
                 conversionGroupOpt,
+                inConversionGroupFlags,
                 type: type,
                 hasErrors: hasErrors || !conversion.IsValid)
         { }
@@ -628,8 +633,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal partial class BoundAddressOfOperator
     {
-        public BoundAddressOfOperator(SyntaxNode syntax, BoundExpression operand, TypeSymbol type, bool hasErrors = false)
-             : this(syntax, operand, isManaged: false, type, hasErrors)
+        public BoundAddressOfOperator(SyntaxNode syntax, BoundExpression operand, TypeSymbol type, bool hasErrors = false, bool requiresAssignedOperand = false)
+             : this(syntax, operand, isManaged: false, requiresAssignedOperand, type, hasErrors)
+        {
+        }
+
+        public BoundAddressOfOperator(SyntaxNode syntax, BoundExpression operand, bool isManaged, TypeSymbol type, bool hasErrors = false)
+             : this(syntax, operand, isManaged, requiresAssignedOperand: false, type, hasErrors)
         {
         }
     }

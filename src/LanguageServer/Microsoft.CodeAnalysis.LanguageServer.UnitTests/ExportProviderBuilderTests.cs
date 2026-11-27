@@ -11,13 +11,15 @@ using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests;
 
-public sealed class ExportProviderBuilderTests(ITestOutputHelper testOutputHelper)
-    : AbstractLanguageServerHostTests(testOutputHelper)
+/// <summary>
+/// Use <see cref="AbstractLanguageServerMefHost"/> as we are testing the MEF composition and caching logic directly.
+/// </summary>
+public sealed class ExportProviderBuilderTests(ITestOutputHelper testOutputHelper) : AbstractLanguageServerMefHost(testOutputHelper)
 {
     [Fact]
     public async Task MefCompositionIsCached()
     {
-        await using var testServer = await CreateLanguageServerAsync(includeDevKitComponents: false);
+        await using var testServer = await CreateLanguageServerAsync(serverConfiguration: ServerConfigurationWithoutDevKit);
 
         await AssertCacheWriteWasAttemptedAsync();
 
@@ -27,12 +29,12 @@ public sealed class ExportProviderBuilderTests(ITestOutputHelper testOutputHelpe
     [Fact]
     public async Task MefCompositionIsReused()
     {
-        await using var testServer = await CreateLanguageServerAsync(includeDevKitComponents: false);
+        await using var testServer = await CreateLanguageServerAsync(serverConfiguration: ServerConfigurationWithoutDevKit);
 
         await AssertCacheWriteWasAttemptedAsync();
 
         // Second test server with the same set of assemblies.
-        await using var testServer2 = await CreateLanguageServerAsync(includeDevKitComponents: false);
+        await using var testServer2 = await CreateLanguageServerAsync(serverConfiguration: ServerConfigurationWithoutDevKit);
 
         AssertNoCacheWriteWasAttempted();
 
@@ -42,16 +44,23 @@ public sealed class ExportProviderBuilderTests(ITestOutputHelper testOutputHelpe
     [Fact]
     public async Task MultipleMefCompositionsAreCached()
     {
-        await using var testServer = await CreateLanguageServerAsync(includeDevKitComponents: false);
+        await using var testServer = await CreateLanguageServerAsync(serverConfiguration: ServerConfigurationWithoutDevKit);
 
         await AssertCacheWriteWasAttemptedAsync();
 
         // Second test server with a different set of assemblies.
-        await using var testServer2 = await CreateLanguageServerAsync(includeDevKitComponents: true);
+        await using var testServer2 = await CreateLanguageServerAsync(serverConfiguration: DefaultServerConfiguration);
 
         await AssertCacheWriteWasAttemptedAsync();
 
         AssertCachedCompositionCountEquals(expectedCount: 2);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/pull/85135")]
+    public void AspNetCoreCompatibilityAssemblyIsDeployed()
+    {
+        var assemblyPath = Path.Combine(TestPaths.GetLanguageServerDirectory(), "Microsoft.CodeAnalysis.ExternalAccess.AspNetCore.dll");
+        Assert.True(File.Exists(assemblyPath), $"Expected compatibility assembly at '{assemblyPath}'.");
     }
 
     [Theory, WorkItem("https://github.com/microsoft/vscode-dotnettools/issues/1686")]
@@ -86,7 +95,11 @@ public sealed class ExportProviderBuilderTests(ITestOutputHelper testOutputHelpe
 
         var dllPath = GenerateDll(reservedCharacter, out var assemblyName);
 
-        await using var testServer = await TestLspServer.CreateAsync(new Roslyn.LanguageServer.Protocol.ClientCapabilities(), LoggerFactory, MefCacheDirectory.Path, includeDevKitComponents: true, [dllPath]);
+        await using var testServer = await CreateLanguageServerAsync(
+            serverConfiguration: DefaultServerConfiguration with
+            {
+                ExtensionAssemblyPaths = [dllPath]
+            });
 
         var assemblies = AppDomain.CurrentDomain.GetAssemblies();
         var assembly = Assert.Single(assemblies, a => a.GetName().Name == assemblyName);

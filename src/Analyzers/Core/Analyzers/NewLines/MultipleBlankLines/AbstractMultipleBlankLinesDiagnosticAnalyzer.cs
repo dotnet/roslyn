@@ -2,10 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Threading;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.LanguageService;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 
@@ -38,30 +38,31 @@ internal abstract class AbstractMultipleBlankLinesDiagnosticAnalyzer : AbstractB
         if (option.Value || ShouldSkipAnalysis(context, compilationOptions, option.Notification))
             return;
 
-        Recurse(context, option.Notification, context.GetAnalysisRoot(findInTrivia: false), context.CancellationToken);
-    }
+        var cancellationToken = context.CancellationToken;
 
-    private void Recurse(
-        SyntaxTreeAnalysisContext context,
-        NotificationOption2 notificationOption,
-        SyntaxNode node,
-        CancellationToken cancellationToken)
-    {
-        cancellationToken.ThrowIfCancellationRequested();
+        // Use an explicit stack to avoid stack overflows on deeply nested trees (e.g. very long switch statements
+        // with deeply chained binary expressions like in ErrorFacts.cs).
+        using var _ = ArrayBuilder<SyntaxNode>.GetInstance(out var stack);
+        stack.Push(context.GetAnalysisRoot(findInTrivia: false));
 
-        // Don't bother analyzing nodes that have syntax errors in them.
-        if (node.ContainsDiagnostics)
-            return;
-
-        foreach (var child in node.ChildNodesAndTokens())
+        while (stack.TryPop(out var node))
         {
-            if (!context.ShouldAnalyzeSpan(child.FullSpan))
+            cancellationToken.ThrowIfCancellationRequested();
+
+            // Don't bother analyzing nodes that have syntax errors in them.
+            if (node.ContainsDiagnostics)
                 continue;
 
-            if (child.AsNode(out var childNode))
-                Recurse(context, notificationOption, childNode, cancellationToken);
-            else if (child.IsToken)
-                CheckToken(context, notificationOption, child.AsToken());
+            foreach (var child in node.ChildNodesAndTokens())
+            {
+                if (!context.ShouldAnalyzeSpan(child.FullSpan))
+                    continue;
+
+                if (child.AsNode(out var childNode))
+                    stack.Push(childNode);
+                else if (child.IsToken)
+                    CheckToken(context, option.Notification, child.AsToken());
+            }
         }
     }
 

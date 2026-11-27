@@ -4,6 +4,7 @@
 
 using System;
 using System.Text.Json;
+using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CommonLanguageServerProtocol.Framework.Handlers;
 using Microsoft.Extensions.DependencyInjection;
 using Roslyn.LanguageServer.Protocol;
@@ -15,7 +16,7 @@ internal class ExampleLanguageServer : SystemTextJsonLanguageServer<ExampleReque
 {
     private readonly Action<IServiceCollection>? _addExtraHandlers;
 
-    public ExampleLanguageServer(JsonRpc jsonRpc, JsonSerializerOptions options, ILspLogger logger, Action<IServiceCollection>? addExtraHandlers) : base(jsonRpc, options, logger)
+    public ExampleLanguageServer(JsonRpc jsonRpc, JsonSerializerOptions options, Action<IServiceCollection>? addExtraHandlers) : base(jsonRpc, options)
     {
         _addExtraHandlers = addExtraHandlers;
         // This spins up the queue and ensure the LSP is ready to start receiving requests
@@ -27,16 +28,16 @@ internal class ExampleLanguageServer : SystemTextJsonLanguageServer<ExampleReque
         var serviceCollection = new ServiceCollection();
 
         var _ = AddHandlers(serviceCollection)
-            .AddSingleton<ILspLogger>(Logger)
+            .AddSingleton<ILspLogger>(NoOpLspLogger.Instance)
             .AddSingleton<AbstractRequestContextFactory<ExampleRequestContext>, ExampleRequestContextFactory>()
             .AddSingleton<AbstractHandlerProvider>(s => HandlerProvider)
             .AddSingleton<IInitializeManager<InitializeParams, InitializeResult>, CapabilitiesManager>()
             .AddSingleton(this);
 
-        var lifeCycleManager = GetLifeCycleManager();
-        if (lifeCycleManager != null)
+        var onServerShutdown = GetOnServerShutdown();
+        if (onServerShutdown != null)
         {
-            serviceCollection.AddSingleton(lifeCycleManager);
+            serviceCollection.AddSingleton(onServerShutdown);
         }
 
         var lspServices = new ExampleLspServices(serviceCollection);
@@ -44,7 +45,7 @@ internal class ExampleLanguageServer : SystemTextJsonLanguageServer<ExampleReque
         return lspServices;
     }
 
-    protected virtual ILifeCycleManager? GetLifeCycleManager()
+    protected virtual IOnServerShutdown? GetOnServerShutdown()
     {
         return null;
     }

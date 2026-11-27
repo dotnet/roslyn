@@ -264,7 +264,7 @@
       </trans-unit>
       <trans-unit id="ShouldAnnotateInternalApiFilesDescription">
         <source>InternalAPI.txt files should have `#nullable enable` to track nullability information, or this diagnostic should be suppressed. With nullability enabled, InternalAPI.txt records which types are nullable (suffix `?` on type) or non-nullable (suffix `!`). It also tracks any API that is still using an oblivious reference type (prefix `~` on line).</source>
-        <target state="translated">Für InternalAPI.txt-Dateien muss „#nullable enable“ festgelegt sein, um Informationen zur NULL-Zulässigkeit nachzuverfolgen. Andernfalls sollte diese Diagnose unterdrückt werden. Bei aktivierter NULL-Zulässigkeit zeichnet InternalAPI.txt auf, welche Typen Nullwerte zulassen (Suffix „?“ für den Typ) bzw. keine Nullwerte zulassen (Suffix „!“). Zudem werden alle APIs verfolgt, die noch immer einen nicht bewussten Verweistyp verwenden (Präfix „~“ in der Zeile).</target>
+        <target state="translated">Für InternalAPI.txt-Dateien muss „#nullable enable“ festgelegt sein, um Informationen zur NULL-Zulässigkeit nachzuverfolgen, oder diese Diagnose sollte unterdrückt werden. Bei aktivierter NULL-Zulässigkeit zeichnet InternalAPI.txt auf, welche Typen Nullwerte zulassen (Suffix „?“ für den Typ) bzw. keine Nullwerte zulassen (Suffix „!“). Zudem werden alle APIs verfolgt, die noch immer einen nicht bewussten Verweistyp verwenden (Präfix „~“ in der Zeile).</target>
         <note />
       </trans-unit>
       <trans-unit id="ShouldAnnotateInternalApiFilesMessage">
@@ -279,7 +279,7 @@
       </trans-unit>
       <trans-unit id="ShouldAnnotatePublicApiFilesDescription">
         <source>PublicAPI.txt files should have `#nullable enable` to track nullability information, or this diagnostic should be suppressed. With nullability enabled, PublicAPI.txt records which types are nullable (suffix `?` on type) or non-nullable (suffix `!`). It also tracks any API that is still using an oblivious reference type (prefix `~` on line).</source>
-        <target state="translated">Für "PublicAPI.txt"-Dateien muss "#nullable enable" festgelegt sein, um Informationen zur NULL-Zulässigkeit nachzuverfolgen. Andernfalls sollte diese Diagnose unterdrückt werden. Bei aktivierter NULL-Zulässigkeit zeichnet "PublicAPI.txt" auf, welche Typen NULL-Werte zulassen (Suffix "?" für den Typ) bzw. keine NULL-Werte zulassen (Suffix "!"). Zudem werden alle APIs verfolgt, die noch immer einen Verweistyp ohne Beachtung verwenden (Präfix "~" in der Zeile).</target>
+        <target state="translated">Für „PublicAPI.txt“-Dateien muss „#nullable enable“ festgelegt sein, um Informationen zur NULL-Zulässigkeit nachzuverfolgen, oder diese Diagnose sollte unterdrückt werden. Bei aktivierter NULL-Zulässigkeit zeichnet „PublicAPI.txt“ auf, welche Typen NULL-Werte zulassen (Suffix „?“ für den Typ) bzw. keine NULL-Werte zulassen (Suffix „!“). Zudem werden alle APIs verfolgt, die noch immer einen nicht bewussten Verweistyp verwenden (Präfix „~“ in der Zeile).</target>
         <note />
       </trans-unit>
       <trans-unit id="ShouldAnnotatePublicApiFilesMessage">

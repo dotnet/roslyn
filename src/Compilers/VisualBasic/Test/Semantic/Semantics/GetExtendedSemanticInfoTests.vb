@@ -740,8 +740,8 @@ End Class
 
             Dim semanticSummary = CompilationUtils.GetSemanticInfoSummary(Of IdentifierNameSyntax)(compilation, "a.vb")
 
-            Assert.Null(semanticSummary.Type)
-            Assert.Null(semanticSummary.ConvertedType)
+            Assert.Equal("Class1", semanticSummary.Type.ToTestDisplayString())
+            Assert.Equal("Class1", semanticSummary.ConvertedType.ToTestDisplayString())
             Assert.Equal(ConversionKind.Identity, semanticSummary.ImplicitConversion.Kind)
 
             Assert.Equal("Class1", semanticSummary.Symbol.ToTestDisplayString())
@@ -951,8 +951,8 @@ End Class
 
             Dim semanticSummary = CompilationUtils.GetSemanticInfoSummary(Of IdentifierNameSyntax)(compilation, "a.vb")
 
-            Assert.Null(semanticSummary.Type)
-            Assert.Null(semanticSummary.ConvertedType)
+            Assert.Equal("Class1", semanticSummary.Type.ToTestDisplayString())
+            Assert.Equal("Class1", semanticSummary.ConvertedType.ToTestDisplayString())
             Assert.Equal(ConversionKind.Identity, semanticSummary.ImplicitConversion.Kind)
 
             Assert.Equal("Class1", semanticSummary.Symbol.ToTestDisplayString())
@@ -2738,8 +2738,8 @@ End Class
 
             Dim semanticInfo = CompilationUtils.GetSemanticInfoSummary(Of IdentifierNameSyntax)(compilation, "a.vb")
 
-            Assert.Null(semanticInfo.Type)
-            Assert.Null(semanticInfo.ConvertedType)
+            Assert.Equal("C", semanticInfo.Type.ToTestDisplayString())
+            Assert.Equal("C", semanticInfo.ConvertedType.ToTestDisplayString())
             Assert.Equal(ConversionKind.Identity, semanticInfo.ImplicitConversion.Kind)
 
             Assert.Equal("C", semanticInfo.Symbol.ToTestDisplayString())
@@ -6768,8 +6768,8 @@ End Module
 
             Dim semanticInfo = CompilationUtils.GetSemanticInfoSummary(Of IdentifierNameSyntax)(compilation, "a.vb")
 
-            Assert.Null(semanticInfo.Type)
-            Assert.Null(semanticInfo.ConvertedType)
+            Assert.Equal("Del", semanticInfo.Type.ToTestDisplayString())
+            Assert.Equal("Del", semanticInfo.ConvertedType.ToTestDisplayString())
             Assert.Equal(ConversionKind.Identity, semanticInfo.ImplicitConversion.Kind)
 
             Assert.Equal("Del", semanticInfo.Symbol.ToTestDisplayString())
@@ -6843,8 +6843,8 @@ End Module
 
             Dim semanticInfo = CompilationUtils.GetSemanticInfoSummary(Of IdentifierNameSyntax)(compilation, "a.vb")
 
-            Assert.Null(semanticInfo.Type)
-            Assert.Null(semanticInfo.ConvertedType)
+            Assert.Equal("Del", semanticInfo.Type.ToTestDisplayString())
+            Assert.Equal("Del", semanticInfo.ConvertedType.ToTestDisplayString())
             Assert.Equal(ConversionKind.Identity, semanticInfo.ImplicitConversion.Kind)
 
             Assert.Equal("Del", semanticInfo.Symbol.ToTestDisplayString())
@@ -6918,8 +6918,8 @@ End Module
 
             Dim semanticInfo = CompilationUtils.GetSemanticInfoSummary(Of IdentifierNameSyntax)(compilation, "a.vb")
 
-            Assert.Null(semanticInfo.Type)
-            Assert.Null(semanticInfo.ConvertedType)
+            Assert.Equal("Del", semanticInfo.Type.ToTestDisplayString())
+            Assert.Equal("Del", semanticInfo.ConvertedType.ToTestDisplayString())
             Assert.Equal(ConversionKind.Identity, semanticInfo.ImplicitConversion.Kind)
 
             Assert.Equal("Del", semanticInfo.Symbol.ToTestDisplayString())
@@ -6993,8 +6993,8 @@ End Module
 
             Dim semanticInfo = CompilationUtils.GetSemanticInfoSummary(Of IdentifierNameSyntax)(compilation, "a.vb")
 
-            Assert.Null(semanticInfo.Type)
-            Assert.Null(semanticInfo.ConvertedType)
+            Assert.Equal("Del", semanticInfo.Type.ToTestDisplayString())
+            Assert.Equal("Del", semanticInfo.ConvertedType.ToTestDisplayString())
             Assert.Equal(ConversionKind.Identity, semanticInfo.ImplicitConversion.Kind)
 
             Assert.Equal("Del", semanticInfo.Symbol.ToTestDisplayString())
@@ -7071,8 +7071,8 @@ End Module
 
             Dim semanticInfo = CompilationUtils.GetSemanticInfoSummary(Of QualifiedNameSyntax)(compilation, "a.vb")
 
-            Assert.Null(semanticInfo.Type)
-            Assert.Null(semanticInfo.ConvertedType)
+            Assert.Equal("X.Y", semanticInfo.Type.ToTestDisplayString())
+            Assert.Equal("X.Y", semanticInfo.ConvertedType.ToTestDisplayString())
             Assert.Equal(ConversionKind.Identity, semanticInfo.ImplicitConversion.Kind)
 
             Assert.Null(semanticInfo.Symbol)
@@ -7155,8 +7155,8 @@ End Module
 
             Dim semanticInfo = CompilationUtils.GetSemanticInfoSummary(Of IdentifierNameSyntax)(compilation, "a.vb")
 
-            Assert.Null(semanticInfo.Type)
-            Assert.Null(semanticInfo.ConvertedType)
+            Assert.Equal("X", semanticInfo.Type.ToTestDisplayString())
+            Assert.Equal("X", semanticInfo.ConvertedType.ToTestDisplayString())
             Assert.Equal(ConversionKind.Identity, semanticInfo.ImplicitConversion.Kind)
 
             Assert.Equal("X", semanticInfo.Symbol.ToTestDisplayString())
@@ -8575,8 +8575,8 @@ End Module
 
             Dim semanticSummary = CompilationUtils.GetSemanticInfoSummary(Of IdentifierNameSyntax)(compilation, "a.vb")
 
-            Assert.Null(semanticSummary.Type)
-            Assert.Null(semanticSummary.ConvertedType)
+            Assert.Equal("Program", semanticSummary.Type.ToTestDisplayString())
+            Assert.Equal("Program", semanticSummary.ConvertedType.ToTestDisplayString())
             Assert.Equal(ConversionKind.Identity, semanticSummary.ImplicitConversion.Kind)
 
             Assert.Null(semanticSummary.Symbol)
@@ -8657,8 +8657,8 @@ End Module
 
             Dim semanticSummary = CompilationUtils.GetSemanticInfoSummary(Of IdentifierNameSyntax)(compilation, "a.vb")
 
-            Assert.Null(semanticSummary.Type)
-            Assert.Null(semanticSummary.ConvertedType)
+            Assert.Equal("C1", semanticSummary.Type.ToTestDisplayString())
+            Assert.Equal("C1", semanticSummary.ConvertedType.ToTestDisplayString())
             Assert.Equal(ConversionKind.Identity, semanticSummary.ImplicitConversion.Kind)
 
             Assert.Equal("C1", semanticSummary.Symbol.ToTestDisplayString())
@@ -8806,8 +8806,8 @@ End Module
 
             Dim semanticSummary = CompilationUtils.GetSemanticInfoSummary(Of IdentifierNameSyntax)(compilation, "a.vb")
 
-            Assert.Null(semanticSummary.Type)
-            Assert.Null(semanticSummary.ConvertedType)
+            Assert.Equal("X", semanticSummary.Type.ToTestDisplayString())
+            Assert.Equal("X", semanticSummary.ConvertedType.ToTestDisplayString())
             Assert.Equal(ConversionKind.Identity, semanticSummary.ImplicitConversion.Kind)
 
             Assert.Null(semanticSummary.Symbol)
@@ -8879,8 +8879,8 @@ End Interface
 
             Dim semanticSummary = CompilationUtils.GetSemanticInfoSummary(Of IdentifierNameSyntax)(compilation, "a.vb")
 
-            Assert.Null(semanticSummary.Type)
-            Assert.Null(semanticSummary.ConvertedType)
+            Assert.Equal("X", semanticSummary.Type.ToTestDisplayString())
+            Assert.Equal("X", semanticSummary.ConvertedType.ToTestDisplayString())
             Assert.Equal(ConversionKind.Identity, semanticSummary.ImplicitConversion.Kind)
 
             Assert.Null(semanticSummary.Symbol)
@@ -8954,8 +8954,8 @@ End Class
 
             Dim semanticSummary = CompilationUtils.GetSemanticInfoSummary(Of IdentifierNameSyntax)(compilation, "a.vb")
 
-            Assert.Null(semanticSummary.Type)
-            Assert.Null(semanticSummary.ConvertedType)
+            Assert.Equal("X", semanticSummary.Type.ToTestDisplayString())
+            Assert.Equal("X", semanticSummary.ConvertedType.ToTestDisplayString())
             Assert.Equal(ConversionKind.Identity, semanticSummary.ImplicitConversion.Kind)
 
             Assert.Null(semanticSummary.Symbol)
@@ -9050,8 +9050,8 @@ End Class
             Assert.Equal(0, memberGroup.Count)
 
             Dim typeInfo As TypeInfo = model.GetTypeInfo(creation.Type)
-            Assert.Null(typeInfo.Type)
-            Assert.Null(typeInfo.ConvertedType)
+            Assert.Equal("X", typeInfo.Type.ToTestDisplayString())
+            Assert.Equal("X", typeInfo.ConvertedType.ToTestDisplayString())
             Dim conv = model.GetConversion(creation.Type)
             Assert.True(conv.IsIdentity)
 
@@ -9114,8 +9114,8 @@ End Class
             Assert.Equal(0, memberGroup.Count)
 
             Dim typeInfo As TypeInfo = model.GetTypeInfo(creation.Type)
-            Assert.Null(typeInfo.Type)
-            Assert.Null(typeInfo.ConvertedType)
+            Assert.Equal("X", typeInfo.Type.ToTestDisplayString())
+            Assert.Equal("X", typeInfo.ConvertedType.ToTestDisplayString())
             Dim conv = model.GetConversion(creation.Type)
             Assert.True(conv.IsIdentity)
 
@@ -9178,8 +9178,8 @@ End Class
             Assert.Equal(0, memberGroup.Count)
 
             Dim typeInfo As TypeInfo = model.GetTypeInfo(creation.Type)
-            Assert.Null(typeInfo.Type)
-            Assert.Null(typeInfo.ConvertedType)
+            Assert.Equal("X", typeInfo.Type.ToTestDisplayString())
+            Assert.Equal("X", typeInfo.ConvertedType.ToTestDisplayString())
             Dim conv = model.GetConversion(creation.Type)
             Assert.True(conv.IsIdentity)
 
@@ -9243,8 +9243,8 @@ End Class
             Assert.Equal(0, memberGroup.Count)
 
             Dim typeInfo As TypeInfo = model.GetTypeInfo(creation.Type)
-            Assert.Null(typeInfo.Type)
-            Assert.Null(typeInfo.ConvertedType)
+            Assert.Equal("X", typeInfo.Type.ToTestDisplayString())
+            Assert.Equal("X", typeInfo.ConvertedType.ToTestDisplayString())
             Dim conv = model.GetConversion(creation.Type)
             Assert.True(conv.IsIdentity)
 
@@ -9304,8 +9304,8 @@ End Class
             Assert.Equal(0, memberGroup.Count)
 
             Dim typeInfo As TypeInfo = model.GetTypeInfo(creation.Type)
-            Assert.Null(typeInfo.Type)
-            Assert.Null(typeInfo.ConvertedType)
+            Assert.Equal("X", typeInfo.Type.ToTestDisplayString())
+            Assert.Equal("X", typeInfo.ConvertedType.ToTestDisplayString())
             Dim conv = model.GetConversion(creation.Type)
             Assert.True(conv.IsIdentity)
 
@@ -9348,8 +9348,8 @@ End Class
 
             Dim semanticSummary = CompilationUtils.GetSemanticInfoSummary(Of IdentifierNameSyntax)(compilation, "a.vb")
 
-            Assert.Null(semanticSummary.Type)
-            Assert.Null(semanticSummary.ConvertedType)
+            Assert.Equal("T", semanticSummary.Type.ToTestDisplayString())
+            Assert.Equal("T", semanticSummary.ConvertedType.ToTestDisplayString())
             Assert.Equal(ConversionKind.Identity, semanticSummary.ImplicitConversion.Kind)
 
             Assert.Null(semanticSummary.Symbol)
@@ -9419,8 +9419,8 @@ End Class
 
             Dim semanticSummary = CompilationUtils.GetSemanticInfoSummary(Of IdentifierNameSyntax)(compilation, "a.vb")
 
-            Assert.Null(semanticSummary.Type)
-            Assert.Null(semanticSummary.ConvertedType)
+            Assert.Equal("I", semanticSummary.Type.ToTestDisplayString())
+            Assert.Equal("I", semanticSummary.ConvertedType.ToTestDisplayString())
             Assert.Equal(ConversionKind.Identity, semanticSummary.ImplicitConversion.Kind)
 
             Assert.Null(semanticSummary.Symbol)
@@ -10224,6 +10224,56 @@ BC30002: Type 'ShortName.Class1' is not defined.
             Assert.Null(symbolInfo.Symbol)
             Assert.Equal(0, symbolInfo.CandidateSymbols.Length)
             Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason)
+        End Sub
+
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75147")>
+        Public Sub GetTypeInfo_ObjectCreation_01()
+            Dim comp = CreateCompilation(
+<compilation>
+    <file name="a.vb">
+Class C
+End Class
+
+Module TestModule
+    Sub Main()
+        Dim obj = New C()
+    End Sub
+End Module
+    </file>
+</compilation>)
+
+            comp.VerifyDiagnostics()
+            Dim tree = comp.SyntaxTrees(0)
+            Dim model = comp.GetSemanticModel(tree)
+            Dim objectCreation = tree.GetRoot().DescendantNodes().OfType(Of ObjectCreationExpressionSyntax)().Single()
+            Dim typeInfo = model.GetTypeInfo(objectCreation.Type)
+            Assert.Equal("C", typeInfo.Type.ToTestDisplayString())
+            Assert.Equal("C", typeInfo.ConvertedType.ToTestDisplayString())
+        End Sub
+
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75147")>
+        Public Sub GetTypeInfo_ObjectCreation_02()
+            Dim comp = CreateCompilation(
+<compilation>
+    <file name="a.vb">
+Class C(Of T)
+End Class
+
+Module TestModule
+    Sub Main()
+        Dim obj = New C(Of System.Int32)()
+    End Sub
+End Module
+    </file>
+</compilation>)
+
+            comp.VerifyDiagnostics()
+            Dim tree = comp.SyntaxTrees(0)
+            Dim model = comp.GetSemanticModel(tree)
+            Dim objectCreation = tree.GetRoot().DescendantNodes().OfType(Of ObjectCreationExpressionSyntax)().Single()
+            Dim typeInfo = model.GetTypeInfo(objectCreation.Type)
+            Assert.Equal("C(Of System.Int32)", typeInfo.Type.ToTestDisplayString())
+            Assert.Equal("C(Of System.Int32)", typeInfo.ConvertedType.ToTestDisplayString())
         End Sub
 
     End Class

@@ -130,6 +130,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             while (stack.Count > 0);
 
+            stack.Free();
             Debug.Assert(currentBinary != null);
             return currentBinary!;
         }
@@ -166,6 +167,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             while (stack.Count > 0);
 
+            stack.Free();
             return currentBinary;
         }
 

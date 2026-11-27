@@ -1,0 +1,14 @@
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
+using System.Threading;
+using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Razor.Formatting;
+using Microsoft.CodeAnalysis.Remote.Razor.ProjectSystem;
+
+namespace Microsoft.CodeAnalysis.Razor.CodeActions;
+
+internal interface ICSharpCodeActionResolver : ICodeActionResolver
+{
+    Task<CodeAction> ResolveAsync(RemoteDocumentSnapshot documentSnapshot, CodeAction codeAction, RazorFormattingOptions formattingOptions, CancellationToken cancellationToken);
+}

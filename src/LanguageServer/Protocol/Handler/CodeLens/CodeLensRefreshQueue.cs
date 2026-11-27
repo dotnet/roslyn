@@ -17,8 +17,9 @@ internal sealed class CodeLensRefreshQueue : AbstractRefreshQueue
         LspWorkspaceRegistrationService lspWorkspaceRegistrationService,
         LspWorkspaceManager lspWorkspaceManager,
         IClientLanguageServerManager notificationManager,
+        FeatureProviderRefresher providerRefresher,
         IGlobalOptionService globalOptionService)
-        : base(asynchronousOperationListenerProvider, lspWorkspaceRegistrationService, lspWorkspaceManager, notificationManager)
+        : base(asynchronousOperationListenerProvider, lspWorkspaceRegistrationService, lspWorkspaceManager, notificationManager, providerRefresher)
     {
         _globalOptionService = globalOptionService;
         _globalOptionService.AddOptionChangedHandler(this, OnOptionChanged);
@@ -39,7 +40,10 @@ internal sealed class CodeLensRefreshQueue : AbstractRefreshQueue
 
     private void OnOptionChanged(object sender, object target, OptionChangedEventArgs e)
     {
-        if (e.HasOption(static option => option.Equals(LspOptionsStorage.LspEnableReferencesCodeLens) || option.Equals(LspOptionsStorage.LspEnableTestsCodeLens)))
+        if (e.HasOption(static option =>
+            option.Equals(LspOptionsStorage.LspEnableReferencesCodeLens) ||
+            option.Equals(LspOptionsStorage.LspEnableTestsCodeLens) ||
+            option.Equals(LspOptionsStorage.LspUseSemanticTestDiscovery)))
         {
             EnqueueRefreshNotification(documentUri: null);
         }

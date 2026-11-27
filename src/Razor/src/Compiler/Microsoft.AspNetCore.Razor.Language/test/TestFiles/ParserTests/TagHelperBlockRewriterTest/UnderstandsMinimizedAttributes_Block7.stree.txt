@@ -1,0 +1,34 @@
+﻿RazorDocument - [0..30)::30 - [@{<input string-dictionary />}]
+    MarkupBlock - [0..30)::30
+        MarkupTextLiteral - [0..0)::0 - [] - Gen<Markup>
+            Marker;[];
+        CSharpCodeBlock - [0..30)::30
+            CSharpStatement - [0..30)::30
+                CSharpTransition - [0..1)::1 - Gen<None>
+                    Transition;[@];
+                CSharpStatementBody - [1..30)::29
+                    RazorMetaCode - [1..2)::1 - Gen<None>
+                        LeftBrace;[{];
+                    CSharpCodeBlock - [2..29)::27
+                        MarkupBlock - [2..29)::27
+                            MarkupTagHelperElement - [2..29)::27 - input[SelfClosing] - InputTagHelper3
+                                MarkupTagHelperStartTag - [2..29)::27 - [<input string-dictionary />] - Gen<Markup>
+                                    OpenAngle;[<];
+                                    Text;[input];
+                                    MarkupMinimizedTagHelperAttribute - [8..26)::18 - string-dictionary - Minimized - Bound - [ string-dictionary]
+                                        MarkupTextLiteral - [8..9)::1 - [ ] - Gen<Markup>
+                                            Whitespace;[ ];
+                                        MarkupTextLiteral - [9..26)::17 - [string-dictionary] - Gen<Markup>
+                                            Text;[string-dictionary];
+                                    MarkupMiscAttributeContent - [26..27)::1
+                                        MarkupTextLiteral - [26..27)::1 - [ ] - Gen<Markup>
+                                            Whitespace;[ ];
+                                    ForwardSlash;[/];
+                                    CloseAngle;[>];
+                        CSharpStatementLiteral - [29..29)::0 - [] - Gen<Stmt>
+                            Marker;[];
+                    RazorMetaCode - [29..30)::1 - Gen<None>
+                        RightBrace;[}];
+        MarkupTextLiteral - [30..30)::0 - [] - Gen<Markup>
+            Marker;[];
+    EndOfFile;[];

@@ -36,7 +36,7 @@ public sealed class CSharpGoToAdjacentMemberTests : AbstractGoToAdjacentMemberTe
             """, next: true));
     }
 
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/4311")]
+    [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/4311")]
     public Task BeforeClassWithMember()
         => AssertNavigatedAsync("""
             $$
@@ -46,7 +46,7 @@ public sealed class CSharpGoToAdjacentMemberTests : AbstractGoToAdjacentMemberTe
             }
             """, next: true);
 
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/4311")]
+    [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/4311")]
     public Task AfterClassWithMember()
         => AssertNavigatedAsync("""
             class C
@@ -57,7 +57,7 @@ public sealed class CSharpGoToAdjacentMemberTests : AbstractGoToAdjacentMemberTe
             $$
             """, next: true);
 
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/4311")]
+    [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/4311")]
     public Task BetweenClasses()
         => AssertNavigatedAsync("""
             class C1
@@ -73,7 +73,7 @@ public sealed class CSharpGoToAdjacentMemberTests : AbstractGoToAdjacentMemberTe
             }
             """, next: true);
 
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/4311")]
+    [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/4311")]
     public Task BetweenClassesPrevious()
         => AssertNavigatedAsync("""
             class C1
@@ -89,7 +89,7 @@ public sealed class CSharpGoToAdjacentMemberTests : AbstractGoToAdjacentMemberTe
             }
             """, next: false);
 
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/4311")]
+    [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/4311")]
     public Task FromFirstMemberToSecond()
         => AssertNavigatedAsync("""
             class C
@@ -99,7 +99,7 @@ public sealed class CSharpGoToAdjacentMemberTests : AbstractGoToAdjacentMemberTe
             }
             """, next: true);
 
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/4311")]
+    [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/4311")]
     public Task FromSecondToFirst()
         => AssertNavigatedAsync("""
             class C
@@ -109,7 +109,7 @@ public sealed class CSharpGoToAdjacentMemberTests : AbstractGoToAdjacentMemberTe
             }
             """, next: false);
 
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/4311")]
+    [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/4311")]
     public Task NextWraps()
         => AssertNavigatedAsync("""
             class C
@@ -119,7 +119,7 @@ public sealed class CSharpGoToAdjacentMemberTests : AbstractGoToAdjacentMemberTe
             }
             """, next: true);
 
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/4311")]
+    [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/4311")]
     public Task PreviousWraps()
         => AssertNavigatedAsync("""
             class C
@@ -129,7 +129,7 @@ public sealed class CSharpGoToAdjacentMemberTests : AbstractGoToAdjacentMemberTe
             }
             """, next: false);
 
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/4311")]
+    [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/4311")]
     public Task DescendsIntoNestedType()
         => AssertNavigatedAsync("""
             class C
@@ -143,7 +143,7 @@ public sealed class CSharpGoToAdjacentMemberTests : AbstractGoToAdjacentMemberTe
             }
             """, next: true);
 
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/4311")]
+    [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/4311")]
     public Task StopsAtConstructor()
         => AssertNavigatedAsync("""
             class C
@@ -153,7 +153,7 @@ public sealed class CSharpGoToAdjacentMemberTests : AbstractGoToAdjacentMemberTe
             }
             """, next: true);
 
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/4311")]
+    [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/4311")]
     public Task StopsAtDestructor()
         => AssertNavigatedAsync("""
             class C
@@ -163,7 +163,7 @@ public sealed class CSharpGoToAdjacentMemberTests : AbstractGoToAdjacentMemberTe
             }
             """, next: true);
 
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/4311")]
+    [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/4311")]
     public Task StopsAtOperator()
         => AssertNavigatedAsync("""
             class C
@@ -172,7 +172,7 @@ public sealed class CSharpGoToAdjacentMemberTests : AbstractGoToAdjacentMemberTe
                 [||]static C operator+(C left, C right) { throw new System.NotImplementedException(); }
             }
             """, next: true);
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/4311")]
+    [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/4311")]
     public Task StopsAtField()
         => AssertNavigatedAsync("""
             class C
@@ -182,7 +182,7 @@ public sealed class CSharpGoToAdjacentMemberTests : AbstractGoToAdjacentMemberTe
             }
             """, next: true);
 
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/4311")]
+    [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/4311")]
     public Task StopsAtFieldlikeEvent()
         => AssertNavigatedAsync("""
             class C
@@ -192,7 +192,7 @@ public sealed class CSharpGoToAdjacentMemberTests : AbstractGoToAdjacentMemberTe
             }
             """, next: true);
 
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/4311")]
+    [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/4311")]
     public Task StopsAtAutoProperty()
         => AssertNavigatedAsync("""
             class C
@@ -202,7 +202,7 @@ public sealed class CSharpGoToAdjacentMemberTests : AbstractGoToAdjacentMemberTe
             }
             """, next: true);
 
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/4311")]
+    [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/4311")]
     public Task StopsAtPropertyWithAccessors()
         => AssertNavigatedAsync("""
             class C
@@ -217,7 +217,7 @@ public sealed class CSharpGoToAdjacentMemberTests : AbstractGoToAdjacentMemberTe
             }
             """, next: true);
 
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/4311")]
+    [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/4311")]
     public Task SkipsPropertyAccessors()
         => AssertNavigatedAsync("""
             class C
@@ -234,7 +234,7 @@ public sealed class CSharpGoToAdjacentMemberTests : AbstractGoToAdjacentMemberTe
             }
             """, next: true);
 
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/4311")]
+    [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/4311")]
     public Task FromInsideAccessor()
         => AssertNavigatedAsync("""
             class C
@@ -251,7 +251,7 @@ public sealed class CSharpGoToAdjacentMemberTests : AbstractGoToAdjacentMemberTe
             }
             """, next: true);
 
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/4311")]
+    [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/4311")]
     public Task StopsAtIndexerWithAccessors()
         => AssertNavigatedAsync("""
             class C
@@ -266,7 +266,7 @@ public sealed class CSharpGoToAdjacentMemberTests : AbstractGoToAdjacentMemberTe
             }
             """, next: true);
 
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/4311")]
+    [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/4311")]
     public Task SkipsIndexerAccessors()
         => AssertNavigatedAsync("""
             class C
@@ -283,7 +283,7 @@ public sealed class CSharpGoToAdjacentMemberTests : AbstractGoToAdjacentMemberTe
             }
             """, next: true);
 
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/4311")]
+    [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/4311")]
     public Task StopsAtEventWithAddRemove()
         => AssertNavigatedAsync("""
             class C
@@ -298,7 +298,7 @@ public sealed class CSharpGoToAdjacentMemberTests : AbstractGoToAdjacentMemberTe
             }
             """, next: true);
 
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/4311")]
+    [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/4311")]
     public Task SkipsEventAddRemove()
         => AssertNavigatedAsync("""
             class C
@@ -315,7 +315,7 @@ public sealed class CSharpGoToAdjacentMemberTests : AbstractGoToAdjacentMemberTe
             }
             """, next: true);
 
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/4311")]
+    [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/4311")]
     public Task FromInsideMethod()
         => AssertNavigatedAsync("""
             class C
@@ -329,7 +329,7 @@ public sealed class CSharpGoToAdjacentMemberTests : AbstractGoToAdjacentMemberTe
             }
             """, next: true);
 
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/4311")]
+    [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/4311")]
     public Task NextFromBetweenMethods()
         => AssertNavigatedAsync("""
             class C
@@ -342,7 +342,7 @@ public sealed class CSharpGoToAdjacentMemberTests : AbstractGoToAdjacentMemberTe
             }
             """, next: true);
 
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/4311")]
+    [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/4311")]
     public Task PreviousFromBetweenMethods()
         => AssertNavigatedAsync("""
             class C
@@ -355,7 +355,7 @@ public sealed class CSharpGoToAdjacentMemberTests : AbstractGoToAdjacentMemberTe
             }
             """, next: false);
 
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/4311")]
+    [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/4311")]
     public Task NextFromBetweenMethodsInTrailingTrivia()
         => AssertNavigatedAsync("""
             class C
@@ -368,7 +368,7 @@ public sealed class CSharpGoToAdjacentMemberTests : AbstractGoToAdjacentMemberTe
             }
             """, next: true);
 
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/4311")]
+    [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/4311")]
     public Task PreviousFromBetweenMethodsInTrailingTrivia()
         => AssertNavigatedAsync("""
             class C
@@ -381,7 +381,7 @@ public sealed class CSharpGoToAdjacentMemberTests : AbstractGoToAdjacentMemberTe
             }
             """, next: false);
 
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/4311")]
+    [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/4311")]
     public Task StopsAtExpressionBodiedMember()
         => AssertNavigatedAsync("""
             class C
@@ -392,7 +392,7 @@ public sealed class CSharpGoToAdjacentMemberTests : AbstractGoToAdjacentMemberTe
             }
             """, next: true);
 
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/4311")]
+    [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/4311")]
     [WorkItem("https://github.com/dotnet/roslyn/issues/10588")]
     public Task PreviousFromInsideCurrent()
         => AssertNavigatedAsync("""
@@ -409,7 +409,7 @@ public sealed class CSharpGoToAdjacentMemberTests : AbstractGoToAdjacentMemberTe
             }
             """, next: false);
 
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/4311")]
+    [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/4311")]
     public Task NextInScript()
         => AssertNavigatedAsync("""
             $$void M1() { }
@@ -417,11 +417,31 @@ public sealed class CSharpGoToAdjacentMemberTests : AbstractGoToAdjacentMemberTe
             [||]void M2() { }
             """, next: true, sourceCodeKind: SourceCodeKind.Script);
 
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/4311")]
+    [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/4311")]
     public Task PrevInScript()
         => AssertNavigatedAsync("""
             [||]void M1() { }
 
             $$void M2() { }
             """, next: false, sourceCodeKind: SourceCodeKind.Script);
+
+    [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/77393")]
+    public Task SelectionNextMethod()
+        => AssertNavigatedAsync("""
+            class C
+            {
+                {|selection:$$void M1() { }|}
+                [||]void M2() { }
+            }
+            """, next: true);
+
+    [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/77393")]
+    public Task SelectionPreviousMethod()
+        => AssertNavigatedAsync("""
+            class C
+            {
+                [||]void M1() { }
+                {|selection:$$void M2() { }|}
+            }
+            """, next: false);
 }

@@ -4,7 +4,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Linq;
 using Roslyn.Utilities;
 using MSB = Microsoft.Build;
@@ -14,12 +13,12 @@ namespace Microsoft.CodeAnalysis.MSBuild;
 internal abstract class CommandLineArgumentReader
 {
     protected readonly MSB.Execution.ProjectInstance Project;
-    private readonly ImmutableArray<string>.Builder _builder;
+    private readonly List<string> _builder;
 
     protected CommandLineArgumentReader(MSB.Execution.ProjectInstance project)
     {
         Project = project;
-        _builder = ImmutableArray.CreateBuilder<string>();
+        _builder = new List<string>();
     }
 
     protected abstract void ReadCore();
@@ -112,18 +111,6 @@ internal abstract class CommandLineArgumentReader
         }
     }
 
-    protected string GetDocumentFilePath(MSB.Framework.ITaskItem documentItem)
-    {
-        return GetAbsolutePath(documentItem.ItemSpec);
-    }
-
-    protected string GetAbsolutePath(string path)
-    {
-        var baseDirectory = PathUtilities.GetDirectoryName(Project.FullPath);
-        var absolutePath = FileUtilities.ResolveRelativePath(path, baseDirectory) ?? path;
-        return FileUtilities.TryNormalizeAbsolutePath(absolutePath) ?? absolutePath;
-    }
-
     protected void ReadAdditionalFiles()
     {
         var additionalFiles = Project.GetAdditionalFiles();
@@ -131,37 +118,25 @@ internal abstract class CommandLineArgumentReader
         {
             foreach (var additionalFile in additionalFiles)
             {
-                Add("additionalfile", GetDocumentFilePath(additionalFile));
-            }
-        }
-    }
-
-    protected void ReadAnalyzers()
-    {
-        var analyzers = Project.GetAnalyzers();
-        if (analyzers != null)
-        {
-            foreach (var analyzer in analyzers)
-            {
-                Add("analyzer", GetDocumentFilePath(analyzer));
+                Add("additionalfile", Project.GetAbsolutePath(additionalFile.ItemSpec));
             }
         }
     }
 
     protected void ReadCodePage()
     {
-        var codePage = Project.ReadPropertyInt(PropertyNames.CodePage);
+        var codePage = Project.ReadCodePage();
         AddIfTrue("codepage", codePage.ToString(), codePage != 0);
     }
 
-    private static readonly ImmutableDictionary<string, string> s_debugTypeValues = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
+    private static readonly Dictionary<string, string> s_debugTypeValues = new(StringComparer.OrdinalIgnoreCase)
     {
         { "none", "none" },
         { "pdbonly", "pdbonly" },
         { "full", "full" },
         { "portable", "portable" },
         { "embedded", "embedded" }
-    }.ToImmutableDictionary();
+    };
 
     protected void ReadDebugInfo()
     {
@@ -236,41 +211,6 @@ internal abstract class CommandLineArgumentReader
         AddIfNotNullOrWhiteSpace("platform", platform);
     }
 
-    protected void ReadReferences()
-    {
-        var references = Project.GetMetadataReferences();
-        if (references != null)
-        {
-            foreach (var reference in references)
-            {
-                if (reference.ReferenceOutputAssemblyIsTrue())
-                {
-                    var filePath = GetDocumentFilePath(reference);
-
-                    var aliases = reference.GetAliases();
-                    if (aliases.IsDefaultOrEmpty)
-                    {
-                        Add("reference", filePath);
-                    }
-                    else
-                    {
-                        foreach (var alias in aliases)
-                        {
-                            if (string.Equals(alias, "global", StringComparison.OrdinalIgnoreCase))
-                            {
-                                Add("reference", filePath);
-                            }
-                            else
-                            {
-                                Add("reference", $"{alias}=\"{filePath}\"");
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    }
-
     protected void ReadSigning()
     {
         var signAssembly = Project.ReadPropertyBool(PropertyNames.SignAssembly);
@@ -290,9 +230,9 @@ internal abstract class CommandLineArgumentReader
         }
     }
 
-    protected ImmutableArray<string> Read()
+    protected string[] Read()
     {
         ReadCore();
-        return _builder.ToImmutable();
+        return _builder.ToArray();
     }
 }

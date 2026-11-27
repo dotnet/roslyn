@@ -20,6 +20,7 @@ namespace Roslyn.Test.Utilities
     /// <summary>
     /// Base class for all unit test classes.
     /// </summary>
+    [ValidatePooledObjects]
     public abstract class TestBase : IDisposable
     {
         private TempRoot? _temp;

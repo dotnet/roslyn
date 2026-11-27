@@ -506,7 +506,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             ImmutableDictionary<AdditionalText, ImmutableDictionary<DiagnosticAnalyzer, ImmutableArray<Diagnostic>>> localAdditionalFileDiagnostics;
             ImmutableDictionary<DiagnosticAnalyzer, ImmutableArray<Diagnostic>> nonLocalDiagnostics;
 
-            var analyzersSet = analyzers.ToImmutableHashSet();
+            var analyzersSet = PooledHashSet<DiagnosticAnalyzer>.GetInstance();
+            analyzersSet.AddRange(analyzers);
+
             Func<Diagnostic, bool> shouldInclude = analysisScope.ShouldInclude;
             lock (_gate)
             {
@@ -516,13 +518,20 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 nonLocalDiagnostics = GetImmutable(analyzersSet, shouldInclude, _nonLocalDiagnosticsOpt);
             }
 
+            analyzersSet.Free();
             cancellationToken.ThrowIfCancellationRequested();
             var analyzerTelemetryInfo = GetTelemetryInfo(analyzers);
             return new AnalysisResult(analyzers, localSyntaxDiagnostics, localSemanticDiagnostics, localAdditionalFileDiagnostics, nonLocalDiagnostics, analyzerTelemetryInfo);
         }
 
+        /// <summary>
+        /// Gets an immutable dictionary from the given local diagnostics map.
+        /// </summary>
+        /// <param name="analyzers">Limits the analyzers included. Is not modified.</param>
+        /// <param name="shouldInclude">Filter determining whether a diagnostic should be included</param>
+        /// <param name="localDiagnosticsOpt">Diagnostic map to operate on</param>
         private static ImmutableDictionary<TKey, ImmutableDictionary<DiagnosticAnalyzer, ImmutableArray<Diagnostic>>> GetImmutable<TKey>(
-            ImmutableHashSet<DiagnosticAnalyzer> analyzers,
+            HashSet<DiagnosticAnalyzer> analyzers, // Will not be modified
             Func<Diagnostic, bool> shouldInclude,
             Dictionary<TKey, Dictionary<DiagnosticAnalyzer, ImmutableArray<Diagnostic>.Builder>>? localDiagnosticsOpt)
             where TKey : class
@@ -557,8 +566,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             return builder.ToImmutable();
         }
 
+        /// <summary>
+        /// Gets an immutable dictionary from the given non-local diagnostics map.
+        /// </summary>
+        /// <param name="analyzers">Limits the analyzers included. Is not modified.</param>
+        /// <param name="shouldInclude">Filter determining whether a diagnostic should be included</param>
+        /// <param name="nonLocalDiagnosticsOpt">Diagnostic map to operate on</param>
         private static ImmutableDictionary<DiagnosticAnalyzer, ImmutableArray<Diagnostic>> GetImmutable(
-            ImmutableHashSet<DiagnosticAnalyzer> analyzers,
+            HashSet<DiagnosticAnalyzer> analyzers,
             Func<Diagnostic, bool> shouldInclude,
             Dictionary<DiagnosticAnalyzer, ImmutableArray<Diagnostic>.Builder>? nonLocalDiagnosticsOpt)
         {

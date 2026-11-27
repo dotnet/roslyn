@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <!-- Licensed to the .NET Foundation under one or more agreements. The .NET Foundation licenses this file to you under the MIT license. See the LICENSE file in the project root for more information. -->
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
@@ -44,7 +44,7 @@
     <RestrictedInternalsVisibleTo Include="Microsoft.CodeAnalysis.UnitTesting.SourceBasedTestDiscovery.Core" Partner="UnitTesting" Key="$(UnitTestingKey)" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.LanguageServer" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.LanguageServer.UnitTests" />
-    <InternalsVisibleTo Include="Roslyn.VisualStudio.DiagnosticsWindow" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.LanguageServer.ProcessHost.UnitTests" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.CodeLens" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.CSharp" />
@@ -63,17 +63,10 @@
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Workspaces.Test.Utilities" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.Completion.Tests" Key="$(IntelliCodeCSharpKey)" WorkItem="https://github.com/dotnet/roslyn/issues/35081" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.ExternalAccess.AspNetCore" />
-    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.ExternalAccess.Razor.Features" />
-    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.ExternalAccess.VisualDiagnostics" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Razor.Workspaces" Key="$(RazorKey)" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.LanguageServer.ExternalAccess" />
     <RestrictedInternalsVisibleTo Include="Microsoft.VisualStudio.IntelliCode.CSharp" Partner="Pythia" Key="$(IntelliCodeCSharpKey)" />
     <RestrictedInternalsVisibleTo Include="Microsoft.VisualStudio.IntelliCode.CSharp.Extraction" Partner="Pythia" Key="$(IntelliCodeCSharpKey)" />
         
-    <!-- BEGIN PROJECT SYSTEM FOR VS CODE -->
-    <InternalsVisibleTo Include="Microsoft.VisualStudio.ProjectSystem.Managed" WorkItem="https://github.com/dotnet/roslyn/issues/35070" />
-    <InternalsVisibleTo Include="Microsoft.VisualStudio.ProjectSystem.Managed.VSCode" WorkItem="https://github.com/dotnet/roslyn/issues/35070" />
-    <InternalsVisibleTo Include="Microsoft.VisualStudio.ProjectSystem.Managed.UnitTests" WorkItem="https://github.com/dotnet/roslyn/issues/35070" />
-    <InternalsVisibleTo Include="Microsoft.VisualStudio.ProjectSystem.Managed.VSCode.UnitTests" WorkItem="https://github.com/dotnet/roslyn/issues/35070" />
-    <!-- END PROJECT SYSTEM FOR VS CODE -->
-
   </ItemGroup>
 </Project>

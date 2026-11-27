@@ -1,0 +1,50 @@
+﻿RazorDocument - [0..43)::43 - [<Weather Value="@@count" Title="@@title" />]
+    MarkupBlock - [0..43)::43
+        MarkupElement - [0..43)::43
+            MarkupStartTag - [0..43)::43 - [<Weather Value="@@count" Title="@@title" />] - Gen<Markup>
+                OpenAngle;[<];
+                Text;[Weather];
+                MarkupAttributeBlock - [8..24)::16 - [ Value="@@count"]
+                    MarkupTextLiteral - [8..9)::1 - [ ] - Gen<Markup>
+                        Whitespace;[ ];
+                    MarkupTextLiteral - [9..14)::5 - [Value] - Gen<Markup>
+                        Text;[Value];
+                    Equals;[=];
+                    MarkupTextLiteral - [15..16)::1 - ["] - Gen<Markup>
+                        DoubleQuote;["];
+                    GenericBlock - [16..23)::7
+                        MarkupBlock - [16..18)::2
+                            MarkupTextLiteral - [16..17)::1 - [@] - Gen<LitAttr:@(16:0,16)>
+                                Transition;[@];
+                            MarkupEphemeralTextLiteral - [17..18)::1 - [@] - Gen<None>
+                                Transition;[@];
+                        MarkupLiteralAttributeValue - [18..23)::5 - [count]
+                            MarkupTextLiteral - [18..23)::5 - [count] - Gen<Markup>
+                                Text;[count];
+                    MarkupTextLiteral - [23..24)::1 - ["] - Gen<Markup>
+                        DoubleQuote;["];
+                MarkupAttributeBlock - [24..40)::16 - [ Title="@@title"]
+                    MarkupTextLiteral - [24..25)::1 - [ ] - Gen<Markup>
+                        Whitespace;[ ];
+                    MarkupTextLiteral - [25..30)::5 - [Title] - Gen<Markup>
+                        Text;[Title];
+                    Equals;[=];
+                    MarkupTextLiteral - [31..32)::1 - ["] - Gen<Markup>
+                        DoubleQuote;["];
+                    GenericBlock - [32..39)::7
+                        MarkupBlock - [32..34)::2
+                            MarkupTextLiteral - [32..33)::1 - [@] - Gen<LitAttr:@(32:0,32)>
+                                Transition;[@];
+                            MarkupEphemeralTextLiteral - [33..34)::1 - [@] - Gen<None>
+                                Transition;[@];
+                        MarkupLiteralAttributeValue - [34..39)::5 - [title]
+                            MarkupTextLiteral - [34..39)::5 - [title] - Gen<Markup>
+                                Text;[title];
+                    MarkupTextLiteral - [39..40)::1 - ["] - Gen<Markup>
+                        DoubleQuote;["];
+                MarkupMiscAttributeContent - [40..41)::1
+                    MarkupTextLiteral - [40..41)::1 - [ ] - Gen<Markup>
+                        Whitespace;[ ];
+                ForwardSlash;[/];
+                CloseAngle;[>];
+    EndOfFile;[];

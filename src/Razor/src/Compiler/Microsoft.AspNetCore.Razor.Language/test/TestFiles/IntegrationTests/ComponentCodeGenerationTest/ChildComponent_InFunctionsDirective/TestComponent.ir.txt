@@ -1,0 +1,17 @@
+﻿Document - 
+    NamespaceDeclaration -  - Test
+        UsingDirective - (3:1,1 [20] ) - global::System
+        UsingDirective - (26:2,1 [40] ) - global::System.Collections.Generic
+        UsingDirective - (69:3,1 [25] ) - global::System.Linq
+        UsingDirective - (97:4,1 [36] ) - global::System.Threading.Tasks
+        UsingDirective - (136:5,1 [45] ) - global::Microsoft.AspNetCore.Components
+        UsingDirective - (1:0,1 [48] x:\dir\subdir\Test\TestComponent.cshtml) - Microsoft.AspNetCore.Components.Rendering
+        ClassDeclaration -  - public partial - TestComponent - global::Microsoft.AspNetCore.Components.ComponentBase - 
+            MethodDeclaration -  - protected override - void - BuildRenderTree
+                CSharpCode - (55:2,2 [34] x:\dir\subdir\Test\TestComponent.cshtml)
+                    LazyIntermediateToken - (55:2,2 [34] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp -  RenderChildComponent(__builder); 
+            CSharpCode - (101:4,7 [69] x:\dir\subdir\Test\TestComponent.cshtml)
+                LazyIntermediateToken - (101:4,7 [69] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - \n    void RenderChildComponent(RenderTreeBuilder __builder)\n    {\n
+            Component - (178:7,8 [15] x:\dir\subdir\Test\TestComponent.cshtml) - MyComponent
+            CSharpCode - (195:8,0 [7] x:\dir\subdir\Test\TestComponent.cshtml)
+                LazyIntermediateToken - (195:8,0 [7] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp -     }\n

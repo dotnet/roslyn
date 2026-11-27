@@ -85,6 +85,9 @@ internal static partial class SyntaxTokenExtensions
             case SyntaxKind.PrivateKeyword:
             case SyntaxKind.SealedKeyword:
             case SyntaxKind.AbstractKeyword:
+#if !OLDER_ROSLYN
+            case SyntaxKind.ClosedKeyword:
+#endif
             case SyntaxKind.StaticKeyword:
             case SyntaxKind.VirtualKeyword:
             case SyntaxKind.ExternKeyword:
@@ -111,6 +114,12 @@ internal static partial class SyntaxTokenExtensions
                 {
                     modifierKind = SyntaxKind.FileKeyword;
                 }
+#if !OLDER_ROSLYN
+                if (token.HasMatchingText(SyntaxKind.ClosedKeyword))
+                {
+                    modifierKind = SyntaxKind.ClosedKeyword;
+                }
+#endif
                 if (token.HasMatchingText(SyntaxKind.PartialKeyword))
                 {
                     modifierKind = SyntaxKind.PartialKeyword;

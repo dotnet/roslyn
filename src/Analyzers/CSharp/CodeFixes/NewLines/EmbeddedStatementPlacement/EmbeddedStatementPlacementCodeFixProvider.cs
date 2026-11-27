@@ -30,7 +30,7 @@ internal sealed class EmbeddedStatementPlacementCodeFixProvider() : CodeFixProvi
     public override ImmutableArray<string> FixableDiagnosticIds
         => [IDEDiagnosticIds.EmbeddedStatementPlacementDiagnosticId];
 
-    public override Task RegisterCodeFixesAsync(CodeFixContext context)
+    public override async Task RegisterCodeFixesAsync(CodeFixContext context)
     {
         var document = context.Document;
         var diagnostic = context.Diagnostics.First();
@@ -40,7 +40,6 @@ internal sealed class EmbeddedStatementPlacementCodeFixProvider() : CodeFixProvi
                 c => FixAllAsync(document, [diagnostic], c),
                 nameof(CSharpCodeFixesResources.Place_statement_on_following_line)),
             context.Diagnostics);
-        return Task.CompletedTask;
     }
 
     public static async Task<Document> FixAllAsync(Document document, ImmutableArray<Diagnostic> diagnostics, CancellationToken cancellationToken)

@@ -145,6 +145,11 @@ internal sealed class OptimizedVSCompletionListJsonConverter : JsonConverter<Opt
             {
                 writer.WriteBoolean(VSInternalCompletionItem.VsResolveTextEditOnCommitName, vsCompletionItem.VsResolveTextEditOnCommit);
             }
+
+            if (vsCompletionItem.MatchPriority != 0)
+            {
+                writer.WriteNumber(VSInternalCompletionItem.MatchPrioritySerializedName, vsCompletionItem.MatchPriority);
+            }
         }
 
         var label = completionItem.Label;
@@ -190,7 +195,7 @@ internal sealed class OptimizedVSCompletionListJsonConverter : JsonConverter<Opt
             writer.WriteString("insertText", completionItem.InsertText);
         }
 
-        if (completionItem.InsertTextFormat != default && completionItem.InsertTextFormat != InsertTextFormat.Plaintext)
+        if (completionItem.InsertTextFormat is not 0 and not InsertTextFormat.Plaintext)
         {
             writer.WriteNumber("insertTextFormat", (int)completionItem.InsertTextFormat);
         }

@@ -6,6 +6,7 @@
 
 using System;
 using System.Linq;
+using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -775,13 +776,16 @@ class C
                 //     void M(X x)
                 Diagnostic(ErrorCode.ERR_UnsafeNeeded, "X").WithLocation(7, 12));
 
-            CreateCompilation(text, options: TestOptions.UnsafeDebugDll).VerifyDiagnostics(
+            CreateCompilation(text, parseOptions: TestOptions.Regular15, options: TestOptions.UnsafeDebugDll).VerifyDiagnostics(
                 // (3,43): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
                 // using X = System.Collections.Generic.List<int*[]>;
                 Diagnostic(ErrorCode.ERR_UnsafeNeeded, "int*").WithLocation(3, 43),
                 // (7,12): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
                 //     void M(X x)
                 Diagnostic(ErrorCode.ERR_UnsafeNeeded, "X").WithLocation(7, 12));
+
+            CreateCompilation(text, options: TestOptions.UnsafeDebugDll).VerifyDiagnostics();
+            CreateCompilation(text, parseOptions: TestOptions.RegularNext, options: TestOptions.UnsafeDebugDll).VerifyDiagnostics();
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67281")]
@@ -841,7 +845,7 @@ class C
                 //         var y = x[0][0];
                 Diagnostic(ErrorCode.ERR_UnsafeNeeded, "x[0][0]").WithLocation(9, 17));
 
-            CreateCompilation(text, options: TestOptions.UnsafeDebugDll).VerifyDiagnostics(
+            CreateCompilation(text, parseOptions: TestOptions.Regular15, options: TestOptions.UnsafeDebugDll).VerifyDiagnostics(
                 // (3,43): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
                 // using X = System.Collections.Generic.List<int*[]>;
                 Diagnostic(ErrorCode.ERR_UnsafeNeeded, "int*").WithLocation(3, 43),
@@ -857,6 +861,9 @@ class C
                 // (9,17): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
                 //         var y = x[0][0];
                 Diagnostic(ErrorCode.ERR_UnsafeNeeded, "x[0][0]").WithLocation(9, 17));
+
+            CreateCompilation(text, options: TestOptions.UnsafeDebugDll).VerifyDiagnostics();
+            CreateCompilation(text, parseOptions: TestOptions.RegularNext, options: TestOptions.UnsafeDebugDll).VerifyDiagnostics();
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67281")]
@@ -888,7 +895,10 @@ class C
             };
 
             CreateCompilation(text, parseOptions: TestOptions.Regular12).VerifyDiagnostics(expected);
-            CreateCompilation(text).VerifyDiagnostics(expected);
+            CreateCompilation(text, parseOptions: TestOptions.Regular15).VerifyDiagnostics(expected);
+
+            CreateCompilation(text).VerifyDiagnostics();
+            CreateCompilation(text, parseOptions: TestOptions.RegularNext).VerifyDiagnostics();
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67281")]
@@ -908,9 +918,9 @@ class C
                 // (2,7): error CS0227: Unsafe code may only appear if compiling with /unsafe
                 // using unsafe X = System.Collections.Generic.List<int*[]>;
                 Diagnostic(ErrorCode.ERR_IllegalUnsafe, "unsafe").WithLocation(2, 7),
-                // (6,17): error CS0227: Unsafe code may only appear if compiling with /unsafe
+                // (6,5): error CS9401: Unsafe or safe declaration modifiers may only appear if compiling with /unsafe.
                 //     unsafe void M(X x)
-                Diagnostic(ErrorCode.ERR_IllegalUnsafe, "M").WithLocation(6, 17));
+                Diagnostic(ErrorCode.ERR_IllegalUnsafeModifier, "unsafe").WithLocation(6, 5));
 
             CreateCompilation(text, options: TestOptions.UnsafeDebugDll).VerifyDiagnostics();
         }
@@ -1062,6 +1072,37 @@ class C
                     // (5,5): hidden CS8019: Unnecessary using directive.
                     //     using static A;
                     Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using static A;").WithLocation(5, 5));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/85922")]
+        public void UsingsInMultipleNamespaceDeclarationsInSameTree()
+        {
+            var compilation = CreateCompilation("""
+                namespace N
+                {
+                    using A = int;
+                    class C
+                    {
+                        public A F = default;
+                    }
+                }
+
+                namespace N
+                {
+                    using A = string;
+                    class D
+                    {
+                        public A F = default;
+                    }
+                }
+                """);
+            compilation.VerifyDiagnostics();
+
+            var classC = compilation.GetTypeByMetadataName("N.C");
+            var classD = compilation.GetTypeByMetadataName("N.D");
+
+            Assert.Equal(SpecialType.System_Int32, ((FieldSymbol)classC.GetMembers("F").Single()).Type.SpecialType);
+            Assert.Equal(SpecialType.System_String, ((FieldSymbol)classD.GetMembers("F").Single()).Type.SpecialType);
         }
     }
 }

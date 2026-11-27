@@ -55,6 +55,11 @@ internal sealed partial class DocumentOutlineViewModel : INotifyPropertyChanged,
 
     public event PropertyChangedEventHandler? PropertyChanged;
 
+    /// <summary>
+    /// Raised on the UI thread with the search text and the number of displayed symbols, including nested symbols.
+    /// </summary>
+    public event Action<string, uint>? SearchCompleted;
+
     private DocumentOutlineViewState _lastPresentedViewState_doNotAccessDirectly;
     private bool _isDisposed;
 
@@ -75,14 +80,12 @@ internal sealed partial class DocumentOutlineViewModel : INotifyPropertyChanged,
         _workQueue = new AsyncBatchingWorkQueue(
             DelayTimeSpan.Medium,
             ComputeViewStateAsync,
-            asyncListener,
-            _threadingContext.DisposalToken);
+            asyncListener);
 
         _selectionQueue = new AsyncBatchingWorkQueue(
             DelayTimeSpan.Medium,
             UpdateSelectionAsync,
-            asyncListener,
-            _threadingContext.DisposalToken);
+            asyncListener);
 
         _taggerEventSource = TaggerEventSources.Compose(
             TaggerEventSources.OnTextChanged(_textBuffer),
@@ -102,6 +105,8 @@ internal sealed partial class DocumentOutlineViewModel : INotifyPropertyChanged,
         _isDisposed = true;
         _taggerEventSource.Changed -= OnEventSourceChanged;
         _taggerEventSource.Disconnect();
+        _workQueue.Dispose();
+        _selectionQueue.Dispose();
     }
 
     private static DocumentOutlineViewState CreateEmptyViewState(ITextSnapshot currentSnapshot)
@@ -335,6 +340,7 @@ internal sealed partial class DocumentOutlineViewModel : INotifyPropertyChanged,
 
         this.LastPresentedViewState = newViewState;
         this.DocumentSymbolViewModelItems = newViewModelItems;
+        SearchCompleted?.Invoke(searchText, (uint)models.Count);
 
         // Now that we've updated our state, enqueue the work to expand/select the right item.
         ExpandAndSelectItemAtCaretPosition();

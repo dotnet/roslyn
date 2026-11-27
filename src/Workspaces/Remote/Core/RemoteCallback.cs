@@ -111,12 +111,18 @@ internal readonly struct RemoteCallback<T>
             var writeTask = WriteAsync(_callback, pipe.Writer);
             var readTask = ReadAsync(pipe.Reader);
 
-            // Note: waiting on the write-task is not strictly necessary.  The read-task cannot complete unless it
-            // the write-task completes (or it faults for some reason).  However, it's nice and clean to just not
-            // use fire-and-forget here and avoids us having to consider things like async-tracking-tokens for
-            // testing purposes.
-            await Task.WhenAll(writeTask, readTask).ConfigureAwait(false);
-            await readTask.ConfigureAwait(false);
+            // Wait for both tasks to be complete, ensuring that if either failed we will rethrow the failure. Previously, this code
+            // used just Task.WhenAll() to simultaneously wait for both tasks to complete, but this could result in deadlocks. If the
+            // readTask faulted for some reason, the pipe would start to fill up as writeTask continued to run. At some point the pipe
+            // could hit it's configured maximum size and then writeTask would block waiting for the read to catch up. Theoretically,
+            // a failure of the writeTask should still end the pipe, so the readTask would eventually complete, but we'll be sufficiently
+            // paranoid here to ensure that no matter what happens we won't end up in a deadlock.
+            var firstTask = await Task.WhenAny(readTask, writeTask).ConfigureAwait(false);
+
+            // Rethrow the exception if firstTask faulted
+            await firstTask.ConfigureAwait(false);
+
+            await Task.WhenAll(readTask, writeTask).ConfigureAwait(false);
         }
         catch (Exception exception) when (ReportUnexpectedException(exception, cancellationToken))
         {

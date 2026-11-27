@@ -142,15 +142,13 @@ internal sealed class TextDocumentStates<TState>
 
     public TextDocumentStates<TState> AddRange(ImmutableArray<TState> states)
     {
-        using var pooledIds = SharedPools.Default<List<DocumentId>>().GetPooledObject();
-        var ids = pooledIds.Object;
+        using var _ = ArrayBuilder<DocumentId>.GetInstance(discardLargeInstances: false, out var ids);
 
-        foreach (var state in states)
-            ids.Add(state.Id);
+        ids.AddRange(states, static state => state.Id);
 
         return new(
             _ids.AddRange(ids),
-            States.AddRange(states.Select(state => KeyValuePair.Create(state.Id, state))),
+            States.AddRange(states.Select(static state => KeyValuePair.Create(state.Id, state))),
             filePathToDocumentIds: null);
     }
 

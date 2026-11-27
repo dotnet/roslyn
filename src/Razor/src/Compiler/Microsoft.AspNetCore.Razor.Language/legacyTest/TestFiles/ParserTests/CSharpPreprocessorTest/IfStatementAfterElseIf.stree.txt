@@ -1,0 +1,38 @@
+﻿RazorDocument - [0..57)::57 - [@if (true)LF{LF}LFelse if (false)LF#if trueLF{LF#endifLF}]
+    MarkupBlock - [0..57)::57
+        MarkupTextLiteral - [0..0)::0 - [] - Gen<Markup> - SpanEditHandler;Accepts:Any
+            Marker;[];
+        CSharpCodeBlock - [0..45)::45
+            CSharpTransition - [0..1)::1 - Gen<None> - SpanEditHandler;Accepts:None
+                Transition;[@];
+            CSharpStatementLiteral - [1..45)::44 - [if (true)LF{LF}LFelse if (false)LF#if trueLF] - Gen<Stmt> - SpanEditHandler;Accepts:Any
+                Keyword;[if];
+                Whitespace;[ ];
+                LeftParenthesis;[(];
+                Keyword;[true];
+                RightParenthesis;[)];
+                NewLine;[LF];
+                LeftBrace;[{];
+                NewLine;[LF];
+                RightBrace;[}];
+                NewLine;[LF];
+                Keyword;[else];
+                Whitespace;[ ];
+                Keyword;[if];
+                Whitespace;[ ];
+                LeftParenthesis;[(];
+                Keyword;[false];
+                RightParenthesis;[)];
+                NewLine;[LF];
+                Hash;[#];
+                Keyword;[if];
+                Whitespace;[ ];
+                Keyword;[true];
+                NewLine;[LF];
+        MarkupTextLiteral - [45..57)::12 - [{LF#endifLF}] - Gen<Markup> - SpanEditHandler;Accepts:Any
+            Text;[{];
+            NewLine;[LF];
+            Text;[#endif];
+            NewLine;[LF];
+            Text;[}];
+    EndOfFile;[];

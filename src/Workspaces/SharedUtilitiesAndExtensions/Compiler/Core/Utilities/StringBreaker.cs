@@ -1,7 +1,8 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Text;
@@ -13,13 +14,13 @@ internal static class StringBreaker
     /// <summary>
     /// Breaks an identifier string into constituent parts.
     /// </summary>
-    public static void AddWordParts(string identifier, ref TemporaryArray<TextSpan> parts)
+    public static void AddWordParts(ReadOnlySpan<char> identifier, ref TemporaryArray<TextSpan> parts)
         => AddParts(identifier, word: true, ref parts);
 
-    public static void AddCharacterParts(string identifier, ref TemporaryArray<TextSpan> parts)
+    public static void AddCharacterParts(ReadOnlySpan<char> identifier, ref TemporaryArray<TextSpan> parts)
         => AddParts(identifier, word: false, ref parts);
 
-    public static void AddParts(string text, bool word, ref TemporaryArray<TextSpan> parts)
+    public static void AddParts(ReadOnlySpan<char> text, bool word, ref TemporaryArray<TextSpan> parts)
     {
         for (var start = 0; start < text.Length;)
         {
@@ -37,7 +38,7 @@ internal static class StringBreaker
         }
     }
 
-    public static TextSpan GenerateSpan(string identifier, int wordStart, bool word)
+    public static TextSpan GenerateSpan(ReadOnlySpan<char> identifier, int wordStart, bool word)
     {
         var length = identifier.Length;
         wordStart = SkipPunctuation(identifier, length, wordStart);
@@ -77,7 +78,7 @@ internal static class StringBreaker
         return default;
     }
 
-    private static TextSpan ScanCharacterRun(string identifier, int length, int wordStart)
+    private static TextSpan ScanCharacterRun(ReadOnlySpan<char> identifier, int length, int wordStart)
     {
         // In a character run, if we have XMLDocument, then we will break that up into
         // X, M, L, and Document.
@@ -98,7 +99,7 @@ internal static class StringBreaker
         }
     }
 
-    private static TextSpan ScanWordRun(string identifier, int length, int wordStart)
+    private static TextSpan ScanWordRun(ReadOnlySpan<char> identifier, int length, int wordStart)
     {
         // In a word run, if we have XMLDocument, then we will break that up into
         // XML and Document.
@@ -147,7 +148,7 @@ internal static class StringBreaker
         }
     }
 
-    private static TextSpan ScanLowerCaseRun(string identifier, int length, int wordStart)
+    private static TextSpan ScanLowerCaseRun(ReadOnlySpan<char> identifier, int length, int wordStart)
     {
         var current = wordStart + 1;
         while (current < length && IsLower(identifier[current]))
@@ -158,7 +159,7 @@ internal static class StringBreaker
         return new TextSpan(wordStart, current - wordStart);
     }
 
-    private static TextSpan ScanNumber(string identifier, int length, int wordStart)
+    private static TextSpan ScanNumber(ReadOnlySpan<char> identifier, int length, int wordStart)
     {
         var current = wordStart + 1;
         while (current < length && char.IsDigit(identifier[current]))
@@ -169,7 +170,7 @@ internal static class StringBreaker
         return TextSpan.FromBounds(wordStart, current);
     }
 
-    private static int SkipPunctuation(string identifier, int length, int wordStart)
+    private static int SkipPunctuation(ReadOnlySpan<char> identifier, int length, int wordStart)
     {
         while (wordStart < length)
         {

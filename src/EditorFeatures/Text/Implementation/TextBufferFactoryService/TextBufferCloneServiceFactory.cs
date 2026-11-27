@@ -41,15 +41,16 @@ internal sealed class TextBufferCloneService : ITextBufferCloneService
 
     public ITextBuffer Clone(SourceText sourceText, IContentType contentType)
     {
-        // see whether we can do it cheaply
+        // see whether we can do directly via a text image
         var textImage = sourceText.TryFindCorrespondingEditorTextImage();
         if (textImage != null)
         {
             return Clone(textImage, contentType);
         }
 
-        // we can't, so do it more expensive way
-        return _textBufferFactoryService.CreateTextBuffer(sourceText.ToString(), contentType);
+        // we can't, so do it through a text reader.
+        var reader = new SourceTextReader(sourceText);
+        return _textBufferFactoryService.CreateTextBuffer(reader, contentType);
     }
 
     private ITextBuffer Clone(ITextImage textImage, IContentType contentType)

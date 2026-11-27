@@ -355,8 +355,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                             Continue For
                         End If
 
-                        Dim newChecksumAlgorithm = TryParseHashAlgorithmName(value)
-                        If newChecksumAlgorithm = SourceHashAlgorithm.None Then
+                        Dim newChecksumAlgorithm As SourceHashAlgorithm
+                        If Not SourceHashAlgorithms.TryParseAlgorithmName(value, newChecksumAlgorithm) Then
                             AddDiagnostic(diagnostics, ERRID.ERR_BadChecksumAlgorithm, value)
                             Continue For
                         End If

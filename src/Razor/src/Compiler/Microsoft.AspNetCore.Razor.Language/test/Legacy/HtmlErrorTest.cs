@@ -1,0 +1,66 @@
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
+#nullable disable
+
+using Roslyn.Test.Utilities;
+using Xunit;
+
+namespace Microsoft.AspNetCore.Razor.Language.Legacy;
+
+public class HtmlErrorTest() : ParserTestBase(layer: TestProject.Layer.Compiler)
+{
+    [Fact]
+    public void AllowsInvalidTagNamesAsLongAsParserCanIdentifyEndTag()
+    {
+        ParseDocumentTest("@{<1-foo+bar>foo</1-foo+bar>}");
+    }
+
+    [Fact]
+    public void ErrorIfStartTextTagContainsTextAfterName()
+    {
+        ParseDocumentTest("@{<text foo bar></text>}");
+    }
+
+    [Fact]
+    public void ErrorIfEndTextTagContainsTextAfterName()
+    {
+        ParseDocumentTest("@{<text></text foo bar>}");
+    }
+
+    [Fact]
+    public void StartingWithEndTagErrorsThenOutputsMarkupSegmentAndEndsBlock()
+    {
+        ParseDocumentTest("@{</foo> bar baz}");
+    }
+
+    [Fact]
+    public void WithUnclosedTopLevelTagErrorsOnOutermostUnclosedTag()
+    {
+        ParseDocumentTest("@{<p><foo></bar>}");
+    }
+
+    [Fact]
+    public void WithUnclosedTagAtEOFErrorsOnMissingEndTag()
+    {
+        ParseDocumentTest("@{<foo>blah blah blah blah blah");
+    }
+
+    [Fact]
+    public void WithUnfinishedTagAtEOFErrorsWithIncompleteTag()
+    {
+        ParseDocumentTest("@{<foo bar=baz");
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/razor/issues/12810")]
+    public void EmptyOuterTagProducesWarningInMarkupBlock()
+    {
+        ParseDocumentTest("@{<>foo</>}");
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/razor/issues/12810")]
+    public void EmptyOuterTagProducesWarningInTemplateExpression()
+    {
+        ParseDocumentTest("@Html.Repeat(10, @<>Foo #@item</>)");
+    }
+}

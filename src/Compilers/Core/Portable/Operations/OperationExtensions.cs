@@ -69,7 +69,17 @@ namespace Microsoft.CodeAnalysis.Operations
         /// <param name="operation">Operation whose descendants are to be fetched.</param>
         public static IEnumerable<IOperation> Descendants(this IOperation? operation)
         {
-            return Descendants(operation, includeSelf: false);
+            return Descendants(operation, descendIntoChildren: null, includeSelf: false);
+        }
+
+        /// <summary>
+        /// Returns all the descendant operations of the given <paramref name="operation"/> in evaluation order.
+        /// </summary>
+        /// <param name="operation">Operation whose descendants are to be fetched.</param>
+        /// <param name="descendIntoChildren">An optional function that determines if the search descends into the argument node's children.</param>
+        public static IEnumerable<IOperation> Descendants(this IOperation? operation, Func<IOperation, bool>? descendIntoChildren)
+        {
+            return Descendants(operation, descendIntoChildren, includeSelf: false);
         }
 
         /// <summary>
@@ -78,10 +88,20 @@ namespace Microsoft.CodeAnalysis.Operations
         /// <param name="operation">Operation whose descendants are to be fetched.</param>
         public static IEnumerable<IOperation> DescendantsAndSelf(this IOperation? operation)
         {
-            return Descendants(operation, includeSelf: true);
+            return Descendants(operation, descendIntoChildren: null, includeSelf: true);
         }
 
-        private static IEnumerable<IOperation> Descendants(IOperation? operation, bool includeSelf)
+        /// <summary>
+        /// Returns all the descendant operations of the given <paramref name="operation"/> including the given <paramref name="operation"/> in evaluation order.
+        /// </summary>
+        /// <param name="operation">Operation whose descendants are to be fetched.</param>
+        /// <param name="descendIntoChildren">An optional function that determines if the search descends into the argument node's children.</param>
+        public static IEnumerable<IOperation> DescendantsAndSelf(this IOperation? operation, Func<IOperation, bool>? descendIntoChildren)
+        {
+            return Descendants(operation, descendIntoChildren, includeSelf: true);
+        }
+
+        private static IEnumerable<IOperation> Descendants(IOperation? operation, Func<IOperation, bool>? descendIntoChildren, bool includeSelf)
         {
             if (operation == null)
             {
@@ -93,32 +113,46 @@ namespace Microsoft.CodeAnalysis.Operations
                 yield return operation;
             }
 
-            var stack = ArrayBuilder<IOperation.OperationList.Enumerator>.GetInstance();
-            stack.Push(operation.ChildOperations.GetEnumerator());
-
-            while (stack.Any())
+            if (descendIntoChildren != null && !descendIntoChildren(operation))
             {
-                var iterator = stack.Pop();
-
-                if (!iterator.MoveNext())
-                {
-                    continue;
-                }
-
-                var current = iterator.Current;
-
-                // push current iterator back in to the stack
-                stack.Push(iterator);
-
-                // push children iterator to the stack
-                if (current != null)
-                {
-                    yield return current;
-                    stack.Push(current.ChildOperations.GetEnumerator());
-                }
+                yield break;
             }
 
-            stack.Free();
+            var stack = ArrayBuilder<IOperation.OperationList.Enumerator>.GetInstance();
+            try
+            {
+                stack.Push(operation.ChildOperations.GetEnumerator());
+
+                while (stack.Any())
+                {
+                    var iterator = stack.Pop();
+
+                    if (!iterator.MoveNext())
+                    {
+                        continue;
+                    }
+
+                    var current = iterator.Current;
+
+                    // push current iterator back in to the stack
+                    stack.Push(iterator);
+
+                    // push children iterator to the stack
+                    if (current != null)
+                    {
+                        yield return current;
+
+                        if (descendIntoChildren == null || descendIntoChildren(current))
+                        {
+                            stack.Push(current.ChildOperations.GetEnumerator());
+                        }
+                    }
+                }
+            }
+            finally
+            {
+                stack.Free();
+            }
         }
 
         /// <summary>

@@ -1,0 +1,94 @@
+﻿RazorDocument - [0..124)::124 - [@{LF    var value = 42;LF}LF<section is-confirm-redirect="true" @@data-id="item_@value" control-id="section1">Text</section>]
+    MarkupBlock - [0..124)::124
+        MarkupTextLiteral - [0..0)::0 - [] - Gen<Markup>
+            Marker;[];
+        CSharpCodeBlock - [0..26)::26
+            CSharpStatement - [0..26)::26
+                CSharpTransition - [0..1)::1 - Gen<None>
+                    Transition;[@];
+                CSharpStatementBody - [1..26)::25
+                    RazorMetaCode - [1..2)::1 - Gen<None>
+                        LeftBrace;[{];
+                    CSharpCodeBlock - [2..25)::23
+                        CSharpStatementLiteral - [2..25)::23 - [LF    var value = 42;LF] - Gen<Stmt>
+                            NewLine;[LF];
+                            Whitespace;[    ];
+                            Keyword;[var];
+                            Whitespace;[ ];
+                            Identifier;[value];
+                            Whitespace;[ ];
+                            Assign;[=];
+                            Whitespace;[ ];
+                            NumericLiteral;[42];
+                            Semicolon;[;];
+                            NewLine;[LF];
+                    RazorMetaCode - [25..26)::1 - Gen<None>
+                        RightBrace;[}];
+        MarkupEphemeralTextLiteral - [26..28)::2 - [LF] - Gen<None>
+            NewLine;[LF];
+        MarkupTagHelperElement - [28..124)::96 - section[StartTagAndEndTag] - ControlIdTagHelper
+            MarkupTagHelperStartTag - [28..110)::82 - [<section is-confirm-redirect="true" @@data-id="item_@value" control-id="section1">] - Gen<Markup>
+                OpenAngle;[<];
+                Text;[section];
+                MarkupTagHelperAttribute - [36..63)::27 - is-confirm-redirect - DoubleQuotes - Bound - [ is-confirm-redirect="true"]
+                    MarkupTextLiteral - [36..37)::1 - [ ] - Gen<Markup>
+                        Whitespace;[ ];
+                    MarkupTextLiteral - [37..56)::19 - [is-confirm-redirect] - Gen<Markup>
+                        Text;[is-confirm-redirect];
+                    Equals;[=];
+                    MarkupTextLiteral - [57..58)::1 - ["] - Gen<Markup>
+                        DoubleQuote;["];
+                    MarkupTagHelperAttributeValue - [58..62)::4
+                        MarkupTextLiteral - [58..62)::4 - [true] - Gen<Markup>
+                            Text;[true];
+                    MarkupTextLiteral - [62..63)::1 - ["] - Gen<Markup>
+                        DoubleQuote;["];
+                MarkupTextLiteral - [63..64)::1 - [ ] - Gen<Markup>
+                    Whitespace;[ ];
+                MarkupEphemeralTextLiteral - [64..65)::1 - [@] - Gen<Markup>
+                    Transition;[@];
+                MarkupTagHelperAttribute - [65..87)::22 - @data-id - DoubleQuotes - Unbound - [@data-id="item_@value"]
+                    MarkupTextLiteral - [65..73)::8 - [@data-id] - Gen<Markup>
+                        Transition;[@];
+                        Text;[data-id];
+                    Equals;[=];
+                    MarkupTextLiteral - [74..75)::1 - ["] - Gen<Markup>
+                        DoubleQuote;["];
+                    MarkupTagHelperAttributeValue - [75..86)::11
+                        MarkupLiteralAttributeValue - [75..80)::5 - [item_]
+                            MarkupTextLiteral - [75..80)::5 - [item_] - Gen<Markup>
+                                Text;[item_];
+                        MarkupDynamicAttributeValue - [80..86)::6 - [@value]
+                            GenericBlock - [80..86)::6
+                                CSharpCodeBlock - [80..86)::6
+                                    CSharpImplicitExpression - [80..86)::6
+                                        CSharpTransition - [80..81)::1 - Gen<None>
+                                            Transition;[@];
+                                        CSharpImplicitExpressionBody - [81..86)::5
+                                            CSharpCodeBlock - [81..86)::5
+                                                CSharpExpressionLiteral - [81..86)::5 - [value] - Gen<Expr>
+                                                    Identifier;[value];
+                    MarkupTextLiteral - [86..87)::1 - ["] - Gen<Markup>
+                        DoubleQuote;["];
+                MarkupTagHelperAttribute - [87..109)::22 - control-id - DoubleQuotes - Bound - [ control-id="section1"]
+                    MarkupTextLiteral - [87..88)::1 - [ ] - Gen<Markup>
+                        Whitespace;[ ];
+                    MarkupTextLiteral - [88..98)::10 - [control-id] - Gen<Markup>
+                        Text;[control-id];
+                    Equals;[=];
+                    MarkupTextLiteral - [99..100)::1 - ["] - Gen<Markup>
+                        DoubleQuote;["];
+                    MarkupTagHelperAttributeValue - [100..108)::8
+                        MarkupTextLiteral - [100..108)::8 - [section1] - Gen<Markup>
+                            Text;[section1];
+                    MarkupTextLiteral - [108..109)::1 - ["] - Gen<Markup>
+                        DoubleQuote;["];
+                CloseAngle;[>];
+            MarkupTextLiteral - [110..114)::4 - [Text] - Gen<Markup>
+                Text;[Text];
+            MarkupTagHelperEndTag - [114..124)::10 - [</section>]
+                OpenAngle;[<];
+                ForwardSlash;[/];
+                Text;[section];
+                CloseAngle;[>];
+    EndOfFile;[];

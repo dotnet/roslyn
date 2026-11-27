@@ -1,0 +1,15 @@
+﻿Source Location: (20:0,20 [27] x:\dir\subdir\Test\TestComponent.cshtml)
+|new MyClass<IMyInterface>()|
+Generated Location: (857:23,0 [27] )
+|new MyClass<IMyInterface>()|
+
+Source Location: (1:0,1 [11] x:\dir\subdir\Test\TestComponent.cshtml)
+|MyComponent|
+Generated Location: (1653:44,45 [11] )
+|MyComponent|
+
+Source Location: (13:0,13 [5] x:\dir\subdir\Test\TestComponent.cshtml)
+|Param|
+Generated Location: (1843:48,0 [5] )
+|Param|
+

@@ -44,13 +44,6 @@ internal abstract class AbstractEmbeddedLanguageQuickInfoProvider : CommonQuickI
 
         return null;
     }
-
-    protected override Task<QuickInfoItem?> BuildQuickInfoAsync(CommonQuickInfoContext context, SyntaxToken token)
-    {
-        // Not implemented as this entrypoint appears to be dead code.
-        throw new NotImplementedException();
-    }
-
     /// <summary>
     /// A derivation of <see cref="AbstractEmbeddedLanguageFeatureService{TService}"/> so we can fetch providers. Normally, our providers implement an interface,
     /// and the combined provider directly inherits from <see cref="AbstractEmbeddedLanguageFeatureService{TService}"/>. Unfortunately Quick Info is a bit different:
@@ -58,20 +51,18 @@ internal abstract class AbstractEmbeddedLanguageQuickInfoProvider : CommonQuickI
     /// have multiple inheritance, we'll create a separate class here and delegate to the protected methods. We can remove this if we
     /// switch Quick Info over to a pattern like the rest of our features.
     /// </summary>
-    private sealed class EmbeddedLanguageProviderFeatureService :
-        AbstractEmbeddedLanguageFeatureService<IEmbeddedLanguageQuickInfoProvider>
+    private sealed class EmbeddedLanguageProviderFeatureService(
+        string languageName, EmbeddedLanguageInfo info, ISyntaxKinds syntaxKinds, IEnumerable<Lazy<IEmbeddedLanguageQuickInfoProvider, EmbeddedLanguageMetadata>> allServices) :
+        AbstractEmbeddedLanguageFeatureService<IEmbeddedLanguageQuickInfoProvider>(
+            languageName, info, syntaxKinds, allServices)
     {
-        public EmbeddedLanguageProviderFeatureService(string languageName, EmbeddedLanguageInfo info, ISyntaxKinds syntaxKinds, IEnumerable<Lazy<IEmbeddedLanguageQuickInfoProvider, EmbeddedLanguageMetadata>> allServices)
-            : base(languageName, info, syntaxKinds, allServices)
-        {
-        }
-
         public new ImmutableArray<Lazy<IEmbeddedLanguageQuickInfoProvider, EmbeddedLanguageMetadata>> GetServices(
             SemanticModel semanticModel,
             SyntaxToken token,
             CancellationToken cancellationToken)
         {
-            return base.GetServices(semanticModel, token, cancellationToken);
+            var (result, _) = base.GetServices(semanticModel, token, cancellationToken);
+            return result;
         }
 
         public new HashSet<int> SyntaxTokenKinds => base.SyntaxTokenKinds;

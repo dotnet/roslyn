@@ -91,9 +91,7 @@ internal abstract class AbstractTaskListService : ITaskListService
         foreach (var commentDescriptor in descriptors)
         {
             var token = commentDescriptor.Text;
-            if (string.Compare(
-                    normalized, index, token, indexB: 0,
-                    length: token.Length, comparisonType: StringComparison.OrdinalIgnoreCase) != 0)
+            if (!normalized.AsSpan(index).StartsWith(token.AsSpan(), StringComparison.OrdinalIgnoreCase))
             {
                 continue;
             }

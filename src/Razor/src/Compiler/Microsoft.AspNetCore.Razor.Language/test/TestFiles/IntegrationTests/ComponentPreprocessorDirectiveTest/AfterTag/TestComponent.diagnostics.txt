@@ -1,0 +1,4 @@
+﻿x:\dir\subdir\Test\TestComponent.razor(1,2): Error RZ1006: The code block is missing a closing "}" character.  Make sure you have a matching "}" character for all the "{" characters within this block, and that none of the "}" characters are being interpreted as markup.
+x:\dir\subdir\Test\TestComponent.razor(2,5): Error RZ9980: Unclosed tag 'div' with no matching end tag.
+x:\dir\subdir\Test\TestComponent.razor(2,6): Error RZ1025: The "div" element was not closed.  All elements must be either self-closing or have a matching end tag.
+x:\dir\subdir\Test\TestComponent.razor(4,5): Error RZ9980: Unclosed tag 'div' with no matching end tag.

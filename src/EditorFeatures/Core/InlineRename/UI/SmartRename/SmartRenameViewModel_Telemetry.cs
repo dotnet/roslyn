@@ -31,7 +31,7 @@ internal partial class SmartRenameViewModel
         {
             _suggestionsPanelTelemetry = new SuggestionsPanelTelemetry
             {
-                CollapseSuggestionsPanelWhenRenameStarts = _globalOptionService.GetOption(InlineRenameUIOptionsStorage.CollapseSuggestionsPanel)
+                CollapseSuggestionsPanelWhenRenameStarts = _globalOptionService.GetOption(InlineRenameUIOptionsStorage.CollapseSuggestionsPanel) ?? true
             };
         }
         else
@@ -45,12 +45,12 @@ internal partial class SmartRenameViewModel
         if (_suggestionsPanelTelemetry is not null)
         {
             RoslynDebug.Assert(_suggestionsDropdownTelemetry is null);
-            TelemetryLogging.Log(FunctionId.Copilot_Rename, KeyValueLogMessage.Create(m =>
+            RoslynTelemetry.Current.Log(FunctionId.Copilot_Rename, KeyValueLogMessage.Create(m =>
             {
                 m[nameof(isCommit)] = isCommit;
                 m["UseSuggestionsPanel"] = true;
                 m[nameof(SuggestionsPanelTelemetry.CollapseSuggestionsPanelWhenRenameStarts)] = _suggestionsPanelTelemetry.CollapseSuggestionsPanelWhenRenameStarts;
-                m["CollapseSuggestionsPanelWhenRenameEnds"] = _globalOptionService.GetOption(InlineRenameUIOptionsStorage.CollapseSuggestionsPanel);
+                m["CollapseSuggestionsPanelWhenRenameEnds"] = _globalOptionService.GetOption(InlineRenameUIOptionsStorage.CollapseSuggestionsPanel) ?? true;
                 m["smartRenameSessionInProgress"] = _smartRenameSession.IsInProgress;
                 m["smartRenameCorrelationId"] = _smartRenameSession.CorrelationId;
                 m["smartRenameSemanticContextUsed"] = _semanticContextUsed;
@@ -61,7 +61,7 @@ internal partial class SmartRenameViewModel
         else
         {
             RoslynDebug.Assert(_suggestionsDropdownTelemetry is not null);
-            TelemetryLogging.Log(FunctionId.Copilot_Rename, KeyValueLogMessage.Create(m =>
+            RoslynTelemetry.Current.Log(FunctionId.Copilot_Rename, KeyValueLogMessage.Create(m =>
             {
                 m[nameof(isCommit)] = isCommit;
                 m["UseDropDown"] = true;

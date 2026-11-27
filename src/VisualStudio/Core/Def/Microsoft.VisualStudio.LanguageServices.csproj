@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <!-- Licensed to the .NET Foundation under one or more agreements. The .NET Foundation licenses this file to you under the MIT license. See the LICENSE file in the project root for more information. -->
 <Project Sdk="Microsoft.NET.Sdk.WindowsDesktop">
   <Import Project="$(RepositoryEngineeringDir)targets\Services.props" />
@@ -28,10 +28,9 @@
     <RoslynPackageGuid>6cf2e545-6109-4730-8883-cf43d7aec3e1</RoslynPackageGuid>
   </PropertyGroup>
   <ItemGroup Label="PkgDef">
-    <PkgDefPackageRegistration Include="{$(RoslynPackageGuid)}" Name="RoslynPackage" Class="Microsoft.VisualStudio.LanguageServices.Setup.RoslynPackage" AllowsBackgroundLoad="true" />
     <None Include="CodeCleanup\readme.md" />
-    <None Include="PackageRegistration.pkgdef" PkgDefEntry="FileContent" />
-    <None Include=".\ColorSchemes\VisualStudio2019.pkgdef" PkgDefEntry="FileContent" />
+    <Content Include="Microsoft.VisualStudio.LanguageServices.Extra.pkgdef" IncludeInVSIX="true" />
+    <Content Include=".\ColorSchemes\VisualStudio2019.pkgdef" Link="VisualStudio2019.pkgdef" IncludeInVSIX="true" />
   </ItemGroup>
   <ItemGroup Label="Build Items">
     <Compile Include="..\..\..\Compilers\Shared\GlobalAssemblyCacheHelpers\GlobalAssemblyCacheLocation.cs">
@@ -43,6 +42,7 @@
     <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\ConcurrentLruCache.cs">
       <Link>Shared\ConcurrentLruCache.cs</Link>
     </Compile>
+    <Content Include="UnifiedSettings\roslynSettings.registration.json" IncludeInVSIX="true" CopyToOutputDirectory="PreserveNewest" />
     <Compile Update="VSPackage.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
@@ -71,24 +71,19 @@
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.CSharp" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.Implementation" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.ExternalDependencyServices" WorkItem="https://github.com/dotnet/roslyn/issues/35085" />
+    <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.Razor" Key="$(RazorKey)" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.VisualBasic" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.Xaml" />
     <InternalsVisibleTo Include="Roslyn.VisualStudio.Setup" />
-    <InternalsVisibleTo Include="Roslyn.VisualStudio.DiagnosticsWindow" />
-    <InternalsVisibleTo Include="Microsoft.VisualStudio.ProjectSystem.Managed" WorkItem="https://github.com/dotnet/roslyn/issues/35070" />
-    <InternalsVisibleTo Include="Microsoft.VisualStudio.ProjectSystem.Managed.VS" WorkItem="https://github.com/dotnet/roslyn/issues/35070" />
-    <InternalsVisibleTo Include="Microsoft.VisualStudio.ProjectSystem.Managed.UnitTests" WorkItem="https://github.com/dotnet/roslyn/issues/35070" />
-    <InternalsVisibleTo Include="Microsoft.VisualStudio.ProjectSystem.Managed.VS.UnitTests" WorkItem="https://github.com/dotnet/roslyn/issues/35070" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.CSharp.UnitTests" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.UnitTests" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.Test.Utilities2" />
     <internalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.New.IntegrationTests" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.ErrorList.UnitTests" WorkItem="https://github.com/dotnet/roslyn/issues/35081" />
     <InternalsVisibleTo Include="Roslyn.VisualStudio.Next.UnitTests" />
-    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.ExternalAccess.FSharp" />
-    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.ExternalAccess.FSharp.UnitTests" />
+    <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.ExternalAccess.UnitTests" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.LiveShare" />
-    <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.ExternalAccess.Copilot" />
+    <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.ExternalAccess" />
     <InternalsVisibleTo Include="FSharp.Editor" Key="$(FSharpKey)" WorkItem="https://github.com/dotnet/roslyn/issues/35076" />
     <InternalsVisibleTo Include="FSharp.LanguageService" Key="$(FSharpKey)" WorkItem="https://github.com/dotnet/roslyn/issues/35076" />
     <InternalsVisibleTo Include="DynamicProxyGenAssembly2" Key="$(MoqPublicKey)" LoadsWithinVisualStudio="false" />
@@ -102,7 +97,7 @@
   </ItemGroup>
   <ItemGroup>
     <Reference Include="System.Design" />
-    <Reference Include="System.Windows.Forms" />
+    <Reference Include="System.IO.Compression" />
     <Reference Include="UIAutomationProvider" />
     <Reference Include="UIAutomationTypes" />
     <Reference Include="WindowsFormsIntegration" />
@@ -112,6 +107,7 @@
     <PackageReference Include="Microsoft.VisualStudio.Debugger.Engine-implementation" />
     <PackageReference Include="Microsoft.VisualStudio.Sdk" />
     <PackageReference Include="Microsoft.VisualStudio.Search" />
+    <PackageReference Include="Microsoft.VisualStudio.Shell.Styles" />
     <PackageReference Include="Microsoft.VisualStudio.CallHierarchy.Package.Definitions" />
     <PackageReference Include="Microsoft.VisualStudio.Language.CallHierarchy" />
     <PackageReference Include="Microsoft.VisualStudio.VsInteractiveWindow" />
@@ -152,7 +148,7 @@
   </ItemGroup>
   <Import Project="$(RepositoryEngineeringDir)targets\Vsdconfig.targets" />
 
-  <Target Name="GeneratePkgDefServiceRegistrations" BeforeTargets="GeneratePkgDef">
+  <Target Name="GeneratePkgDefServiceRegistrations" BeforeTargets="_InitializeBrokeredServiceEntries">
     <ItemGroup>
       <PkgDefBrokeredService Include="@(InProcService)" ProfferingPackageId="$(RoslynPackageGuid)" />
     </ItemGroup>

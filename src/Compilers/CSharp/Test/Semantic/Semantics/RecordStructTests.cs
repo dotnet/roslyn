@@ -704,9 +704,9 @@ sealed record struct S10;
                 // (8,19): error CS0106: The modifier 'ref' is not valid for this item
                 // ref record struct S7;
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "S7").WithArguments("ref").WithLocation(8, 19),
-                // (9,22): error CS0227: Unsafe code may only appear if compiling with /unsafe
+                // (9,1): error CS9401: Unsafe or safe declaration modifiers may only appear if compiling with /unsafe.
                 // unsafe record struct S8;
-                Diagnostic(ErrorCode.ERR_IllegalUnsafe, "S8").WithLocation(9, 22),
+                Diagnostic(ErrorCode.ERR_IllegalUnsafeModifier, "unsafe").WithLocation(9, 1),
                 // (10,22): error CS0106: The modifier 'static' is not valid for this item
                 // static record struct S9;
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "S9").WithArguments("static").WithLocation(10, 22),
@@ -4234,9 +4234,6 @@ record struct A<T>;
             var comp = CreateCompilation(source);
             comp.MakeTypeMissing(WellKnownType.System_IEquatable_T);
             comp.VerifyEmitDiagnostics(
-                    // (2,15): error CS0518: Predefined type 'System.IEquatable`1' is not defined or imported
-                    // record struct A<T>;
-                    Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "A").WithArguments("System.IEquatable`1").WithLocation(2, 15),
                     // (2,15): error CS0518: Predefined type 'System.IEquatable`1' is not defined or imported
                     // record struct A<T>;
                     Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "A").WithArguments("System.IEquatable`1").WithLocation(2, 15)

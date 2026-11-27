@@ -1,0 +1,27 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
+  <file datatype="xml" source-language="en" target-language="tr" original="../Resources.resx">
+    <body>
+      <trans-unit id="Add_Nested_File">
+        <source>Add {0}</source>
+        <target state="translated">{0} ekle</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_EDITORNAME">
+        <source>LSP Razor Editor</source>
+        <target state="translated">LSP Razor Editor</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="View_Nested_File">
+        <source>View {0}</source>
+        <target state="translated">{0} öğesini görüntüle</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="View_Page">
+        <source>View Page</source>
+        <target state="translated">Görünüm Sayfası</target>
+        <note />
+      </trans-unit>
+    </body>
+  </file>
+</xliff>

@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using Microsoft.CodeAnalysis.Completion.Providers;
 using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.CodeAnalysis.Completion;
@@ -28,6 +29,7 @@ internal static class CompletionOptionsStorage
             MemberDisplayOptions = options.GetMemberDisplayOptions(language),
             ShowNameSuggestions = options.GetOption(ShowNameSuggestions, language),
             ShowItemsFromUnimportedNamespaces = options.GetOption(ShowItemsFromUnimportedNamespaces, language),
+            ImportCompletionCommitBehavior = options.GetOption(ImportCompletionCommitBehavior, language),
             UnnamedSymbolCompletionDisabled = options.GetOption(UnnamedSymbolCompletionDisabledFeatureFlag),
             ProvideDateAndTimeCompletions = options.GetOption(ProvideDateAndTimeCompletions, language),
             ProvideRegexCompletions = options.GetOption(ProvideRegexCompletions, language),
@@ -53,6 +55,7 @@ internal static class CompletionOptionsStorage
 
     // Use tri-value so the default state can be used to turn on the feature with experimentation service.
     public static readonly PerLanguageOption2<bool?> ShowItemsFromUnimportedNamespaces = new("dotnet_show_completion_items_from_unimported_namespaces", CompletionOptions.Default.ShowItemsFromUnimportedNamespaces, group: s_completionOptionGroup);
+    public static readonly PerLanguageOption2<ImportCompletionCommitBehavior> ImportCompletionCommitBehavior = new("dotnet_completion_items_from_unimported_namespaces_commit_behavior", CompletionOptions.Default.ImportCompletionCommitBehavior, serializer: EditorConfigValueSerializer.CreateSerializerForEnum<ImportCompletionCommitBehavior>(), group: s_completionOptionGroup);
 
     public static readonly PerLanguageOption2<bool> TriggerInArgumentLists = new("dotnet_trigger_completion_in_argument_lists", CompletionOptions.Default.TriggerInArgumentLists, group: s_completionOptionGroup);
 

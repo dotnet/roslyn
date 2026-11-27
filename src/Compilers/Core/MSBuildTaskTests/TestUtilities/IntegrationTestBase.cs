@@ -2,9 +2,14 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text.RegularExpressions;
+using System.Threading;
+using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CommandLine;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
@@ -120,12 +125,102 @@ public abstract class IntegrationTestBase : TestBase
             additionalEnvironmentVars);
     }
 
+    /// <param name="sharedCompilationId">
+    /// Using custom shared compilation ID ensures tests don't interfere with each other
+    /// (when run in parallel or when another test fails and leaves the server open).
+    /// </param>
+    private static async Task ShutdownCompilerServerAsync(ProcessResult result, string sharedCompilationId)
+    {
+        var pipeName = Regex.Match(result.Output, @"Named pipe '([^']+)' connected").Groups[1].Value;
+        AssertEx.Equal(sharedCompilationId, pipeName);
+        using var logger = new CompilerServerLogger("test", loggingFilePath: null);
+        await BuildServerConnection.RunServerShutdownRequestAsync(
+            pipeName,
+            timeoutOverride: null,
+            waitForProcess: true,
+            logger,
+            CancellationToken.None);
+    }
+
+    [ConditionalFact(typeof(WindowsOnly))]
+    public void LegacySigning_Csc()
+    {
+        _tempDirectory.CreateFile("key.snk").WriteAllBytes(TestResources.General.snKey);
+        _tempDirectory.CreateFile("mscorlib.dll").WriteAllBytes(Basic.Reference.Assemblies.Net40.Resources.mscorlib);
+        var outputDirectory = _tempDirectory.CreateDirectory("bin");
+        var result = RunMsbuild(
+            "/v:n /nr:false /t:Build Test.proj",
+            _tempDirectory,
+            new Dictionary<string, string>
+            {
+                { "Library.cs", "public class C { }" },
+                { "Test.proj", $"""
+                    <Project>
+                        <UsingTask TaskName="Microsoft.CodeAnalysis.BuildTasks.Csc" AssemblyFile="{_buildTaskDll}" />
+                        <Target Name="Build">
+                            <Csc Sources="Library.cs" References="mscorlib.dll"
+                                OutputAssembly="bin\Library.dll" TargetType="Library" KeyFile="key.snk"
+                                Features="UseLegacyStrongNameProvider" NoStandardLib="true" NoConfig="true"
+                                UseSharedCompilation="false" />
+                        </Target>
+                    </Project>
+                    """ },
+            });
+
+        if (result == null)
+            return;
+        _output.WriteLine(result.Output);
+        Assert.True(result.ExitCode == 0, result.Output);
+
+        var outputPath = Path.Combine(outputDirectory.Path, "Library.dll");
+        using var stream = File.OpenRead(outputPath);
+        Assert.True(ILValidation.IsStreamFullSigned(stream));
+        AssertEx.Equal(new[] { outputPath }, Directory.GetFiles(outputDirectory.Path));
+    }
+
+    [ConditionalFact(typeof(WindowsOnly))]
+    public void LegacySigning_Vbc()
+    {
+        _tempDirectory.CreateFile("key.snk").WriteAllBytes(TestResources.General.snKey);
+        _tempDirectory.CreateFile("mscorlib.dll").WriteAllBytes(Basic.Reference.Assemblies.Net40.Resources.mscorlib);
+        var outputDirectory = _tempDirectory.CreateDirectory("bin");
+        var result = RunMsbuild(
+            "/v:n /nr:false /t:Build Test.proj",
+            _tempDirectory,
+            new Dictionary<string, string>
+            {
+                { "Library.vb", "Public Class C : End Class" },
+                { "Test.proj", $"""
+                    <Project>
+                        <UsingTask TaskName="Microsoft.CodeAnalysis.BuildTasks.Vbc" AssemblyFile="{_buildTaskDll}" />
+                        <Target Name="Build">
+                            <Vbc Sources="Library.vb" References="mscorlib.dll"
+                                OutputAssembly="bin\Library.dll" TargetType="Library" KeyFile="key.snk"
+                                Features="UseLegacyStrongNameProvider" NoStandardLib="true" NoConfig="true"
+                                VBRuntime="None" DefineConstants="_MYTYPE=&quot;Empty&quot;"
+                                UseSharedCompilation="false" />
+                        </Target>
+                    </Project>
+                    """ },
+            });
+
+        if (result == null)
+            return;
+        _output.WriteLine(result.Output);
+        Assert.True(result.ExitCode == 0, result.Output);
+
+        var outputPath = Path.Combine(outputDirectory.Path, "Library.dll");
+        using var stream = File.OpenRead(outputPath);
+        Assert.True(ILValidation.IsStreamFullSigned(stream));
+        AssertEx.Equal(new[] { outputPath }, Directory.GetFiles(outputDirectory.Path));
+    }
+
     /// <param name="overrideToolExe">
     /// Setting ToolExe to "csc.exe" should use the built-in compiler regardless of apphost being used or not.
     /// </param>
     [Theory, CombinatorialData]
     [WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/2615118")]
-    public void SdkBuild_Csc(bool useSharedCompilation, bool overrideToolExe, bool useAppHost)
+    public async Task SdkBuild_Csc(bool useSharedCompilation, bool overrideToolExe, bool useAppHost)
     {
         if (!ManagedToolTask.IsBuiltinToolRunningOnCoreClr && !useAppHost)
         {
@@ -141,12 +236,13 @@ public abstract class IntegrationTestBase : TestBase
             File.Move(originalAppHost, backupAppHost);
         }
 
+        var sharedCompilationId = Guid.NewGuid().ToString();
         ProcessResult? result;
 
         try
         {
             result = RunMsbuild(
-                "/v:n /m /nr:false /t:Build /restore Test.csproj" +
+                $"/v:n /m /nr:false /t:Build /restore Test.csproj /p:SharedCompilationId={sharedCompilationId}" +
                     (overrideToolExe ? $" /p:CscToolExe=csc{PlatformInformation.ExeExtension}" : ""),
                 _tempDirectory,
                 new Dictionary<string, string>
@@ -177,8 +273,14 @@ public abstract class IntegrationTestBase : TestBase
 
         _output.WriteLine(result.Output);
 
+        if (useSharedCompilation)
+        {
+            await ShutdownCompilerServerAsync(result, sharedCompilationId);
+        }
+
         Assert.Equal(0, result.ExitCode);
         Assert.Contains(useSharedCompilation ? "server processed compilation" : "using command line tool by design", result.Output);
+        Assert.Equal(ManagedToolTask.IsBuiltinToolRunningOnCoreClr, result.Output.Contains("Setting DOTNET_ROOT to"));
 
         if (useAppHost)
         {
@@ -197,7 +299,7 @@ public abstract class IntegrationTestBase : TestBase
     /// </param>
     [Theory, CombinatorialData]
     [WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/2615118")]
-    public void SdkBuild_Vbc(bool useSharedCompilation, bool overrideToolExe, bool useAppHost)
+    public async Task SdkBuild_Vbc(bool useSharedCompilation, bool overrideToolExe, bool useAppHost)
     {
         if (!ManagedToolTask.IsBuiltinToolRunningOnCoreClr && !useAppHost)
         {
@@ -212,12 +314,13 @@ public abstract class IntegrationTestBase : TestBase
             File.Move(originalAppHost, backupAppHost);
         }
 
+        var sharedCompilationId = Guid.NewGuid().ToString();
         ProcessResult? result;
 
         try
         {
             result = RunMsbuild(
-                "/v:n /m /nr:false /t:Build /restore Test.vbproj" +
+                $"/v:n /m /nr:false /t:Build /restore Test.vbproj /p:SharedCompilationId={sharedCompilationId}" +
                     (overrideToolExe ? $" /p:VbcToolExe=vbc{PlatformInformation.ExeExtension}" : ""),
                 _tempDirectory,
                 new Dictionary<string, string>
@@ -252,8 +355,14 @@ public abstract class IntegrationTestBase : TestBase
 
         _output.WriteLine(result.Output);
 
+        if (useSharedCompilation)
+        {
+            await ShutdownCompilerServerAsync(result, sharedCompilationId);
+        }
+
         Assert.Equal(0, result.ExitCode);
         Assert.Contains(useSharedCompilation ? "server processed compilation" : "using command line tool by design", result.Output);
+        Assert.Equal(ManagedToolTask.IsBuiltinToolRunningOnCoreClr, result.Output.Contains("Setting DOTNET_ROOT to"));
 
         if (useAppHost)
         {
@@ -268,10 +377,11 @@ public abstract class IntegrationTestBase : TestBase
     }
 
     [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/79907")]
-    public void StdLib_Csc(bool useSharedCompilation, bool disableSdkPath, bool noConfig)
+    public async Task StdLib_Csc(bool useSharedCompilation, bool disableSdkPath, bool noConfig)
     {
         if (_msbuildExecutable == null) return;
 
+        var sharedCompilationId = Guid.NewGuid().ToString();
         var result = RunCommandLineCompiler(
             _msbuildExecutable,
             "/m /nr:false /t:CustomTarget Test.csproj",
@@ -286,12 +396,17 @@ public abstract class IntegrationTestBase : TestBase
                     <Project>
                         <UsingTask TaskName="Microsoft.CodeAnalysis.BuildTasks.Csc" AssemblyFile="{_buildTaskDll}" />
                         <Target Name="CustomTarget">
-                            <Csc Sources="File.cs" UseSharedCompilation="{useSharedCompilation}" DisableSdkPath="{disableSdkPath}" NoConfig="{noConfig}" />
+                            <Csc Sources="File.cs" UseSharedCompilation="{useSharedCompilation}" SharedCompilationId="{sharedCompilationId}" DisableSdkPath="{disableSdkPath}" NoConfig="{noConfig}" />
                         </Target>
                     </Project>
                     """ },
             });
         _output.WriteLine(result.Output);
+
+        if (useSharedCompilation)
+        {
+            await ShutdownCompilerServerAsync(result, sharedCompilationId);
+        }
 
         if (disableSdkPath || noConfig)
         {
@@ -321,10 +436,11 @@ public abstract class IntegrationTestBase : TestBase
     }
 
     [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/79907")]
-    public void StdLib_Vbc(bool useSharedCompilation, bool disableSdkPath, bool noConfig)
+    public async Task StdLib_Vbc(bool useSharedCompilation, bool disableSdkPath, bool noConfig)
     {
         if (_msbuildExecutable == null) return;
 
+        var sharedCompilationId = Guid.NewGuid().ToString();
         var result = RunCommandLineCompiler(
             _msbuildExecutable,
             "/m /nr:false /t:CustomTarget Test.vbproj",
@@ -342,12 +458,17 @@ public abstract class IntegrationTestBase : TestBase
                     <Project>
                         <UsingTask TaskName="Microsoft.CodeAnalysis.BuildTasks.Vbc" AssemblyFile="{_buildTaskDll}" />
                         <Target Name="CustomTarget">
-                            <Vbc Sources="File.vb" UseSharedCompilation="{useSharedCompilation}" DisableSdkPath="{disableSdkPath}" NoConfig="{noConfig}" />
+                            <Vbc Sources="File.vb" UseSharedCompilation="{useSharedCompilation}" SharedCompilationId="{sharedCompilationId}" DisableSdkPath="{disableSdkPath}" NoConfig="{noConfig}" />
                         </Target>
                     </Project>
                     """ },
             });
         _output.WriteLine(result.Output);
+
+        if (useSharedCompilation)
+        {
+            await ShutdownCompilerServerAsync(result, sharedCompilationId);
+        }
 
         if (disableSdkPath || noConfig)
         {
@@ -377,10 +498,11 @@ public abstract class IntegrationTestBase : TestBase
     /// and the custom RSP (which has <c>/warnaserror+</c> so we get an error for using an obsolete type).
     /// </summary>
     [Theory, CombinatorialData]
-    public void CustomRsp_Csc(bool includeCustomRsp, bool useSharedCompilation, bool noConfig)
+    public async Task CustomRsp_Csc(bool includeCustomRsp, bool useSharedCompilation, bool noConfig)
     {
         if (_msbuildExecutable == null) return;
 
+        var sharedCompilationId = Guid.NewGuid().ToString();
         var result = RunCommandLineCompiler(
             _msbuildExecutable,
             "/m /nr:false /t:CustomTarget Test.csproj",
@@ -397,12 +519,17 @@ public abstract class IntegrationTestBase : TestBase
                     <Project>
                         <UsingTask TaskName="Microsoft.CodeAnalysis.BuildTasks.Csc" AssemblyFile="{_buildTaskDll}" />
                         <Target Name="CustomTarget">
-                            <Csc Sources="File.cs" UseSharedCompilation="{useSharedCompilation}" ResponseFiles="{(includeCustomRsp ? "custom.rsp" : "")}" NoConfig="{noConfig}" />
+                            <Csc Sources="File.cs" UseSharedCompilation="{useSharedCompilation}" SharedCompilationId="{sharedCompilationId}" ResponseFiles="{(includeCustomRsp ? "custom.rsp" : "")}" NoConfig="{noConfig}" />
                         </Target>
                     </Project>
                     """ },
             });
         _output.WriteLine(result.Output);
+
+        if (useSharedCompilation)
+        {
+            await ShutdownCompilerServerAsync(result, sharedCompilationId);
+        }
 
         Assert.Equal(!includeCustomRsp && !noConfig, 0 == result.ExitCode);
         if (noConfig)
@@ -421,10 +548,11 @@ public abstract class IntegrationTestBase : TestBase
 
     /// <inheritdoc cref="CustomRsp_Csc"/>
     [Theory, CombinatorialData]
-    public void CustomRsp_Vbc(bool includeCustomRsp, bool useSharedCompilation, bool noConfig)
+    public async Task CustomRsp_Vbc(bool includeCustomRsp, bool useSharedCompilation, bool noConfig)
     {
         if (_msbuildExecutable == null) return;
 
+        var sharedCompilationId = Guid.NewGuid().ToString();
         var result = RunCommandLineCompiler(
             _msbuildExecutable,
             "/m /nr:false /t:CustomTarget Test.vbproj",
@@ -445,12 +573,17 @@ public abstract class IntegrationTestBase : TestBase
                     <Project>
                         <UsingTask TaskName="Microsoft.CodeAnalysis.BuildTasks.Vbc" AssemblyFile="{_buildTaskDll}" />
                         <Target Name="CustomTarget">
-                            <Vbc Sources="File.vb" UseSharedCompilation="{useSharedCompilation}" ResponseFiles="{(includeCustomRsp ? "custom.rsp" : "")}" NoConfig="{noConfig}" />
+                            <Vbc Sources="File.vb" UseSharedCompilation="{useSharedCompilation}" SharedCompilationId="{sharedCompilationId}" ResponseFiles="{(includeCustomRsp ? "custom.rsp" : "")}" NoConfig="{noConfig}" />
                         </Target>
                     </Project>
                     """ },
             });
         _output.WriteLine(result.Output);
+
+        if (useSharedCompilation)
+        {
+            await ShutdownCompilerServerAsync(result, sharedCompilationId);
+        }
 
         Assert.Equal(!includeCustomRsp && !noConfig, 0 == result.ExitCode);
         if (noConfig)

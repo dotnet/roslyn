@@ -1,0 +1,23 @@
+﻿Document - 
+    RazorCompiledItemAttribute - 
+    NamespaceDeclaration -  - Razor
+        RazorSourceChecksumAttribute - 
+        ClassDeclaration -  - public - Template - global::LegacyTemplateBase - 
+            MethodDeclaration -  - public async override - global::System.Threading.Tasks.Task - ExecuteAsync
+                HtmlContent - (38:1,0 [2] TestFiles\IntegrationTests\CSharp8LanguageFeaturesIntegrationTest_Legacy\TestView.cshtml)
+                    LazyIntermediateToken - (38:1,0 [2] TestFiles\IntegrationTests\CSharp8LanguageFeaturesIntegrationTest_Legacy\TestView.cshtml) - Html - \n
+                CSharpCode - (42:2,2 [77] TestFiles\IntegrationTests\CSharp8LanguageFeaturesIntegrationTest_Legacy\TestView.cshtml)
+                    LazyIntermediateToken - (42:2,2 [77] TestFiles\IntegrationTests\CSharp8LanguageFeaturesIntegrationTest_Legacy\TestView.cshtml) - CSharp - \n    var value = new { X = 1, Y = 2 };\n    _ = value is { X: 1, Y: > 0 };\n
+                HtmlContent - (122:6,0 [2] TestFiles\IntegrationTests\CSharp8LanguageFeaturesIntegrationTest_Legacy\TestView.cshtml)
+                    LazyIntermediateToken - (122:6,0 [2] TestFiles\IntegrationTests\CSharp8LanguageFeaturesIntegrationTest_Legacy\TestView.cshtml) - Html - \n
+                CSharpCode - (125:7,1 [35] TestFiles\IntegrationTests\CSharp8LanguageFeaturesIntegrationTest_Legacy\TestView.cshtml)
+                    LazyIntermediateToken - (125:7,1 [35] TestFiles\IntegrationTests\CSharp8LanguageFeaturesIntegrationTest_Legacy\TestView.cshtml) - CSharp - if (value is { X: 1, Y: > 0 })\n{\n
+                HtmlContent - (160:9,0 [29] TestFiles\IntegrationTests\CSharp8LanguageFeaturesIntegrationTest_Legacy\TestView.cshtml)
+                    LazyIntermediateToken - (160:9,0 [4] TestFiles\IntegrationTests\CSharp8LanguageFeaturesIntegrationTest_Legacy\TestView.cshtml) - Html -     
+                    LazyIntermediateToken - (164:9,4 [2] TestFiles\IntegrationTests\CSharp8LanguageFeaturesIntegrationTest_Legacy\TestView.cshtml) - Html - <p
+                    LazyIntermediateToken - (166:9,6 [1] TestFiles\IntegrationTests\CSharp8LanguageFeaturesIntegrationTest_Legacy\TestView.cshtml) - Html - >
+                    LazyIntermediateToken - (167:9,7 [16] TestFiles\IntegrationTests\CSharp8LanguageFeaturesIntegrationTest_Legacy\TestView.cshtml) - Html - Pattern matched!
+                    LazyIntermediateToken - (183:9,23 [4] TestFiles\IntegrationTests\CSharp8LanguageFeaturesIntegrationTest_Legacy\TestView.cshtml) - Html - </p>
+                    LazyIntermediateToken - (187:9,27 [2] TestFiles\IntegrationTests\CSharp8LanguageFeaturesIntegrationTest_Legacy\TestView.cshtml) - Html - \n
+                CSharpCode - (189:10,0 [1] TestFiles\IntegrationTests\CSharp8LanguageFeaturesIntegrationTest_Legacy\TestView.cshtml)
+                    LazyIntermediateToken - (189:10,0 [1] TestFiles\IntegrationTests\CSharp8LanguageFeaturesIntegrationTest_Legacy\TestView.cshtml) - CSharp - }

@@ -72,6 +72,12 @@ namespace Microsoft.CodeAnalysis
                 case SourceHashAlgorithm.Sha256:
                     return 256 / 8;
 
+                case SourceHashAlgorithm.Sha384:
+                    return 384 / 8;
+
+                case SourceHashAlgorithm.Sha512:
+                    return 512 / 8;
+
                 default:
                     throw ExceptionUtilities.UnexpectedValue(algorithmId);
             }
@@ -88,6 +94,12 @@ namespace Microsoft.CodeAnalysis
                 case SourceHashAlgorithm.Sha256:
                     return SHA256.Create();
 
+                case SourceHashAlgorithm.Sha384:
+                    return SHA384.Create();
+
+                case SourceHashAlgorithm.Sha512:
+                    return SHA512.Create();
+
                 default:
                     return null;
             }
@@ -103,6 +115,12 @@ namespace Microsoft.CodeAnalysis
 
                 case SourceHashAlgorithm.Sha256:
                     return HashAlgorithmName.SHA256;
+
+                case SourceHashAlgorithm.Sha384:
+                    return HashAlgorithmName.SHA384;
+
+                case SourceHashAlgorithm.Sha512:
+                    return HashAlgorithmName.SHA512;
 
                 default:
                     throw ExceptionUtilities.UnexpectedValue(algorithmId);

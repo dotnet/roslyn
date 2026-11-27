@@ -4,6 +4,7 @@
 
 using System;
 using Roslyn.Utilities;
+using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -21,6 +22,11 @@ namespace Microsoft.CodeAnalysis
         /// Usually the project's output directory unless <see cref="CommandLineArguments.GeneratedFilesOutputDirectory"/> is specified.
         /// </summary>
         public string? BaseDirectory { get; }
+
+        /// <summary>
+        /// When specified, overrides the <see cref="SourceText.ChecksumAlgorithm"/> given in <see cref="SourceProductionContext.AddSource(string, SourceText)"/>.
+        /// </summary>
+        internal SourceHashAlgorithm ChecksumAlgorithm { get; init; }
 
         public GeneratorDriverOptions(IncrementalGeneratorOutputKind disabledOutputs)
             : this(disabledOutputs, false)

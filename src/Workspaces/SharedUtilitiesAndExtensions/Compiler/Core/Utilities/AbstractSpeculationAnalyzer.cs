@@ -50,7 +50,7 @@ internal abstract class AbstractSpeculationAnalyzer<
     private SemanticModel? _lazySpeculativeSemanticModel;
 
     private static readonly SymbolEquivalenceComparer s_includeNullabilityComparer =
-        SymbolEquivalenceComparer.Create(distinguishRefFromOut: true, tupleNamesMustMatch: true, ignoreNullableAnnotations: false, objectAndDynamicCompareEqually: false, arrayAndReadOnlySpanCompareEqually: false);
+        SymbolEquivalenceComparer.Create(distinguishRefFromOut: true, tupleNamesMustMatch: true, ignoreNullableAnnotations: false, objectAndDynamicCompareEqually: false, arrayAndReadOnlySpanCompareEqually: false, distinguishPartialParts: true);
 
     private static readonly SymbolEquivalenceComparer s_arrayAndReadOnlySpanCompareEqually = s_includeNullabilityComparer.With(arrayAndReadOnlySpanCompareEqually: true);
 
@@ -980,7 +980,7 @@ internal abstract class AbstractSpeculationAnalyzer<
         //
         // The only cases where we feel confident enough to elide the cast are:
         //
-        // 1. When we have an Array/Delegate/Enum. These are such core types, and cannot be changed by teh user,
+        // 1. When we have an Array/Delegate/Enum. These are such core types, and cannot be changed by the user,
         //    that we can trust their impls to not change.
         // 2. We have one of the builtin structs (like int). These are such core types, and cannot be changed by teh
         //    user, that we can trust their impls to not change.

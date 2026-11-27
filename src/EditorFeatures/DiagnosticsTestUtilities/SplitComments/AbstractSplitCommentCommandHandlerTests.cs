@@ -99,7 +99,7 @@ public abstract class AbstractSplitCommentCommandHandlerTests
             inputMarkup, expectedOutputMarkup,
             callback: () =>
             {
-                Assert.True(false, "Should not reach here.");
+                Assert.Fail("Should not reach here.");
             }, enabled, useTabs);
     }
 

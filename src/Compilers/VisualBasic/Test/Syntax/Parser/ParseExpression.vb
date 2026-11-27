@@ -1210,6 +1210,18 @@ Skip 2
         ]]>)
     End Sub
 
+    <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/84634")>
+    Public Sub TestMultiLineLambdaSub_EndSubStatementKind()
+        Dim lambda = DirectCast(ParseExpressionAsRhs("
+Sub()
+End Sub
+"), MultiLineLambdaExpressionSyntax)
+
+        Assert.Equal(SyntaxKind.MultiLineSubLambdaExpression, lambda.Kind())
+        Assert.Equal(SyntaxKind.SubLambdaHeader, lambda.SubOrFunctionHeader.Kind())
+        Assert.Equal(SyntaxKind.EndSubStatement, lambda.EndSubOrFunctionStatement.Kind())
+    End Sub
+
     <Fact>
     Public Sub TestMultiLineLambdaSubNoEndSub1()
         ParseAndVerify(<![CDATA[
@@ -1256,6 +1268,19 @@ Skip 2
                 End Sub
             End Module
         ]]>)
+    End Sub
+
+    <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/84634")>
+    Public Sub TestMultiLineLambdaFunction_EndFunctionStatementKind()
+        Dim lambda = DirectCast(ParseExpressionAsRhs("
+Function()
+    Return 1
+End Function
+"), MultiLineLambdaExpressionSyntax)
+
+        Assert.Equal(SyntaxKind.MultiLineFunctionLambdaExpression, lambda.Kind())
+        Assert.Equal(SyntaxKind.FunctionLambdaHeader, lambda.SubOrFunctionHeader.Kind())
+        Assert.Equal(SyntaxKind.EndFunctionStatement, lambda.EndSubOrFunctionStatement.Kind())
     End Sub
 
     <Fact>

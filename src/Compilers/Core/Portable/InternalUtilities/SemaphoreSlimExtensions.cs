@@ -13,7 +13,14 @@ namespace Roslyn.Utilities
     {
         public static SemaphoreDisposer DisposableWait(this SemaphoreSlim semaphore, CancellationToken cancellationToken = default)
         {
-            semaphore.Wait(cancellationToken);
+            // Disallow pumping while we do this wait; since this wait often happens on the UI thread, in Visual Studio we can end up with reentrancy
+            // which can cause all sorts of problems. See https://devdiv.visualstudio.com/DevDiv/_workitems/edit/2600824 or
+            // https://developercommunity.visualstudio.com/t/Visual-Studio-2022-frequently-freezes-at/10053736 for various examples.
+            using (SpecializedSyncContext.Apply(NoMessagePumpSyncContext.Default))
+            {
+                semaphore.Wait(cancellationToken);
+            }
+
             return new SemaphoreDisposer(semaphore);
         }
 

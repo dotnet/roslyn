@@ -927,13 +927,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return Nothing
             End If
 
-            ' Do not return any type information for a ObjectCreationExpressionSyntax.Type node.
-            If boundNodes.LowestBoundNodeOfSyntacticParent IsNot Nothing AndAlso
-               boundNodes.LowestBoundNodeOfSyntacticParent.Syntax.Kind = SyntaxKind.ObjectCreationExpression AndAlso
-               DirectCast(boundNodes.LowestBoundNodeOfSyntacticParent.Syntax, ObjectCreationExpressionSyntax).Type Is lowestExpr.Syntax Then
-                Return Nothing
-            End If
-
             Dim type As TypeSymbol
 
             ' Similar to a lambda expression, array literal doesn't have a type.
@@ -1130,6 +1123,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         ' the second interpretation applies so just visit the node for that.
                         Dim boundTypeOrValue = DirectCast(boundNodes.LowestBoundNode, BoundTypeOrValueExpression)
                         Dim valueBoundNodes = New BoundNodeSummary(boundTypeOrValue.Data.ValueExpression, boundNodes.HighestBoundNode, boundNodes.LowestBoundNodeOfSyntacticParent)
+                        symbolsBuilder.Free()
+                        memberGroupBuilder.Free()
                         Return GetSemanticSymbols(valueBoundNodes, binderOpt, options, resultKind, memberGroup)
 
                     Case Else
@@ -3443,6 +3438,21 @@ _Default:
             Dim importScopes = ArrayBuilder(Of IImportScope).GetInstance()
             AddImportScopes(binder, importScopes)
             Return importScopes.ToImmutableAndFree()
+        End Function
+
+        Private Protected NotOverridable Overrides Function GetIterationTypeCore(position As Integer, type As ITypeSymbol, cancellationToken As CancellationToken) As ITypeSymbol
+            CheckPosition(position)
+
+            If type Is Nothing Then
+                Throw New ArgumentNullException(NameOf(type))
+            End If
+
+            Dim binder = Me.GetEnclosingBinder(position)
+            If binder Is Nothing Then
+                Return Nothing
+            End If
+
+            Return binder.GetForEachIterationType(Root, type.EnsureVbSymbolOrNothing(Of TypeSymbol)(NameOf(type)))
         End Function
 
         Private Shared Sub AddImportScopes(binder As Binder, scopes As ArrayBuilder(Of IImportScope))

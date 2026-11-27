@@ -31,7 +31,7 @@ public sealed class FindImplementationsTests : AbstractLanguageServerProtocolTes
             }
             class A : IA
             {
-                void IA.{|implementation:M|}()
+                void IA.{|implementation:|}M()
                 {
                 }
             }
@@ -61,7 +61,7 @@ public sealed class FindImplementationsTests : AbstractLanguageServerProtocolTes
             {
                 class A : IA
                 {
-                    void IA.{|implementation:M|}()
+                    void IA.{|implementation:|}M()
                     {
                     }
                 }
@@ -96,7 +96,7 @@ public sealed class FindImplementationsTests : AbstractLanguageServerProtocolTes
         var position = new LSP.Position { Line = 2, Character = 9 };
         var results = await RunFindImplementationAsync(testLspServer, new LSP.Location
         {
-            DocumentUri = ProtocolConversions.CreateAbsoluteDocumentUri($"C:\\{TestSpanMapper.GeneratedFileName}"),
+            DocumentUri = ProtocolConversions.CreateAbsoluteDocumentUri(TestHelpers.GetRootedPath(TestSpanMapper.GeneratedFileName)),
             Range = new LSP.Range { Start = position, End = position }
         });
         AssertLocationsEqual([TestSpanMapper.MappedFileLocation], results);
@@ -128,9 +128,9 @@ public sealed class FindImplementationsTests : AbstractLanguageServerProtocolTes
             """
             class {|caret:|}A { }
 
-            class {|implementation:B|} : A { }
+            class {|implementation:|}B : A { }
 
-            class {|implementation:C|} : A { }
+            class {|implementation:|}C : A { }
             """;
         await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace);
 
@@ -145,7 +145,7 @@ public sealed class FindImplementationsTests : AbstractLanguageServerProtocolTes
             using System;
             class C : IDisposable
             {
-                public void {|implementation:Dispose|}()
+                public void {|implementation:|}Dispose()
                 {
                     IDisposable d;
                     d.{|caret:|}Dispose();

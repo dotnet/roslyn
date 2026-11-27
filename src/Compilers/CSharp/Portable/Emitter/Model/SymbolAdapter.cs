@@ -136,14 +136,19 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (synthesized != null)
             {
-                foreach (var attribute in synthesized)
+                try
                 {
-                    // only synthesize attributes that are emitted:
-                    Debug.Assert(attribute.ShouldEmitAttribute(this, isReturnType, emittingAssemblyAttributesInNetModule));
-                    yield return attribute;
+                    foreach (var attribute in synthesized)
+                    {
+                        // only synthesize attributes that are emitted:
+                        Debug.Assert(attribute.ShouldEmitAttribute(this, isReturnType, emittingAssemblyAttributesInNetModule));
+                        yield return attribute;
+                    }
                 }
-
-                synthesized.Free();
+                finally
+                {
+                    synthesized.Free();
+                }
             }
 
             for (int i = 0; i < userDefined.Length; i++)

@@ -1,0 +1,40 @@
+﻿RazorDocument - [0..65)::65 - [@if(foo) {LF    var foo = "foo bar bazLF    <p>Foo is @foo</p>LF}]
+    MarkupBlock - [0..65)::65
+        MarkupTextLiteral - [0..0)::0 - [] - Gen<Markup> - SpanEditHandler;Accepts:Any
+            Marker;[];
+        CSharpCodeBlock - [0..65)::65
+            CSharpTransition - [0..1)::1 - Gen<None> - SpanEditHandler;Accepts:None
+                Transition;[@];
+            CSharpStatementLiteral - [1..65)::64 - [if(foo) {LF    var foo = "foo bar bazLF    <p>Foo is @foo</p>LF}] - Gen<Stmt> - SpanEditHandler;Accepts:Any
+                Keyword;[if];
+                LeftParenthesis;[(];
+                Identifier;[foo];
+                RightParenthesis;[)];
+                Whitespace;[ ];
+                LeftBrace;[{];
+                NewLine;[LF];
+                Whitespace;[    ];
+                Identifier;[var];
+                Whitespace;[ ];
+                Identifier;[foo];
+                Whitespace;[ ];
+                Assign;[=];
+                Whitespace;[ ];
+                StringLiteral;["foo bar baz];RZ1000(26:1,14 [1] )
+                NewLine;[LF];
+                Whitespace;[    ];
+                LessThan;[<];
+                Identifier;[p];
+                GreaterThan;[>];
+                Identifier;[Foo];
+                Whitespace;[ ];
+                Keyword;[is];
+                Whitespace;[ ];
+                Identifier;[@foo];
+                LessThan;[<];
+                Slash;[/];
+                Identifier;[p];
+                GreaterThan;[>];
+                NewLine;[LF];
+                RightBrace;[}];
+    EndOfFile;[];

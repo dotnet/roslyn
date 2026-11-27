@@ -1,0 +1,11 @@
+<Project>
+  <Import Project="$([MSBuild]::GetPathOfFileAbove('Directory.Build.props', '$(MSBuildThisFileDirectory)../'))" />
+
+  <PropertyGroup Label="EditorConfig Versioning">
+    <MajorVersion>$(VsMajorVersion)</MajorVersion>
+    <MinorVersion>$(VsMinorVersion)</MinorVersion>
+    <PatchVersion>$(EditorConfigPatchVersion)</PatchVersion>
+    <VersionPrefix>$(EditorConfigVersionPrefix)</VersionPrefix>
+    <AssemblyVersion Condition="'$(OfficialBuild)' == 'true' or '$(DotNetUseShippingVersions)' == 'true'">$(EditorConfigAssemblyVersion)</AssemblyVersion>
+  </PropertyGroup>
+</Project>

@@ -131,7 +131,6 @@ End Class
             Dim c2C1 = c2C2.BaseType
             Dim c2X = lookupMember(compilation1, "Submission#0", "X")
             Assert.True(compilation2.IsSymbolAccessibleWithin(c2C1, c2C2))
-            Assert.True(compilation2.IsSymbolAccessibleWithin(c2C2, c2C1))
             Assert.True(compilation2.IsSymbolAccessibleWithin(c2X, c2C2))  ' access not enforced among submission symbols
 
             Dim state3 = state2.ContinueWith(
@@ -142,10 +141,12 @@ End Class
             Dim compilation3 = state3.Result.Script.GetCompilation()
             compilation3.VerifyDiagnostics()
             Dim c3C3 = DirectCast(lookupMember(compilation3, "Submission#2", "C3"), INamedTypeSymbol)
-            Dim c3C1 = c3C3.BaseType
+            Dim c3C2 = c3C3.BaseType
+            Dim c3C1 = c3C2.BaseType
             Dim action As Action = Sub() compilation2.IsSymbolAccessibleWithin(c3C3, c3C1)
             Assert.Throws(Of ArgumentException)(action)
-            Assert.True(compilation3.IsSymbolAccessibleWithin(c3C3, c3C1))
+            Assert.True(compilation3.IsSymbolAccessibleWithin(c3C1, c3C3))
+            Assert.True(compilation3.IsSymbolAccessibleWithin(c3C2, c3C3))
         End Sub
 
         Function lookupType(c As Compilation, name As String) As INamedTypeSymbol

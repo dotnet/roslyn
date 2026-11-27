@@ -114,7 +114,7 @@ internal sealed class CSharpUseSystemThreadingLockDiagnosticAnalyzer()
 
             // For simplicity, only offer this for fields with a single declarator.
             if (variableDeclarator.Parent is not VariableDeclarationSyntax { Parent: FieldDeclarationSyntax, Variables.Count: 1 })
-                return;
+                continue;
 
             // Looks like something that could be converted to a System.Threading.Lock if we see that this field is used
             // in a compatible fashion.

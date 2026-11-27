@@ -1,0 +1,18 @@
+﻿Document - 
+    RazorCompiledItemAttribute - 
+    NamespaceDeclaration -  - Razor
+        RazorSourceChecksumAttribute - 
+        ClassDeclaration -  - public - Template - global::LegacyTemplateBase - 
+            MethodDeclaration -  - public async override - global::System.Threading.Tasks.Task - ExecuteAsync
+                HtmlContent - (38:1,0 [2] TestFiles\IntegrationTests\CSharp11LanguageFeaturesIntegrationTest_Legacy\TestView.cshtml)
+                    LazyIntermediateToken - (38:1,0 [2] TestFiles\IntegrationTests\CSharp11LanguageFeaturesIntegrationTest_Legacy\TestView.cshtml) - Html - \n
+                CSharpCode - (42:2,2 [45] TestFiles\IntegrationTests\CSharp11LanguageFeaturesIntegrationTest_Legacy\TestView.cshtml)
+                    LazyIntermediateToken - (42:2,2 [45] TestFiles\IntegrationTests\CSharp11LanguageFeaturesIntegrationTest_Legacy\TestView.cshtml) - CSharp - \n    var value = -8 >>> 1;\n    _ = value;\n
+                HtmlContent - (90:6,0 [7] TestFiles\IntegrationTests\CSharp11LanguageFeaturesIntegrationTest_Legacy\TestView.cshtml)
+                    LazyIntermediateToken - (90:6,0 [2] TestFiles\IntegrationTests\CSharp11LanguageFeaturesIntegrationTest_Legacy\TestView.cshtml) - Html - \n
+                    LazyIntermediateToken - (92:7,0 [4] TestFiles\IntegrationTests\CSharp11LanguageFeaturesIntegrationTest_Legacy\TestView.cshtml) - Html - <div
+                    LazyIntermediateToken - (96:7,4 [1] TestFiles\IntegrationTests\CSharp11LanguageFeaturesIntegrationTest_Legacy\TestView.cshtml) - Html - >
+                CSharpExpression - (99:7,7 [8] TestFiles\IntegrationTests\CSharp11LanguageFeaturesIntegrationTest_Legacy\TestView.cshtml)
+                    LazyIntermediateToken - (99:7,7 [8] TestFiles\IntegrationTests\CSharp11LanguageFeaturesIntegrationTest_Legacy\TestView.cshtml) - CSharp - -7 >>> 1
+                HtmlContent - (108:7,16 [6] TestFiles\IntegrationTests\CSharp11LanguageFeaturesIntegrationTest_Legacy\TestView.cshtml)
+                    LazyIntermediateToken - (108:7,16 [6] TestFiles\IntegrationTests\CSharp11LanguageFeaturesIntegrationTest_Legacy\TestView.cshtml) - Html - </div>

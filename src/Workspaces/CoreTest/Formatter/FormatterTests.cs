@@ -38,8 +38,8 @@ public sealed class FormatterTests
         {
         }
 
-        public Task<Document> FormatAsync(Document document, IEnumerable<TextSpan>? spans, LineFormattingOptions lineFormattingOptions, SyntaxFormattingOptions? syntaxFormattingOptions, CancellationToken cancellationToken)
-            => Task.FromResult(document.WithText(SourceText.From($"Formatted with options: {lineFormattingOptions.ToString().Replace("\r", "\\r").Replace("\n", "\\n")}")));
+        public async Task<Document> FormatAsync(Document document, IEnumerable<TextSpan>? spans, LineFormattingOptions lineFormattingOptions, SyntaxFormattingOptions? syntaxFormattingOptions, CancellationToken cancellationToken)
+            => document.WithText(SourceText.From($"Formatted with options: {lineFormattingOptions.ToString().Replace("\r", "\\r").Replace("\n", "\\n")}"));
     }
 
     [Fact]
@@ -56,7 +56,8 @@ public sealed class FormatterTests
 #pragma warning restore RS0030 // Do not used banned APIs
 
         var formattedText = await formattedDocument.GetTextAsync();
-        AssertEx.Equal(@"Formatted with options: LineFormattingOptions { UseTabs = False, TabSize = 4, IndentationSize = 4, NewLine = \r\n }", formattedText.ToString());
+        var escapedNewLine = Environment.NewLine.Replace("\r", @"\r").Replace("\n", @"\n");
+        AssertEx.Equal($"Formatted with options: LineFormattingOptions {{ UseTabs = False, TabSize = 4, IndentationSize = 4, NewLine = {escapedNewLine} }}", formattedText.ToString());
     }
 
     [Theory, CombinatorialData]

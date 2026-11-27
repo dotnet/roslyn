@@ -1383,7 +1383,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     Return ImmutableArray(Of VisualBasicAttributeData).Empty
                 End Function
 
-                Friend NotOverridable Overrides Function IsMetadataNewSlot(Optional ignoreInterfaceImplementationChanges As Boolean = False) As Boolean
+                Friend NotOverridable Overrides Function IsMetadataNewSlot() As Boolean
                     Return True
                 End Function
 

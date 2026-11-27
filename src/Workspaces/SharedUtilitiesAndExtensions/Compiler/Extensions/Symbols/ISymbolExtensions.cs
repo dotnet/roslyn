@@ -567,25 +567,35 @@ internal static partial class ISymbolExtensions
 
     private static bool IsAttributeValidForTargets(INamedTypeSymbol attributeType, AttributeTargets validTargets)
     {
-        // Get the AttributeUsageAttribute applied to this attribute type
-        var attributeUsageAttribute = attributeType.GetAttributes()
-            .FirstOrDefault(attr => attr.AttributeClass is { Name: "AttributeUsageAttribute", ContainingNamespace: { Name: "System", ContainingNamespace.IsGlobalNamespace: true } });
-
-        if (attributeUsageAttribute == null)
+        // Get the AttributeUsageAttribute that determines the valid targets for this attribute type.
+        // AttributeUsage is inherited: if the attribute type doesn't specify one directly, the effective
+        // usage comes from the nearest base attribute type that does (matching the C# compiler's behavior).
+        // Walk the base type chain to find it.
+        var currentType = attributeType;
+        while (currentType is not null)
         {
-            // If no AttributeUsage is specified, the default is AttributeTargets.All
-            return true;
+            var attributeUsageAttribute = currentType.GetAttributes()
+                .FirstOrDefault(attr => attr.AttributeClass is { Name: "AttributeUsageAttribute", ContainingNamespace: { Name: "System", ContainingNamespace.IsGlobalNamespace: true } });
+
+            if (attributeUsageAttribute != null)
+            {
+                // The first constructor argument is the AttributeTargets value
+                if (attributeUsageAttribute.ConstructorArguments is [{ Value: int targetsValue }, ..])
+                {
+                    var attributeTargets = (AttributeTargets)targetsValue;
+                    // Check if there's any overlap between the attribute's targets and the valid targets
+                    return (attributeTargets & validTargets) != 0;
+                }
+
+                // Found an AttributeUsage but couldn't determine the targets; default to allowing the attribute.
+                return true;
+            }
+
+            // No AttributeUsage on this type; keep looking up the base chain.
+            currentType = currentType.BaseType;
         }
 
-        // The first constructor argument is the AttributeTargets value
-        if (attributeUsageAttribute.ConstructorArguments is [{ Value: int targetsValue }, ..])
-        {
-            var attributeTargets = (AttributeTargets)targetsValue;
-            // Check if there's any overlap between the attribute's targets and the valid targets
-            return (attributeTargets & validTargets) != 0;
-        }
-
-        // Default to allowing the attribute if we can't determine the targets
+        // No AttributeUsage found anywhere in the inheritance chain; the default is AttributeTargets.All
         return true;
     }
 
@@ -713,7 +723,7 @@ internal static partial class ISymbolExtensions
         }
 
         // bool IsCompleted { get }
-        if (!returnType.GetMembers().OfType<IPropertySymbol>().Any(p => p.Name == WellKnownMemberNames.IsCompleted && p.Type.SpecialType == SpecialType.System_Boolean && p.GetMethod != null))
+        if (!returnType.GetMembers().OfType<IPropertySymbol>().Any(p => p is { Name: WellKnownMemberNames.IsCompleted, Type.SpecialType: SpecialType.System_Boolean, GetMethod: not null }))
         {
             return false;
         }
@@ -727,7 +737,7 @@ internal static partial class ISymbolExtensions
 
         // void OnCompleted(Action) 
         // Actions are delegates, so we'll just check for delegates.
-        if (!methods.Any(x => x.Name == WellKnownMemberNames.OnCompleted && x.ReturnsVoid && x.Parameters is [{ Type.TypeKind: TypeKind.Delegate }]))
+        if (!methods.Any(x => x is { Name: WellKnownMemberNames.OnCompleted, ReturnsVoid: true, Parameters: [{ Type.TypeKind: TypeKind.Delegate }] }))
             return false;
 
         // void GetResult() || T GetResult()
@@ -752,7 +762,7 @@ internal static partial class ISymbolExtensions
             .ToList();
 
         // T Current { get }
-        if (!members.OfType<IPropertySymbol>().Any(p => p.Name == WellKnownMemberNames.CurrentPropertyName && p.GetMethod != null))
+        if (!members.OfType<IPropertySymbol>().Any(p => p is { Name: WellKnownMemberNames.CurrentPropertyName, GetMethod: not null }))
         {
             return false;
         }
@@ -792,7 +802,7 @@ internal static partial class ISymbolExtensions
             .ToList();
 
         // T Current { get }
-        if (!members.OfType<IPropertySymbol>().Any(p => p.Name == WellKnownMemberNames.CurrentPropertyName && p.GetMethod != null))
+        if (!members.OfType<IPropertySymbol>().Any(p => p is { Name: WellKnownMemberNames.CurrentPropertyName, GetMethod: not null }))
         {
             return false;
         }
@@ -893,7 +903,7 @@ internal static partial class ISymbolExtensions
                 return true;
             }
 
-#if !ROSLYN_4_12_OR_LOWER
+#if !OLDER_ROSLYN
             if (method is { IsStatic: false, AssociatedExtensionImplementation: { } associatedMethod })
             {
                 classicExtensionMethod = associatedMethod;

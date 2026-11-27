@@ -144,6 +144,9 @@ internal static partial class ITextViewExtensions
             outliningManager?.ExpandAll(new SnapshotSpan(pointInView.Value, length: 0), match: _ => true);
         }
 
+        // Moving caret doesn't clear previous selection so we need to clear it manually
+        textView.Selection.Clear();
+
         var newPosition = textView.Caret.MoveTo(new VirtualSnapshotPoint(pointInView.Value, point.VirtualSpaces));
 
         // We use the caret's position in the view's current snapshot here in case something 
@@ -304,6 +307,8 @@ internal static partial class ITextViewExtensions
         VirtualSnapshotSpan virtualSnapshotSpan,
         out VirtualSnapshotSpan surfaceBufferSpan)
     {
+        Contract.ThrowIfNull(virtualSnapshotSpan.Snapshot);
+
         // If we are already on the surface buffer, then there's no reason to attempt mappings
         // as we'll lose virtualness
         if (virtualSnapshotSpan.Snapshot.TextBuffer == textView.TextBuffer)

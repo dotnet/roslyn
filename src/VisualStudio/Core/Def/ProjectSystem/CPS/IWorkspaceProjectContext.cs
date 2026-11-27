@@ -15,10 +15,14 @@ namespace Microsoft.VisualStudio.LanguageServices.ProjectSystem;
 /// Project context to initialize properties and items of a Workspace project created by <see cref="IWorkspaceProjectContextFactory"/>. 
 /// </summary>
 /// <remarks>
-/// <see cref="IDisposable.Dispose"/> is safe to call on instances of this type on any thread.
+/// All methods are safe to call from any thread.
 /// </remarks>
-internal interface IWorkspaceProjectContext : IDisposable
+internal interface IWorkspaceProjectContext : IDisposable, IAsyncDisposable
 {
+    /// <inheritdoc cref="IDisposable.Dispose"/>
+    [Obsolete("Use DisposeAsync instead.")]
+    new void Dispose();
+
     // Project properties.
     string DisplayName { get; set; }
     string? ProjectFilePath { get; set; }
@@ -59,7 +63,9 @@ internal interface IWorkspaceProjectContext : IDisposable
     void AddAdditionalFile(string filePath, bool isInCurrentContext = true);
     void AddAdditionalFile(string filePath, IEnumerable<string> folderNames, bool isInCurrentContext = true);
     void RemoveAdditionalFile(string filePath);
+    [Obsolete($"Dynamic files are ignored; callers can remove calls to this method.")]
     void AddDynamicFile(string filePath, IEnumerable<string>? folderNames = null);
+    [Obsolete($"Dynamic files are ignored; callers can remove calls to this method.")]
     void RemoveDynamicFile(string filePath);
 
     /// <summary>

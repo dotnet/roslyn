@@ -207,6 +207,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 @checked: false,
                 explicitCastInCode: false,
                 conversionGroupOpt: null,
+                InConversionGroupFlags.Unspecified,
                 constantValueOpt: null,
                 type: type,
                 hasErrors: !conversion.IsValid);

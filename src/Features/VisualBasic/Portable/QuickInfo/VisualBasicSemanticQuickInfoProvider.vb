@@ -37,17 +37,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.QuickInfo
             Return Await MyBase.BuildQuickInfoAsync(context, token).ConfigureAwait(False)
         End Function
 
-        Protected Overrides Async Function BuildQuickInfoAsync(
-                context As CommonQuickInfoContext,
-                token As SyntaxToken) As Task(Of QuickInfoItem)
-            Dim info = Await BuildQuickInfoAsync(context.Services, context.SemanticModel, token, context.Options, context.CancellationToken).ConfigureAwait(False)
-            If info IsNot Nothing Then
-                Return info
-            End If
-
-            Return Await MyBase.BuildQuickInfoAsync(context, token).ConfigureAwait(False)
-        End Function
-
         Private Overloads Shared Async Function BuildQuickInfoAsync(
                 services As SolutionServices,
                 semanticModel As SemanticModel,
@@ -160,6 +149,23 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.QuickInfo
             Return False
         End Function
 
+        Protected Overrides Function FilterMemberGroup(
+                semanticModel As SemanticModel,
+                bindableParent As SyntaxNode,
+                memberGroup As ImmutableArray(Of ISymbol),
+                cancellationToken As CancellationToken) As ImmutableArray(Of ISymbol)
+            Dim expression = If(TryCast(bindableParent, InvocationExpressionSyntax)?.Expression, bindableParent)
+
+            If TypeOf expression Is SimpleNameSyntax AndAlso
+               Not TypeOf expression.Parent Is MemberAccessExpressionSyntax AndAlso
+               Not TypeOf expression.Parent Is QualifiedNameSyntax AndAlso
+               expression.IsInStaticContext() Then
+                Return memberGroup.WhereAsArray(Function(m) m.IsStatic)
+            End If
+
+            Return memberGroup
+        End Function
+
         Private Overloads Shared Async Function BuildContentAsync(
                 services As SolutionServices,
                 semanticModel As SemanticModel,
@@ -196,7 +202,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.QuickInfo
                 Return QuickInfoItem.Create(token.Span, sections:=ImmutableArray.Create(QuickInfoSection.Create(QuickInfoSectionKinds.Description, ImmutableArray.Create(New TaggedText(TextTags.Text, VBFeaturesResources.Multiple_Types)))))
             End If
 
-            Return Await CreateContentAsync(services, semanticModel, token, New TokenInformation(types), supportedPlatforms:=Nothing, options, onTheFlyDocsInfo:=Nothing, cancellationToken).ConfigureAwait(False)
+            Return Await CreateContentAsync(services, semanticModel, token, New TokenInformation(types), supportedPlatforms:=Nothing, interceptorDisplayParts:=Nothing, options, onTheFlyDocsInfo:=Nothing, cancellationToken).ConfigureAwait(False)
         End Function
 
         Private Shared Function BuildContentForIntrinsicOperator(

@@ -15914,7 +15914,7 @@ class Program
 		IL_0001: call instance void [netstandard]System.Object::.ctor()
 		IL_0006: ret
 	} // end of method Program::.ctor
-	.method assembly hidebysig static 
+	.method private hidebysig static 
 		void '<Main>g__M|0_0'<T> (
 			!!T slot
 		) cil managed 
@@ -16029,7 +16029,7 @@ class Program
 		IL_0001: call instance void [netstandard]System.Object::.ctor()
 		IL_0006: ret
 	} // end of method Program::.ctor
-	.method assembly hidebysig static 
+	.method private hidebysig static 
 		void '<M1>g__M2|1_0'<T1, T2, T3, T4> (
 			!!T3 b
 		) cil managed 
@@ -16044,7 +16044,7 @@ class Program
 		IL_0001: call void Program::'<M1>g__M3|1_1'<!!T1, !!T2, !!T3, !!T4, !!T3, !!T4>(!!4)
 		IL_0006: ret
 	} // end of method Program::'<M1>g__M2|1_0'
-	.method assembly hidebysig static 
+	.method private hidebysig static 
 		void '<M1>g__M3|1_1'<T1, T2, T3, T4, T5, T6> (
 			!!T5 c
 		) cil managed 
@@ -16155,7 +16155,7 @@ class Program
 		IL_0001: call instance void [netstandard]System.Object::.ctor()
 		IL_0006: ret
 	} // end of method Program::.ctor
-	.method assembly hidebysig static 
+	.method private hidebysig static 
 		void '<M1>g__M2|1_0'<T1> (
 			!!T1 b
 		) cil managed 
@@ -16254,7 +16254,7 @@ class Program
 		IL_0001: call instance void [netstandard]System.Object::.ctor()
 		IL_0006: ret
 	} // end of method Program::.ctor
-	.method assembly hidebysig static 
+	.method private hidebysig static 
 		void '<Main>g__M1|0_0'<T> (
 			!!T a
 		) cil managed 
@@ -16269,7 +16269,7 @@ class Program
 		IL_0001: call void Program::'<Main>g__M2|0_1'<!!T, !!T>(!!1)
 		IL_0006: ret
 	} // end of method Program::'<Main>g__M1|0_0'
-	.method assembly hidebysig static 
+	.method private hidebysig static 
 		void '<Main>g__M2|0_1'<T, T> (
 			!!T b
 		) cil managed 
@@ -16370,7 +16370,7 @@ class Class<T1>
 		IL_0001: call instance void [netstandard]System.Object::.ctor()
 		IL_0006: ret
 	} // end of method Class`1::.ctor
-	.method assembly hidebysig static 
+	.method private hidebysig static 
 		void '<M>g__M1|0_0'<T2> (
 			!!T2 a
 		) cil managed 

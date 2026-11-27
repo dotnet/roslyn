@@ -744,6 +744,22 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
+        /// Gets the type of the elements produced when <paramref name="type"/> is iterated over by an <c>await foreach</c>
+        /// loop at the given position.
+        /// </summary>
+        /// <param name="semanticModel">The semantic model.</param>
+        /// <param name="position">A character position used to identify a declaration scope. This character position must be
+        /// within the FullSpan of the Root syntax node in this SemanticModel.</param>
+        /// <param name="type">The type of the collection being iterated over.</param>
+        /// <param name="cancellationToken">The cancellation token.</param>
+        /// <returns>The iteration type, or null if the iteration type cannot be determined.</returns>
+        public static ITypeSymbol? GetAsyncIterationType(this SemanticModel? semanticModel, int position, ITypeSymbol type, CancellationToken cancellationToken = default)
+        {
+            var csmodel = semanticModel as CSharpSemanticModel;
+            return csmodel?.GetAsyncIterationType(position, type, cancellationToken);
+        }
+
+        /// <summary>
         /// Binds the expression in the context of the specified location and gets type information.
         /// This method is used to get type information about an expression that did not actually
         /// appear in the source code.
@@ -849,6 +865,32 @@ namespace Microsoft.CodeAnalysis.CSharp
                 throw new ArgumentException(string.Format(CSharpResources.ICompoundAssignmentOperationIsNotCSharpCompoundAssignment,
                                                           nameof(compoundAssignment)),
                                             nameof(compoundAssignment));
+            }
+        }
+
+        /// <summary>
+        /// Gets the underlying <see cref="Conversion"/> information from this <see cref="ICoalesceOperation"/>. This
+        /// conversion is applied to <see cref="ICoalesceOperation.Value"/> when it is not null.
+        /// </summary>
+        /// <remarks>
+        /// This coalesce operation must have been created from C# code.
+        /// </remarks>
+        public static Conversion GetValueConversion(this ICoalesceOperation coalesceExpression)
+        {
+            if (coalesceExpression == null)
+            {
+                throw new ArgumentNullException(nameof(coalesceExpression));
+            }
+
+            if (coalesceExpression.Language == LanguageNames.CSharp)
+            {
+                return (Conversion)((CoalesceOperation)coalesceExpression).ValueConversionConvertible;
+            }
+            else
+            {
+                throw new ArgumentException(string.Format(CSharpResources.ICoalesceOperationIsNotCSharpCoalesceOperation,
+                                                          nameof(coalesceExpression)),
+                                            nameof(coalesceExpression));
             }
         }
 

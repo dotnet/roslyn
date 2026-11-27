@@ -42,6 +42,7 @@ namespace Microsoft.CodeAnalysis
         internal void SetStateMachineType(TMethodSymbol method, TNamedTypeSymbol stateMachineClass)
         {
             Debug.Assert(!Frozen);
+            Debug.Assert(method.PartialImplementationPart is null);
 
             if (_lazyStateMachineTypes == null)
             {
@@ -57,6 +58,7 @@ namespace Microsoft.CodeAnalysis
         internal bool TryGetStateMachineType(TMethodSymbol method, [NotNullWhen(true)] out TNamedTypeSymbol? stateMachineType)
         {
             Debug.Assert(Frozen);
+            Debug.Assert(method.PartialImplementationPart is null);
 
             stateMachineType = null;
             return _lazyStateMachineTypes != null && _lazyStateMachineTypes.TryGetValue(method, out stateMachineType);

@@ -140,6 +140,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             string? sourceLink = null;
             string? ruleSetPath = null;
             bool reportIVTs = false;
+            int memorySafetyRulesVersion = (int)MemorySafetyRulesVersion.Version1;
 
             // Process ruleset files first so that diagnostic severity settings specified on the command line via
             // /nowarn and /warnaserror can override diagnostic severity settings specified in the ruleset file.
@@ -398,8 +399,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 continue;
                             }
 
-                            var newChecksumAlgorithm = TryParseHashAlgorithmName(value!);
-                            if (newChecksumAlgorithm == SourceHashAlgorithm.None)
+                            if (!SourceHashAlgorithms.TryParseAlgorithmName(value!, out var newChecksumAlgorithm))
                             {
                                 AddDiagnostic(diagnostics, ErrorCode.FTL_BadChecksumAlgorithm, value);
                                 continue;
@@ -423,6 +423,25 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 break;
 
                             checkOverflow = false;
+                            continue;
+
+                        case "memorysafetyrulesversion":
+                            value = RemoveQuotesAndSlashes(valueMemory);
+                            if (value == null)
+                            {
+                                AddDiagnostic(diagnostics, ErrorCode.ERR_SwitchNeedsNumber, name);
+                                continue;
+                            }
+
+                            if (string.IsNullOrEmpty(value) ||
+                                !int.TryParse(value, NumberStyles.Integer, CultureInfo.InvariantCulture, out var newMemorySafetyRulesVersion))
+                            {
+                                AddDiagnostic(diagnostics, ErrorCode.ERR_SwitchNeedsNumber, name);
+                            }
+                            else
+                            {
+                                memorySafetyRulesVersion = newMemorySafetyRulesVersion;
+                            }
                             continue;
 
                         case "nullable":
@@ -1498,6 +1517,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var parsedFeatures = ParseFeatures(features);
 
+            if (memorySafetyRulesVersion == (int)MemorySafetyRulesVersion.Version1 &&
+                parsedFeatures.ContainsKey(Feature.UpdatedMemorySafetyRules))
+            {
+                memorySafetyRulesVersion = (int)MemorySafetyRulesVersion.Version2;
+            }
+
             string? compilationName;
             GetCompilationAndModuleNames(diagnostics, outputKind, sourceFiles, sourceFilesSpecified, moduleAssemblyName, ref outputFileName, ref moduleName, out compilationName);
 
@@ -1540,6 +1565,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 publicSign: publicSign
             );
 
+            // https://github.com/dotnet/roslyn/issues/82789: use constructor option for this when available
+            options = options.WithMemorySafetyRulesVersion((MemorySafetyRulesVersion)memorySafetyRulesVersion);
+
             if (debugPlus)
             {
                 options = options.WithDebugPlusMode(debugPlus);
@@ -1569,7 +1597,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (nullableContextOptions != NullableContextOptions.Disable && parseOptions.LanguageVersion < MessageID.IDS_FeatureNullableReferenceTypes.RequiredVersion())
             {
-                diagnostics.Add(new CSDiagnostic(new CSDiagnosticInfo(ErrorCode.ERR_NullableOptionNotAvailable,
+                diagnostics.Add(new CSDiagnostic(new CSDiagnosticInfo(ErrorCode.ERR_CompilationOptionNotAvailable,
                                                  "nullable", nullableContextOptions, parseOptions.LanguageVersion.ToDisplayString(),
                                                  new CSharpRequiredLanguageVersion(MessageID.IDS_FeatureNullableReferenceTypes.RequiredVersion())), Location.None));
             }

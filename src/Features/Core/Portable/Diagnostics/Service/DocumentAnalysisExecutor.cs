@@ -12,6 +12,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.LanguageService;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Telemetry;
 using Microsoft.CodeAnalysis.Text;
@@ -50,10 +51,18 @@ internal sealed partial class DiagnosticAnalyzerService
             _logPerformanceInfo = logPerformanceInfo;
             _onAnalysisException = onAnalysisException;
 
-            var compilationBasedProjectAnalyzers = compilationWithAnalyzers?.Analyzers.ToImmutableHashSet();
-            _compilationBasedAnalyzersInAnalysisScope = compilationBasedProjectAnalyzers != null
-                ? analysisScope.Analyzers.WhereAsArray(compilationBasedProjectAnalyzers.Contains)
-                : [];
+            if (compilationWithAnalyzers is null || compilationWithAnalyzers.Analyzers.IsDefaultOrEmpty)
+            {
+                _compilationBasedAnalyzersInAnalysisScope = [];
+            }
+            else
+            {
+                using var _ = PooledHashSet<DiagnosticAnalyzer>.GetInstance(out var compilationBasedProjectAnalyzers);
+
+                compilationBasedProjectAnalyzers.AddRange(compilationWithAnalyzers.Analyzers);
+
+                _compilationBasedAnalyzersInAnalysisScope = analysisScope.Analyzers.WhereAsArray(compilationBasedProjectAnalyzers.Contains);
+            }
         }
 
         public DocumentAnalysisScope AnalysisScope { get; }
@@ -207,7 +216,7 @@ internal sealed partial class DiagnosticAnalyzerService
 
                 if (_lazySyntaxDiagnostics == null)
                 {
-                    using var _ = TelemetryLogging.LogBlockTimeAggregatedHistogram(FunctionId.RequestDiagnostics_Summary, $"{nameof(GetSyntaxDiagnosticsInProcessAsync)}.{nameof(GetAnalysisResultInProcessAsync)}");
+                    using var _ = RoslynTelemetry.Current.RecordBlockTime(FunctionId.RequestDiagnostics_Summary, $"{nameof(GetSyntaxDiagnosticsInProcessAsync)}.{nameof(GetAnalysisResultInProcessAsync)}");
 
                     var analysisScope = AnalysisScope.WithAnalyzers(_compilationBasedAnalyzersInAnalysisScope);
                     var syntaxDiagnostics = await GetAnalysisResultInProcessAsync(analysisScope).ConfigureAwait(false);
@@ -243,7 +252,7 @@ internal sealed partial class DiagnosticAnalyzerService
 
                 if (_lazySemanticDiagnostics == null)
                 {
-                    using var _ = TelemetryLogging.LogBlockTimeAggregatedHistogram(FunctionId.RequestDiagnostics_Summary, $"{nameof(GetSemanticDiagnosticsInProcessAsync)}.{nameof(GetAnalysisResultInProcessAsync)}");
+                    using var _ = RoslynTelemetry.Current.RecordBlockTime(FunctionId.RequestDiagnostics_Summary, $"{nameof(GetSemanticDiagnosticsInProcessAsync)}.{nameof(GetAnalysisResultInProcessAsync)}");
 
                     var analysisScope = AnalysisScope.WithAnalyzers(_compilationBasedAnalyzersInAnalysisScope);
                     var semanticDiagnostics = await GetAnalysisResultInProcessAsync(analysisScope).ConfigureAwait(false);

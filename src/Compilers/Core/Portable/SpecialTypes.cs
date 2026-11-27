@@ -81,6 +81,8 @@ namespace Microsoft.CodeAnalysis
             "System.Threading.Tasks.ValueTask",
             "System.Threading.Tasks.ValueTask`1",
             "System.Runtime.CompilerServices.ICriticalNotifyCompletion",
+            "System.Runtime.InteropServices.ExtendedLayoutAttribute",
+            "System.Runtime.InteropServices.ExtendedLayoutKind",
         };
 
         private static readonly Dictionary<string, ExtendedSpecialType> s_nameToTypeIdMap;

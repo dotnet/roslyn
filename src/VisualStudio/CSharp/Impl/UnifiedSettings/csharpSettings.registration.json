@@ -1,7 +1,3 @@
-// NOTE:
-// When this file is changed. Please also update the cache tag under settings entry in src/VisualStudio/CSharp/Impl/PackageRegistration.pkgdef
-// Otherwise your change might be ignored.
-// See https://devdiv.visualstudio.com/DevDiv/_wiki/wikis/DevDiv.wiki/39345/Manifest-Build-Deployment-and-Setup-Authoring-In-Depth?anchor=example-pkgdef-key for more details
 {
   "properties": {
     // CompletionOptionsStorage.TriggerOnTypingLetters
@@ -200,6 +196,38 @@
             "store": "SettingsManager",
             "path": "TextEditor.CSharp.Specific.ShowItemsFromUnimportedNamespaces"
           }
+        }
+      }
+    },
+    // CompletionOptionsStorage.ImportCompletionCommitBehavior
+    "languages.csharp.intellisense.importCompletionCommitBehavior": {
+      "title": "@Completion_behavior_for_items_from_unimported_namespaces;..\\Microsoft.VisualStudio.LanguageServices.dll",
+      "type": "string",
+      "enum": [ "alwaysAddImport", "neverAddImport", "onlyAddImportIfExplicitlyCompleted" ],
+      "enumItemLabels": [ "@Always_add_using;..\\Microsoft.VisualStudio.LanguageServices.CSharp.dll", "@Never_add_using;..\\Microsoft.VisualStudio.LanguageServices.CSharp.dll", "@Only_add_using_if_explicitly_completed;..\\Microsoft.VisualStudio.LanguageServices.CSharp.dll" ],
+      "default": "alwaysAddImport",
+      "order": 81,
+      "enableWhen": "${config:languages.csharp.intellisense.showCompletionItemsFromUnimportedNamespaces}=='true'",
+      "migration": {
+        "enumIntegerToString": {
+          "input": {
+            "store": "SettingsManager",
+            "path": "TextEditor.CSharp.Specific.ImportCompletionCommitBehavior"
+          },
+          "map": [
+            {
+              "result": "alwaysAddImport",
+              "match": 0
+            },
+            {
+              "result": "neverAddImport",
+              "match": 1
+            },
+            {
+              "result": "onlyAddImportIfExplicitlyCompleted",
+              "match": 2
+            }
+          ]
         }
       }
     },

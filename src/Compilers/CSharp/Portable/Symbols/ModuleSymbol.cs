@@ -193,6 +193,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        internal sealed override RequiresUnsafeMode GetRequiresUnsafeMode(ConsList<FieldSymbol> fieldsBeingBound) => RequiresUnsafeMode.None;
+
         /// <summary>
         /// Returns an array of assembly identities for assemblies referenced by this module.
         /// Items at the same position from ReferencedAssemblies and from ReferencedAssemblySymbols 
@@ -318,6 +320,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal abstract bool HasAssemblyRuntimeCompatibilityAttribute { get; }
 
         internal abstract bool UseUpdatedEscapeRules { get; }
+
+        internal abstract MemorySafetyRulesVersion MemorySafetyRulesVersion { get; }
+
+        internal bool UseUpdatedMemorySafetyRules => MemorySafetyRulesVersion == MemorySafetyRulesVersion.Version2;
 
         /// <summary>
         /// Default char set for contained types, or null if not specified.

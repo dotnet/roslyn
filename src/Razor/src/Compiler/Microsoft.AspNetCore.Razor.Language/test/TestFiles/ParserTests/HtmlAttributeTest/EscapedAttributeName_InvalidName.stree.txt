@@ -1,0 +1,22 @@
+﻿RazorDocument - [0..17)::17 - [<p @@"invalid" />]
+    MarkupBlock - [0..17)::17
+        MarkupElement - [0..17)::17
+            MarkupStartTag - [0..17)::17 - [<p @@"invalid" />] - Gen<Markup>
+                OpenAngle;[<];
+                Text;[p];
+                MarkupTextLiteral - [2..3)::1 - [ ] - Gen<Markup>
+                    Whitespace;[ ];
+                MarkupEphemeralTextLiteral - [3..4)::1 - [@] - Gen<Markup>
+                    Transition;[@];
+                MarkupMinimizedAttributeBlock - [4..14)::10 - [@"invalid"]
+                    MarkupTextLiteral - [4..14)::10 - [@"invalid"] - Gen<Markup>
+                        Transition;[@];
+                        DoubleQuote;["];
+                        Text;[invalid];
+                        DoubleQuote;["];
+                MarkupMiscAttributeContent - [14..15)::1
+                    MarkupTextLiteral - [14..15)::1 - [ ] - Gen<Markup>
+                        Whitespace;[ ];
+                ForwardSlash;[/];
+                CloseAngle;[>];
+    EndOfFile;[];

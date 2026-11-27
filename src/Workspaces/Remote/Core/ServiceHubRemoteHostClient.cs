@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.Remote;
 
 internal sealed partial class ServiceHubRemoteHostClient : RemoteHostClient
 {
-    private readonly SolutionServices _services;
+    private readonly IDisposable? _faultLoggerRegistration;
     private readonly SolutionAssetStorage _assetStorage;
     private readonly HubClient _hubClient;
     private readonly ServiceBrokerClient _serviceBrokerClient;
@@ -26,21 +26,21 @@ internal sealed partial class ServiceHubRemoteHostClient : RemoteHostClient
     private readonly IRemoteHostClientShutdownCancellationService? _shutdownCancellationService;
     private readonly IRemoteServiceCallbackDispatcherProvider _callbackDispatcherProvider;
 
-    public readonly RemoteProcessConfiguration Configuration;
-
     private Process? _remoteProcess;
 
     private ServiceHubRemoteHostClient(
         SolutionServices services,
-        RemoteProcessConfiguration configuration,
         ServiceBrokerClient serviceBrokerClient,
         HubClient hubClient,
         IRemoteServiceCallbackDispatcherProvider callbackDispatcherProvider)
     {
         // use the hub client logger for unexpected exceptions from devenv as well, so we have complete information in the log:
-        services.GetService<IWorkspaceTelemetryService>()?.RegisterUnexpectedExceptionLogger(hubClient.Logger);
+        if (services.GetService<IWorkspaceTelemetryService>() is not null)
+        {
+            _faultLoggerRegistration = RoslynTelemetry.Current.AddEventSink(
+                new TraceSourceFaultEventSink(hubClient.Logger));
+        }
 
-        _services = services;
         _serviceBrokerClient = serviceBrokerClient;
         _hubClient = hubClient;
         _callbackDispatcherProvider = callbackDispatcherProvider;
@@ -48,12 +48,10 @@ internal sealed partial class ServiceHubRemoteHostClient : RemoteHostClient
         _assetStorage = services.GetRequiredService<ISolutionAssetStorageProvider>().AssetStorage;
         _errorReportingService = services.GetService<IErrorReportingService>();
         _shutdownCancellationService = services.GetService<IRemoteHostClientShutdownCancellationService>();
-        Configuration = configuration;
     }
 
     public static async Task<RemoteHostClient> CreateAsync(
         SolutionServices services,
-        RemoteProcessConfiguration configuration,
         string localSettingsDirectory,
         AsynchronousOperationListenerProvider listenerProvider,
         IServiceBroker serviceBroker,
@@ -69,7 +67,7 @@ internal sealed partial class ServiceHubRemoteHostClient : RemoteHostClient
 
             var hubClient = new HubClient("ManagedLanguage.IDE.RemoteHostClient");
 
-            var client = new ServiceHubRemoteHostClient(services, configuration, serviceBrokerClient, hubClient, callbackDispatchers);
+            var client = new ServiceHubRemoteHostClient(services, serviceBrokerClient, hubClient, callbackDispatchers);
 
             var workspaceConfigurationService = services.GetRequiredService<IWorkspaceConfigurationService>();
 
@@ -102,7 +100,7 @@ internal sealed partial class ServiceHubRemoteHostClient : RemoteHostClient
             {
                 hubClient.Logger.TraceEvent(TraceEventType.Error, 1, errorMessage);
 
-                var descriptor = ServiceDescriptors.Instance.GetServiceDescriptor(typeof(IRemoteInitializationService), client.Configuration);
+                var descriptor = ServiceDescriptors.Instance.GetServiceDescriptor(typeof(IRemoteInitializationService));
 
                 services.GetRequiredService<IErrorReportingService>().ShowGlobalErrorInfo(
                     errorMessage,
@@ -129,7 +127,7 @@ internal sealed partial class ServiceHubRemoteHostClient : RemoteHostClient
     /// </summary>
     internal RemoteServiceConnection<T> CreateConnection<T>(ServiceDescriptors descriptors, IRemoteServiceCallbackDispatcherProvider callbackDispatcherProvider, object? callbackTarget) where T : class
     {
-        var descriptor = descriptors.GetServiceDescriptor(typeof(T), Configuration);
+        var descriptor = descriptors.GetServiceDescriptor(typeof(T));
         var callbackDispatcher = (descriptor.ClientInterface != null) ? callbackDispatcherProvider.GetDispatcher(typeof(T)) : null;
 
         return new BrokeredServiceConnection<T>(
@@ -145,7 +143,7 @@ internal sealed partial class ServiceHubRemoteHostClient : RemoteHostClient
 
     public override void Dispose()
     {
-        _services.GetService<IWorkspaceTelemetryService>()?.UnregisterUnexpectedExceptionLogger(_hubClient.Logger);
+        _faultLoggerRegistration?.Dispose();
         _hubClient.Dispose();
 
         _serviceBrokerClient.Dispose();

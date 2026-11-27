@@ -131,10 +131,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return MyBase.GenerateUniqueName(baseName, usedNames)
         End Function
 
-        Public Function ClassifyConversion(semanticModel As SemanticModel, expression As SyntaxNode, destination As ITypeSymbol) As CommonConversion Implements ISemanticFactsService.ClassifyConversion
-            Return semanticModel.ClassifyConversion(DirectCast(expression, ExpressionSyntax), destination).ToCommonConversion()
-        End Function
-
         Public Function TryGetDisposeMethod(semanticModel As SemanticModel, node As SyntaxNode, cancellationToken As CancellationToken) As IMethodSymbol Implements ISemanticFactsService.TryGetDisposeMethod
             Dim usingStatement = If(TryCast(node, UsingBlockSyntax)?.UsingStatement, TryCast(node, UsingStatementSyntax))
             If usingStatement Is Nothing Then

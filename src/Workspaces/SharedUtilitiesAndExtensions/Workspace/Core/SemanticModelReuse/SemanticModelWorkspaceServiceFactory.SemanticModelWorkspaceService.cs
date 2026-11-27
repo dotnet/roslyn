@@ -62,7 +62,7 @@ internal sealed partial class SemanticModelReuseWorkspaceServiceFactory : IWorks
         {
             _workspace = workspace;
 
-#if ROSLYN_4_12_OR_LOWER
+#if OLDER_ROSLYN
             _workspace.WorkspaceChanged += (sender, e) =>
 #else
             _workspace.RegisterWorkspaceChangedHandler((e) =>
@@ -84,7 +84,7 @@ internal sealed partial class SemanticModelReuseWorkspaceServiceFactory : IWorks
                     }
                 }
             }
-#if ROSLYN_4_12_OR_LOWER
+#if OLDER_ROSLYN
             ;
 #else
             );

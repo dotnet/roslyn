@@ -1,0 +1,50 @@
+﻿RazorDocument - [0..55)::55 - [@while(true) { for(int i = 0; i < 10; i++) { foo(); } }]
+    MarkupBlock - [0..55)::55
+        MarkupTextLiteral - [0..0)::0 - [] - Gen<Markup>
+            Marker;[];
+        CSharpCodeBlock - [0..55)::55
+            CSharpTransition - [0..1)::1 - Gen<None>
+                Transition;[@];
+            CSharpStatementLiteral - [1..55)::54 - [while(true) { for(int i = 0; i < 10; i++) { foo(); } }] - Gen<Stmt>
+                Keyword;[while];
+                LeftParenthesis;[(];
+                Keyword;[true];
+                RightParenthesis;[)];
+                Whitespace;[ ];
+                LeftBrace;[{];
+                Whitespace;[ ];
+                Keyword;[for];
+                LeftParenthesis;[(];
+                Keyword;[int];
+                Whitespace;[ ];
+                Identifier;[i];
+                Whitespace;[ ];
+                Assign;[=];
+                Whitespace;[ ];
+                NumericLiteral;[0];
+                Semicolon;[;];
+                Whitespace;[ ];
+                Identifier;[i];
+                Whitespace;[ ];
+                LessThan;[<];
+                Whitespace;[ ];
+                NumericLiteral;[10];
+                Semicolon;[;];
+                Whitespace;[ ];
+                Identifier;[i];
+                CSharpOperator;[++];
+                RightParenthesis;[)];
+                Whitespace;[ ];
+                LeftBrace;[{];
+                Whitespace;[ ];
+                Identifier;[foo];
+                LeftParenthesis;[(];
+                RightParenthesis;[)];
+                Semicolon;[;];
+                Whitespace;[ ];
+                RightBrace;[}];
+                Whitespace;[ ];
+                RightBrace;[}];
+        MarkupTextLiteral - [55..55)::0 - [] - Gen<Markup>
+            Marker;[];
+    EndOfFile;[];

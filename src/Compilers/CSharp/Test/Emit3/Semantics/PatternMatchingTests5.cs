@@ -1917,9 +1917,6 @@ class C
                 // (2,13): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '{ Prop: { True: false } }' is not covered.
                 // _ = new C() switch // 1
                 Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("{ Prop: { True: false } }").WithLocation(2, 13),
-                // (10,18): hidden CS9335: The pattern is redundant.
-                //     { Prop.True: false } => 0
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "false").WithLocation(10, 18),
                 // (14,13): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '{ Prop: { Prop: not null } }' is not covered.
                 // _ = new C() switch // 2
                 Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("{ Prop: { Prop: not null } }").WithLocation(14, 13)
@@ -2723,10 +2720,49 @@ class N
 """;
 
             var comp = CreateCompilation(source);
+
+            VerifyDecisionDagDump<SwitchExpressionSyntax>(comp,
+@"[0]: t1 = t0.e1; [1]
+[1]: t1 == 1 ? [2] : [8]
+[2]: t2 = t0.e2; [3]
+[3]: t2 == 1 ? [4] : [5]
+[4]: leaf <arm> `(Enum.One, Enum.One, _) => 0`
+[5]: t2 == 2 ? [12] : [6]
+[6]: t2 == 0 ? [7] : [18]
+[7]: leaf <arm> `(Enum.One, Enum.Zero, _) => 0`
+[8]: t1 == 2 ? [9] : [10]
+[9]: leaf <arm> `(Enum.Two, _, _) => 0`
+[10]: t2 = t0.e2; [11]
+[11]: t2 == 2 ? [12] : [13]
+[12]: leaf <arm> `(_, Enum.Two, _) => 0`
+[13]: t1 == 0 ? [14] : [24]
+[14]: t2 == 0 ? [15] : [16]
+[15]: leaf <arm> `(Enum.Zero, Enum.Zero, _) => 0`
+[16]: t2 == 1 ? [17] : [18]
+[17]: leaf <arm> `(Enum.Zero, Enum.One, _) => 0`
+[18]: t3 = t0.o; [19]
+[19]: t3 is string ? [20] : [23]
+[20]: t4 = (string)t3; [21]
+[21]: when <true> ? [22] : <unreachable>
+[22]: leaf <arm> `(_, < 0 or > Enum.Two, string s) => 0`
+[23]: leaf <default> `(e1, e2, o) switch
+        {
+            (Enum.One, Enum.One, _) => 0,
+            (Enum.Two, _, _) => 0,
+            (_, Enum.Two, _) => 0,
+            (Enum.Zero, Enum.Zero, _) => 0,
+            (Enum.Zero, Enum.One, _) => 0,
+            (Enum.One, Enum.Zero, _) => 0,
+            ( < 0 or > Enum.Two, _, _) => 0,
+            (_, < 0 or > Enum.Two, string s) => 0,
+        }`
+[24]: leaf <arm> `( < 0 or > Enum.Two, _, _) => 0`
+");
+
             comp.VerifyDiagnostics(
-                // (12,28): warning CS8524: The switch expression does not handle some values of its input type (it is not exhaustive) involving an unnamed enum value. For example, the pattern '(Enum.One, (Enum)-1, _)' is not covered.
+                // (12,28): warning CS8524: The switch expression does not handle some values of its input type (it is not exhaustive) involving an unnamed enum value. For example, the pattern '(Enum.One, (Enum)3, _)' is not covered.
                 //         return (e1, e2, o) switch
-                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveWithUnnamedEnumValue, "switch").WithArguments("(Enum.One, (Enum)-1, _)").WithLocation(12, 28)
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveWithUnnamedEnumValue, "switch").WithArguments("(Enum.One, (Enum)3, _)").WithLocation(12, 28)
                 );
         }
 
@@ -3038,12 +3074,12 @@ class N
             if (nullableEnable)
             {
                 comp.VerifyDiagnostics(
-                    // (12,21): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern 'null' is not covered.
+                    // (12,21): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern '(Enum.One, Enum.One, null)' is not covered.
                     //         return this switch // 1
-                    Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithArguments("null").WithLocation(12, 21),
-                    // (27,21): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern 'null' is not covered.
+                    Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithArguments("(Enum.One, Enum.One, null)").WithLocation(12, 21),
+                    // (27,21): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern '(Enum.One, Enum.One, null)' is not covered.
                     //         return this switch // 2
-                    Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithArguments("null").WithLocation(27, 21),
+                    Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithArguments("(Enum.One, Enum.One, null)").WithLocation(27, 21),
                     // (43,21): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern '(Enum.One, Enum.One, null)' is not covered.
                     //         return this switch // 3
                     Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithArguments("(Enum.One, Enum.One, null)").WithLocation(43, 21),
@@ -3360,5 +3396,2740 @@ class Outer
                 Diagnostic(ErrorCode.ERR_ConstantExpected, expression).WithLocation(6, 22)
             );
         }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/82063")]
+        public void SideeffectEvaluations_01()
+        {
+            var src = @"
+interface I1
+{
+    int F {get;}
+}
+
+class C11;
+class C12;
+class C13(int f) : C12, I1
+{
+    public int F
+    {
+        get
+        {
+            System.Console.Write(""Evaluated C13.F "");
+            return f;   
+        }
+    }
+}
+class C14(int f) : I1
+{
+    public int F
+    {
+        get
+        {
+            System.Console.Write(""Evaluated C14.F "");
+            return f;   
+        }
+    }
+}
+class C15(int f) : I1
+{
+    public int F
+    {
+        get
+        {
+            System.Console.Write(""Evaluated C15.F "");
+            return f;   
+        }
+    }
+}
+
+class Program
+{
+    static void Main()
+    {
+        object[] s = [null, new C11(), new C12(), new C13(1), new C14(1), new C15(1), new C13(2), new C14(2), new C15(2), new C13(3), new C14(3), new C15(3)]; 
+        int[] i = [1, 2, 3];
+        foreach (var s1 in s)
+        {
+            foreach (var j in i)
+            {
+                var t = Test1((s1, j));
+                System.Console.WriteLine(t);
+            }
+        }
+    }
+
+    static bool Test1((object, int) u)
+    {
+        return u is (C12 and I1 and { F: 1 }, 2) or (I1 and { F: 1 or 2 }, 1);
+    }   
+}
+";
+            var comp = CreateCompilation(src, options: TestOptions.ReleaseExe);
+
+            VerifyDecisionDagDump<IsPatternExpressionSyntax>(comp,
+@"[0]: t1 = t0.Item1; [1]
+[1]: t1 is C12 ? [2] : [9]
+[2]: t2 = (C12)t1; [3]
+[3]: t2 is I1 ? [4] : [17]
+[4]: t3 = (I1)t2; [5]
+[5]: t4 = t3.F; [6]
+[6]: t4 == 1 ? [7] : [13]
+[7]: t5 = t0.Item2; [8]
+[8]: t5 == 2 ? [16] : [15]
+[9]: t1 is I1 ? [10] : [17]
+[10]: t3 = (I1)t1; [11]
+[11]: t4 = t3.F; [12]
+[12]: t4 == 1 ? [14] : [13]
+[13]: t4 == 2 ? [14] : [17]
+[14]: t5 = t0.Item2; [15]
+[15]: t5 == 1 ? [16] : [17]
+[16]: leaf <isPatternSuccess> `(C12 and I1 and { F: 1 }, 2) or (I1 and { F: 1 or 2 }, 1)`
+[17]: leaf <isPatternFailure> `(C12 and I1 and { F: 1 }, 2) or (I1 and { F: 1 or 2 }, 1)`
+");
+
+            var verifier = CompileAndVerify(
+                comp,
+                expectedOutput: @"
+False
+False
+False
+False
+False
+False
+False
+False
+False
+Evaluated C13.F True
+Evaluated C13.F True
+Evaluated C13.F False
+Evaluated C14.F True
+Evaluated C14.F False
+Evaluated C14.F False
+Evaluated C15.F True
+Evaluated C15.F False
+Evaluated C15.F False
+Evaluated C13.F True
+Evaluated C13.F False
+Evaluated C13.F False
+Evaluated C14.F True
+Evaluated C14.F False
+Evaluated C14.F False
+Evaluated C15.F True
+Evaluated C15.F False
+Evaluated C15.F False
+Evaluated C13.F False
+Evaluated C13.F False
+Evaluated C13.F False
+Evaluated C14.F False
+Evaluated C14.F False
+Evaluated C14.F False
+Evaluated C15.F False
+Evaluated C15.F False
+Evaluated C15.F False
+").VerifyDiagnostics();
+
+            verifier.VerifyIL("Program.Test1", @"
+{
+  // Code size      102 (0x66)
+  .maxstack  2
+  .locals init (object V_0,
+                C12 V_1,
+                I1 V_2,
+                int V_3,
+                int V_4,
+                bool V_5)
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""object System.ValueTuple<object, int>.Item1""
+  IL_0006:  stloc.0
+  IL_0007:  ldloc.0
+  IL_0008:  isinst     ""C12""
+  IL_000d:  stloc.1
+  IL_000e:  ldloc.1
+  IL_000f:  brfalse.s  IL_0035
+  IL_0011:  ldloc.1
+  IL_0012:  isinst     ""I1""
+  IL_0017:  stloc.2
+  IL_0018:  ldloc.2
+  IL_0019:  brfalse.s  IL_0060
+  IL_001b:  ldloc.2
+  IL_001c:  callvirt   ""int I1.F.get""
+  IL_0021:  stloc.3
+  IL_0022:  ldloc.3
+  IL_0023:  ldc.i4.1
+  IL_0024:  bne.un.s   IL_004a
+  IL_0026:  ldarg.0
+  IL_0027:  ldfld      ""int System.ValueTuple<object, int>.Item2""
+  IL_002c:  stloc.s    V_4
+  IL_002e:  ldloc.s    V_4
+  IL_0030:  ldc.i4.2
+  IL_0031:  beq.s      IL_005b
+  IL_0033:  br.s       IL_0056
+  IL_0035:  ldloc.0
+  IL_0036:  isinst     ""I1""
+  IL_003b:  stloc.2
+  IL_003c:  ldloc.2
+  IL_003d:  brfalse.s  IL_0060
+  IL_003f:  ldloc.2
+  IL_0040:  callvirt   ""int I1.F.get""
+  IL_0045:  stloc.3
+  IL_0046:  ldloc.3
+  IL_0047:  ldc.i4.1
+  IL_0048:  beq.s      IL_004e
+  IL_004a:  ldloc.3
+  IL_004b:  ldc.i4.2
+  IL_004c:  bne.un.s   IL_0060
+  IL_004e:  ldarg.0
+  IL_004f:  ldfld      ""int System.ValueTuple<object, int>.Item2""
+  IL_0054:  stloc.s    V_4
+  IL_0056:  ldloc.s    V_4
+  IL_0058:  ldc.i4.1
+  IL_0059:  bne.un.s   IL_0060
+  IL_005b:  ldc.i4.1
+  IL_005c:  stloc.s    V_5
+  IL_005e:  br.s       IL_0063
+  IL_0060:  ldc.i4.0
+  IL_0061:  stloc.s    V_5
+  IL_0063:  ldloc.s    V_5
+  IL_0065:  ret
+}
+");
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/82063")]
+        public void SideeffectEvaluations_02()
+        {
+            var src = @"
+interface I1
+{
+    int F {get;}
+}
+
+class C11;
+class C12;
+class C13(int f) : C12, I1
+{
+    public int F
+    {
+        get
+        {
+            System.Console.Write(""Evaluated C13.F "");
+            return f;   
+        }
+    }
+}
+class C14(int f) : I1
+{
+    public int F
+    {
+        get
+        {
+            System.Console.Write(""Evaluated C14.F "");
+            return f;   
+        }
+    }
+}
+class C15(int f) : I1
+{
+    public int F
+    {
+        get
+        {
+            System.Console.Write(""Evaluated C15.F "");
+            return f;   
+        }
+    }
+}
+
+class Program
+{
+    static void Main()
+    {
+        object[] s = [null, new C11(), new C12(), new C13(1), new C14(1), new C15(1), new C13(2), new C14(2), new C15(2), new C13(3), new C14(3), new C15(3)]; 
+        int[] i = [1, 2, 3];
+        foreach (var s1 in s)
+        {
+            foreach (var j in i)
+            {
+                var t = Test1((s1, j));
+                System.Console.WriteLine(t);
+            }
+        }
+    }
+
+    static bool Test1((object, int) u)
+    {
+        return u is (I1 and { F: 1 or 2 }, 1) or (C12 and I1 and { F: 1 }, 2);
+    }   
+}
+";
+            var comp = CreateCompilation(src, options: TestOptions.ReleaseExe);
+
+            VerifyDecisionDagDump<IsPatternExpressionSyntax>(comp,
+@"[0]: t1 = t0.Item1; [1]
+[1]: t1 is I1 ? [2] : [13]
+[2]: t2 = (I1)t1; [3]
+[3]: t3 = t2.F; [4]
+[4]: t3 == 1 ? [5] : [9]
+[5]: t4 = t0.Item2; [6]
+[6]: t4 == 1 ? [12] : [7]
+[7]: t1 is C12 ? [8] : [13]
+[8]: t4 == 2 ? [12] : [13]
+[9]: t3 == 2 ? [10] : [13]
+[10]: t4 = t0.Item2; [11]
+[11]: t4 == 1 ? [12] : [13]
+[12]: leaf <isPatternSuccess> `(I1 and { F: 1 or 2 }, 1) or (C12 and I1 and { F: 1 }, 2)`
+[13]: leaf <isPatternFailure> `(I1 and { F: 1 or 2 }, 1) or (C12 and I1 and { F: 1 }, 2)`
+");
+
+            var verifier = CompileAndVerify(
+                comp,
+                expectedOutput: @"
+False
+False
+False
+False
+False
+False
+False
+False
+False
+Evaluated C13.F True
+Evaluated C13.F True
+Evaluated C13.F False
+Evaluated C14.F True
+Evaluated C14.F False
+Evaluated C14.F False
+Evaluated C15.F True
+Evaluated C15.F False
+Evaluated C15.F False
+Evaluated C13.F True
+Evaluated C13.F False
+Evaluated C13.F False
+Evaluated C14.F True
+Evaluated C14.F False
+Evaluated C14.F False
+Evaluated C15.F True
+Evaluated C15.F False
+Evaluated C15.F False
+Evaluated C13.F False
+Evaluated C13.F False
+Evaluated C13.F False
+Evaluated C14.F False
+Evaluated C14.F False
+Evaluated C14.F False
+Evaluated C15.F False
+Evaluated C15.F False
+Evaluated C15.F False
+").VerifyDiagnostics();
+
+            verifier.VerifyIL("Program.Test1", @"
+{
+  // Code size       81 (0x51)
+  .maxstack  2
+  .locals init (object V_0,
+                I1 V_1,
+                int V_2,
+                int V_3,
+                bool V_4)
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""object System.ValueTuple<object, int>.Item1""
+  IL_0006:  stloc.0
+  IL_0007:  ldloc.0
+  IL_0008:  isinst     ""I1""
+  IL_000d:  stloc.1
+  IL_000e:  ldloc.1
+  IL_000f:  brfalse.s  IL_004b
+  IL_0011:  ldloc.1
+  IL_0012:  callvirt   ""int I1.F.get""
+  IL_0017:  stloc.2
+  IL_0018:  ldloc.2
+  IL_0019:  ldc.i4.1
+  IL_001a:  beq.s      IL_0022
+  IL_001c:  ldloc.2
+  IL_001d:  ldc.i4.2
+  IL_001e:  beq.s      IL_003b
+  IL_0020:  br.s       IL_004b
+  IL_0022:  ldarg.0
+  IL_0023:  ldfld      ""int System.ValueTuple<object, int>.Item2""
+  IL_0028:  stloc.3
+  IL_0029:  ldloc.3
+  IL_002a:  ldc.i4.1
+  IL_002b:  beq.s      IL_0046
+  IL_002d:  ldloc.0
+  IL_002e:  isinst     ""C12""
+  IL_0033:  brfalse.s  IL_004b
+  IL_0035:  ldloc.3
+  IL_0036:  ldc.i4.2
+  IL_0037:  beq.s      IL_0046
+  IL_0039:  br.s       IL_004b
+  IL_003b:  ldarg.0
+  IL_003c:  ldfld      ""int System.ValueTuple<object, int>.Item2""
+  IL_0041:  stloc.3
+  IL_0042:  ldloc.3
+  IL_0043:  ldc.i4.1
+  IL_0044:  bne.un.s   IL_004b
+  IL_0046:  ldc.i4.1
+  IL_0047:  stloc.s    V_4
+  IL_0049:  br.s       IL_004e
+  IL_004b:  ldc.i4.0
+  IL_004c:  stloc.s    V_4
+  IL_004e:  ldloc.s    V_4
+  IL_0050:  ret
+}
+");
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/82063")]
+        public void SideeffectEvaluations_03()
+        {
+            var src = @"
+interface I1
+{
+    int F {get;}
+}
+
+interface I2 : I1
+{
+}
+
+class C11;
+class C12;
+class C13(int f) : C12, I1
+{
+    public int F
+    {
+        get
+        {
+            System.Console.Write(""Evaluated C13.F "");
+            return f;   
+        }
+    }
+}
+class C14(int f) : I2
+{
+    public int F
+    {
+        get
+        {
+            System.Console.Write(""Evaluated C14.F "");
+            return f;   
+        }
+    }
+}
+class C15(int f) : I1
+{
+    public int F
+    {
+        get
+        {
+            System.Console.Write(""Evaluated C15.F "");
+            return f;   
+        }
+    }
+}
+class C16(int f) : C12, I2
+{
+    public int F
+    {
+        get
+        {
+            System.Console.Write(""Evaluated C15.F "");
+            return f;   
+        }
+    }
+}
+
+class Program
+{
+    static void Main()
+    {
+        object[] s = [null, new C11(), new C12(), new C13(1), new C14(1), new C15(1), new C16(1), new C13(2), new C14(2), new C15(2), new C16(2), new C13(3), new C14(3), new C15(3), new C16(3)]; 
+        int[] i = [1, 2, 3];
+        foreach (var s1 in s)
+        {
+            foreach (var j in i)
+            {
+                var t = Test1((s1, j));
+                System.Console.WriteLine(t);
+            }
+        }
+    }
+
+    static bool Test1((object, int) u)
+    {
+        return u is (C12 and I1 and { F: 1 }, 2) or (I2 and { F: 1 or 2 }, 1);
+    }   
+}
+";
+            var comp = CreateCompilation(src, options: TestOptions.ReleaseExe);
+
+            VerifyDecisionDagDump<IsPatternExpressionSyntax>(comp,
+@"[0]: t1 = t0.Item1; [1]
+[1]: t1 is C12 ? [2] : [12]
+[2]: t2 = (C12)t1; [3]
+[3]: t2 is I1 ? [4] : [20]
+[4]: t3 = (I1)t2; [5]
+[5]: t4 = t3.F; [6]
+[6]: t4 == 1 ? [7] : [10]
+[7]: t5 = t0.Item2; [8]
+[8]: t5 == 2 ? [19] : [9]
+[9]: t1 is I2 ? [18] : [20]
+[10]: t1 is I2 ? [11] : [20]
+[11]: t4 == 2 ? [17] : [20]
+[12]: t1 is I2 ? [13] : [20]
+[13]: t6 = (I2)t1; [14]
+[14]: t7 = t6.F; [15]
+[15]: t7 == 1 ? [17] : [16]
+[16]: t7 == 2 ? [17] : [20]
+[17]: t5 = t0.Item2; [18]
+[18]: t5 == 1 ? [19] : [20]
+[19]: leaf <isPatternSuccess> `(C12 and I1 and { F: 1 }, 2) or (I2 and { F: 1 or 2 }, 1)`
+[20]: leaf <isPatternFailure> `(C12 and I1 and { F: 1 }, 2) or (I2 and { F: 1 or 2 }, 1)`
+");
+
+            var verifier = CompileAndVerify(
+                comp,
+                expectedOutput: @"
+False
+False
+False
+False
+False
+False
+False
+False
+False
+Evaluated C13.F False
+Evaluated C13.F True
+Evaluated C13.F False
+Evaluated C14.F True
+Evaluated C14.F False
+Evaluated C14.F False
+False
+False
+False
+Evaluated C15.F True
+Evaluated C15.F True
+Evaluated C15.F False
+Evaluated C13.F False
+Evaluated C13.F False
+Evaluated C13.F False
+Evaluated C14.F True
+Evaluated C14.F False
+Evaluated C14.F False
+False
+False
+False
+Evaluated C15.F True
+Evaluated C15.F False
+Evaluated C15.F False
+Evaluated C13.F False
+Evaluated C13.F False
+Evaluated C13.F False
+Evaluated C14.F False
+Evaluated C14.F False
+Evaluated C14.F False
+False
+False
+False
+Evaluated C15.F False
+Evaluated C15.F False
+Evaluated C15.F False
+").VerifyDiagnostics();
+
+            verifier.VerifyIL("Program.Test1", @"
+{
+  // Code size      127 (0x7f)
+  .maxstack  2
+  .locals init (object V_0,
+            C12 V_1,
+            I1 V_2,
+            int V_3,
+            int V_4,
+            I2 V_5,
+            int V_6,
+            bool V_7)
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""object System.ValueTuple<object, int>.Item1""
+  IL_0006:  stloc.0
+  IL_0007:  ldloc.0
+  IL_0008:  isinst     ""C12""
+  IL_000d:  stloc.1
+  IL_000e:  ldloc.1
+  IL_000f:  brfalse.s  IL_004b
+  IL_0011:  ldloc.1
+  IL_0012:  isinst     ""I1""
+  IL_0017:  stloc.2
+  IL_0018:  ldloc.2
+  IL_0019:  brfalse.s  IL_0079
+  IL_001b:  ldloc.2
+  IL_001c:  callvirt   ""int I1.F.get""
+  IL_0021:  stloc.3
+  IL_0022:  ldloc.3
+  IL_0023:  ldc.i4.1
+  IL_0024:  bne.un.s   IL_003d
+  IL_0026:  ldarg.0
+  IL_0027:  ldfld      ""int System.ValueTuple<object, int>.Item2""
+  IL_002c:  stloc.s    V_4
+  IL_002e:  ldloc.s    V_4
+  IL_0030:  ldc.i4.2
+  IL_0031:  beq.s      IL_0074
+  IL_0033:  ldloc.0
+  IL_0034:  isinst     ""I2""
+  IL_0039:  brtrue.s   IL_006f
+  IL_003b:  br.s       IL_0079
+  IL_003d:  ldloc.0
+  IL_003e:  isinst     ""I2""
+  IL_0043:  brfalse.s  IL_0079
+  IL_0045:  ldloc.3
+  IL_0046:  ldc.i4.2
+  IL_0047:  beq.s      IL_0067
+  IL_0049:  br.s       IL_0079
+  IL_004b:  ldloc.0
+  IL_004c:  isinst     ""I2""
+  IL_0051:  stloc.s    V_5
+  IL_0053:  ldloc.s    V_5
+  IL_0055:  brfalse.s  IL_0079
+  IL_0057:  ldloc.s    V_5
+  IL_0059:  callvirt   ""int I1.F.get""
+  IL_005e:  stloc.s    V_6
+  IL_0060:  ldloc.s    V_6
+  IL_0062:  ldc.i4.1
+  IL_0063:  sub
+  IL_0064:  ldc.i4.1
+  IL_0065:  bgt.un.s   IL_0079
+  IL_0067:  ldarg.0
+  IL_0068:  ldfld      ""int System.ValueTuple<object, int>.Item2""
+  IL_006d:  stloc.s    V_4
+  IL_006f:  ldloc.s    V_4
+  IL_0071:  ldc.i4.1
+  IL_0072:  bne.un.s   IL_0079
+  IL_0074:  ldc.i4.1
+  IL_0075:  stloc.s    V_7
+  IL_0077:  br.s       IL_007c
+  IL_0079:  ldc.i4.0
+  IL_007a:  stloc.s    V_7
+  IL_007c:  ldloc.s    V_7
+  IL_007e:  ret
+}
+");
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/82063")]
+        public void SideeffectEvaluations_04()
+        {
+            var src = @"
+interface I1
+{
+    int F {get;}
+}
+
+interface I2 : I1
+{
+}
+
+class C11;
+class C12;
+class C13(int f) : C12, I1
+{
+    public int F
+    {
+        get
+        {
+            System.Console.Write(""Evaluated C13.F "");
+            return f;   
+        }
+    }
+}
+class C14(int f) : I2
+{
+    public int F
+    {
+        get
+        {
+            System.Console.Write(""Evaluated C14.F "");
+            return f;   
+        }
+    }
+}
+class C15(int f) : I1
+{
+    public int F
+    {
+        get
+        {
+            System.Console.Write(""Evaluated C15.F "");
+            return f;   
+        }
+    }
+}
+class C16(int f) : C12, I2
+{
+    public int F
+    {
+        get
+        {
+            System.Console.Write(""Evaluated C15.F "");
+            return f;   
+        }
+    }
+}
+
+class Program
+{
+    static void Main()
+    {
+        object[] s = [null, new C11(), new C12(), new C13(1), new C14(1), new C15(1), new C16(1), new C13(2), new C14(2), new C15(2), new C16(2), new C13(3), new C14(3), new C15(3), new C16(3)]; 
+        int[] i = [1, 2, 3];
+        foreach (var s1 in s)
+        {
+            foreach (var j in i)
+            {
+                var t = Test1((s1, j));
+                System.Console.WriteLine(t);
+            }
+        }
+    }
+
+    static bool Test1((object, int) u)
+    {
+        return u is (C12 and I2 and { F: 1 }, 2) or (I1 and { F: 1 or 2 }, 1);
+    }   
+}
+";
+            var comp = CreateCompilation(src, options: TestOptions.ReleaseExe);
+
+            VerifyDecisionDagDump<IsPatternExpressionSyntax>(comp,
+@"[0]: t1 = t0.Item1; [1]
+[1]: t1 is C12 ? [2] : [10]
+[2]: t2 = (C12)t1; [3]
+[3]: t2 is I2 ? [4] : [10]
+[4]: t3 = (I2)t2; [5]
+[5]: t4 = t3.F; [6]
+[6]: t4 == 1 ? [7] : [9]
+[7]: t5 = t0.Item2; [8]
+[8]: t5 == 2 ? [17] : [16]
+[9]: t4 == 2 ? [15] : [18]
+[10]: t1 is I1 ? [11] : [18]
+[11]: t6 = (I1)t1; [12]
+[12]: t7 = t6.F; [13]
+[13]: t7 == 1 ? [15] : [14]
+[14]: t7 == 2 ? [15] : [18]
+[15]: t5 = t0.Item2; [16]
+[16]: t5 == 1 ? [17] : [18]
+[17]: leaf <isPatternSuccess> `(C12 and I2 and { F: 1 }, 2) or (I1 and { F: 1 or 2 }, 1)`
+[18]: leaf <isPatternFailure> `(C12 and I2 and { F: 1 }, 2) or (I1 and { F: 1 or 2 }, 1)`
+");
+
+            var verifier = CompileAndVerify(
+                comp,
+                expectedOutput: @"
+False
+False
+False
+False
+False
+False
+False
+False
+False
+Evaluated C13.F True
+Evaluated C13.F False
+Evaluated C13.F False
+Evaluated C14.F True
+Evaluated C14.F False
+Evaluated C14.F False
+Evaluated C15.F True
+Evaluated C15.F False
+Evaluated C15.F False
+Evaluated C15.F True
+Evaluated C15.F True
+Evaluated C15.F False
+Evaluated C13.F True
+Evaluated C13.F False
+Evaluated C13.F False
+Evaluated C14.F True
+Evaluated C14.F False
+Evaluated C14.F False
+Evaluated C15.F True
+Evaluated C15.F False
+Evaluated C15.F False
+Evaluated C15.F True
+Evaluated C15.F False
+Evaluated C15.F False
+Evaluated C13.F False
+Evaluated C13.F False
+Evaluated C13.F False
+Evaluated C14.F False
+Evaluated C14.F False
+Evaluated C14.F False
+Evaluated C15.F False
+Evaluated C15.F False
+Evaluated C15.F False
+Evaluated C15.F False
+Evaluated C15.F False
+Evaluated C15.F False
+").VerifyDiagnostics();
+
+            verifier.VerifyIL("Program.Test1", @"
+{
+  // Code size      111 (0x6f)
+  .maxstack  2
+  .locals init (object V_0,
+            C12 V_1,
+            I2 V_2,
+            int V_3,
+            int V_4,
+            I1 V_5,
+            int V_6,
+            bool V_7)
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""object System.ValueTuple<object, int>.Item1""
+  IL_0006:  stloc.0
+  IL_0007:  ldloc.0
+  IL_0008:  isinst     ""C12""
+  IL_000d:  stloc.1
+  IL_000e:  ldloc.1
+  IL_000f:  brfalse.s  IL_003b
+  IL_0011:  ldloc.1
+  IL_0012:  isinst     ""I2""
+  IL_0017:  stloc.2
+  IL_0018:  ldloc.2
+  IL_0019:  brfalse.s  IL_003b
+  IL_001b:  ldloc.2
+  IL_001c:  callvirt   ""int I1.F.get""
+  IL_0021:  stloc.3
+  IL_0022:  ldloc.3
+  IL_0023:  ldc.i4.1
+  IL_0024:  beq.s      IL_002c
+  IL_0026:  ldloc.3
+  IL_0027:  ldc.i4.2
+  IL_0028:  beq.s      IL_0057
+  IL_002a:  br.s       IL_0069
+  IL_002c:  ldarg.0
+  IL_002d:  ldfld      ""int System.ValueTuple<object, int>.Item2""
+  IL_0032:  stloc.s    V_4
+  IL_0034:  ldloc.s    V_4
+  IL_0036:  ldc.i4.2
+  IL_0037:  beq.s      IL_0064
+  IL_0039:  br.s       IL_005f
+  IL_003b:  ldloc.0
+  IL_003c:  isinst     ""I1""
+  IL_0041:  stloc.s    V_5
+  IL_0043:  ldloc.s    V_5
+  IL_0045:  brfalse.s  IL_0069
+  IL_0047:  ldloc.s    V_5
+  IL_0049:  callvirt   ""int I1.F.get""
+  IL_004e:  stloc.s    V_6
+  IL_0050:  ldloc.s    V_6
+  IL_0052:  ldc.i4.1
+  IL_0053:  sub
+  IL_0054:  ldc.i4.1
+  IL_0055:  bgt.un.s   IL_0069
+  IL_0057:  ldarg.0
+  IL_0058:  ldfld      ""int System.ValueTuple<object, int>.Item2""
+  IL_005d:  stloc.s    V_4
+  IL_005f:  ldloc.s    V_4
+  IL_0061:  ldc.i4.1
+  IL_0062:  bne.un.s   IL_0069
+  IL_0064:  ldc.i4.1
+  IL_0065:  stloc.s    V_7
+  IL_0067:  br.s       IL_006c
+  IL_0069:  ldc.i4.0
+  IL_006a:  stloc.s    V_7
+  IL_006c:  ldloc.s    V_7
+  IL_006e:  ret
+}
+");
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/82063")]
+        public void SideeffectEvaluations_05()
+        {
+            var src = @"
+interface I1
+{
+    int F {get;}
+}
+
+interface I2 : I1
+{
+}
+
+class C11;
+class C12;
+class C13(int f) : C12, I1
+{
+    public int F
+    {
+        get
+        {
+            System.Console.Write(""Evaluated C13.F "");
+            return f;   
+        }
+    }
+}
+class C14(int f) : I2
+{
+    public int F
+    {
+        get
+        {
+            System.Console.Write(""Evaluated C14.F "");
+            return f;   
+        }
+    }
+}
+class C15(int f) : I1
+{
+    public int F
+    {
+        get
+        {
+            System.Console.Write(""Evaluated C15.F "");
+            return f;   
+        }
+    }
+}
+class C16(int f) : C12, I2
+{
+    public int F
+    {
+        get
+        {
+            System.Console.Write(""Evaluated C15.F "");
+            return f;   
+        }
+    }
+}
+
+class Program
+{
+    static void Main()
+    {
+        object[] s = [null, new C11(), new C12(), new C13(1), new C14(1), new C15(1), new C16(1), new C13(2), new C14(2), new C15(2), new C16(2), new C13(3), new C14(3), new C15(3), new C16(3)]; 
+        int[] i = [1, 2, 3];
+        foreach (var s1 in s)
+        {
+            foreach (var j in i)
+            {
+                var t = Test1((s1, j));
+                System.Console.WriteLine(t);
+            }
+        }
+    }
+
+    static int Test1((object, int) u)
+    {
+        return u switch { (C12 and I1 and { F: 1 and var x1 }, 2) => x1 ,(I2 and { F: (1 or 2) and var x2 }, 1) => x2, _ => -100 };
+    }   
+}
+";
+            var comp = CreateCompilation(src, options: TestOptions.ReleaseExe);
+
+            VerifyDecisionDagDump<SwitchExpressionSyntax>(comp,
+@"[0]: t1 = t0.Item1; [1]
+[1]: t1 is C12 ? [2] : [17]
+[2]: t2 = (C12)t1; [3]
+[3]: t2 is I1 ? [4] : [26]
+[4]: t3 = (I1)t2; [5]
+[5]: t4 = t3.F; [6]
+[6]: t4 == 1 ? [7] : [12]
+[7]: t5 = t0.Item2; [8]
+[8]: t5 == 2 ? [9] : [11]
+[9]: when <true> ? [10] : <unreachable>
+[10]: leaf <arm> `(C12 and I1 and { F: 1 and var x1 }, 2) => x1`
+[11]: t1 is I2 ? [15] : [26]
+[12]: t1 is I2 ? [13] : [26]
+[13]: t4 == 2 ? [14] : [26]
+[14]: t5 = t0.Item2; [15]
+[15]: t5 == 1 ? [16] : [26]
+[16]: t8 <-- t4; [24]
+[17]: t1 is I2 ? [18] : [26]
+[18]: t7 = (I2)t1; [19]
+[19]: t8 = t7.F; [20]
+[20]: t8 == 1 ? [22] : [21]
+[21]: t8 == 2 ? [22] : [26]
+[22]: t5 = t0.Item2; [23]
+[23]: t5 == 1 ? [24] : [26]
+[24]: when <true> ? [25] : <unreachable>
+[25]: leaf <arm> `(I2 and { F: (1 or 2) and var x2 }, 1) => x2`
+[26]: leaf <arm> `_ => -100`
+");
+
+            var verifier = CompileAndVerify(
+                comp,
+                expectedOutput: @"
+-100
+-100
+-100
+-100
+-100
+-100
+-100
+-100
+-100
+Evaluated C13.F -100
+Evaluated C13.F 1
+Evaluated C13.F -100
+Evaluated C14.F 1
+Evaluated C14.F -100
+Evaluated C14.F -100
+-100
+-100
+-100
+Evaluated C15.F 1
+Evaluated C15.F 1
+Evaluated C15.F -100
+Evaluated C13.F -100
+Evaluated C13.F -100
+Evaluated C13.F -100
+Evaluated C14.F 2
+Evaluated C14.F -100
+Evaluated C14.F -100
+-100
+-100
+-100
+Evaluated C15.F 2
+Evaluated C15.F -100
+Evaluated C15.F -100
+Evaluated C13.F -100
+Evaluated C13.F -100
+Evaluated C13.F -100
+Evaluated C14.F -100
+Evaluated C14.F -100
+Evaluated C14.F -100
+-100
+-100
+-100
+Evaluated C15.F -100
+Evaluated C15.F -100
+Evaluated C15.F -100
+").VerifyDiagnostics();
+
+            verifier.VerifyIL("Program.Test1", @"
+{
+  // Code size      150 (0x96)
+  .maxstack  2
+  .locals init (int V_0, //x1
+            int V_1, //x2
+            int V_2,
+            object V_3,
+            C12 V_4,
+            I1 V_5,
+            int V_6,
+            I2 V_7)
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""object System.ValueTuple<object, int>.Item1""
+  IL_0006:  stloc.3
+  IL_0007:  ldloc.3
+  IL_0008:  isinst     ""C12""
+  IL_000d:  stloc.s    V_4
+  IL_000f:  ldloc.s    V_4
+  IL_0011:  brfalse.s  IL_0060
+  IL_0013:  ldloc.s    V_4
+  IL_0015:  isinst     ""I1""
+  IL_001a:  stloc.s    V_5
+  IL_001c:  ldloc.s    V_5
+  IL_001e:  brfalse.s  IL_0091
+  IL_0020:  ldloc.s    V_5
+  IL_0022:  callvirt   ""int I1.F.get""
+  IL_0027:  stloc.0
+  IL_0028:  ldloc.0
+  IL_0029:  ldc.i4.1
+  IL_002a:  bne.un.s   IL_0043
+  IL_002c:  ldarg.0
+  IL_002d:  ldfld      ""int System.ValueTuple<object, int>.Item2""
+  IL_0032:  stloc.s    V_6
+  IL_0034:  ldloc.s    V_6
+  IL_0036:  ldc.i4.2
+  IL_0037:  beq.s      IL_0089
+  IL_0039:  ldloc.3
+  IL_003a:  isinst     ""I2""
+  IL_003f:  brtrue.s   IL_0057
+  IL_0041:  br.s       IL_0091
+  IL_0043:  ldloc.3
+  IL_0044:  isinst     ""I2""
+  IL_0049:  brfalse.s  IL_0091
+  IL_004b:  ldloc.0
+  IL_004c:  ldc.i4.2
+  IL_004d:  bne.un.s   IL_0091
+  IL_004f:  ldarg.0
+  IL_0050:  ldfld      ""int System.ValueTuple<object, int>.Item2""
+  IL_0055:  stloc.s    V_6
+  IL_0057:  ldloc.s    V_6
+  IL_0059:  ldc.i4.1
+  IL_005a:  bne.un.s   IL_0091
+  IL_005c:  ldloc.0
+  IL_005d:  stloc.1
+  IL_005e:  br.s       IL_008d
+  IL_0060:  ldloc.3
+  IL_0061:  isinst     ""I2""
+  IL_0066:  stloc.s    V_7
+  IL_0068:  ldloc.s    V_7
+  IL_006a:  brfalse.s  IL_0091
+  IL_006c:  ldloc.s    V_7
+  IL_006e:  callvirt   ""int I1.F.get""
+  IL_0073:  stloc.1
+  IL_0074:  ldloc.1
+  IL_0075:  ldc.i4.1
+  IL_0076:  sub
+  IL_0077:  ldc.i4.1
+  IL_0078:  bgt.un.s   IL_0091
+  IL_007a:  ldarg.0
+  IL_007b:  ldfld      ""int System.ValueTuple<object, int>.Item2""
+  IL_0080:  stloc.s    V_6
+  IL_0082:  ldloc.s    V_6
+  IL_0084:  ldc.i4.1
+  IL_0085:  beq.s      IL_008d
+  IL_0087:  br.s       IL_0091
+  IL_0089:  ldloc.0
+  IL_008a:  stloc.2
+  IL_008b:  br.s       IL_0094
+  IL_008d:  ldloc.1
+  IL_008e:  stloc.2
+  IL_008f:  br.s       IL_0094
+  IL_0091:  ldc.i4.s   -100
+  IL_0093:  stloc.2
+  IL_0094:  ldloc.2
+  IL_0095:  ret
+}
+");
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/82063")]
+        public void SideeffectEvaluations_06()
+        {
+            var src = @"
+#nullable enable
+
+interface I1
+{
+    C2? F { get; }
+}
+
+class C2
+{
+    public string? S = null;
+}
+
+interface I2 : I1
+{
+}
+
+class C11;
+class C12;
+class C13 : C12, I1
+{
+    public C2? F => null;
+}
+class C14 : I2
+{
+    public C2? F => null;
+}
+class C15 : I1
+{
+    public C2? F => null;
+}
+class C16 : C12, I2
+{
+    public C2? F => null;
+}
+
+class Program
+{
+    static int Test1((object, int) u)
+    {
+        return u switch 
+        {
+            (C12 and I1 and { F: { S: ""1"" and var x1 } }, 2) => x1.Length ,
+            (I2 and { F: { S: (""1"" or ""2"") and var x2 } }, 1) => x2.Length,
+            _ => -100
+        };
+    }   
+
+    static int Test2((object, int) u)
+    {
+        return u switch 
+        {
+            (C12 and I1 and { F: { S: ""1"" } x3 }, 2) => x3.S.Length ,
+            (I2 and { F: { S: (""1"" or ""2"") } x4 }, 1) => x4.S.Length,
+            _ => -100
+        };
+    }   
+}
+";
+            var comp = CreateCompilation(src, options: TestOptions.ReleaseDll);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/82063")]
+        public void SideeffectEvaluations_07()
+        {
+            var src = @"
+class C0;
+
+class C01(bool p) : C0
+{
+    public bool P => p;
+}
+
+
+class C1(bool p) : C01(p);
+
+class C02(bool p) : C0
+{
+    public bool P => p;
+}
+
+class C2(bool p) : C02(p);
+
+class C3(bool p) : C01(p);
+
+class C4(bool p) : C01(p);
+
+class C03(bool p) : C0
+{
+    public bool P => p;
+}
+
+class C5(bool p) : C03(p);
+
+class C6(bool p) : C01(p);
+
+static class Program
+{
+    static void Main()
+    {
+        C0[] s = [null, new C1(true), new C2(true), new C3(true), new C4(true), new C5(true), new C6(true), new C1(false), new C2(false), new C3(false), new C4(false), new C5(false), new C6(false)]; 
+        foreach (var s1 in s)
+        {
+            var t = s1.Test1();
+            System.Console.WriteLine(t);
+        }
+    }
+
+    internal static bool Test1(this C0 c)
+    {
+        return c
+            is C1 { P: true }
+            or C2 { P: true }
+            or C3 { P: true }
+            or C4 { P: true }
+            or C5 { P: true }
+            or C6 { P: true };
+    }
+}
+";
+            var comp = CreateCompilation(src, options: TestOptions.ReleaseExe);
+
+            VerifyDecisionDagDump<IsPatternExpressionSyntax>(comp,
+@"[0]: t0 is C1 ? [1] : [4]
+[1]: t1 = (C1)t0; [2]
+[2]: t2 = t1.P; [3]
+[3]: t2 == True ? [24] : [25]
+[4]: t0 is C2 ? [5] : [8]
+[5]: t3 = (C2)t0; [6]
+[6]: t4 = t3.P; [7]
+[7]: t4 == True ? [24] : [25]
+[8]: t0 is C3 ? [9] : [12]
+[9]: t5 = (C3)t0; [10]
+[10]: t6 = t5.P; [11]
+[11]: t6 == True ? [24] : [25]
+[12]: t0 is C4 ? [13] : [16]
+[13]: t7 = (C4)t0; [14]
+[14]: t8 = t7.P; [15]
+[15]: t8 == True ? [24] : [25]
+[16]: t0 is C5 ? [17] : [20]
+[17]: t9 = (C5)t0; [18]
+[18]: t10 = t9.P; [19]
+[19]: t10 == True ? [24] : [25]
+[20]: t0 is C6 ? [21] : [25]
+[21]: t11 = (C6)t0; [22]
+[22]: t12 = t11.P; [23]
+[23]: t12 == True ? [24] : [25]
+[24]: leaf <isPatternSuccess> `C1 { P: true }
+            or C2 { P: true }
+            or C3 { P: true }
+            or C4 { P: true }
+            or C5 { P: true }
+            or C6 { P: true }`
+[25]: leaf <isPatternFailure> `C1 { P: true }
+            or C2 { P: true }
+            or C3 { P: true }
+            or C4 { P: true }
+            or C5 { P: true }
+            or C6 { P: true }`
+");
+
+            var verifier = CompileAndVerify(
+                comp,
+                expectedOutput: @"
+False
+True
+True
+True
+True
+True
+True
+False
+False
+False
+False
+False
+False
+").VerifyDiagnostics();
+
+            verifier.VerifyIL("Program.Test1", @"
+{
+  // Code size      135 (0x87)
+  .maxstack  1
+  .locals init (C1 V_0,
+            C2 V_1,
+            C3 V_2,
+            C4 V_3,
+            C5 V_4,
+            C6 V_5,
+            bool V_6)
+  IL_0000:  ldarg.0
+  IL_0001:  isinst     ""C1""
+  IL_0006:  stloc.0
+  IL_0007:  ldloc.0
+  IL_0008:  brfalse.s  IL_0014
+  IL_000a:  ldloc.0
+  IL_000b:  callvirt   ""bool C01.P.get""
+  IL_0010:  brtrue.s   IL_007c
+  IL_0012:  br.s       IL_0081
+  IL_0014:  ldarg.0
+  IL_0015:  isinst     ""C2""
+  IL_001a:  stloc.1
+  IL_001b:  ldloc.1
+  IL_001c:  brfalse.s  IL_0028
+  IL_001e:  ldloc.1
+  IL_001f:  callvirt   ""bool C02.P.get""
+  IL_0024:  brtrue.s   IL_007c
+  IL_0026:  br.s       IL_0081
+  IL_0028:  ldarg.0
+  IL_0029:  isinst     ""C3""
+  IL_002e:  stloc.2
+  IL_002f:  ldloc.2
+  IL_0030:  brfalse.s  IL_003c
+  IL_0032:  ldloc.2
+  IL_0033:  callvirt   ""bool C01.P.get""
+  IL_0038:  brtrue.s   IL_007c
+  IL_003a:  br.s       IL_0081
+  IL_003c:  ldarg.0
+  IL_003d:  isinst     ""C4""
+  IL_0042:  stloc.3
+  IL_0043:  ldloc.3
+  IL_0044:  brfalse.s  IL_0050
+  IL_0046:  ldloc.3
+  IL_0047:  callvirt   ""bool C01.P.get""
+  IL_004c:  brtrue.s   IL_007c
+  IL_004e:  br.s       IL_0081
+  IL_0050:  ldarg.0
+  IL_0051:  isinst     ""C5""
+  IL_0056:  stloc.s    V_4
+  IL_0058:  ldloc.s    V_4
+  IL_005a:  brfalse.s  IL_0067
+  IL_005c:  ldloc.s    V_4
+  IL_005e:  callvirt   ""bool C03.P.get""
+  IL_0063:  brtrue.s   IL_007c
+  IL_0065:  br.s       IL_0081
+  IL_0067:  ldarg.0
+  IL_0068:  isinst     ""C6""
+  IL_006d:  stloc.s    V_5
+  IL_006f:  ldloc.s    V_5
+  IL_0071:  brfalse.s  IL_0081
+  IL_0073:  ldloc.s    V_5
+  IL_0075:  callvirt   ""bool C01.P.get""
+  IL_007a:  brfalse.s  IL_0081
+  IL_007c:  ldc.i4.1
+  IL_007d:  stloc.s    V_6
+  IL_007f:  br.s       IL_0084
+  IL_0081:  ldc.i4.0
+  IL_0082:  stloc.s    V_6
+  IL_0084:  ldloc.s    V_6
+  IL_0086:  ret
+}
+");
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/82063")]
+        public void SideeffectEvaluations_08()
+        {
+            var src = @"
+interface I1
+{
+    int F {get;}
+}
+
+class C12;
+class C13(int f) : C12, I1
+{
+    public int F
+    {
+        get
+        {
+            System.Console.Write(""Evaluated C13.F "");
+            return f;   
+        }
+    }
+}
+class C14(int f) : I1
+{
+    public int F
+    {
+        get
+        {
+            System.Console.Write(""Evaluated C14.F "");
+            return f;   
+        }
+    }
+}
+
+class Program
+{
+    static void Main()
+    {
+        I1[] s = [null, new C13(1), new C14(1), new C13(2), new C14(2), new C13(3), new C14(3)]; 
+        int[] i = [1, 2, 3];
+        foreach (var s1 in s)
+        {
+            foreach (var j in i)
+            {
+                var t = Test1((s1, j));
+                System.Console.WriteLine(t);
+            }
+        }
+    }
+
+    static bool Test1((I1, int) u)
+    {
+        return u is (C12 and I1 and { F: 1 }, 2) or ({ F: 1 or 2 }, 1);
+    }   
+}
+";
+            var comp = CreateCompilation(src, options: TestOptions.ReleaseExe);
+
+            VerifyDecisionDagDump<IsPatternExpressionSyntax>(comp,
+@"[0]: t1 = t0.Item1; [1]
+[1]: t1 is C12 ? [2] : [8]
+[2]: t2 = (C12)t1; [3]
+[3]: t2 is I1 ? [4] : [9]
+[4]: t3 = t1.F; [5]
+[5]: t3 == 1 ? [6] : [11]
+[6]: t4 = t0.Item2; [7]
+[7]: t4 == 2 ? [14] : [13]
+[8]: t1 != null ? [9] : [15]
+[9]: t3 = t1.F; [10]
+[10]: t3 == 1 ? [12] : [11]
+[11]: t3 == 2 ? [12] : [15]
+[12]: t4 = t0.Item2; [13]
+[13]: t4 == 1 ? [14] : [15]
+[14]: leaf <isPatternSuccess> `(C12 and I1 and { F: 1 }, 2) or ({ F: 1 or 2 }, 1)`
+[15]: leaf <isPatternFailure> `(C12 and I1 and { F: 1 }, 2) or ({ F: 1 or 2 }, 1)`
+");
+
+            var verifier = CompileAndVerify(
+                comp,
+                expectedOutput: @"
+False
+False
+False
+Evaluated C13.F True
+Evaluated C13.F True
+Evaluated C13.F False
+Evaluated C14.F True
+Evaluated C14.F False
+Evaluated C14.F False
+Evaluated C13.F True
+Evaluated C13.F False
+Evaluated C13.F False
+Evaluated C14.F True
+Evaluated C14.F False
+Evaluated C14.F False
+Evaluated C13.F False
+Evaluated C13.F False
+Evaluated C13.F False
+Evaluated C14.F False
+Evaluated C14.F False
+Evaluated C14.F False
+").VerifyDiagnostics(
+                );
+
+            verifier.VerifyIL("Program.Test1", @"
+{
+  // Code size       89 (0x59)
+  .maxstack  2
+  .locals init (I1 V_0,
+            C12 V_1,
+            int V_2,
+            int V_3,
+            bool V_4)
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""I1 System.ValueTuple<I1, int>.Item1""
+  IL_0006:  stloc.0
+  IL_0007:  ldloc.0
+  IL_0008:  isinst     ""C12""
+  IL_000d:  stloc.1
+  IL_000e:  ldloc.1
+  IL_000f:  brfalse.s  IL_0031
+  IL_0011:  ldloc.1
+  IL_0012:  isinst     ""I1""
+  IL_0017:  brfalse.s  IL_0034
+  IL_0019:  ldloc.0
+  IL_001a:  callvirt   ""int I1.F.get""
+  IL_001f:  stloc.2
+  IL_0020:  ldloc.2
+  IL_0021:  ldc.i4.1
+  IL_0022:  bne.un.s   IL_003f
+  IL_0024:  ldarg.0
+  IL_0025:  ldfld      ""int System.ValueTuple<I1, int>.Item2""
+  IL_002a:  stloc.3
+  IL_002b:  ldloc.3
+  IL_002c:  ldc.i4.2
+  IL_002d:  beq.s      IL_004e
+  IL_002f:  br.s       IL_004a
+  IL_0031:  ldloc.0
+  IL_0032:  brfalse.s  IL_0053
+  IL_0034:  ldloc.0
+  IL_0035:  callvirt   ""int I1.F.get""
+  IL_003a:  stloc.2
+  IL_003b:  ldloc.2
+  IL_003c:  ldc.i4.1
+  IL_003d:  beq.s      IL_0043
+  IL_003f:  ldloc.2
+  IL_0040:  ldc.i4.2
+  IL_0041:  bne.un.s   IL_0053
+  IL_0043:  ldarg.0
+  IL_0044:  ldfld      ""int System.ValueTuple<I1, int>.Item2""
+  IL_0049:  stloc.3
+  IL_004a:  ldloc.3
+  IL_004b:  ldc.i4.1
+  IL_004c:  bne.un.s   IL_0053
+  IL_004e:  ldc.i4.1
+  IL_004f:  stloc.s    V_4
+  IL_0051:  br.s       IL_0056
+  IL_0053:  ldc.i4.0
+  IL_0054:  stloc.s    V_4
+  IL_0056:  ldloc.s    V_4
+  IL_0058:  ret
+}
+");
+        }
+
+        [Fact]
+        public void SideeffectEvaluations_09()
+        {
+            var src = @"
+using System;
+
+class C11;
+
+class C12;
+
+struct S1
+{
+
+    static void Main()
+    {
+        object[] s = [null, (new C11()), (new C12()), (1), (""1""), (2), (""2""), (3), (""3"")]; 
+        int[] i = [1, 2, 3];
+        foreach (var s1 in s)
+        {
+            foreach (var j in i)
+            {
+                var t = Test1((s1, j));
+                System.Console.WriteLine(t);
+            }
+        }
+    }
+
+    static bool Test1((object, int) u)
+    {
+        return u is (int and 1, 2) or (System.IComparable and { AsInt: 3 }, 1);
+    }   
+}
+
+static class IComparableExtensions
+{
+    extension(IComparable c)
+    {
+        public int? AsInt => c as int?;
+    }
+}
+";
+            var comp = CreateCompilation(src, options: TestOptions.ReleaseExe);
+
+            VerifyDecisionDagDump<IsPatternExpressionSyntax>(comp,
+@"[0]: t1 = t0.Item1; [1]
+[1]: t1 is int ? [2] : [11]
+[2]: t2 = (int)t1; [3]
+[3]: t2 == 1 ? [4] : [12]
+[4]: t3 = t0.Item2; [5]
+[5]: t3 == 2 ? [19] : [6]
+[6]: t4 = (System.IComparable)t1; [7]
+[7]: t5 = t4.AsInt; [8]
+[8]: t5 != null ? [9] : [20]
+[9]: t6 = (int)t5; [10]
+[10]: t6 == 3 ? [18] : [20]
+[11]: t1 is System.IComparable ? [12] : [20]
+[12]: t4 = (System.IComparable)t1; [13]
+[13]: t5 = t4.AsInt; [14]
+[14]: t5 != null ? [15] : [20]
+[15]: t6 = (int)t5; [16]
+[16]: t6 == 3 ? [17] : [20]
+[17]: t3 = t0.Item2; [18]
+[18]: t3 == 1 ? [19] : [20]
+[19]: leaf <isPatternSuccess> `(int and 1, 2) or (System.IComparable and { AsInt: 3 }, 1)`
+[20]: leaf <isPatternFailure> `(int and 1, 2) or (System.IComparable and { AsInt: 3 }, 1)`
+",
+forLowering: true);
+
+            var verifier = CompileAndVerify(
+                comp,
+                expectedOutput: @"
+False
+False
+False
+False
+False
+False
+False
+False
+False
+False
+True
+False
+False
+False
+False
+False
+False
+False
+False
+False
+False
+True
+False
+False
+False
+False
+False
+").VerifyDiagnostics();
+
+            verifier.VerifyIL("S1.Test1", @"
+{
+  // Code size      137 (0x89)
+  .maxstack  2
+  .locals init (object V_0,
+                int V_1,
+                System.IComparable V_2,
+                int? V_3,
+                bool V_4)
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""object System.ValueTuple<object, int>.Item1""
+  IL_0006:  stloc.0
+  IL_0007:  ldloc.0
+  IL_0008:  isinst     ""int""
+  IL_000d:  brfalse.s  IL_0046
+  IL_000f:  ldloc.0
+  IL_0010:  unbox.any  ""int""
+  IL_0015:  ldc.i4.1
+  IL_0016:  bne.un.s   IL_0052
+  IL_0018:  ldarg.0
+  IL_0019:  ldfld      ""int System.ValueTuple<object, int>.Item2""
+  IL_001e:  stloc.1
+  IL_001f:  ldloc.1
+  IL_0020:  ldc.i4.2
+  IL_0021:  beq.s      IL_007e
+  IL_0023:  ldloc.0
+  IL_0024:  castclass  ""System.IComparable""
+  IL_0029:  stloc.2
+  IL_002a:  ldloc.2
+  IL_002b:  call       ""int? IComparableExtensions.get_AsInt(System.IComparable)""
+  IL_0030:  stloc.3
+  IL_0031:  ldloca.s   V_3
+  IL_0033:  call       ""bool int?.HasValue.get""
+  IL_0038:  brfalse.s  IL_0083
+  IL_003a:  ldloca.s   V_3
+  IL_003c:  call       ""int int?.GetValueOrDefault()""
+  IL_0041:  ldc.i4.3
+  IL_0042:  beq.s      IL_007a
+  IL_0044:  br.s       IL_0083
+  IL_0046:  ldloc.0
+  IL_0047:  isinst     ""System.IComparable""
+  IL_004c:  stloc.2
+  IL_004d:  ldloc.2
+  IL_004e:  brtrue.s   IL_0059
+  IL_0050:  br.s       IL_0083
+  IL_0052:  ldloc.0
+  IL_0053:  castclass  ""System.IComparable""
+  IL_0058:  stloc.2
+  IL_0059:  ldloc.2
+  IL_005a:  call       ""int? IComparableExtensions.get_AsInt(System.IComparable)""
+  IL_005f:  stloc.3
+  IL_0060:  ldloca.s   V_3
+  IL_0062:  call       ""bool int?.HasValue.get""
+  IL_0067:  brfalse.s  IL_0083
+  IL_0069:  ldloca.s   V_3
+  IL_006b:  call       ""int int?.GetValueOrDefault()""
+  IL_0070:  ldc.i4.3
+  IL_0071:  bne.un.s   IL_0083
+  IL_0073:  ldarg.0
+  IL_0074:  ldfld      ""int System.ValueTuple<object, int>.Item2""
+  IL_0079:  stloc.1
+  IL_007a:  ldloc.1
+  IL_007b:  ldc.i4.1
+  IL_007c:  bne.un.s   IL_0083
+  IL_007e:  ldc.i4.1
+  IL_007f:  stloc.s    V_4
+  IL_0081:  br.s       IL_0086
+  IL_0083:  ldc.i4.0
+  IL_0084:  stloc.s    V_4
+  IL_0086:  ldloc.s    V_4
+  IL_0088:  ret
+}
+");
+        }
+
+        [Fact]
+        public void ValueSet_WithTypePatternAndOrValues()
+        {
+            // Exercises ValueSet in combination with type tests on an object input.
+            // The `int and (1 or 2 or 3)` pattern creates a ValueSet on the typed int temp.
+            var source = """
+class C
+{
+    public static void Main()
+    {
+        System.Console.Write(Test(1));
+        System.Console.Write(Test(2));
+        System.Console.Write(Test(3));
+        System.Console.Write(Test(4));
+        System.Console.Write(Test("x"));
+        System.Console.Write(Test(null));
+    }
+    public static string Test(object o)
+    {
+        return o switch
+        {
+            int and (1 or 2 or 3) => "V",
+            not null => "O",
+            null => "N",
+        };
+    }
+}
+""";
+            CompileAndVerify(source, expectedOutput: "VVVOON");
+        }
+
+        [Fact]
+        public void ValueSet_FilterWithExplicitNullTest()
+        {
+            // Exercises ValueSet.Filter with BoundDagExplicitNullTest.
+            // The `null` arm creates an explicit null test on the object input.
+            // When filtering the ValueSet (inside the `int and (1 or 2 or 3)` arm)
+            // with this null test, the ValueSet must correctly return
+            // whenTrue = False (null can't match values), whenFalse = this.
+            var source = """
+class C
+{
+    public static void Main()
+    {
+        System.Console.Write(Test(1));
+        System.Console.Write(Test(2));
+        System.Console.Write(Test(3));
+        System.Console.Write(Test(4));
+        System.Console.Write(Test("x"));
+        System.Console.Write(Test(null));
+    }
+    public static string Test(object o)
+    {
+        return o switch
+        {
+            null => "N",
+            int and (1 or 2 or 3) => "V",
+            _ => "O",
+        };
+    }
+}
+""";
+            CompileAndVerify(source, expectedOutput: "VVVOON");
+        }
+
+        [Fact]
+        public void ValueSet_UnionNonNullTest_Implicit()
+        {
+            // Captures the DAG shape for an implicit union value pattern. Unlike the
+            // explicit type-pattern cases below, this form is not expected to create
+            // a ValueSet on the union value input.
+            var source = """
+                union S1(int, string)
+                {
+                    static void Main()
+                    {
+                        System.Console.Write(Test(new S1(1)));
+                        System.Console.Write(Test(new S1(3)));
+                        System.Console.Write(Test(new S1(5)));
+                        System.Console.Write(Test(new S1(7)));
+                        System.Console.Write(Test(new S1("hello")));
+                    }
+
+                    static int Test(S1 u)
+                    {
+                        return u switch { string => 0, 1 or 3 or 5 => 1, _ => 2 };
+                    }
+                }
+                """;
+            var comp = CreateCompilation([source, UnionAttributeSource, IUnionSource], options: TestOptions.ReleaseExe);
+            comp.VerifyDiagnostics();
+            VerifyDecisionDagDump<SwitchExpressionSyntax>(comp,
+@"[0]: t1 = t0.Value; [1]
+[1]: t1 != null ? [2] : [9]
+[2]: t1 is string ? [3] : [4]
+[3]: leaf <arm> `string => 0`
+[4]: t2 = (int)t1; [5]
+[5]: t2 == 1 ? [8] : [6]
+[6]: t2 == 3 ? [8] : [7]
+[7]: t2 == 5 ? [8] : [9]
+[8]: leaf <arm> `1 or 3 or 5 => 1`
+[9]: leaf <arm> `_ => 2`
+",
+forLowering: false);
+            CompileAndVerify(comp, expectedOutput: "11120");
+        }
+
+        [Fact]
+        public void ValueSet_BadConstant()
+        {
+            verify("C.Missing or 1",
+@"[0]: t0 == bad ? [2] : [1]
+[1]: t0 == 1 ? [2] : [3]
+[2]: leaf <isPatternSuccess> `C.Missing or 1`
+[3]: leaf <isPatternFailure> `C.Missing or 1`
+",
+                // (3,47): error CS0117: 'C' does not contain a definition for 'Missing'
+                //     static bool Test(int value) => value is C.Missing or 1;
+                Diagnostic(ErrorCode.ERR_NoSuchMember, "Missing").WithArguments("C", "Missing").WithLocation(3, 47));
+            verify("1 or C.Missing",
+@"[0]: t0 == 1 ? [2] : [1]
+[1]: t0 == bad ? [2] : [3]
+[2]: leaf <isPatternSuccess> `1 or C.Missing`
+[3]: leaf <isPatternFailure> `1 or C.Missing`
+",
+                // (3,52): error CS0117: 'C' does not contain a definition for 'Missing'
+                //     static bool Test(int value) => value is 1 or C.Missing;
+                Diagnostic(ErrorCode.ERR_NoSuchMember, "Missing").WithArguments("C", "Missing").WithLocation(3, 52));
+
+            void verify(string pattern, string expectedDag, DiagnosticDescription expectedDiagnostic)
+            {
+                var source = $$"""
+                    class C
+                    {
+                        static bool Test(int value) => value is {{pattern}};
+                    }
+                    """;
+                var comp = CreateCompilation(source);
+
+                comp.VerifyDiagnostics(expectedDiagnostic);
+                VerifyDecisionDagDump<IsPatternExpressionSyntax>(comp, expectedDag, forLowering: false);
+            }
+        }
+
+        [Fact]
+        public void ValueSet_LoweringOrder_Numeric()
+        {
+            // Values are intentionally listed in descending order so the IL observes any canonicalization.
+            var source = """
+                enum E
+                {
+                    Ten = 10,
+                    Fifty = 50,
+                }
+
+                class C
+                {
+                    public static bool SByte(sbyte value) => value is 50 or 10;
+                    public static bool Byte(byte value) => value is 50 or 10;
+                    public static bool Int16(short value) => value is 50 or 10;
+                    public static bool UInt16(ushort value) => value is 50 or 10;
+                    public static bool Int32(int value) => value is 50 or 10;
+                    public static bool UInt32(uint value) => value is 50 or 10;
+                    public static bool Int64(long value) => value is 50 or 10;
+                    public static bool UInt64(ulong value) => value is 50 or 10;
+                    public static bool Enum(E value) => value is E.Fifty or E.Ten;
+                    public static bool Char(char value) => value is 'z' or 'a';
+                    public static bool NInt(nint value) => value is 50 or 10;
+                    public static bool NUInt(nuint value) => value is 50 or 10;
+                    public static bool Decimal(decimal value) => value is 1m or 0m;
+                    public static bool Single(float value) => value is 50f or 10f;
+                    public static bool Double(double value) => value is 50d or 10d;
+                }
+                """;
+            var verifier = CompileAndVerify(source, options: TestOptions.ReleaseDll);
+
+            const string expectedInt32IL = """
+                {
+                  // Code size       13 (0xd)
+                  .maxstack  2
+                  IL_0000:  ldarg.0
+                  IL_0001:  ldc.i4.s   10
+                  IL_0003:  beq.s      IL_000b
+                  IL_0005:  ldarg.0
+                  IL_0006:  ldc.i4.s   50
+                  IL_0008:  ceq
+                  IL_000a:  ret
+                  IL_000b:  ldc.i4.1
+                  IL_000c:  ret
+                }
+                """;
+            verifier.VerifyIL("C.SByte", expectedInt32IL);
+            verifier.VerifyIL("C.Byte", expectedInt32IL);
+            verifier.VerifyIL("C.Int16", expectedInt32IL);
+            verifier.VerifyIL("C.UInt16", expectedInt32IL);
+            verifier.VerifyIL("C.Int32", expectedInt32IL);
+            verifier.VerifyIL("C.UInt32", expectedInt32IL);
+            verifier.VerifyIL("C.Enum", expectedInt32IL);
+            verifier.VerifyIL("C.Int64", """
+                {
+                  // Code size       15 (0xf)
+                  .maxstack  2
+                  IL_0000:  ldarg.0
+                  IL_0001:  ldc.i4.s   10
+                  IL_0003:  conv.i8
+                  IL_0004:  beq.s      IL_000d
+                  IL_0006:  ldarg.0
+                  IL_0007:  ldc.i4.s   50
+                  IL_0009:  conv.i8
+                  IL_000a:  ceq
+                  IL_000c:  ret
+                  IL_000d:  ldc.i4.1
+                  IL_000e:  ret
+                }
+                """);
+            verifier.VerifyIL("C.UInt64", """
+                {
+                  // Code size       15 (0xf)
+                  .maxstack  2
+                  IL_0000:  ldarg.0
+                  IL_0001:  ldc.i4.s   10
+                  IL_0003:  conv.i8
+                  IL_0004:  beq.s      IL_000d
+                  IL_0006:  ldarg.0
+                  IL_0007:  ldc.i4.s   50
+                  IL_0009:  conv.i8
+                  IL_000a:  ceq
+                  IL_000c:  ret
+                  IL_000d:  ldc.i4.1
+                  IL_000e:  ret
+                }
+                """);
+            verifier.VerifyIL("C.Char", """
+                {
+                  // Code size       13 (0xd)
+                  .maxstack  2
+                  IL_0000:  ldarg.0
+                  IL_0001:  ldc.i4.s   97
+                  IL_0003:  beq.s      IL_000b
+                  IL_0005:  ldarg.0
+                  IL_0006:  ldc.i4.s   122
+                  IL_0008:  ceq
+                  IL_000a:  ret
+                  IL_000b:  ldc.i4.1
+                  IL_000c:  ret
+                }
+                """);
+            verifier.VerifyIL("C.NInt", """
+                {
+                  // Code size       13 (0xd)
+                  .maxstack  2
+                  IL_0000:  ldarg.0
+                  IL_0001:  ldc.i4.s   10
+                  IL_0003:  beq.s      IL_000b
+                  IL_0005:  ldarg.0
+                  IL_0006:  ldc.i4.s   50
+                  IL_0008:  ceq
+                  IL_000a:  ret
+                  IL_000b:  ldc.i4.1
+                  IL_000c:  ret
+                }
+                """);
+            verifier.VerifyIL("C.NUInt", """
+                {
+                  // Code size       13 (0xd)
+                  .maxstack  2
+                  IL_0000:  ldarg.0
+                  IL_0001:  ldc.i4.s   10
+                  IL_0003:  beq.s      IL_000b
+                  IL_0005:  ldarg.0
+                  IL_0006:  ldc.i4.s   50
+                  IL_0008:  ceq
+                  IL_000a:  ret
+                  IL_000b:  ldc.i4.1
+                  IL_000c:  ret
+                }
+                """);
+            verifier.VerifyIL("C.Decimal", """
+                {
+                  // Code size       51 (0x33)
+                  .maxstack  6
+                  IL_0000:  ldarg.0
+                  IL_0001:  ldc.i4.0
+                  IL_0002:  ldc.i4.0
+                  IL_0003:  ldc.i4.0
+                  IL_0004:  ldc.i4.0
+                  IL_0005:  ldc.i4.s   28
+                  IL_0007:  newobj     "decimal..ctor(int, int, int, bool, byte)"
+                  IL_000c:  call       "bool decimal.op_Equality(decimal, decimal)"
+                  IL_0011:  brtrue.s   IL_0031
+                  IL_0013:  ldarg.0
+                  IL_0014:  ldc.i4     0x10000000
+                  IL_0019:  ldc.i4     0x3e250261
+                  IL_001e:  ldc.i4     0x204fce5e
+                  IL_0023:  ldc.i4.0
+                  IL_0024:  ldc.i4.s   28
+                  IL_0026:  newobj     "decimal..ctor(int, int, int, bool, byte)"
+                  IL_002b:  call       "bool decimal.op_Equality(decimal, decimal)"
+                  IL_0030:  ret
+                  IL_0031:  ldc.i4.1
+                  IL_0032:  ret
+                }
+                """);
+            verifier.VerifyIL("C.Single", """
+                {
+                  // Code size       19 (0x13)
+                  .maxstack  2
+                  IL_0000:  ldarg.0
+                  IL_0001:  ldc.r4     10
+                  IL_0006:  beq.s      IL_0011
+                  IL_0008:  ldarg.0
+                  IL_0009:  ldc.r4     50
+                  IL_000e:  ceq
+                  IL_0010:  ret
+                  IL_0011:  ldc.i4.1
+                  IL_0012:  ret
+                }
+                """);
+            verifier.VerifyIL("C.Double", """
+                {
+                  // Code size       27 (0x1b)
+                  .maxstack  2
+                  IL_0000:  ldarg.0
+                  IL_0001:  ldc.r8     10
+                  IL_000a:  beq.s      IL_0019
+                  IL_000c:  ldarg.0
+                  IL_000d:  ldc.r8     50
+                  IL_0016:  ceq
+                  IL_0018:  ret
+                  IL_0019:  ldc.i4.1
+                  IL_001a:  ret
+                }
+                """);
+        }
+
+        [Fact]
+        public void ValueSet_LoweringOrder_StringAndSpan()
+        {
+            // Values are intentionally listed in descending order so the IL observes both direct and optimized dispatch.
+            var source = """
+                using System;
+
+                class C
+                {
+                    public static bool String(string value) => value is "z" or "a";
+                    public static bool Span(Span<char> value) => value is "z" or "a";
+                    public static bool ReadOnlySpan(ReadOnlySpan<char> value) => value is "z" or "a";
+
+                    public static bool LargeString(string value) =>
+                        value is "g" or "f" or "e" or "d" or "c" or "b" or "a";
+
+                    public static bool LargeSpan(Span<char> value) =>
+                        value is "g" or "f" or "e" or "d" or "c" or "b" or "a";
+
+                    public static bool LargeReadOnlySpan(ReadOnlySpan<char> value) =>
+                        value is "g" or "f" or "e" or "d" or "c" or "b" or "a";
+                }
+                """;
+            var comp = CreateCompilationWithSpanAndMemoryExtensions(
+                source,
+                options: TestOptions.ReleaseDll,
+                parseOptions: TestOptions.RegularPreview);
+            var verifier = CompileAndVerify(comp);
+
+            verifier.VerifyIL("C.String", """
+                {
+                  // Code size       27 (0x1b)
+                  .maxstack  2
+                  IL_0000:  ldarg.0
+                  IL_0001:  ldstr      "z"
+                  IL_0006:  call       "bool string.op_Equality(string, string)"
+                  IL_000b:  brtrue.s   IL_0019
+                  IL_000d:  ldarg.0
+                  IL_000e:  ldstr      "a"
+                  IL_0013:  call       "bool string.op_Equality(string, string)"
+                  IL_0018:  ret
+                  IL_0019:  ldc.i4.1
+                  IL_001a:  ret
+                }
+                """);
+            verifier.VerifyIL("C.Span", """
+                {
+                  // Code size       37 (0x25)
+                  .maxstack  2
+                  IL_0000:  ldarg.0
+                  IL_0001:  ldstr      "a"
+                  IL_0006:  call       "System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)"
+                  IL_000b:  call       "bool System.MemoryExtensions.SequenceEqual<char>(System.Span<char>, System.ReadOnlySpan<char>)"
+                  IL_0010:  brtrue.s   IL_0023
+                  IL_0012:  ldarg.0
+                  IL_0013:  ldstr      "z"
+                  IL_0018:  call       "System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)"
+                  IL_001d:  call       "bool System.MemoryExtensions.SequenceEqual<char>(System.Span<char>, System.ReadOnlySpan<char>)"
+                  IL_0022:  ret
+                  IL_0023:  ldc.i4.1
+                  IL_0024:  ret
+                }
+                """);
+            verifier.VerifyIL("C.ReadOnlySpan", """
+                {
+                  // Code size       37 (0x25)
+                  .maxstack  2
+                  IL_0000:  ldarg.0
+                  IL_0001:  ldstr      "a"
+                  IL_0006:  call       "System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)"
+                  IL_000b:  call       "bool System.MemoryExtensions.SequenceEqual<char>(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)"
+                  IL_0010:  brtrue.s   IL_0023
+                  IL_0012:  ldarg.0
+                  IL_0013:  ldstr      "z"
+                  IL_0018:  call       "System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)"
+                  IL_001d:  call       "bool System.MemoryExtensions.SequenceEqual<char>(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)"
+                  IL_0022:  ret
+                  IL_0023:  ldc.i4.1
+                  IL_0024:  ret
+                }
+                """);
+            verifier.VerifyIL("C.LargeString", """
+                {
+                  // Code size       69 (0x45)
+                  .maxstack  2
+                  .locals init (bool V_0,
+                                int V_1,
+                                char V_2)
+                  IL_0000:  ldarg.0
+                  IL_0001:  brfalse.s  IL_0041
+                  IL_0003:  ldarg.0
+                  IL_0004:  call       "int string.Length.get"
+                  IL_0009:  stloc.1
+                  IL_000a:  ldloc.1
+                  IL_000b:  ldc.i4.1
+                  IL_000c:  bne.un.s   IL_0041
+                  IL_000e:  ldarg.0
+                  IL_000f:  ldc.i4.0
+                  IL_0010:  call       "char string.this[int].get"
+                  IL_0015:  stloc.2
+                  IL_0016:  ldloc.2
+                  IL_0017:  ldc.i4.s   97
+                  IL_0019:  sub
+                  IL_001a:  switch    (
+                        IL_003d,
+                        IL_003d,
+                        IL_003d,
+                        IL_003d,
+                        IL_003d,
+                        IL_003d,
+                        IL_003d)
+                  IL_003b:  br.s       IL_0041
+                  IL_003d:  ldc.i4.1
+                  IL_003e:  stloc.0
+                  IL_003f:  br.s       IL_0043
+                  IL_0041:  ldc.i4.0
+                  IL_0042:  stloc.0
+                  IL_0043:  ldloc.0
+                  IL_0044:  ret
+                }
+                """);
+            verifier.VerifyIL("C.LargeSpan", """
+                {
+                  // Code size       69 (0x45)
+                  .maxstack  2
+                  .locals init (bool V_0,
+                                int V_1,
+                                char V_2)
+                  IL_0000:  ldarga.s   V_0
+                  IL_0002:  call       "int System.Span<char>.Length.get"
+                  IL_0007:  stloc.1
+                  IL_0008:  ldloc.1
+                  IL_0009:  ldc.i4.1
+                  IL_000a:  bne.un.s   IL_0041
+                  IL_000c:  ldarga.s   V_0
+                  IL_000e:  ldc.i4.0
+                  IL_000f:  call       "ref char System.Span<char>.this[int].get"
+                  IL_0014:  ldind.u2
+                  IL_0015:  stloc.2
+                  IL_0016:  ldloc.2
+                  IL_0017:  ldc.i4.s   97
+                  IL_0019:  sub
+                  IL_001a:  switch    (
+                        IL_003d,
+                        IL_003d,
+                        IL_003d,
+                        IL_003d,
+                        IL_003d,
+                        IL_003d,
+                        IL_003d)
+                  IL_003b:  br.s       IL_0041
+                  IL_003d:  ldc.i4.1
+                  IL_003e:  stloc.0
+                  IL_003f:  br.s       IL_0043
+                  IL_0041:  ldc.i4.0
+                  IL_0042:  stloc.0
+                  IL_0043:  ldloc.0
+                  IL_0044:  ret
+                }
+                """);
+            verifier.VerifyIL("C.LargeReadOnlySpan", """
+                {
+                  // Code size       69 (0x45)
+                  .maxstack  2
+                  .locals init (bool V_0,
+                                int V_1,
+                                char V_2)
+                  IL_0000:  ldarga.s   V_0
+                  IL_0002:  call       "int System.ReadOnlySpan<char>.Length.get"
+                  IL_0007:  stloc.1
+                  IL_0008:  ldloc.1
+                  IL_0009:  ldc.i4.1
+                  IL_000a:  bne.un.s   IL_0041
+                  IL_000c:  ldarga.s   V_0
+                  IL_000e:  ldc.i4.0
+                  IL_000f:  call       "ref readonly char System.ReadOnlySpan<char>.this[int].get"
+                  IL_0014:  ldind.u2
+                  IL_0015:  stloc.2
+                  IL_0016:  ldloc.2
+                  IL_0017:  ldc.i4.s   97
+                  IL_0019:  sub
+                  IL_001a:  switch    (
+                        IL_003d,
+                        IL_003d,
+                        IL_003d,
+                        IL_003d,
+                        IL_003d,
+                        IL_003d,
+                        IL_003d)
+                  IL_003b:  br.s       IL_0041
+                  IL_003d:  ldc.i4.1
+                  IL_003e:  stloc.0
+                  IL_003f:  br.s       IL_0043
+                  IL_0041:  ldc.i4.0
+                  IL_0042:  stloc.0
+                  IL_0043:  ldloc.0
+                  IL_0044:  ret
+                }
+                """);
+
+            comp = CreateCompilationWithSpanAndMemoryExtensions(
+                source,
+                options: TestOptions.ReleaseDll,
+                parseOptions: TestOptions.RegularPreview.WithDisableLengthBasedSwitch());
+            verifier = CompileAndVerify(comp);
+
+            verifier.VerifyIL("C.LargeString", """
+                {
+                  // Code size      199 (0xc7)
+                  .maxstack  2
+                  .locals init (bool V_0,
+                                uint V_1)
+                  IL_0000:  ldarg.0
+                  IL_0001:  call       "uint <PrivateImplementationDetails>.ComputeStringHash(string)"
+                  IL_0006:  stloc.1
+                  IL_0007:  ldloc.1
+                  IL_0008:  ldc.i4     0xe20c2606
+                  IL_000d:  bgt.un.s   IL_002c
+                  IL_000f:  ldloc.1
+                  IL_0010:  ldc.i4     0xe00c22e0
+                  IL_0015:  beq.s      IL_0076
+                  IL_0017:  ldloc.1
+                  IL_0018:  ldc.i4     0xe10c2473
+                  IL_001d:  beq.s      IL_0085
+                  IL_001f:  ldloc.1
+                  IL_0020:  ldc.i4     0xe20c2606
+                  IL_0025:  beq.s      IL_0058
+                  IL_0027:  br         IL_00c3
+                  IL_002c:  ldloc.1
+                  IL_002d:  ldc.i4     0xe40c292c
+                  IL_0032:  bgt.un.s   IL_0046
+                  IL_0034:  ldloc.1
+                  IL_0035:  ldc.i4     0xe30c2799
+                  IL_003a:  beq.s      IL_0067
+                  IL_003c:  ldloc.1
+                  IL_003d:  ldc.i4     0xe40c292c
+                  IL_0042:  beq.s      IL_00b2
+                  IL_0044:  br.s       IL_00c3
+                  IL_0046:  ldloc.1
+                  IL_0047:  ldc.i4     0xe60c2c52
+                  IL_004c:  beq.s      IL_0094
+                  IL_004e:  ldloc.1
+                  IL_004f:  ldc.i4     0xe70c2de5
+                  IL_0054:  beq.s      IL_00a3
+                  IL_0056:  br.s       IL_00c3
+                  IL_0058:  ldarg.0
+                  IL_0059:  ldstr      "g"
+                  IL_005e:  call       "bool string.op_Equality(string, string)"
+                  IL_0063:  brtrue.s   IL_00bf
+                  IL_0065:  br.s       IL_00c3
+                  IL_0067:  ldarg.0
+                  IL_0068:  ldstr      "f"
+                  IL_006d:  call       "bool string.op_Equality(string, string)"
+                  IL_0072:  brtrue.s   IL_00bf
+                  IL_0074:  br.s       IL_00c3
+                  IL_0076:  ldarg.0
+                  IL_0077:  ldstr      "e"
+                  IL_007c:  call       "bool string.op_Equality(string, string)"
+                  IL_0081:  brtrue.s   IL_00bf
+                  IL_0083:  br.s       IL_00c3
+                  IL_0085:  ldarg.0
+                  IL_0086:  ldstr      "d"
+                  IL_008b:  call       "bool string.op_Equality(string, string)"
+                  IL_0090:  brtrue.s   IL_00bf
+                  IL_0092:  br.s       IL_00c3
+                  IL_0094:  ldarg.0
+                  IL_0095:  ldstr      "c"
+                  IL_009a:  call       "bool string.op_Equality(string, string)"
+                  IL_009f:  brtrue.s   IL_00bf
+                  IL_00a1:  br.s       IL_00c3
+                  IL_00a3:  ldarg.0
+                  IL_00a4:  ldstr      "b"
+                  IL_00a9:  call       "bool string.op_Equality(string, string)"
+                  IL_00ae:  brtrue.s   IL_00bf
+                  IL_00b0:  br.s       IL_00c3
+                  IL_00b2:  ldarg.0
+                  IL_00b3:  ldstr      "a"
+                  IL_00b8:  call       "bool string.op_Equality(string, string)"
+                  IL_00bd:  brfalse.s  IL_00c3
+                  IL_00bf:  ldc.i4.1
+                  IL_00c0:  stloc.0
+                  IL_00c1:  br.s       IL_00c5
+                  IL_00c3:  ldc.i4.0
+                  IL_00c4:  stloc.0
+                  IL_00c5:  ldloc.0
+                  IL_00c6:  ret
+                }
+                """);
+            verifier.VerifyIL("C.LargeSpan", """
+                {
+                  // Code size      252 (0xfc)
+                  .maxstack  2
+                  .locals init (bool V_0,
+                                uint V_1)
+                  IL_0000:  ldarg.0
+                  IL_0001:  call       "uint <PrivateImplementationDetails>.ComputeSpanHash(System.Span<char>)"
+                  IL_0006:  stloc.1
+                  IL_0007:  ldloc.1
+                  IL_0008:  ldc.i4     0xe20c2606
+                  IL_000d:  bgt.un.s   IL_0035
+                  IL_000f:  ldloc.1
+                  IL_0010:  ldc.i4     0xe00c22e0
+                  IL_0015:  beq        IL_00ba
+                  IL_001a:  ldloc.1
+                  IL_001b:  ldc.i4     0xe10c2473
+                  IL_0020:  beq        IL_00a6
+                  IL_0025:  ldloc.1
+                  IL_0026:  ldc.i4     0xe20c2606
+                  IL_002b:  beq        IL_00e2
+                  IL_0030:  br         IL_00f8
+                  IL_0035:  ldloc.1
+                  IL_0036:  ldc.i4     0xe40c292c
+                  IL_003b:  bgt.un.s   IL_0055
+                  IL_003d:  ldloc.1
+                  IL_003e:  ldc.i4     0xe30c2799
+                  IL_0043:  beq        IL_00ce
+                  IL_0048:  ldloc.1
+                  IL_0049:  ldc.i4     0xe40c292c
+                  IL_004e:  beq.s      IL_006a
+                  IL_0050:  br         IL_00f8
+                  IL_0055:  ldloc.1
+                  IL_0056:  ldc.i4     0xe60c2c52
+                  IL_005b:  beq.s      IL_0092
+                  IL_005d:  ldloc.1
+                  IL_005e:  ldc.i4     0xe70c2de5
+                  IL_0063:  beq.s      IL_007e
+                  IL_0065:  br         IL_00f8
+                  IL_006a:  ldarg.0
+                  IL_006b:  ldstr      "a"
+                  IL_0070:  call       "System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)"
+                  IL_0075:  call       "bool System.MemoryExtensions.SequenceEqual<char>(System.Span<char>, System.ReadOnlySpan<char>)"
+                  IL_007a:  brtrue.s   IL_00f4
+                  IL_007c:  br.s       IL_00f8
+                  IL_007e:  ldarg.0
+                  IL_007f:  ldstr      "b"
+                  IL_0084:  call       "System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)"
+                  IL_0089:  call       "bool System.MemoryExtensions.SequenceEqual<char>(System.Span<char>, System.ReadOnlySpan<char>)"
+                  IL_008e:  brtrue.s   IL_00f4
+                  IL_0090:  br.s       IL_00f8
+                  IL_0092:  ldarg.0
+                  IL_0093:  ldstr      "c"
+                  IL_0098:  call       "System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)"
+                  IL_009d:  call       "bool System.MemoryExtensions.SequenceEqual<char>(System.Span<char>, System.ReadOnlySpan<char>)"
+                  IL_00a2:  brtrue.s   IL_00f4
+                  IL_00a4:  br.s       IL_00f8
+                  IL_00a6:  ldarg.0
+                  IL_00a7:  ldstr      "d"
+                  IL_00ac:  call       "System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)"
+                  IL_00b1:  call       "bool System.MemoryExtensions.SequenceEqual<char>(System.Span<char>, System.ReadOnlySpan<char>)"
+                  IL_00b6:  brtrue.s   IL_00f4
+                  IL_00b8:  br.s       IL_00f8
+                  IL_00ba:  ldarg.0
+                  IL_00bb:  ldstr      "e"
+                  IL_00c0:  call       "System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)"
+                  IL_00c5:  call       "bool System.MemoryExtensions.SequenceEqual<char>(System.Span<char>, System.ReadOnlySpan<char>)"
+                  IL_00ca:  brtrue.s   IL_00f4
+                  IL_00cc:  br.s       IL_00f8
+                  IL_00ce:  ldarg.0
+                  IL_00cf:  ldstr      "f"
+                  IL_00d4:  call       "System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)"
+                  IL_00d9:  call       "bool System.MemoryExtensions.SequenceEqual<char>(System.Span<char>, System.ReadOnlySpan<char>)"
+                  IL_00de:  brtrue.s   IL_00f4
+                  IL_00e0:  br.s       IL_00f8
+                  IL_00e2:  ldarg.0
+                  IL_00e3:  ldstr      "g"
+                  IL_00e8:  call       "System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)"
+                  IL_00ed:  call       "bool System.MemoryExtensions.SequenceEqual<char>(System.Span<char>, System.ReadOnlySpan<char>)"
+                  IL_00f2:  brfalse.s  IL_00f8
+                  IL_00f4:  ldc.i4.1
+                  IL_00f5:  stloc.0
+                  IL_00f6:  br.s       IL_00fa
+                  IL_00f8:  ldc.i4.0
+                  IL_00f9:  stloc.0
+                  IL_00fa:  ldloc.0
+                  IL_00fb:  ret
+                }
+                """);
+            verifier.VerifyIL("C.LargeReadOnlySpan", """
+                {
+                  // Code size      134 (0x86)
+                  .maxstack  2
+                  .locals init (bool V_0)
+                  IL_0000:  ldarg.0
+                  IL_0001:  ldstr      "a"
+                  IL_0006:  call       "System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)"
+                  IL_000b:  call       "bool System.MemoryExtensions.SequenceEqual<char>(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)"
+                  IL_0010:  brtrue.s   IL_007e
+                  IL_0012:  ldarg.0
+                  IL_0013:  ldstr      "b"
+                  IL_0018:  call       "System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)"
+                  IL_001d:  call       "bool System.MemoryExtensions.SequenceEqual<char>(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)"
+                  IL_0022:  brtrue.s   IL_007e
+                  IL_0024:  ldarg.0
+                  IL_0025:  ldstr      "c"
+                  IL_002a:  call       "System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)"
+                  IL_002f:  call       "bool System.MemoryExtensions.SequenceEqual<char>(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)"
+                  IL_0034:  brtrue.s   IL_007e
+                  IL_0036:  ldarg.0
+                  IL_0037:  ldstr      "d"
+                  IL_003c:  call       "System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)"
+                  IL_0041:  call       "bool System.MemoryExtensions.SequenceEqual<char>(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)"
+                  IL_0046:  brtrue.s   IL_007e
+                  IL_0048:  ldarg.0
+                  IL_0049:  ldstr      "e"
+                  IL_004e:  call       "System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)"
+                  IL_0053:  call       "bool System.MemoryExtensions.SequenceEqual<char>(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)"
+                  IL_0058:  brtrue.s   IL_007e
+                  IL_005a:  ldarg.0
+                  IL_005b:  ldstr      "f"
+                  IL_0060:  call       "System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)"
+                  IL_0065:  call       "bool System.MemoryExtensions.SequenceEqual<char>(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)"
+                  IL_006a:  brtrue.s   IL_007e
+                  IL_006c:  ldarg.0
+                  IL_006d:  ldstr      "g"
+                  IL_0072:  call       "System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)"
+                  IL_0077:  call       "bool System.MemoryExtensions.SequenceEqual<char>(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)"
+                  IL_007c:  brfalse.s  IL_0082
+                  IL_007e:  ldc.i4.1
+                  IL_007f:  stloc.0
+                  IL_0080:  br.s       IL_0084
+                  IL_0082:  ldc.i4.0
+                  IL_0083:  stloc.0
+                  IL_0084:  ldloc.0
+                  IL_0085:  ret
+                }
+                """);
+        }
+
+        [Fact]
+        public void ValueSet_UnionNonNullTest_ExplicitType()
+        {
+            // Exercises ValueSet.Filter with BoundDagNonNullTest from unions.
+            // The `int and (1 or 3 or 5)` pattern forces an explicit type test which
+            // generates a non-null test on the union Value temp, before the ValueSet
+            // on the extracted int temp.
+            var source = """
+                union S1(int, string)
+                {
+                    static void Main()
+                    {
+                        System.Console.Write(Test(new S1(1)));
+                        System.Console.Write(Test(new S1(3)));
+                        System.Console.Write(Test(new S1(5)));
+                        System.Console.Write(Test(new S1(7)));
+                        System.Console.Write(Test(new S1("hello")));
+                    }
+
+                    static int Test(S1 u)
+                    {
+                        return u switch { string => 0, int and (1 or 3 or 5) => 1, _ => 2 };
+                    }
+                }
+                """;
+            var comp = CreateCompilation([source, UnionAttributeSource, IUnionSource], options: TestOptions.ReleaseExe);
+            comp.VerifyDiagnostics();
+            VerifyDecisionDagDump<SwitchExpressionSyntax>(comp,
+@"[0]: t1 = t0.Value; [1]
+[1]: t1 != null ? [2] : [9]
+[2]: t1 is string ? [3] : [4]
+[3]: leaf <arm> `string => 0`
+[4]: t2 = (int)t1; [5]
+[5]: t2 == 1 ? [8] : [6]
+[6]: t2 == 3 ? [8] : [7]
+[7]: t2 == 5 ? [8] : [9]
+[8]: leaf <arm> `int and (1 or 3 or 5) => 1`
+[9]: leaf <arm> `_ => 2`
+",
+forLowering: false);
+            CompileAndVerify(comp, expectedOutput: "11120");
+        }
+
+        [Fact]
+        public void ValueSet_UnionNonNullTest_LargeOrPattern()
+        {
+            // Exercises ValueSet with a larger set of or'd values on a union.
+            // Ensures the ValueSet coalescing works correctly with union non-null tests.
+            var source = """
+                union S1(int, string)
+                {
+                    static void Main()
+                    {
+                        System.Console.Write(Test(new S1(1)));
+                        System.Console.Write(Test(new S1(5)));
+                        System.Console.Write(Test(new S1(10)));
+                        System.Console.Write(Test(new S1(99)));
+                        System.Console.Write(Test(new S1("x")));
+                    }
+
+                    static int Test(S1 u)
+                    {
+                        return u switch
+                        {
+                            string => 0,
+                            int and (1 or 2 or 3 or 4 or 5 or 6 or 7 or 8 or 9 or 10) => 1,
+                            _ => 2,
+                        };
+                    }
+                }
+                """;
+            var comp = CreateCompilation([source, UnionAttributeSource, IUnionSource], options: TestOptions.ReleaseExe);
+            comp.VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "11120");
+        }
+
+        [Fact]
+        public void ValueSet_UnionNonNullTest_NullableUnion()
+        {
+            // Exercises ValueSet with a nullable union type.
+            // The nullable adds an extra layer of null testing.
+            var source = """
+                union S1(int, string)
+                {
+                    static void Main()
+                    {
+                        System.Console.Write(Test(new S1(1)));
+                        System.Console.Write(Test(new S1(3)));
+                        System.Console.Write(Test(new S1(7)));
+                        System.Console.Write(Test(new S1("x")));
+                        System.Console.Write(Test(null));
+                    }
+
+                    static int Test(S1? u)
+                    {
+                        return u switch
+                        {
+                            null => 9,
+                            int and (1 or 3 or 5) => 1,
+                            string => 0,
+                            _ => 2,
+                        };
+                    }
+                }
+                """;
+            var comp = CreateCompilation([source, UnionAttributeSource, IUnionSource], options: TestOptions.ReleaseExe);
+            comp.VerifyDiagnostics();
+            VerifyDecisionDagDump<SwitchExpressionSyntax>(comp,
+@"[0]: t0 == null ? [4] : [1]
+[1]: t1 = (S1)t0; [2]
+[2]: t2 = t1.Value; [3]
+[3]: t2 == null ? [4] : [5]
+[4]: leaf <arm> `null => 9`
+[5]: t2 is int ? [6] : [12]
+[6]: t3 = (int)t2; [7]
+[7]: t3 == 1 ? [10] : [8]
+[8]: t3 == 3 ? [10] : [9]
+[9]: t3 == 5 ? [10] : [11]
+[10]: leaf <arm> `int and (1 or 3 or 5) => 1`
+[11]: leaf <arm> `_ => 2`
+[12]: leaf <arm> `string => 0`
+",
+forLowering: false);
+            CompileAndVerify(comp, expectedOutput: "11209");
+        }
+
+        [Fact]
+        public void ValueSet_UnionNonNullTest_WithNullArm()
+        {
+            // Exercises an explicit null arm together with a union value arm that can
+            // form a ValueSet behind an explicit type pattern.
+            var source = """
+                union S1(int, string)
+                {
+                    static void Main()
+                    {
+                        System.Console.Write(Test(new S1(1)));
+                        System.Console.Write(Test(new S1(5)));
+                        System.Console.Write(Test(new S1(7)));
+                        System.Console.Write(Test(new S1("x")));
+                    }
+
+                    static int Test(S1 u)
+                    {
+                        return u switch
+                        {
+                            null => 9,
+                            int and (1 or 3 or 5) => 1,
+                            string => 0,
+                            _ => 2,
+                        };
+                    }
+                }
+                """;
+            var comp = CreateCompilation([source, UnionAttributeSource, IUnionSource], options: TestOptions.ReleaseExe);
+            comp.VerifyDiagnostics();
+            VerifyDecisionDagDump<SwitchExpressionSyntax>(comp,
+@"[0]: t1 = t0.Value; [1]
+[1]: t1 == null ? [2] : [3]
+[2]: leaf <arm> `null => 9`
+[3]: t1 is int ? [4] : [10]
+[4]: t2 = (int)t1; [5]
+[5]: t2 == 1 ? [8] : [6]
+[6]: t2 == 3 ? [8] : [7]
+[7]: t2 == 5 ? [8] : [9]
+[8]: leaf <arm> `int and (1 or 3 or 5) => 1`
+[9]: leaf <arm> `_ => 2`
+[10]: leaf <arm> `string => 0`
+",
+forLowering: false);
+            CompileAndVerify(comp, expectedOutput: "1120");
+        }
+
+        [Fact]
+        public void ValueSet_UnionNonNullTest_NotPattern()
+        {
+            // Exercises ValueSet with negated or-patterns on unions.
+            // `not (1 or 3 or 5)` creates a complement ValueSet.
+            var source = """
+                union S1(int, string)
+                {
+                    static void Main()
+                    {
+                        System.Console.Write(Test(new S1(1)));
+                        System.Console.Write(Test(new S1(7)));
+                        System.Console.Write(Test(new S1("x")));
+                    }
+
+                    static int Test(S1 u)
+                    {
+                        return u switch
+                        {
+                            string => 0,
+                            int and not (1 or 3 or 5) => 2,
+                            _ => 1,
+                        };
+                    }
+                }
+                """;
+            var comp = CreateCompilation([source, UnionAttributeSource, IUnionSource], options: TestOptions.ReleaseExe);
+            comp.VerifyDiagnostics();
+            VerifyDecisionDagDump<SwitchExpressionSyntax>(comp,
+@"[0]: t1 = t0.Value; [1]
+[1]: t1 != null ? [2] : [8]
+[2]: t1 is string ? [3] : [4]
+[3]: leaf <arm> `string => 0`
+[4]: t2 = (int)t1; [5]
+[5]: t2 == 1 ? [8] : [6]
+[6]: t2 == 3 ? [8] : [7]
+[7]: t2 == 5 ? [8] : [9]
+[8]: leaf <arm> `_ => 1`
+[9]: leaf <arm> `int and not (1 or 3 or 5) => 2`
+",
+forLowering: false);
+            CompileAndVerify(comp, expectedOutput: "120");
+        }
+
+        [Fact]
+        public void ValueSet_UnionNonNullTest_MultipleArmsWithValues()
+        {
+            // Multiple arms with different value sets on the same union type.
+            var source = """
+                union S1(int, string)
+                {
+                    static void Main()
+                    {
+                        System.Console.Write(Test(new S1(1)));
+                        System.Console.Write(Test(new S1(4)));
+                        System.Console.Write(Test(new S1(7)));
+                        System.Console.Write(Test(new S1("x")));
+                    }
+
+                    static int Test(S1 u)
+                    {
+                        return u switch
+                        {
+                            string => 0,
+                            int and (1 or 2 or 3) => 1,
+                            int and (4 or 5 or 6) => 2,
+                            _ => 3,
+                        };
+                    }
+                }
+                """;
+            var comp = CreateCompilation([source, UnionAttributeSource, IUnionSource], options: TestOptions.ReleaseExe);
+            comp.VerifyDiagnostics();
+            VerifyDecisionDagDump<SwitchExpressionSyntax>(comp,
+@"[0]: t1 = t0.Value; [1]
+[1]: t1 != null ? [2] : [13]
+[2]: t1 is string ? [3] : [4]
+[3]: leaf <arm> `string => 0`
+[4]: t2 = (int)t1; [5]
+[5]: t2 == 1 ? [8] : [6]
+[6]: t2 == 2 ? [8] : [7]
+[7]: t2 == 3 ? [8] : [9]
+[8]: leaf <arm> `int and (1 or 2 or 3) => 1`
+[9]: t2 == 4 ? [12] : [10]
+[10]: t2 == 5 ? [12] : [11]
+[11]: t2 == 6 ? [12] : [13]
+[12]: leaf <arm> `int and (4 or 5 or 6) => 2`
+[13]: leaf <arm> `_ => 3`
+",
+forLowering: false);
+            CompileAndVerify(comp, expectedOutput: "1230");
+        }
+
     }
 }

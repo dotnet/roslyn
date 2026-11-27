@@ -126,6 +126,31 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 syntax,
                 diagnostics);
         }
+
+        public static SourcePropertyAccessorSymbol CreateAccessorSymbol(
+            NamedTypeSymbol containingType,
+            SynthesizedUnionValuePropertySymbol property,
+            DeclarationModifiers propertyModifiers,
+            Location location,
+            CSharpSyntaxNode syntax,
+            BindingDiagnosticBag diagnostics)
+        {
+            return new SourcePropertyAccessorSymbol(
+                containingType,
+                property,
+                propertyModifiers,
+                location,
+                syntax,
+                hasBlockBody: false,
+                hasExpressionBody: false,
+                isIterator: false,
+                modifiers: default,
+                MethodKind.PropertyGet,
+                usesInit: false,
+                isAutoPropertyAccessor: true,
+                isNullableAnalysisEnabled: false,
+                diagnostics);
+        }
 #nullable disable
 
         internal sealed override ImmutableArray<string> NotNullMembers
@@ -231,8 +256,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             bool isExplicitInterfaceImplementation = property.IsExplicitInterfaceImplementation;
             var declarationModifiers = MakeModifiers(containingType, modifiers, isExplicitInterfaceImplementation, hasAnyBody, location, diagnostics, out modifierErrors);
 
-            // Include some modifiers from the containing property, but not the accessibility modifiers.
-            declarationModifiers |= GetAccessorModifiers(propertyModifiers) & ~DeclarationModifiers.AccessibilityMask;
+            // Include some modifiers from the containing property, but not modifiers which the accessor can specify itself.
+            declarationModifiers |= propertyModifiers & ~(DeclarationModifiers.AccessibilityMask | DeclarationModifiers.Indexer | DeclarationModifiers.ReadOnly | DeclarationModifiers.Unsafe | DeclarationModifiers.Safe);
             if ((declarationModifiers & DeclarationModifiers.Private) != 0)
             {
                 // Private accessors cannot be virtual.
@@ -249,11 +274,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 #nullable disable
 
-        private static DeclarationModifiers GetAccessorModifiers(DeclarationModifiers propertyModifiers) =>
-            propertyModifiers & ~(DeclarationModifiers.Indexer | DeclarationModifiers.ReadOnly);
-
         internal override ExecutableCodeBinder TryGetBodyBinder(BinderFactory binderFactoryOpt = null, bool ignoreAccessibility = false)
         {
+            if (_property is SynthesizedUnionValuePropertySymbol or SynthesizedRecordEqualityContractProperty or SynthesizedRecordPropertySymbol)
+            {
+                return null;
+            }
+
             return TryGetBodyBinderFromSyntax(binderFactoryOpt, ignoreAccessibility);
         }
 
@@ -432,6 +459,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         internal bool LocalDeclaredReadOnly => (DeclarationModifiers & DeclarationModifiers.ReadOnly) != 0;
 
+        internal sealed override bool HasUnsafeModifier => (DeclarationModifiers & DeclarationModifiers.Unsafe) != 0;
+        internal sealed override bool HasSafeModifier => (DeclarationModifiers & DeclarationModifiers.Safe) != 0;
+        internal sealed override bool CanRequireUnsafe => true;
+
         /// <summary>
         /// Indicates whether this accessor is readonly due to reasons scoped to itself and its containing property.
         /// </summary>
@@ -499,6 +530,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             // Check that the set of modifiers is allowed
             var allowedModifiers = isExplicitInterfaceImplementation ? DeclarationModifiers.None : DeclarationModifiers.AccessibilityMask;
+            allowedModifiers |= DeclarationModifiers.Unsafe | DeclarationModifiers.Safe;
+
             if (containingType.IsStructType())
             {
                 allowedModifiers |= DeclarationModifiers.ReadOnly;
@@ -512,8 +545,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 defaultInterfaceImplementationModifiers = DeclarationModifiers.AccessibilityMask;
             }
 
-            var mods = ModifierUtils.MakeAndCheckNonTypeMemberModifiers(isOrdinaryMethod: false, isForInterfaceMember: isInterface,
+            var mods = ModifierUtils.MakeAndCheckNonTypeMemberModifiers(isForInterfaceMember: isInterface,
                                                                         modifiers, defaultAccess, allowedModifiers, location, diagnostics, out modifierErrors, out _);
+
+            containingType.CheckUnsafeOptionForModifiers(mods, diagnostics, modifiers, location);
+
+            if ((mods & DeclarationModifiers.Unsafe) != 0)
+            {
+                var syntax = modifiers.FirstOrDefault(SyntaxKind.UnsafeKeyword);
+                modifierErrors |= !MessageID.IDS_FeatureUnsafeEvolution.CheckFeatureAvailability(diagnostics, syntax);
+            }
 
             ModifierUtils.ReportDefaultInterfaceImplementationModifiers(hasBody, mods,
                                                                         defaultInterfaceImplementationModifiers,
@@ -547,7 +588,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
             else if (LocalDeclaredReadOnly && _property.HasReadOnlyModifier)
             {
-                // Cannot specify 'readonly' modifiers on both property or indexer '{0}' and its accessors.
+                // Cannot specify 'readonly' modifiers on both property or indexer '{0}' and its accessors. Remove one of them.
                 diagnostics.Add(ErrorCode.ERR_InvalidPropertyReadOnlyMods, location, _property);
             }
             else if (LocalDeclaredReadOnly && IsStatic)
@@ -841,6 +882,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (LocalDeclaredReadOnly != implementationAccessor.LocalDeclaredReadOnly)
             {
                 diagnostics.Add(ErrorCode.ERR_PartialMemberReadOnlyDifference, implementationAccessor.GetFirstLocation());
+            }
+
+            if (HasUnsafeModifier != implementationAccessor.HasUnsafeModifier)
+            {
+                diagnostics.Add(ErrorCode.ERR_PartialMemberUnsafeDifference, implementationAccessor.GetFirstLocation());
+            }
+
+            if (HasSafeModifier != implementationAccessor.HasSafeModifier)
+            {
+                diagnostics.Add(ErrorCode.ERR_PartialMemberSafeDifference, implementationAccessor.GetFirstLocation());
             }
 
             if (_usesInit != implementationAccessor._usesInit)

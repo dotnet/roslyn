@@ -24,6 +24,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
     /// should be significantly faster with larger projects and have a smaller memory
     /// footprint.
     /// </summary>
+    [MSBuildMultiThreadableTask]
     public class Csc : ManagedCompiler
     {
         #region Properties
@@ -90,6 +91,12 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         {
             set { _store[nameof(GenerateFullPaths)] = value; }
             get { return _store.GetOrDefault(nameof(GenerateFullPaths), false); }
+        }
+
+        public int MemorySafetyRulesVersion
+        {
+            set { _store[nameof(MemorySafetyRulesVersion)] = value; }
+            get { return _store.GetOrDefault(nameof(MemorySafetyRulesVersion), 1); }
         }
 
         public string? ModuleAssemblyName
@@ -206,14 +213,24 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             {
                 commandLine.AppendSwitchIfNotNull("/sdkpath:", RuntimeEnvironment.GetRuntimeDirectory());
 
+#if NETFRAMEWORK
+                // This branch only runs in the .NET Framework to .NET Core bridge task, which always
+                // executes on .NET Framework MSBuild where this assembly is deployed as loose files on
+                // disk. Assembly.Location is therefore valid here and unreachable from any single-file or
+                // native AOT host, so it does not need to satisfy the IL3000 single-file analyzer.
                 if (!NoConfig)
                 {
                     var rspFile = Path.Combine(Path.GetDirectoryName(typeof(ManagedCompiler).Assembly.Location)!, "csc.rsp");
-                    if (File.Exists(rspFile))
+                    if (TaskEnvironment.FileExists(rspFile))
                     {
                         commandLine.AppendSwitchIfNotNull("@", rspFile);
                     }
                 }
+#else
+                // IsSdkFrameworkToCoreBridgeTask is only ever true on .NET Framework, so the bridge-only
+                // response file handling above is never reached on .NET Core.
+                Debug.Fail("The SDK framework-to-core bridge task only runs on .NET Framework MSBuild.");
+#endif
             }
 
             commandLine.AppendSwitchIfNotNull("/lib:", AdditionalLibPaths, ",");
@@ -238,6 +255,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             commandLine.AppendPlusOrMinusSwitch("/highentropyva", _store, nameof(HighEntropyVA));
             commandLine.AppendSwitchIfNotNull("/nullable:", Nullable);
             commandLine.AppendWhenTrue("/nosdkpath", _store, nameof(DisableSdkPath));
+            commandLine.AppendSwitchWithInteger("/memorysafetyrulesversion:", _store, nameof(MemorySafetyRulesVersion));
 
             // If not design time build and the globalSessionGuid property was set then add a -globalsessionguid:<guid>
             bool designTime = false;
@@ -409,7 +427,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
 
                         // The alias called "global" is special.  It means that we don't
                         // give it an alias on the command-line.
-                        if (string.Compare("global", trimmedAlias, StringComparison.OrdinalIgnoreCase) == 0)
+                        if (string.Equals("global", trimmedAlias, StringComparison.OrdinalIgnoreCase))
                         {
                             appendGlobalReference(reference.ItemSpec);
                         }

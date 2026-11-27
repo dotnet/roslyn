@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis
                 return true;
             }
 
-            value = default!;
+            value = default;
             return false;
         }
     }

@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Roslyn.Utilities;
 using static Microsoft.CodeAnalysis.CSharp.ConversionKind;
 
 namespace Microsoft.CodeAnalysis.CSharp
@@ -20,7 +19,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             switch (conversionKind)
             {
                 case NoConversion:
-                case UnsetConversionKind:
                     return false;
 
                 case Identity:
@@ -37,6 +35,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ImplicitDynamic:
                 case ImplicitConstant:
                 case ImplicitUserDefined:
+                case Union:
                 case AnonymousFunction:
                 case ConversionKind.MethodGroup:
                 case ConversionKind.FunctionType:
@@ -89,6 +88,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 default:
                     return false;
             }
+        }
+
+        public static bool IsUnionConversion(this ConversionKind conversionKind)
+        {
+            return conversionKind == Union;
         }
 
         public static bool IsPointerConversion(this ConversionKind kind)

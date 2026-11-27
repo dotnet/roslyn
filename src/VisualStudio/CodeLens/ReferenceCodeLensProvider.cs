@@ -67,13 +67,13 @@ internal sealed class ReferenceCodeLensProvider : IAsyncCodeLensDataPointProvide
     {
         if (descriptorContext != null && descriptorContext.ApplicableSpan.HasValue)
         {
-            // we allow all reference points. 
-            // engine will call this for all points our roslyn code lens (reference) tagger tagged.
-            return SpecializedTasks.True;
+            return IsSupportedCodeElement(descriptor.Kind) ? SpecializedTasks.True : SpecializedTasks.False;
         }
 
         return SpecializedTasks.False;
     }
+
+    private static bool IsSupportedCodeElement(CodeElementKinds kinds) => (kinds & CodeElementKinds.Type) != 0 || (kinds & CodeElementKinds.Member) != 0;
 
     public Task<IAsyncCodeLensDataPoint> CreateDataPointAsync(
         CodeLensDescriptor descriptor, CodeLensDescriptorContext descriptorContext, CancellationToken cancellationToken)
@@ -231,6 +231,10 @@ internal sealed class ReferenceCodeLensProvider : IAsyncCodeLensDataPointProvide
                         return FeaturesResources.type;
                     case CodeElementKinds.Property:
                         return FeaturesResources.property_;
+                    case CodeElementKinds.Field:
+                        return FeaturesResources.field;
+                    case CodeElementKinds.Event:
+                        return FeaturesResources.event_;
                     default:
                         // code lens engine will catch and ignore exception
                         // basically not showing data point

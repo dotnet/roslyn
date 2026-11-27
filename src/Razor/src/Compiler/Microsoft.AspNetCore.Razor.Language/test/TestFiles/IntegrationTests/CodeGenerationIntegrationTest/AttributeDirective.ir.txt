@@ -1,0 +1,30 @@
+﻿Document - 
+    RazorCompiledItemAttribute - 
+    NamespaceDeclaration -  - AspNetCoreGeneratedDocument
+        UsingDirective - (1:0,1 [20] ) - global::System
+        UsingDirective - (24:1,1 [40] ) - global::System.Collections.Generic
+        UsingDirective - (67:2,1 [25] ) - global::System.Linq
+        UsingDirective - (95:3,1 [36] ) - global::System.Threading.Tasks
+        UsingDirective - (134:4,1 [38] ) - global::Microsoft.AspNetCore.Mvc
+        UsingDirective - (175:5,1 [48] ) - global::Microsoft.AspNetCore.Mvc.Rendering
+        UsingDirective - (226:6,1 [51] ) - global::Microsoft.AspNetCore.Mvc.ViewFeatures
+        CSharpCode - (11:0,11 [56] AttributeDirective.cshtml)
+            IntermediateToken - (11:0,11 [56] AttributeDirective.cshtml) - CSharp - [System.Runtime.InteropServices.DllImport("user32.dll")]
+        CSharpCode - (80:1,11 [51] AttributeDirective.cshtml)
+            IntermediateToken - (80:1,11 [51] AttributeDirective.cshtml) - CSharp - [assembly: AssemblyTitleAttribute("Some assembly")]
+        CSharpCode - (144:2,11 [66] AttributeDirective.cshtml)
+            IntermediateToken - (144:2,11 [66] AttributeDirective.cshtml) - CSharp - [DllImport("user32.dll", SetLastError=false, ExactSpelling=false)]
+        CSharpCode - (223:3,11 [44] AttributeDirective.cshtml)
+            IntermediateToken - (223:3,11 [44] AttributeDirective.cshtml) - CSharp - [Conditional("DEBUG"), Conditional("TEST1")]
+        RazorSourceChecksumAttribute - 
+        RazorCompiledItemMetadataAttribute - 
+        CreateNewOnMetadataUpdateAttribute - 
+        ClassDeclaration -  - internal sealed - TestFiles_IntegrationTests_CodeGenerationIntegrationTest_AttributeDirective - global::Microsoft.AspNetCore.Mvc.Razor.RazorPage<dynamic> - 
+            MethodDeclaration -  - public async override - global::System.Threading.Tasks.Task - ExecuteAsync
+                HtmlContent - (269:4,0 [13] AttributeDirective.cshtml)
+                    LazyIntermediateToken - (269:4,0 [13] AttributeDirective.cshtml) - Html - \nHello World
+            Inject - 
+            Inject - 
+            Inject - 
+            Inject - 
+            Inject - 

@@ -5473,4 +5473,36 @@ public sealed class BreakpointSpansTests
             """);
 
     #endregion
+
+    [Fact]
+    public void LabeledBreak()
+        => TestSpan(
+            """
+            class C
+            {
+                void Goo()
+                {
+                    outer: while (true)
+                    {
+            $$            [|break outer;|]
+                    }
+                }
+            }
+            """);
+
+    [Fact]
+    public void LabeledContinue()
+        => TestSpan(
+            """
+            class C
+            {
+                void Goo()
+                {
+                    outer: for (int i = 0; i < 10; i++)
+                    {
+            $$            [|continue outer;|]
+                    }
+                }
+            }
+            """);
 }

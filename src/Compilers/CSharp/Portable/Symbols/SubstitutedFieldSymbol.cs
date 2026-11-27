@@ -94,6 +94,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        internal sealed override RequiresUnsafeMode GetRequiresUnsafeMode(ConsList<FieldSymbol> fieldsBeingBound) => _underlyingField.GetRequiresUnsafeMode(fieldsBeingBound);
+
         internal override NamedTypeSymbol FixedImplementationType(PEModuleBuilder emitModule)
         {
             // This occurs rarely, if ever.  The scenario would be a generic struct

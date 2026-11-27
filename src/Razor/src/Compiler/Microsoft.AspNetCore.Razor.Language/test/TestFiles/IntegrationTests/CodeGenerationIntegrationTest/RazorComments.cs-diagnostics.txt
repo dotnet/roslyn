@@ -1,0 +1,9 @@
+﻿// TestFiles/IntegrationTests/CodeGenerationIntegrationTest/RazorComments.cshtml(15,3): error CS0103: The name 'a' does not exist in the current context
+// Write(a
+Diagnostic(ErrorCode.ERR_NameNotInContext, "a").WithArguments("a").WithLocation(15, 3),
+// TestFiles/IntegrationTests/CodeGenerationIntegrationTest/RazorComments.cshtml(15,4): error CS1003: Syntax error, ',' expected
+// Write(a
+Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments(",").WithLocation(15, 4),
+// TestFiles/IntegrationTests/CodeGenerationIntegrationTest/RazorComments.cshtml(15,8): error CS0103: The name 'b' does not exist in the current context
+// b
+Diagnostic(ErrorCode.ERR_NameNotInContext, "b").WithArguments("b").WithLocation(15, 8)

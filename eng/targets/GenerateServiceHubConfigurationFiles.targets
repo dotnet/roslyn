@@ -12,7 +12,6 @@
   <Target Name="CalculateServiceHubConfigurationFiles">
     <ItemGroup>
       <_ServicesWithSuffix Include="@(ServiceHubService)" FileSuffix="Core64" HostIdSuffix="" />
-      <_ServicesWithSuffix Include="@(ServiceHubService)" FileSuffix="Core64S" HostIdSuffix="S" />
 
       <ServiceHubServiceJsonFile Include="$(IntermediateOutputPath)%(_ServicesWithSuffix.Identity)%(_ServicesWithSuffix.FileSuffix).servicehub.service.json" >
         <Content>

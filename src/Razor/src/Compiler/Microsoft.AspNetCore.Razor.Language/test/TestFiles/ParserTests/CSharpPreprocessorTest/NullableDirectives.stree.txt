@@ -1,0 +1,28 @@
+﻿RazorDocument - [0..236)::236 - [@{LF#nullable enableLF#nullable disableLF#nullable restoreLF#nullable enable annotationsLF#nullable disable annotationsLF#nullable restore annotationsLF#nullable enable warningsLF#nullable disable warningsLF#nullable restore warningsLF}]
+    MarkupBlock - [0..236)::236
+        MarkupTextLiteral - [0..0)::0 - [] - Gen<Markup>
+            Marker;[];
+        CSharpCodeBlock - [0..236)::236
+            CSharpStatement - [0..236)::236
+                CSharpTransition - [0..1)::1 - Gen<None>
+                    Transition;[@];
+                CSharpStatementBody - [1..236)::235
+                    RazorMetaCode - [1..2)::1 - Gen<None>
+                        LeftBrace;[{];
+                    CSharpCodeBlock - [2..235)::233
+                        CSharpStatementLiteral - [2..235)::233 - [LF#nullable enableLF#nullable disableLF#nullable restoreLF#nullable enable annotationsLF#nullable disable annotationsLF#nullable restore annotationsLF#nullable enable warningsLF#nullable disable warningsLF#nullable restore warningsLF] - Gen<Stmt>
+                            NewLine;[LF];
+                            CSharpDirective;[#nullable enableLF];
+                            CSharpDirective;[#nullable disableLF];
+                            CSharpDirective;[#nullable restoreLF];
+                            CSharpDirective;[#nullable enable annotationsLF];
+                            CSharpDirective;[#nullable disable annotationsLF];
+                            CSharpDirective;[#nullable restore annotationsLF];
+                            CSharpDirective;[#nullable enable warningsLF];
+                            CSharpDirective;[#nullable disable warningsLF];
+                            CSharpDirective;[#nullable restore warningsLF];
+                    RazorMetaCode - [235..236)::1 - Gen<None>
+                        RightBrace;[}];
+        MarkupTextLiteral - [236..236)::0 - [] - Gen<Markup>
+            Marker;[];
+    EndOfFile;[];

@@ -1,0 +1,24 @@
+﻿Document - 
+    RazorCompiledItemAttribute - 
+    NamespaceDeclaration -  - AspNetCoreGeneratedDocument
+        UsingDirective - (1:0,1 [20] ) - global::System
+        UsingDirective - (24:1,1 [40] ) - global::System.Collections.Generic
+        UsingDirective - (67:2,1 [25] ) - global::System.Linq
+        UsingDirective - (95:3,1 [36] ) - global::System.Threading.Tasks
+        UsingDirective - (134:4,1 [38] ) - global::Microsoft.AspNetCore.Mvc
+        UsingDirective - (175:5,1 [48] ) - global::Microsoft.AspNetCore.Mvc.Rendering
+        UsingDirective - (226:6,1 [51] ) - global::Microsoft.AspNetCore.Mvc.ViewFeatures
+        RazorSourceChecksumAttribute - 
+        RazorCompiledItemMetadataAttribute - 
+        CreateNewOnMetadataUpdateAttribute - 
+        ClassDeclaration -  - internal sealed - TestFiles_IntegrationTests_CodeGenerationIntegrationTest_Implements_Multiple - global::Microsoft.AspNetCore.Mvc.Razor.RazorPage<dynamic> - IDisposable, IEquatable<string>, ICloneable
+            MethodDeclaration -  - public async override - global::System.Threading.Tasks.Task - ExecuteAsync
+                HtmlContent - (81:3,0 [2] Implements_Multiple.cshtml)
+                    LazyIntermediateToken - (81:3,0 [2] Implements_Multiple.cshtml) - Html - \n
+            CSharpCode - (95:4,12 [138] Implements_Multiple.cshtml)
+                LazyIntermediateToken - (95:4,12 [138] Implements_Multiple.cshtml) - CSharp - \n    void IDisposable.Dispose() { }\n\n    bool IEquatable<string>.Equals(string x) => false;\n\n    object ICloneable.Clone() => this;\n
+            Inject - 
+            Inject - 
+            Inject - 
+            Inject - 
+            Inject - 

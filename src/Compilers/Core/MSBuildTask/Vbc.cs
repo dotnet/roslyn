@@ -25,6 +25,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
     /// should be significantly faster with larger projects and have a smaller memory
     /// footprint.
     /// </summary>
+    [MSBuildMultiThreadableTask]
     public class Vbc : ManagedCompiler
     {
         private bool _useHostCompilerIfAvailable;
@@ -277,7 +278,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
 
             if (!SkipCompilerExecution)
             {
-                MovePdbFileIfNecessary(OutputAssembly?.ItemSpec);
+                MovePdbFileIfNecessary();
             }
 
             return !Log.HasLoggedErrors;
@@ -291,10 +292,12 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         /// 
         /// If at some future point VBC.exe offers a /pdbfile switch, this function can be removed.
         /// </summary>
-        internal void MovePdbFileIfNecessary(string? outputAssembly)
+        internal void MovePdbFileIfNecessary()
         {
             // Get the name of the output assembly because the pdb will be written beside it and will have the same name
-            if (RoslynString.IsNullOrEmpty(PdbFile) || String.IsNullOrEmpty(outputAssembly))
+            if (string.IsNullOrEmpty(PdbFile) ||
+                string.IsNullOrEmpty(OutputAssembly?.ItemSpec) ||
+                TaskEnvironment.GetFullPathNoThrow(OutputAssembly!.ItemSpec) is not string outputAssembly)
             {
                 return;
             }
@@ -303,7 +306,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             {
                 string actualPdb = Path.ChangeExtension(outputAssembly, ".pdb"); // This is the pdb that the compiler generated
 
-                FileInfo actualPdbInfo = new FileInfo(actualPdb);
+                FileInfo actualPdbInfo = TaskEnvironment.CreateFileInfo(actualPdb);
 
                 string desiredLocation = PdbFile;
                 if (!desiredLocation.EndsWith(".pdb", StringComparison.OrdinalIgnoreCase))
@@ -311,7 +314,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                     desiredLocation += ".pdb";
                 }
 
-                FileInfo desiredPdbInfo = new FileInfo(desiredLocation);
+                FileInfo desiredPdbInfo = TaskEnvironment.CreateFileInfo(desiredLocation);
 
                 // If the compiler generated a pdb..
                 if (actualPdbInfo.Exists)
@@ -322,11 +325,11 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                         // Delete the existing one if it's already there, as Move would otherwise fail
                         if (desiredPdbInfo.Exists)
                         {
-                            Utilities.DeleteNoThrow(desiredPdbInfo.FullName);
+                            TaskEnvironment.DeleteNoThrow(desiredPdbInfo);
                         }
 
                         // Move the file to where we actually wanted VBC to put it
-                        File.Move(actualPdbInfo.FullName, desiredLocation);
+                        TaskEnvironment.FileMove(actualPdbInfo.FullName, desiredLocation);
                     }
                 }
             }
@@ -352,8 +355,8 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                     string twoLetterPrefix = originalBaseAddress.Substring(0, 2);
 
                     if (
-                         (0 == String.Compare(twoLetterPrefix, "0x", StringComparison.OrdinalIgnoreCase)) ||
-                         (0 == String.Compare(twoLetterPrefix, "&h", StringComparison.OrdinalIgnoreCase))
+                         string.Equals(twoLetterPrefix, "0x", StringComparison.OrdinalIgnoreCase) ||
+                         string.Equals(twoLetterPrefix, "&h", StringComparison.OrdinalIgnoreCase)
                        )
                     {
                         // The incoming string is already in hex format ... we just need to
@@ -390,14 +393,24 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             {
                 commandLine.AppendSwitchIfNotNull("/sdkpath:", RuntimeEnvironment.GetRuntimeDirectory());
 
+#if NETFRAMEWORK
+                // This branch only runs in the .NET Framework to .NET Core bridge task, which always
+                // executes on .NET Framework MSBuild where this assembly is deployed as loose files on
+                // disk. Assembly.Location is therefore valid here and unreachable from any single-file or
+                // native AOT host, so it does not need to satisfy the IL3000 single-file analyzer.
                 if (!NoConfig)
                 {
                     var rspFile = Path.Combine(Path.GetDirectoryName(typeof(ManagedCompiler).Assembly.Location)!, "vbc.rsp");
-                    if (File.Exists(rspFile))
+                    if (TaskEnvironment.FileExists(rspFile))
                     {
                         commandLine.AppendSwitchIfNotNull("@", rspFile);
                     }
                 }
+#else
+                // IsSdkFrameworkToCoreBridgeTask is only ever true on .NET Framework, so the bridge-only
+                // response file handling above is never reached on .NET Core.
+                Debug.Fail("The SDK framework-to-core bridge task only runs on .NET Framework MSBuild.");
+#endif
             }
 
             commandLine.AppendSwitchIfNotNull("/baseaddress:", this.GetBaseAddressInHex());
@@ -459,22 +472,22 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             commandLine.AppendSwitchIfNotNull("/preferreduilang:", this.PreferredUILang);
             commandLine.AppendPlusOrMinusSwitch("/highentropyva", this._store, "HighEntropyVA");
 
-            if (0 == String.Compare(this.VBRuntimePath, this.VBRuntime, StringComparison.OrdinalIgnoreCase))
+            if (string.Equals(this.VBRuntimePath, this.VBRuntime, StringComparison.OrdinalIgnoreCase))
             {
                 commandLine.AppendSwitchIfNotNull("/vbruntime:", this.VBRuntimePath);
             }
             else if (this.VBRuntime != null)
             {
                 string vbRuntimeSwitch = this.VBRuntime;
-                if (0 == String.Compare(vbRuntimeSwitch, "EMBED", StringComparison.OrdinalIgnoreCase))
+                if (string.Equals(vbRuntimeSwitch, "EMBED", StringComparison.OrdinalIgnoreCase))
                 {
                     commandLine.AppendSwitch("/vbruntime*");
                 }
-                else if (0 == String.Compare(vbRuntimeSwitch, "NONE", StringComparison.OrdinalIgnoreCase))
+                else if (string.Equals(vbRuntimeSwitch, "NONE", StringComparison.OrdinalIgnoreCase))
                 {
                     commandLine.AppendSwitch("/vbruntime-");
                 }
-                else if (0 == String.Compare(vbRuntimeSwitch, "DEFAULT", StringComparison.OrdinalIgnoreCase))
+                else if (string.Equals(vbRuntimeSwitch, "DEFAULT", StringComparison.OrdinalIgnoreCase))
                 {
                     commandLine.AppendSwitch("/vbruntime+");
                 }
@@ -489,8 +502,8 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                    (this.Verbosity != null) &&
 
                    (
-                      (0 == String.Compare(this.Verbosity, "quiet", StringComparison.OrdinalIgnoreCase)) ||
-                      (0 == String.Compare(this.Verbosity, "verbose", StringComparison.OrdinalIgnoreCase))
+                      string.Equals(this.Verbosity, "quiet", StringComparison.OrdinalIgnoreCase) ||
+                      string.Equals(this.Verbosity, "verbose", StringComparison.OrdinalIgnoreCase)
                    )
                 )
             {
@@ -511,7 +524,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             commandLine.AppendSwitchIfNotNull("/win32resource:", this.Win32Resource);
 
             // Special case for "Sub Main" (See VSWhidbey 381254)
-            if (0 != String.Compare("Sub Main", this.MainEntryPoint, StringComparison.OrdinalIgnoreCase))
+            if (!string.Equals("Sub Main", this.MainEntryPoint, StringComparison.OrdinalIgnoreCase))
             {
                 commandLine.AppendSwitchIfNotNull("/main:", this.MainEntryPoint);
             }
@@ -616,9 +629,9 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             // Validate that the "Verbosity" parameter is one of "quiet", "normal", or "verbose".
             if (this.Verbosity != null)
             {
-                if ((0 != String.Compare(Verbosity, "normal", StringComparison.OrdinalIgnoreCase)) &&
-                    (0 != String.Compare(Verbosity, "quiet", StringComparison.OrdinalIgnoreCase)) &&
-                    (0 != String.Compare(Verbosity, "verbose", StringComparison.OrdinalIgnoreCase)))
+                if (!string.Equals(Verbosity, "normal", StringComparison.OrdinalIgnoreCase) &&
+                    !string.Equals(Verbosity, "quiet", StringComparison.OrdinalIgnoreCase) &&
+                    !string.Equals(Verbosity, "verbose", StringComparison.OrdinalIgnoreCase))
                 {
                     Log.LogErrorWithCodeFromResources("Vbc_EnumParameterHasInvalidValue", "Verbosity", this.Verbosity, "Quiet, Normal, Verbose");
                     return false;

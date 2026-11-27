@@ -171,13 +171,13 @@ internal sealed class DelegateCacheRewriter
         {
             if ((targetMethod.IsAbstract || targetMethod.IsVirtual) && boundDelegateCreation.Argument is BoundTypeExpression typeExpression)
             {
-                FindTypeParameters(typeExpression.Type, usedTypeParameters);
+                typeExpression.Type.FindTypeParameters(usedTypeParameters);
             }
 
             var delegateType = boundDelegateCreation.Type;
 
-            FindTypeParameters(delegateType, usedTypeParameters);
-            FindTypeParameters(targetMethod, usedTypeParameters);
+            delegateType.FindTypeParameters(usedTypeParameters);
+            targetMethod.FindTypeParameters(usedTypeParameters);
 
             Symbol? enclosingSymbol = currentFunction;
             for (; enclosingSymbol is MethodSymbol enclosingMethod; enclosingSymbol = enclosingSymbol.ContainingSymbol)
@@ -217,27 +217,4 @@ internal sealed class DelegateCacheRewriter
             return false;
         }
     }
-
-    private static void FindTypeParameters(TypeSymbol type, HashSet<TypeParameterSymbol> result)
-        => type.VisitType(s_typeParameterSymbolCollector, result, visitCustomModifiers: true);
-
-    private static void FindTypeParameters(MethodSymbol method, HashSet<TypeParameterSymbol> result)
-    {
-        FindTypeParameters(method.ContainingType, result);
-
-        foreach (var typeArgument in method.TypeArgumentsWithAnnotations)
-        {
-            typeArgument.VisitType(type: null, typeWithAnnotationsPredicate: null, s_typeParameterSymbolCollector, result, visitCustomModifiers: true);
-        }
-    }
-
-    private static readonly Func<TypeSymbol, HashSet<TypeParameterSymbol>, bool, bool> s_typeParameterSymbolCollector = (typeSymbol, result, _) =>
-    {
-        if (typeSymbol is TypeParameterSymbol typeParameter)
-        {
-            result.Add(typeParameter);
-        }
-
-        return false;
-    };
 }

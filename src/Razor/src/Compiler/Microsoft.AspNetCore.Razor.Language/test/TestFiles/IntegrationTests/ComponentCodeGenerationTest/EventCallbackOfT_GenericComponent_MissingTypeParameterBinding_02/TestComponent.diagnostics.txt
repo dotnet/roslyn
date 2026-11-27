@@ -1,0 +1,1 @@
+﻿x:\dir\subdir\Test\TestComponent.cshtml(1,1): Error RZ10001: The type of component 'MyComponent' cannot be inferred based on the values provided. Consider specifying the type arguments directly using the following attributes: 'T', 'T2'.

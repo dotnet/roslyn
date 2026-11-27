@@ -9,6 +9,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CommonLanguageServerProtocol.Framework;
 using Roslyn.LanguageServer.Protocol;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -74,6 +75,55 @@ public sealed class CodeActionResolveTests : AbstractLanguageServerProtocolTests
 
         var actualResolvedAction = await RunGetCodeActionResolveAsync(testLspServer, unresolvedCodeAction);
         AssertJsonEquals(expectedResolvedAction, actualResolvedAction);
+    }
+
+    [Theory, CombinatorialData]
+    public async Task TestCodeActionResolveHandlerAsync_StaleAction(bool mutatingLspWorkspace)
+    {
+        var initialMarkup =
+            """
+            class A
+            {
+                void M()
+                {
+                    {|caret:|}int i = 1;
+                }
+            }
+            """;
+        await using var testLspServer = await CreateTestLspServerAsync(initialMarkup, mutatingLspWorkspace);
+        var titlePath = new string[] { CSharpAnalyzersResources.Use_implicit_type };
+        var caretLocation = testLspServer.GetLocations("caret").Single();
+        var unresolvedCodeAction = CodeActionsTests.CreateCodeAction(
+            title: CSharpAnalyzersResources.Use_implicit_type,
+            kind: CodeActionKind.Refactor,
+            children: [],
+            data: CreateCodeActionResolveData(CSharpAnalyzersResources.Use_implicit_type, caretLocation, titlePath),
+            priority: VSInternalPriorityLevel.Low,
+            groupName: "Roslyn1",
+            applicableRange: new LSP.Range { Start = new Position { Line = 4, Character = 8 }, End = new Position { Line = 4, Character = 11 } },
+            diagnostics: null);
+
+        await testLspServer.OpenDocumentAsync(caretLocation.DocumentUri);
+
+        var typeRange = new LSP.Range { Start = new Position(4, 8), End = new Position(4, 11) };
+        var textEdit = new LSP.TextEdit { Range = typeRange, NewText = "var" };
+        await testLspServer.ReplaceTextAsync(caretLocation.DocumentUri, (textEdit.Range, textEdit.NewText));
+
+        if (!mutatingLspWorkspace)
+        {
+            var document = await testLspServer.GetDocumentAsync(caretLocation.DocumentUri);
+            var sourceText = await document.GetTextAsync(CancellationToken.None);
+            var textChange = ProtocolConversions.TextEditToTextChange(textEdit, sourceText);
+            await testLspServer.TestWorkspace.ChangeDocumentAsync(document.Id, sourceText.WithChanges(textChange));
+        }
+
+        await WaitForWorkspaceOperationsAsync(testLspServer.TestWorkspace);
+
+        var exception = await Assert.ThrowsAsync<StreamJsonRpc.RemoteInvocationException>(async () =>
+            await testLspServer.ExecuteRequestAsync<LSP.CodeAction, LSP.CodeAction>(
+                LSP.Methods.CodeActionResolveName, unresolvedCodeAction, CancellationToken.None));
+        Assert.Equal(LspErrorCodes.ContentModified, exception.ErrorCode);
+        Assert.False(testLspServer.GetServerAccessor().HasShutdownStarted());
     }
 
     [Theory, CombinatorialData]
@@ -212,13 +262,14 @@ public sealed class CodeActionResolveTests : AbstractLanguageServerProtocolTests
                 public static readonly int {|caret:_value|} = 10;
             }
             """;
+        var filePath = TestHelpers.GetRootedPath("C.cs");
         var xmlWorkspace = $"""
             <Workspace>
                 <Project Language='C#' CommonReferences='true' AssemblyName='LinkedProj' Name='CSProj.1'>
-                    <Document FilePath='C:\C.cs'>{originalMarkup}</Document>
+                    <Document FilePath='{filePath}'>{originalMarkup}</Document>
                 </Project>
                 <Project Language='C#' CommonReferences='true' AssemblyName='LinkedProj' Name='CSProj.2'>
-                    <Document IsLinkFile='true' LinkProjectName='CSProj.1' LinkFilePath='C:\C.cs'/>
+                    <Document IsLinkFile='true' LinkProjectName='CSProj.1' LinkFilePath='{filePath}'/>
                 </Project>
             </Workspace>
             """;
@@ -238,7 +289,7 @@ public sealed class CodeActionResolveTests : AbstractLanguageServerProtocolTests
 
         var actualResolvedAction = await RunGetCodeActionResolveAsync(testLspServer, unresolvedCodeAction);
 
-        AssertEx.NotNull(actualResolvedAction.Edit);
+        Assert.NotNull(actualResolvedAction.Edit);
         var textDocumentEdit = (LSP.TextDocumentEdit[])actualResolvedAction.Edit.DocumentChanges!.Value;
         Assert.Single(textDocumentEdit);
         var originalText = await testLspServer.GetDocumentTextAsync(textDocumentEdit[0].TextDocument.DocumentUri);
@@ -251,7 +302,7 @@ public sealed class CodeActionResolveTests : AbstractLanguageServerProtocolTests
 
                 public static int Value => value;
             }
-            """, updatedText);
+            """.ReplaceLineEndings("\r\n"), updatedText.ReplaceLineEndings("\r\n"));
 
     }
 

@@ -95,6 +95,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         internal override bool HasDeclaredRequiredMembers => throw new NotImplementedException();
 
+        internal override bool IsClosed => false;
+        internal override ImmutableArray<NamedTypeSymbol> CandidateClosedSubtypeDefinitions => [];
+
         public override ImmutableArray<Symbol> GetMembers()
         {
             return _children.AsImmutable();
@@ -237,7 +240,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             }
         }
 
-        public override bool MightContainExtensionMethods
+        public override bool MightContainExtensions
         {
             get
             {
@@ -270,6 +273,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         internal override bool HasCodeAnalysisEmbeddedAttribute => false;
 
         internal override bool HasCompilerLoweringPreserveAttribute => false;
+
+        internal override bool IsUnionTypeCore => false;
 
         internal sealed override ManagedKind GetManagedKind(ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo) => ManagedKind.Managed;
 

@@ -6,6 +6,7 @@ using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using Microsoft.CodeAnalysis.FlowAnalysis;
 using Microsoft.CodeAnalysis.Text;
@@ -73,6 +74,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// </summary>
         /// <param name="action">Action to be executed for an <see cref="ISymbol"/>.</param>
         /// <param name="symbolKinds">Action will be executed only if an <see cref="ISymbol"/>'s Kind matches one of the <see cref="SymbolKind"/> values.</param>
+        [OverloadResolutionPriority(-1)]
         public void RegisterSymbolAction(Action<SymbolAnalysisContext> action, params SymbolKind[] symbolKinds)
         {
             this.RegisterSymbolAction(action, symbolKinds.AsImmutableOrEmpty());
@@ -84,7 +86,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// </summary>
         /// <param name="action">Action to be executed for an <see cref="ISymbol"/>.</param>
         /// <param name="symbolKinds">Action will be executed only if an <see cref="ISymbol"/>'s Kind matches one of the <see cref="SymbolKind"/> values.</param>
-        public abstract void RegisterSymbolAction(Action<SymbolAnalysisContext> action, ImmutableArray<SymbolKind> symbolKinds);
+        public abstract void RegisterSymbolAction(Action<SymbolAnalysisContext> action, params ImmutableArray<SymbolKind> symbolKinds);
 
         /// <summary>
         /// Register an action to be executed at start of semantic analysis of an <see cref="ISymbol"/> and its members with an appropriate Kind.
@@ -137,6 +139,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <typeparam name="TLanguageKindEnum">Enum type giving the syntax node kinds of the source language for which the action applies.</typeparam>
         /// <param name="action">Action to be executed at completion of semantic analysis of a <see cref="SyntaxNode"/>.</param>
         /// <param name="syntaxKinds">Action will be executed only if a <see cref="SyntaxNode"/>'s Kind matches one of the syntax kind values.</param>
+        [OverloadResolutionPriority(-1)]
         public void RegisterSyntaxNodeAction<TLanguageKindEnum>(Action<SyntaxNodeAnalysisContext> action, params TLanguageKindEnum[] syntaxKinds) where TLanguageKindEnum : struct
         {
             this.RegisterSyntaxNodeAction(action, syntaxKinds.AsImmutableOrEmpty());
@@ -150,7 +153,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <typeparam name="TLanguageKindEnum">Enum type giving the syntax node kinds of the source language for which the action applies.</typeparam>
         /// <param name="action">Action to be executed at completion of semantic analysis of a <see cref="SyntaxNode"/>.</param>
         /// <param name="syntaxKinds">Action will be executed only if a <see cref="SyntaxNode"/>'s Kind matches one of the syntax kind values.</param>
-        public abstract void RegisterSyntaxNodeAction<TLanguageKindEnum>(Action<SyntaxNodeAnalysisContext> action, ImmutableArray<TLanguageKindEnum> syntaxKinds) where TLanguageKindEnum : struct;
+        public abstract void RegisterSyntaxNodeAction<TLanguageKindEnum>(Action<SyntaxNodeAnalysisContext> action, params ImmutableArray<TLanguageKindEnum> syntaxKinds) where TLanguageKindEnum : struct;
 
         /// <summary>
         /// Register an action to be executed at the start of semantic analysis of a method body or an expression appearing outside a method body.
@@ -180,6 +183,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// </summary>
         /// <param name="action">Action to be executed at completion of semantic analysis of an <see cref="IOperation"/>.</param>
         /// <param name="operationKinds">Action will be executed only if an <see cref="IOperation"/>'s Kind matches one of the operation kind values.</param>
+        [OverloadResolutionPriority(-1)]
         public void RegisterOperationAction(Action<OperationAnalysisContext> action, params OperationKind[] operationKinds)
         {
             this.RegisterOperationAction(action, operationKinds.AsImmutableOrEmpty());
@@ -192,7 +196,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// </summary>
         /// <param name="action">Action to be executed at completion of semantic analysis of an <see cref="IOperation"/>.</param>
         /// <param name="operationKinds">Action will be executed only if an <see cref="IOperation"/>'s Kind matches one of the operation kind values.</param>
-        public virtual void RegisterOperationAction(Action<OperationAnalysisContext> action, ImmutableArray<OperationKind> operationKinds)
+        public virtual void RegisterOperationAction(Action<OperationAnalysisContext> action, params ImmutableArray<OperationKind> operationKinds)
         {
             throw new NotImplementedException();
         }
@@ -368,6 +372,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// </summary>
         /// <param name="action">Action to be executed for an <see cref="ISymbol"/>.</param>
         /// <param name="symbolKinds">Action will be executed only if an <see cref="ISymbol"/>'s Kind matches one of the <see cref="SymbolKind"/> values.</param>
+        [OverloadResolutionPriority(-1)]
         public void RegisterSymbolAction(Action<SymbolAnalysisContext> action, params SymbolKind[] symbolKinds)
         {
             this.RegisterSymbolAction(action, symbolKinds.AsImmutableOrEmpty());
@@ -379,7 +384,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// </summary>
         /// <param name="action">Action to be executed for an <see cref="ISymbol"/>.</param>
         /// <param name="symbolKinds">Action will be executed only if an <see cref="ISymbol"/>'s Kind matches one of the <see cref="SymbolKind"/> values.</param>
-        public abstract void RegisterSymbolAction(Action<SymbolAnalysisContext> action, ImmutableArray<SymbolKind> symbolKinds);
+        public abstract void RegisterSymbolAction(Action<SymbolAnalysisContext> action, params ImmutableArray<SymbolKind> symbolKinds);
 
         /// <summary>
         /// Register an action to be executed at start of semantic analysis of an <see cref="ISymbol"/> and its members with an appropriate Kind.
@@ -453,6 +458,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <typeparam name="TLanguageKindEnum">Enum type giving the syntax node kinds of the source language for which the action applies.</typeparam>
         /// <param name="action">Action to be executed at completion of semantic analysis of a <see cref="SyntaxNode"/>.</param>
         /// <param name="syntaxKinds">Action will be executed only if a <see cref="SyntaxNode"/>'s Kind matches one of the syntax kind values.</param>
+        [OverloadResolutionPriority(-1)]
         public void RegisterSyntaxNodeAction<TLanguageKindEnum>(Action<SyntaxNodeAnalysisContext> action, params TLanguageKindEnum[] syntaxKinds) where TLanguageKindEnum : struct
         {
             this.RegisterSyntaxNodeAction(action, syntaxKinds.AsImmutableOrEmpty());
@@ -466,7 +472,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <typeparam name="TLanguageKindEnum">Enum type giving the syntax node kinds of the source language for which the action applies.</typeparam>
         /// <param name="action">Action to be executed at completion of semantic analysis of a <see cref="SyntaxNode"/>.</param>
         /// <param name="syntaxKinds">Action will be executed only if a <see cref="SyntaxNode"/>'s Kind matches one of the syntax kind values.</param>
-        public abstract void RegisterSyntaxNodeAction<TLanguageKindEnum>(Action<SyntaxNodeAnalysisContext> action, ImmutableArray<TLanguageKindEnum> syntaxKinds) where TLanguageKindEnum : struct;
+        public abstract void RegisterSyntaxNodeAction<TLanguageKindEnum>(Action<SyntaxNodeAnalysisContext> action, params ImmutableArray<TLanguageKindEnum> syntaxKinds) where TLanguageKindEnum : struct;
 
         /// <summary>
         /// Register an action to be executed at completion of semantic analysis of an <see cref="IOperation"/> with an appropriate Kind.
@@ -475,6 +481,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// </summary>
         /// <param name="action">Action to be executed at completion of semantic analysis of an <see cref="IOperation"/>.</param>
         /// <param name="operationKinds">Action will be executed only if an <see cref="IOperation"/>'s Kind matches one of the operation kind values.</param>
+        [OverloadResolutionPriority(-1)]
         public void RegisterOperationAction(Action<OperationAnalysisContext> action, params OperationKind[] operationKinds)
         {
             this.RegisterOperationAction(action, operationKinds.AsImmutableOrEmpty());
@@ -487,7 +494,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// </summary>
         /// <param name="action">Action to be executed at completion of semantic analysis of an <see cref="IOperation"/>.</param>
         /// <param name="operationKinds">Action will be executed only if an <see cref="IOperation"/>'s Kind matches one of the operation kind values.</param>
-        public virtual void RegisterOperationAction(Action<OperationAnalysisContext> action, ImmutableArray<OperationKind> operationKinds)
+        public virtual void RegisterOperationAction(Action<OperationAnalysisContext> action, params ImmutableArray<OperationKind> operationKinds)
         {
             throw new NotImplementedException();
         }
@@ -950,6 +957,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <typeparam name="TLanguageKindEnum">Enum type giving the syntax node kinds of the source language for which the action applies.</typeparam>
         /// <param name="action">Action to be executed at completion of semantic analysis of a <see cref="SyntaxNode"/>.</param>
         /// <param name="syntaxKinds">Action will be executed only if a <see cref="SyntaxNode"/>'s Kind matches one of the syntax kind values.</param>
+        [OverloadResolutionPriority(-1)]
         public void RegisterSyntaxNodeAction<TLanguageKindEnum>(Action<SyntaxNodeAnalysisContext> action, params TLanguageKindEnum[] syntaxKinds) where TLanguageKindEnum : struct
         {
             this.RegisterSyntaxNodeAction(action, syntaxKinds.AsImmutableOrEmpty());
@@ -963,7 +971,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <typeparam name="TLanguageKindEnum">Enum type giving the syntax node kinds of the source language for which the action applies.</typeparam>
         /// <param name="action">Action to be executed at completion of semantic analysis of a <see cref="SyntaxNode"/>.</param>
         /// <param name="syntaxKinds">Action will be executed only if a <see cref="SyntaxNode"/>'s Kind matches one of the syntax kind values.</param>
-        public abstract void RegisterSyntaxNodeAction<TLanguageKindEnum>(Action<SyntaxNodeAnalysisContext> action, ImmutableArray<TLanguageKindEnum> syntaxKinds) where TLanguageKindEnum : struct;
+        public abstract void RegisterSyntaxNodeAction<TLanguageKindEnum>(Action<SyntaxNodeAnalysisContext> action, params ImmutableArray<TLanguageKindEnum> syntaxKinds) where TLanguageKindEnum : struct;
 
         /// <summary>
         /// Register an action to be executed at the start of semantic analysis of a method body or an expression appearing outside a method body.
@@ -987,6 +995,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// </summary>
         /// <param name="action">Action to be executed at completion of semantic analysis of an <see cref="IOperation"/>.</param>
         /// <param name="operationKinds">Action will be executed only if an <see cref="IOperation"/>'s Kind matches one of the operation kind values.</param>
+        [OverloadResolutionPriority(-1)]
         public void RegisterOperationAction(Action<OperationAnalysisContext> action, params OperationKind[] operationKinds)
         {
             this.RegisterOperationAction(action, operationKinds.AsImmutableOrEmpty());
@@ -999,7 +1008,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// </summary>
         /// <param name="action">Action to be executed at completion of semantic analysis of an <see cref="IOperation"/>.</param>
         /// <param name="operationKinds">Action will be executed only if an <see cref="IOperation"/>'s Kind matches one of the operation kind values.</param>
-        public abstract void RegisterOperationAction(Action<OperationAnalysisContext> action, ImmutableArray<OperationKind> operationKinds);
+        public abstract void RegisterOperationAction(Action<OperationAnalysisContext> action, params ImmutableArray<OperationKind> operationKinds);
     }
 
     /// <summary>
@@ -1104,6 +1113,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// </summary>
         /// <param name="action">Action to be executed at completion of semantic analysis of a <see cref="SyntaxNode"/>.</param>
         /// <param name="syntaxKinds">Action will be executed only if a <see cref="SyntaxNode"/>'s Kind matches one of the syntax kind values.</param>
+        [OverloadResolutionPriority(-1)]
         public void RegisterSyntaxNodeAction(Action<SyntaxNodeAnalysisContext> action, params TLanguageKindEnum[] syntaxKinds)
         {
             this.RegisterSyntaxNodeAction(action, syntaxKinds.AsImmutableOrEmpty());
@@ -1116,7 +1126,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// </summary>
         /// <param name="action">Action to be executed at completion of semantic analysis of a <see cref="SyntaxNode"/>.</param>
         /// <param name="syntaxKinds">Action will be executed only if a <see cref="SyntaxNode"/>'s Kind matches one of the syntax kind values.</param>
-        public abstract void RegisterSyntaxNodeAction(Action<SyntaxNodeAnalysisContext> action, ImmutableArray<TLanguageKindEnum> syntaxKinds);
+        public abstract void RegisterSyntaxNodeAction(Action<SyntaxNodeAnalysisContext> action, params ImmutableArray<TLanguageKindEnum> syntaxKinds);
     }
 
     /// <summary>
@@ -1333,6 +1343,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// </summary>
         /// <param name="action">Action to be executed at completion of semantic analysis of an <see cref="IOperation"/>.</param>
         /// <param name="operationKinds">Action will be executed only if an <see cref="IOperation"/>'s Kind matches one of the operation kind values.</param>
+        [OverloadResolutionPriority(-1)]
         public void RegisterOperationAction(Action<OperationAnalysisContext> action, params OperationKind[] operationKinds)
         {
             this.RegisterOperationAction(action, operationKinds.AsImmutableOrEmpty());
@@ -1345,7 +1356,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// </summary>
         /// <param name="action">Action to be executed at completion of semantic analysis of an <see cref="IOperation"/>.</param>
         /// <param name="operationKinds">Action will be executed only if an <see cref="IOperation"/>'s Kind matches one of the operation kind values.</param>
-        public abstract void RegisterOperationAction(Action<OperationAnalysisContext> action, ImmutableArray<OperationKind> operationKinds);
+        public abstract void RegisterOperationAction(Action<OperationAnalysisContext> action, params ImmutableArray<OperationKind> operationKinds);
 
         /// <summary>
         /// Gets a <see cref="ControlFlowGraph"/> for a given <paramref name="operationBlock"/> from this analysis context's <see cref="OperationBlocks"/>.

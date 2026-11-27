@@ -7,6 +7,7 @@ using System.Diagnostics;
 using System.Linq;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
@@ -49,6 +50,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         protected override SourcePropertySymbolBase? BoundAttributesSource => null;
 
         public override IAttributeTargetSymbol AttributesOwner => BackingParameter as IAttributeTargetSymbol ?? this;
+
+        internal override RequiresUnsafeMode GetRequiresUnsafeMode(ConsList<FieldSymbol> fieldsBeingBound) => RequiresUnsafeMode.None;
 
         protected override Location TypeLocation
             => ((ParameterSyntax)CSharpSyntaxNode).Type!.Location;

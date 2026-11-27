@@ -82,6 +82,7 @@ internal class RefInitializationHoister<THoistedSymbol, THoistedAccess>(Syntheti
                          _ => false
                      });
 #pragma warning restore format
+        Debug.Assert(local.RefKind != RefKind.None);
 
         var sideEffects = ArrayBuilder<BoundExpression>.GetInstance();
         bool needsSacrificialEvaluation = false;
@@ -94,7 +95,7 @@ internal class RefInitializationHoister<THoistedSymbol, THoistedAccess>(Syntheti
         if (needsSacrificialEvaluation)
         {
             var type = _typeMap.SubstituteType(local.Type).Type;
-            var sacrificialTemp = _factory.SynthesizedLocal(type, refKind: RefKind.Ref);
+            var sacrificialTemp = _factory.SynthesizedLocal(type, refKind: local.RefKind);
             Debug.Assert(TypeSymbol.Equals(type, replacement.Type, TypeCompareKind.ConsiderEverything2));
             return _factory.Sequence(ImmutableArray.Create(sacrificialTemp), sideEffects.ToImmutableAndFree(), _factory.AssignmentExpression(_factory.Local(sacrificialTemp), replacement, isRef: true));
         }
@@ -281,10 +282,18 @@ internal class RefInitializationHoister<THoistedSymbol, THoistedAccess>(Syntheti
                         // so we track that to ensure that we don't see unexpected cases here.
                         // This is an access to a field of a struct, or parameter or local of a type parameter, both of which happen by reference.
                         // The receiver should be a non-ref local or parameter.
-                        // This is safe to hoist into a proxy as the original local will be accessed directly.
                         Debug.Assert(_reportedError || isFieldAccessOfStruct || expr.Type!.IsTypeParameter());
                         Debug.Assert(_reportedError || expr is BoundLocal { LocalSymbol.RefKind: RefKind.None }
                                                             or BoundParameter { ParameterSymbol.RefKind: RefKind.None });
+
+                        // If we need to hoist a spilled local or parameter, and the original was a parameter or local not by ref, then we just directly
+                        // use the expression as-is. Making another hoisted copy would copy the value incorrectly.
+                        if (expr is BoundLocal { LocalSymbol.RefKind: RefKind.None }
+                                 or BoundParameter { ParameterSymbol.RefKind: RefKind.None })
+                        {
+                            Debug.Assert(assignedLocal.SynthesizedKind == SynthesizedLocalKind.Spill);
+                            return expr;
+                        }
                     }
                     else
                     {

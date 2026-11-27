@@ -137,7 +137,7 @@ public sealed class ExtensionOrderingTests
 
         var actualOrder = codeFixPriorityMap.OrderBy(kvp => kvp.Value).SelectAsArray(kvp => kvp.Key);
 
-        // Ok, now go through and ensure that all the items in teh CodeFixProvider are ordered as the
+        // Ok, now go through and ensure that all the items in the CodeFixProvider are ordered as the
         // ExtensionOrderer would order them.
 
         var currentIndex = expectedOrder.IndexOf(actualOrder[0]);

@@ -15,6 +15,15 @@ internal static class CommonCompletionItem
 {
     public const string DescriptionProperty = nameof(DescriptionProperty);
 
+    /// <summary>
+    /// Mark CompletionItem with this property to indicate the intention of keeping otherwise similar items separated in the completion list.
+    /// By default, when two items with identical texts are added to the completion list, unless both are marked with this property, 
+    /// only one of them will be shown (the one with this property will win, if exist). 
+    /// For example, when there are two items, a property `MyClass.MyMember` and an exntension method `ExtensionClass.MyMember(this MyClass c)`
+    /// they have same display text `MyMember` but we want to show both of them in the completion list.
+    /// </summary>
+    public const string DoNotMergeProperty = nameof(DoNotMergeProperty);
+
     public static CompletionItem Create(
         string displayText,
         string? displayTextSuffix,

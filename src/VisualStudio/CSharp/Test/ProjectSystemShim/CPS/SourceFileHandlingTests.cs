@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -27,7 +27,7 @@ public sealed class SourceFileHandlingTests
     public async Task AddRemoveSourceFile_CPS()
     {
         using var environment = new TestEnvironment();
-        using var project = await CreateCSharpCPSProjectAsync(environment, "project1");
+        await using var project = await CreateCSharpCPSProjectAsync(environment, "project1");
         IEnumerable<Document> GetCurrentDocuments() => environment.Workspace.CurrentSolution.Projects.Single().Documents;
 
         Assert.Empty(GetCurrentDocuments());
@@ -46,7 +46,7 @@ public sealed class SourceFileHandlingTests
     public async Task AddRemoveAdditionalFile_CPS()
     {
         using var environment = new TestEnvironment();
-        using var project = await CreateCSharpCPSProjectAsync(environment, "project1");
+        await using var project = await CreateCSharpCPSProjectAsync(environment, "project1");
         IEnumerable<TextDocument> GetCurrentAdditionalDocuments() => environment.Workspace.CurrentSolution.Projects.Single().AdditionalDocuments;
         Assert.Empty(GetCurrentAdditionalDocuments());
 
@@ -64,7 +64,7 @@ public sealed class SourceFileHandlingTests
     public async Task ReorderSourceFiles_CPS()
     {
         using var environment = new TestEnvironment();
-        using var project = await CreateCSharpCPSProjectAsync(environment, "project1");
+        await using var project = await CreateCSharpCPSProjectAsync(environment, "project1");
         IEnumerable<Document> GetCurrentDocuments() => environment.Workspace.CurrentSolution.Projects.Single().Documents;
         VersionStamp GetVersion() => environment.Workspace.CurrentSolution.Projects.Single().Version;
 
@@ -114,7 +114,7 @@ public sealed class SourceFileHandlingTests
     public async Task ReorderSourceFilesBatch_CPS()
     {
         using var environment = new TestEnvironment();
-        using var project = await CreateCSharpCPSProjectAsync(environment, "project1");
+        await using var project = await CreateCSharpCPSProjectAsync(environment, "project1");
         IEnumerable<Document> GetCurrentDocuments() => environment.Workspace.CurrentSolution.Projects.Single().Documents;
 
         Assert.Empty(GetCurrentDocuments());
@@ -156,7 +156,7 @@ public sealed class SourceFileHandlingTests
     public async Task ReorderSourceFilesBatchWithReAdding_CPS()
     {
         using var environment = new TestEnvironment();
-        using var project = await CreateCSharpCPSProjectAsync(environment, "project1");
+        await using var project = await CreateCSharpCPSProjectAsync(environment, "project1");
         IEnumerable<Document> GetCurrentDocuments() => environment.Workspace.CurrentSolution.Projects.Single().Documents;
 
         Assert.Empty(GetCurrentDocuments());
@@ -210,7 +210,7 @@ public sealed class SourceFileHandlingTests
     public async Task ReorderSourceFilesBatchAddAfterReorder_CPS()
     {
         using var environment = new TestEnvironment();
-        using var project = await CreateCSharpCPSProjectAsync(environment, "project1");
+        await using var project = await CreateCSharpCPSProjectAsync(environment, "project1");
         IEnumerable<Document> GetCurrentDocuments() => environment.Workspace.CurrentSolution.Projects.Single().Documents;
 
         Assert.Empty(GetCurrentDocuments());
@@ -249,7 +249,7 @@ public sealed class SourceFileHandlingTests
     public async Task ReorderSourceFilesBatchRemoveAfterReorder_CPS()
     {
         using var environment = new TestEnvironment();
-        using var project = await CreateCSharpCPSProjectAsync(environment, "project1");
+        await using var project = await CreateCSharpCPSProjectAsync(environment, "project1");
         IEnumerable<Document> GetCurrentDocuments() => environment.Workspace.CurrentSolution.Projects.Single().Documents;
 
         Assert.Empty(GetCurrentDocuments());
@@ -288,7 +288,7 @@ public sealed class SourceFileHandlingTests
     public async Task ReorderSourceFilesExceptions_CPS()
     {
         using var environment = new TestEnvironment();
-        using var project = await CreateCSharpCPSProjectAsync(environment, "project1");
+        await using var project = await CreateCSharpCPSProjectAsync(environment, "project1");
         IEnumerable<Document> GetCurrentDocuments() => environment.Workspace.CurrentSolution.Projects.Single().Documents;
 
         Assert.Empty(GetCurrentDocuments());
@@ -322,7 +322,7 @@ public sealed class SourceFileHandlingTests
     public async Task ReorderSourceFilesBatchExceptions_CPS()
     {
         using var environment = new TestEnvironment();
-        using var project = await CreateCSharpCPSProjectAsync(environment, "project1");
+        await using var project = await CreateCSharpCPSProjectAsync(environment, "project1");
         IEnumerable<Document> GetCurrentDocuments() => environment.Workspace.CurrentSolution.Projects.Single().Documents;
 
         Assert.Empty(GetCurrentDocuments());
@@ -368,7 +368,7 @@ public sealed class SourceFileHandlingTests
     public async Task ReorderSourceFilesBatchExceptionRemoveFile_CPS()
     {
         using var environment = new TestEnvironment();
-        using var project = await CreateCSharpCPSProjectAsync(environment, "project1");
+        await using var project = await CreateCSharpCPSProjectAsync(environment, "project1");
         IEnumerable<Document> GetCurrentDocuments() => environment.Workspace.CurrentSolution.Projects.Single().Documents;
 
         Assert.Empty(GetCurrentDocuments());

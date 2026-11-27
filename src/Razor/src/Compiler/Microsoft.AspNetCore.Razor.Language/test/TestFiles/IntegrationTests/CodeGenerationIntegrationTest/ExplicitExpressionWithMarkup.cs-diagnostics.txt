@@ -1,0 +1,3 @@
+﻿// TestFiles/IntegrationTests/CodeGenerationIntegrationTest/ExplicitExpressionWithMarkup.cshtml(35,18): error CS8917: The delegate type could not be inferred.
+//             item => new global::Microsoft.AspNetCore.Mvc.Razor.HelperResult(async(__razor_template_writer) => {
+Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "=>").WithLocation(35, 18)

@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             => _syntax.AwaitKeyword != default;
 
         public ForEachLoopBinder(Binder enclosing, CommonForEachStatementSyntax syntax)
-            : base(enclosing)
+            : base(enclosing, syntax)
         {
             Debug.Assert(syntax != null);
             _syntax = syntax;
@@ -475,6 +475,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(!IsDisallowedExtensionInOlderLangVer(builder.MoveNextInfo.Method));
             Debug.Assert(!IsDisallowedExtensionInOlderLangVer(builder.CurrentPropertyGetter));
 
+            builder.ReportDiagnosticsIfUnsafeMemberAccess(this, foreachKeyword, _syntax, diagnostics);
+
             // We want to convert from inferredType in the array/string case and builder.ElementType in the enumerator case,
             // but it turns out that these are equivalent (when both are available).
 
@@ -492,7 +494,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (!elementConversionClassification.IsValid)
             {
-                ImmutableArray<MethodSymbol> originalUserDefinedConversions = elementConversionClassification.OriginalUserDefinedConversions;
+                ImmutableArray<MethodSymbol> originalUserDefinedConversions = elementConversionClassification.OriginalUserDefinedOrUnionConversions;
                 if (originalUserDefinedConversions.Length > 1)
                 {
                     diagnostics.Add(ErrorCode.ERR_AmbigUDConv, foreachKeyword.GetLocation(), originalUserDefinedConversions[0], originalUserDefinedConversions[1], inferredType.Type, iterationVariableType);
@@ -511,7 +513,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 createConversionDiagnostics = BindingDiagnosticBag.GetInstance(diagnostics);
             }
 
-            BoundExpression elementConversion = CreateConversion(_syntax, elementPlaceholder, elementConversionClassification, isCast: false, conversionGroupOpt: null, iterationVariableType.Type, createConversionDiagnostics);
+            BoundExpression elementConversion = CreateConversion(_syntax, elementPlaceholder, elementConversionClassification, isCast: false, conversionGroupOpt: null, InConversionGroupFlags.Unspecified, iterationVariableType.Type, createConversionDiagnostics);
 
             if (createConversionDiagnostics.AccumulatesDiagnostics && !createConversionDiagnostics.DiagnosticBag.IsEmptyWithoutResolution)
             {
@@ -567,7 +569,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (currentConversionClassification.IsValid)
             {
                 builder.CurrentPlaceholder = new BoundValuePlaceholder(_syntax, builder.CurrentPropertyGetter.ReturnType).MakeCompilerGenerated();
-                builder.CurrentConversion = CreateConversion(_syntax, builder.CurrentPlaceholder, currentConversionClassification, isCast: false, conversionGroupOpt: null, builder.ElementType, diagnostics);
+                builder.CurrentConversion = CreateConversion(_syntax, builder.CurrentPlaceholder, currentConversionClassification, isCast: false, conversionGroupOpt: null, InConversionGroupFlags.Unspecified, builder.ElementType, diagnostics);
             }
 
             if (IsAsync)
@@ -644,6 +646,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // We're wrapping the collection expression in a (non-synthesized) conversion so that its converted
             // type (i.e. builder.CollectionType) will be available in the binding API.
             Debug.Assert(!collectionConversionClassification.IsUserDefined);
+            Debug.Assert(!collectionConversionClassification.IsUnion);
 
             BoundExpression convertedCollectionExpression = CreateConversion(
                 collectionExpr.Syntax,
@@ -651,6 +654,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 collectionConversionClassification,
                 isCast: false,
                 conversionGroupOpt: null,
+                InConversionGroupFlags.Unspecified,
                 collectionType,
                 diagnostics);
 
@@ -667,6 +671,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     @checked: CheckOverflowAtRuntime,
                     explicitCastInCode: false,
                     conversionGroupOpt: null,
+                    InConversionGroupFlags.Unspecified,
                     ConstantValue.NotAvailable,
                     collectionType);
             }
@@ -713,6 +718,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             return gotInfo;
         }
 
+        internal bool TryGetForEachIterationType(SyntaxNode syntax, TypeSymbol collectionType, bool isAsync, out TypeWithAnnotations iterationType)
+        {
+            BoundExpression collectionExpr = new BoundValuePlaceholder(syntax, collectionType);
+            return GetEnumeratorInfoAndInferCollectionElementType(syntax, syntax, ref collectionExpr, isAsync, isSpread: false, BindingDiagnosticBag.Discarded, out iterationType, out _);
+        }
+
         private BoundExpression UnwrapCollectionExpressionIfNullable(BoundExpression collectionExpr, BindingDiagnosticBag diagnostics)
         {
             TypeSymbol collectionExprType = collectionExpr.Type;
@@ -724,7 +735,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 SyntaxNode exprSyntax = collectionExpr.Syntax;
 
                 MethodSymbol nullableValueGetter = (MethodSymbol)GetSpecialTypeMember(SpecialMember.System_Nullable_T_get_Value, diagnostics, exprSyntax);
-                if ((object)nullableValueGetter != null)
+
+                // 'collectionExprType' can be a constructed error type over a missing 'System.Nullable<T>', for example when
+                // it comes from a compilation without a core library. Adjusting 'get_Value' to such a type is not possible,
+                // so the collection expression is treated as bad instead.
+                if ((object)nullableValueGetter != null &&
+                    ReferenceEquals(collectionExprType.OriginalDefinition, nullableValueGetter.ContainingSymbol))
                 {
                     nullableValueGetter = nullableValueGetter.AsMember((NamedTypeSymbol)collectionExprType);
 
@@ -964,6 +980,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     diagnostics.Add(ErrorCode.ERR_BadDynamicAwaitForEach, collectionSyntax.Location);
                     return EnumeratorResult.FailedAndReported;
+                }
+
+                // Arrays are an error in 'await foreach', like dynamic: no pattern or extension lookup.
+                if (collectionExprType.Kind == SymbolKind.ArrayType && isAsync)
+                {
+                    return EnumeratorResult.FailedNotReported;
                 }
 
                 // The spec specifically lists the collection, enumerator, and element types for arrays and dynamic.
@@ -1211,6 +1233,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         patternDisposeMethod.ParameterRefKinds.All(static refKind => refKind is RefKind.None or RefKind.In or RefKind.RefReadOnlyParameter));
 
                     diagnostics.AddRangeAndFree(patternDiagnostics);
+
                     var argsBuilder = ArrayBuilder<BoundExpression>.GetInstance(patternDisposeMethod.ParameterCount);
                     var argsToParams = default(ImmutableArray<int>);
 
@@ -1238,6 +1261,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
 
                     return;
+                }
+                else
+                {
+                    patternDiagnostics.Free();
                 }
             }
 
@@ -1554,6 +1581,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     // Unconditionally convert here, to match what we set the ConvertedExpression to in the main BoundForEachStatement node.
                     Debug.Assert(!collectionConversion.IsUserDefined);
+                    Debug.Assert(!collectionConversion.IsUnion);
                     collectionExpr = new BoundConversion(
                         collectionExpr.Syntax,
                         collectionExpr,
@@ -1561,6 +1589,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         @checked: CheckOverflowAtRuntime,
                         explicitCastInCode: false,
                         conversionGroupOpt: null,
+                        InConversionGroupFlags.Unspecified,
                         ConstantValue.NotAvailable,
                         result.Parameters[0].Type);
 

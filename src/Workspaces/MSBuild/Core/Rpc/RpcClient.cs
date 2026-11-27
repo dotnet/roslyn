@@ -7,10 +7,10 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.IO.Pipes;
+using System.Linq;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.MSBuild;
@@ -60,7 +60,7 @@ internal sealed class RpcClient
                     Response? response;
                     try
                     {
-                        response = JsonConvert.DeserializeObject<Response>(line);
+                        response = JsonSerializer.Deserialize<Response>(line, JsonSettings.SingleLineSerializerOptions);
                     }
                     catch (JsonException ex)
                     {
@@ -73,9 +73,9 @@ internal sealed class RpcClient
                     Contract.ThrowIfFalse(_outstandingRequests.TryRemove(response.Id, out var completionSourceAndExpectedType), $"We got a response for request ID {response.Id} but that was already completed.");
                     var (completionSource, expectedType) = completionSourceAndExpectedType;
 
-                    if (response.Exception != null)
+                    if (response.ExceptionMessage != null)
                     {
-                        completionSource.SetException(new RemoteInvocationException(response.Exception));
+                        completionSource.SetException(new RemoteInvocationException(response.ExceptionMessage, response.ExceptionStackTrace));
                     }
                     else
                     {
@@ -89,7 +89,7 @@ internal sealed class RpcClient
                             try
                             {
                                 // response.Value might be null if the response was in fact null.
-                                var result = response.Value?.ToObject(expectedType);
+                                var result = response.Value?.Deserialize(expectedType, JsonSettings.SingleLineSerializerOptions);
                                 completionSource.SetResult(result);
                             }
                             catch (Exception ex)
@@ -116,6 +116,7 @@ internal sealed class RpcClient
     public void Shutdown()
     {
         _shutdownTokenSource.Cancel();
+        _stream.Dispose();
     }
 
     public Task InvokeAsync(int targetObject, string methodName, List<object?> parameters, CancellationToken cancellationToken)
@@ -155,10 +156,10 @@ internal sealed class RpcClient
             Id = requestId,
             TargetObject = targetObject,
             Method = methodName,
-            Parameters = parameters.SelectAsArray(static p => p is not null ? JToken.FromObject(p) : JValue.CreateNull())
+            Parameters = [.. parameters.Select(static p => JsonSerializer.SerializeToElement(p, JsonSettings.SingleLineSerializerOptions))]
         };
 
-        var requestJson = JsonConvert.SerializeObject(request, JsonSettings.SingleLineSerializerSettings) + Environment.NewLine;
+        var requestJson = JsonSerializer.Serialize(request, JsonSettings.SingleLineSerializerOptions) + Environment.NewLine;
         var requestJsonBytes = JsonSettings.StreamEncoding.GetBytes(requestJson);
 
         try

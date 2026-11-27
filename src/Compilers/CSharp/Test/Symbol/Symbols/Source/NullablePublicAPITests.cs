@@ -1734,7 +1734,7 @@ class C
 }
 ";
 
-            var featureFlagOff = TestOptions.Regular8.WithFeature("run-nullable-analysis", "never");
+            var featureFlagOff = TestOptions.Regular8.WithFeature(Feature.RunNullableAnalysis, "never");
 
             var comp = CreateCompilation(source, options: WithNullableEnable(), parseOptions: featureFlagOff);
             comp.VerifyDiagnostics(
@@ -1817,7 +1817,7 @@ class C
             var comp = CreateCompilation(source, options: WithNullableEnable(), parseOptions: TestOptions.Regular7_3, skipUsesIsNullable: true);
             comp.VerifyDiagnostics(
                 // error CS8630: Invalid 'NullableContextOptions' value: 'Enable' for C# 7.3. Please use language version '8.0' or greater.
-                Diagnostic(ErrorCode.ERR_NullableOptionNotAvailable).WithArguments("NullableContextOptions", "Enable", "7.3", "8.0").WithLocation(1, 1)
+                Diagnostic(ErrorCode.ERR_CompilationOptionNotAvailable).WithArguments("NullableContextOptions", "Enable", "7.3", "8.0").WithLocation(1, 1)
                 );
 
             var analyzer = new CSharp73ProvidesNullableSemanticInfo_Analyzer();
@@ -2620,7 +2620,7 @@ public class C
 }
 ";
 
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8.WithFeature("run-nullable-analysis", flagState));
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8.WithFeature(Feature.RunNullableAnalysis, flagState));
 
             var syntaxTree = comp.SyntaxTrees[0];
             var root = syntaxTree.GetRoot();
@@ -5178,7 +5178,7 @@ class C
                 }
                 """;
 
-            var comp = CreateCompilation(source, parseOptions: runNullableAnalysisAlways ? TestOptions.RegularPreview.WithFeature("run-nullable-analysis", "always") : TestOptions.RegularPreview);
+            var comp = CreateCompilation(source, parseOptions: runNullableAnalysisAlways ? TestOptions.RegularPreview.WithFeature(Feature.RunNullableAnalysis, "always") : TestOptions.RegularPreview);
             comp.VerifyDiagnostics(
                 // (8,13): warning CS8602: Dereference of a possibly null reference.
                 //             x.ToString();
@@ -5216,7 +5216,7 @@ class C
                 }
                 """;
 
-            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview.WithFeature("run-nullable-analysis", "never"));
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview.WithFeature(Feature.RunNullableAnalysis, "never"));
             comp.VerifyDiagnostics();
 
             test(SemanticModelOptions.None);

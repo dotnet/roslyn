@@ -1,0 +1,19 @@
+{
+    "$schema":  "https://json.schemastore.org/component-detection-manifest.json",
+    "registrations":  [
+                          {
+                              "component":  {
+                                                "type":  "git",
+                                                "git":  {
+                                                            "name":  "microsoft/vscode",
+                                                            "repositoryUrl":  "https://github.com/microsoft/vscode",
+                                                            "commitHash":  "cc66fca78a9c12bb936534b7801ac2aecaf8b8ce"
+                                                        }
+                                            },
+                              "license":  "MIT",
+                              "description":  "The files in the EmbeddedGrammars folder: csharp.tmLanguage, css.tmLanguage.json, html.tmLanguage.json and JavaScript.tmLanguage.json were pulled directly from VSCode. Also, the csharp-language-configuration.json, css-language-configuration.json, html-language-configuration.json and javascript-language-configuration.json files were pulled directly from VSCode.",
+                              "version":  "https://github.com/microsoft/vscode/tree/cc66fca78a9c12bb936534b7801ac2aecaf8b8ce"
+                          }
+                      ],
+    "version":  1
+}

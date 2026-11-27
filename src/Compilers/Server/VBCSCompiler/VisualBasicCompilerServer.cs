@@ -5,33 +5,79 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Globalization;
 using System.IO;
-using System.Linq;
 using System.Threading;
+using Microsoft.CodeAnalysis.CommandLine;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.VisualBasic;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CompilerServer
 {
-    internal sealed class VisualBasicCompilerServer : VisualBasicCompiler
+    internal sealed class VisualBasicCompilerServer : VisualBasicCompiler, ICompilerServerTelemetryProvider
     {
         private readonly Func<string, MetadataReferenceProperties, PortableExecutableReference> _metadataProvider;
+        private readonly CompilationCache? _cache;
+        private readonly CompilationCacheTelemetry _cacheTelemetry = new CompilationCacheTelemetry();
+        private readonly ICompilerServerLogger _logger;
 
-        internal VisualBasicCompilerServer(Func<string, MetadataReferenceProperties, PortableExecutableReference> metadataProvider, string[] args, BuildPaths buildPaths, string? libDirectory, IAnalyzerAssemblyLoader analyzerLoader, GeneratorDriverCache driverCache)
-            : this(metadataProvider, Path.Combine(buildPaths.ClientDirectory, ResponseFileName), args, buildPaths, libDirectory, analyzerLoader, driverCache)
+        internal VisualBasicCompilerServer(Func<string, MetadataReferenceProperties, PortableExecutableReference> metadataProvider, string[] args, BuildPaths buildPaths, string? libDirectory, IAnalyzerAssemblyLoader analyzerLoader, GeneratorDriverCache driverCache, ICompilerServerLogger? logger = null)
+            : this(metadataProvider, Path.Combine(buildPaths.ClientDirectory, ResponseFileName), args, buildPaths, libDirectory, analyzerLoader, driverCache, logger)
         {
         }
 
-        internal VisualBasicCompilerServer(Func<string, MetadataReferenceProperties, PortableExecutableReference> metadataProvider, string? responseFile, string[] args, BuildPaths buildPaths, string? libDirectory, IAnalyzerAssemblyLoader analyzerLoader, GeneratorDriverCache driverCache)
+        internal VisualBasicCompilerServer(Func<string, MetadataReferenceProperties, PortableExecutableReference> metadataProvider, string? responseFile, string[] args, BuildPaths buildPaths, string? libDirectory, IAnalyzerAssemblyLoader analyzerLoader, GeneratorDriverCache driverCache, ICompilerServerLogger? logger = null)
             : base(VisualBasicCommandLineParser.Default, responseFile, args, buildPaths, libDirectory, analyzerLoader, driverCache)
         {
             _metadataProvider = metadataProvider;
+            _logger = logger ?? EmptyCompilerServerLogger.Instance;
+            _cache = CompilationCache.TryCreate(Arguments, _logger);
         }
 
         internal override Func<string, MetadataReferenceProperties, PortableExecutableReference> GetMetadataProvider()
         {
             return _metadataProvider;
+        }
+
+        protected override int? CheckCache(
+            Compilation compilation,
+            ImmutableArray<DiagnosticAnalyzer> analyzers,
+            ImmutableArray<ISourceGenerator> generators,
+            ImmutableArray<AdditionalText> additionalTexts,
+            CancellationToken cancellationToken,
+            out object? cacheState)
+        {
+            var result = CompilationCacheUtilities.CheckCache(_cache, _logger, Arguments, compilation, analyzers, generators, additionalTexts, _cacheTelemetry, cancellationToken, out var deterministicKey, out var hashKey);
+            cacheState = (deterministicKey, hashKey);
+            return result;
+        }
+
+        protected override void OnCompilationStarted()
+        {
+            _cacheTelemetry.StartCompileTimer();
+        }
+
+        protected override void OnCompilationCompleted(bool succeeded)
+        {
+            _cacheTelemetry.StopCompileTimer(succeeded);
+        }
+
+        protected override void OnCompilationSucceeded(
+            Compilation compilation,
+            ImmutableArray<DiagnosticAnalyzer> analyzers,
+            ImmutableArray<ISourceGenerator> generators,
+            ImmutableArray<AdditionalText> additionalTexts,
+            object? cacheState,
+            CancellationToken cancellationToken)
+        {
+            var (deterministicKey, hashKey) = ((string?, string?))cacheState!;
+            CompilationCacheUtilities.OnCompilationSucceeded(_cache, _logger, Arguments, deterministicKey, hashKey, _cacheTelemetry);
+        }
+
+        public IReadOnlyList<BuildTelemetryEvent> GetTelemetryEvents()
+        {
+            return _cacheTelemetry.HasData
+                ? [_cacheTelemetry.ToTelemetryEvent(LanguageNames.VisualBasic)]
+                : [];
         }
     }
 }

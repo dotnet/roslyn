@@ -1,0 +1,57 @@
+﻿RazorDocument - [0..52)::52 - [@{ LF    var count = 1;LF}LF<person age='@@count' />]
+    MarkupBlock - [0..52)::52
+        MarkupTextLiteral - [0..0)::0 - [] - Gen<Markup>
+            Marker;[];
+        CSharpCodeBlock - [0..26)::26
+            CSharpStatement - [0..26)::26
+                CSharpTransition - [0..1)::1 - Gen<None>
+                    Transition;[@];
+                CSharpStatementBody - [1..26)::25
+                    RazorMetaCode - [1..2)::1 - Gen<None>
+                        LeftBrace;[{];
+                    CSharpCodeBlock - [2..25)::23
+                        CSharpStatementLiteral - [2..25)::23 - [ LF    var count = 1;LF] - Gen<Stmt>
+                            Whitespace;[ ];
+                            NewLine;[LF];
+                            Whitespace;[    ];
+                            Keyword;[var];
+                            Whitespace;[ ];
+                            Identifier;[count];
+                            Whitespace;[ ];
+                            Assign;[=];
+                            Whitespace;[ ];
+                            NumericLiteral;[1];
+                            Semicolon;[;];
+                            NewLine;[LF];
+                    RazorMetaCode - [25..26)::1 - Gen<None>
+                        RightBrace;[}];
+        MarkupEphemeralTextLiteral - [26..28)::2 - [LF] - Gen<None>
+            NewLine;[LF];
+        MarkupTagHelperElement - [28..52)::24 - person[SelfClosing] - PersonTagHelper
+            MarkupTagHelperStartTag - [28..52)::24 - [<person age='@@count' />] - Gen<Markup>
+                OpenAngle;[<];
+                Text;[person];
+                MarkupTagHelperAttribute - [35..49)::14 - age - SingleQuotes - Bound - [ age='@@count']
+                    MarkupTextLiteral - [35..36)::1 - [ ] - Gen<Markup>
+                        Whitespace;[ ];
+                    MarkupTextLiteral - [36..39)::3 - [age] - Gen<Markup>
+                        Text;[age];
+                    Equals;[=];
+                    MarkupTextLiteral - [40..41)::1 - ['] - Gen<Markup>
+                        SingleQuote;['];
+                    MarkupTagHelperAttributeValue - [41..48)::7
+                        MarkupBlock - [41..43)::2
+                            CSharpExpressionLiteral - [41..42)::1 - [@] - Gen<Expr>
+                                Transition;[@];
+                            CSharpEphemeralTextLiteral - [42..43)::1 - [@] - Gen<None>
+                                Transition;[@];
+                        CSharpExpressionLiteral - [43..48)::5 - [count] - Gen<None>
+                            Text;[count];
+                    MarkupTextLiteral - [48..49)::1 - ['] - Gen<Markup>
+                        SingleQuote;['];
+                MarkupMiscAttributeContent - [49..50)::1
+                    MarkupTextLiteral - [49..50)::1 - [ ] - Gen<Markup>
+                        Whitespace;[ ];
+                ForwardSlash;[/];
+                CloseAngle;[>];
+    EndOfFile;[];

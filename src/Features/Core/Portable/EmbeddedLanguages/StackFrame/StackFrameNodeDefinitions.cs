@@ -205,16 +205,17 @@ internal abstract class StackFrameGeneratedNameNode : StackFrameSimpleNameNode
 }
 
 /// <summary>
-/// Generated methods follow the pattern Namespace.ClassName.&gt;MethodName$&lt;(), where 
-/// the "$" is optional.
+/// Generated methods follow the pattern Namespace.ClassName.&gt;MethodName$&lt;Suffix(), where 
+/// the "$" and "Suffix" are optional.
 /// </summary>
 internal sealed class StackFrameGeneratedMethodNameNode : StackFrameGeneratedNameNode
 {
     public readonly StackFrameToken LessThanToken;
     public readonly StackFrameToken GreaterThanToken;
     public readonly StackFrameToken? DollarToken;
+    public readonly StackFrameToken? Suffix;
 
-    internal override int ChildCount => 4;
+    internal override int ChildCount => 5;
 
     public StackFrameGeneratedMethodNameNode(StackFrameToken lessThanToken, StackFrameToken identifier, StackFrameToken greaterThanToken, StackFrameToken? dollarToken)
         : base(identifier, StackFrameKind.GeneratedIdentifier)
@@ -238,6 +239,7 @@ internal sealed class StackFrameGeneratedMethodNameNode : StackFrameGeneratedNam
             1 => Identifier,
             2 => GreaterThanToken,
             3 => DollarToken.HasValue ? DollarToken.Value : null,
+            4 => Suffix.HasValue ? Suffix.Value : null,
             _ => throw new InvalidOperationException()
         };
 }
@@ -292,6 +294,44 @@ internal sealed class StackFrameLocalMethodNameNode : StackFrameGeneratedNameNod
         2 => Identifier,
         3 => PipeToken,
         4 => Suffix,
+        _ => throw new InvalidOperationException()
+    };
+}
+
+internal sealed class StackFrameStateMachineMethodNameNode : StackFrameGeneratedNameNode
+{
+    internal readonly StackFrameGeneratedMethodNameNode EncapsulatingMethod;
+    internal readonly StackFrameToken GeneratedNameSeparator;
+    internal readonly StackFrameToken DotToken;
+
+    internal override int ChildCount => 4;
+
+    public StackFrameStateMachineMethodNameNode(
+        StackFrameGeneratedMethodNameNode encapsulatngMethod,
+        StackFrameToken generatedNameSeparator,
+        StackFrameToken dotToken,
+        StackFrameToken stateMachineIdentifier)
+        : base(stateMachineIdentifier, StackFrameKind.StateMachineMethodIdentifier)
+    {
+        Debug.Assert(generatedNameSeparator.Kind == StackFrameKind.GeneratedNameSeparatorToken);
+        Debug.Assert(dotToken.Kind == StackFrameKind.DotToken);
+        Debug.Assert(stateMachineIdentifier.Kind == StackFrameKind.IdentifierToken);
+
+        EncapsulatingMethod = encapsulatngMethod;
+        GeneratedNameSeparator = generatedNameSeparator;
+        DotToken = dotToken;
+    }
+
+    public override void Accept(IStackFrameNodeVisitor visitor)
+        => visitor.Visit(this);
+
+    internal override StackFrameNodeOrToken ChildAt(int index)
+    => index switch
+    {
+        0 => EncapsulatingMethod,
+        1 => GeneratedNameSeparator,
+        2 => DotToken,
+        3 => Identifier,
         _ => throw new InvalidOperationException()
     };
 }

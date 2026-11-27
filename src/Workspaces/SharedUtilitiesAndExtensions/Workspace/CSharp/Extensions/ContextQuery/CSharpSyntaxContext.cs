@@ -549,6 +549,9 @@ internal sealed class CSharpSyntaxContext : SyntaxContext
                 {
                     ClassDeclarationSyntax => AttributeTargets.Class,
                     StructDeclarationSyntax => AttributeTargets.Struct,
+#if !OLDER_ROSLYN
+                    UnionDeclarationSyntax => AttributeTargets.Struct,
+#endif
                     InterfaceDeclarationSyntax => AttributeTargets.Interface,
                     EnumDeclarationSyntax => AttributeTargets.Enum,
                     DelegateDeclarationSyntax => AttributeTargets.Delegate,

@@ -113,9 +113,20 @@ internal class TestDiscovery
         {
             if (isUnix)
             {
+                var dirName = Path.GetFileName(Path.GetDirectoryName(path));
+
                 // Our unix build will build net framework dlls for multi-targeted projects.
                 // These are not valid testing on unix and discovery will throw if we try.
-                return Path.GetFileName(Path.GetDirectoryName(path)) != "net472";
+                if (dirName is "net472")
+                {
+                    return false;
+                }
+
+                // TFMs with OS-specific suffixes (e.g. net10-windows) should not run on unix.
+                if (dirName is not null && dirName.EndsWith("-windows", StringComparison.Ordinal))
+                {
+                    return false;
+                }
             }
 
             return true;

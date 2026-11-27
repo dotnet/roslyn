@@ -15,6 +15,7 @@ Guides for contributing to this project
 - [Documentation for IDE CodeStyle analyzers](Documentation%20for%20IDE%20CodeStyle%20analyzers.md)
 - [IDE Design Process](ide_design_process.md)
 - [Powershell Guidelines](Powershell%20Guidelines.md)
+- [Codespaces](codespaces.md)
 - [Testing for Interactive readiness](Testing%20for%20Interactive%20readiness.md)
 - [Compiler Test Plan](Compiler%20Test%20Plan.md)
 - [IDE Test Plan](IDE%20Test%20Plan.md)

@@ -190,7 +190,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.PublicModel
 
         bool INamedTypeSymbol.IsImplicitClass => UnderlyingNamedTypeSymbol.IsImplicitClass;
 
-        bool INamedTypeSymbol.MightContainExtensionMethods => UnderlyingNamedTypeSymbol.MightContainExtensionMethods;
+        bool INamedTypeSymbol.MightContainExtensionMethods => UnderlyingNamedTypeSymbol.MightContainExtensions;
 
         bool INamedTypeSymbol.IsSerializable => UnderlyingNamedTypeSymbol.IsSerializable;
 
@@ -220,6 +220,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.PublicModel
         string? INamedTypeSymbol.ExtensionMarkerName => UnderlyingNamedTypeSymbol.ExtensionMarkerName;
 
         IParameterSymbol? INamedTypeSymbol.ExtensionParameter => UnderlyingNamedTypeSymbol.ExtensionParameter?.GetPublicSymbol();
+
+        TypeLayout INamedTypeSymbol.TypeLayout => UnderlyingNamedTypeSymbol.Layout;
 #nullable disable
 
         #region ISymbol Members

@@ -33,6 +33,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Test
         }
 
         [Fact]
+        [ValidatePooledObjects(LeakReason = "Tests pass invalid inputs to public API, causing expected ArgumentExceptions that leak pooled objects.")]
         public void AddReferences_Errors()
         {
             var moduleRef = ModuleMetadata.CreateFromImage(TestResources.MetadataTests.NetModule01.ModuleCS00).GetReference();
@@ -75,6 +76,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Test
         }
 
         [Fact]
+        [ValidatePooledObjects(LeakReason = "Tests pass invalid inputs to public API, causing expected ArgumentExceptions that leak pooled objects.")]
         public void WithReferences_Errors()
         {
             var moduleRef = ModuleMetadata.CreateFromImage(TestResources.MetadataTests.NetModule01.ModuleCS00).GetReference();
@@ -115,6 +117,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Test
         }
 
         [Fact]
+        [ValidatePooledObjects(LeakReason = "Tests pass invalid inputs to public API, causing expected ArgumentExceptions that leak pooled objects.")]
         public void AddImports_Errors()
         {
             var options = ScriptOptions.Default;
@@ -136,6 +139,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Test
         }
 
         [Fact]
+        [ValidatePooledObjects(LeakReason = "Tests pass invalid inputs to public API, causing expected ArgumentExceptions that leak pooled objects.")]
         public void WithImports_Errors()
         {
             var options = ScriptOptions.Default;

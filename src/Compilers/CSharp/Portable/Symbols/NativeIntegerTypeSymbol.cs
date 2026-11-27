@@ -55,6 +55,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override bool HasDeclaredRequiredMembers => false;
 
+        internal override bool IsClosed => false;
+
+        internal override ImmutableArray<NamedTypeSymbol> CandidateClosedSubtypeDefinitions => [];
+
         /// <summary>
         /// Certain members from the underlying types are not exposed from the native integer types:
         ///   constructors other than the default parameterless constructor are not supported;
@@ -211,6 +215,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override bool HasCompilerLoweringPreserveAttribute => false;
 
+        internal override bool IsUnionTypeCore => false;
+
 #if !DEBUG
         void Cci.IReference.Dispatch(Cci.MetadataVisitor visitor)
         {
@@ -360,6 +366,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override ImmutableArray<TypeParameterSymbol> TypeParameters => ImmutableArray<TypeParameterSymbol>.Empty;
 
+        public override bool IsAsync => UnderlyingMethod.IsAsync;
+
+        internal sealed override ThreeState RuntimeAsyncMethodGenerationAttributeSetting => throw ExceptionUtilities.Unreachable();
+
         public override ImmutableArray<ParameterSymbol> Parameters
         {
             get
@@ -403,6 +413,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         internal override bool IsNullableAnalysisEnabled() => throw ExceptionUtilities.Unreachable();
+
+        internal override RequiresUnsafeMode GetRequiresUnsafeMode(ConsList<FieldSymbol> fieldsBeingBound) => UnderlyingMethod.GetRequiresUnsafeMode(fieldsBeingBound);
 
         public override bool Equals(Symbol? other, TypeCompareKind comparison) => NativeIntegerTypeSymbol.EqualsHelper(this, other, comparison, symbol => symbol.UnderlyingMethod);
 
@@ -517,6 +529,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public override ImmutableArray<PropertySymbol> ExplicitInterfaceImplementations => ImmutableArray<PropertySymbol>.Empty;
 
         internal override bool MustCallMethodsDirectly => _underlyingProperty.MustCallMethodsDirectly;
+
+        internal override RequiresUnsafeMode GetRequiresUnsafeMode(ConsList<FieldSymbol> fieldsBeingBound) => _underlyingProperty.GetRequiresUnsafeMode(fieldsBeingBound);
 
         public override bool Equals(Symbol? other, TypeCompareKind comparison) => NativeIntegerTypeSymbol.EqualsHelper(this, other, comparison, symbol => symbol._underlyingProperty);
 

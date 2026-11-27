@@ -19,7 +19,7 @@ internal partial class SerializerService
     private sealed class SerializedPortableExecutableReference : PortableExecutableReference, ISupportTemporaryStorage
     {
         private readonly Metadata _metadata;
-        private readonly ImmutableArray<TemporaryStorageStreamHandle> _storageHandles;
+        private readonly ImmutableArray<ITemporaryStorageStreamHandle> _storageHandles;
         private readonly DocumentationProvider _provider;
 
         public IReadOnlyList<ITemporaryStorageStreamHandle> StorageHandles => _storageHandles;
@@ -28,7 +28,7 @@ internal partial class SerializerService
             MetadataReferenceProperties properties,
             string? fullPath,
             Metadata metadata,
-            ImmutableArray<TemporaryStorageStreamHandle> storageHandles,
+            ImmutableArray<ITemporaryStorageStreamHandle> storageHandles,
             DocumentationProvider initialDocumentation)
             : base(properties, fullPath, initialDocumentation)
         {

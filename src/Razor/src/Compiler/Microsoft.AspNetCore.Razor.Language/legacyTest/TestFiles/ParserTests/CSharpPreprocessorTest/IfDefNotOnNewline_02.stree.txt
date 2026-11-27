@@ -1,0 +1,69 @@
+﻿RazorDocument - [0..63)::63 - [@{#if false }LF<div>LF    <p>Content</p>LF</div>LF@{LF#endifLF}]
+    MarkupBlock - [0..63)::63
+        MarkupTextLiteral - [0..0)::0 - [] - Gen<Markup> - SpanEditHandler;Accepts:Any
+            Marker;[];
+        CSharpCodeBlock - [0..13)::13
+            CSharpStatement - [0..13)::13
+                CSharpTransition - [0..1)::1 - Gen<None> - SpanEditHandler;Accepts:None
+                    Transition;[@];
+                CSharpStatementBody - [1..13)::12
+                    RazorMetaCode - [1..2)::1 - Gen<None> - SpanEditHandler;Accepts:None
+                        LeftBrace;[{];
+                    CSharpCodeBlock - [2..12)::10
+                        CSharpStatementLiteral - [2..12)::10 - [#if false ] - Gen<Stmt> - AutoCompleteEditHandler;Accepts:Any,AutoComplete:[<null>];AtEOL
+                            Hash;[#];
+                            Keyword;[if];
+                            Whitespace;[ ];
+                            Keyword;[false];
+                            Whitespace;[ ];
+                    RazorMetaCode - [12..13)::1 - Gen<None> - SpanEditHandler;Accepts:None
+                        RightBrace;[}];
+        MarkupEphemeralTextLiteral - [13..15)::2 - [LF] - Gen<None> - SpanEditHandler;Accepts:Any
+            NewLine;[LF];
+        MarkupElement - [15..48)::33
+            MarkupStartTag - [15..20)::5 - [<div>] - Gen<Markup> - SpanEditHandler;Accepts:Any
+                OpenAngle;[<];
+                Text;[div];
+                CloseAngle;[>];
+            MarkupTextLiteral - [20..26)::6 - [LF    ] - Gen<Markup> - SpanEditHandler;Accepts:Any
+                NewLine;[LF];
+                Whitespace;[    ];
+            MarkupElement - [26..40)::14
+                MarkupStartTag - [26..29)::3 - [<p>] - Gen<Markup> - SpanEditHandler;Accepts:Any
+                    OpenAngle;[<];
+                    Text;[p];
+                    CloseAngle;[>];
+                MarkupTextLiteral - [29..36)::7 - [Content] - Gen<Markup> - SpanEditHandler;Accepts:Any
+                    Text;[Content];
+                MarkupEndTag - [36..40)::4 - [</p>] - Gen<Markup> - SpanEditHandler;Accepts:Any
+                    OpenAngle;[<];
+                    ForwardSlash;[/];
+                    Text;[p];
+                    CloseAngle;[>];
+            MarkupTextLiteral - [40..42)::2 - [LF] - Gen<Markup> - SpanEditHandler;Accepts:Any
+                NewLine;[LF];
+            MarkupEndTag - [42..48)::6 - [</div>] - Gen<Markup> - SpanEditHandler;Accepts:Any
+                OpenAngle;[<];
+                ForwardSlash;[/];
+                Text;[div];
+                CloseAngle;[>];
+        MarkupTextLiteral - [48..50)::2 - [LF] - Gen<Markup> - SpanEditHandler;Accepts:Any
+            NewLine;[LF];
+        CSharpCodeBlock - [50..63)::13
+            CSharpStatement - [50..63)::13
+                CSharpTransition - [50..51)::1 - Gen<None> - SpanEditHandler;Accepts:None
+                    Transition;[@];
+                CSharpStatementBody - [51..63)::12
+                    RazorMetaCode - [51..52)::1 - Gen<None> - SpanEditHandler;Accepts:None
+                        LeftBrace;[{];
+                    CSharpCodeBlock - [52..62)::10
+                        CSharpStatementLiteral - [52..62)::10 - [LF#endifLF] - Gen<Stmt> - AutoCompleteEditHandler;Accepts:Any,AutoComplete:[<null>];AtEOL
+                            NewLine;[LF];
+                            Hash;[#];
+                            Identifier;[endif];
+                            NewLine;[LF];
+                    RazorMetaCode - [62..63)::1 - Gen<None> - SpanEditHandler;Accepts:None
+                        RightBrace;[}];
+        MarkupTextLiteral - [63..63)::0 - [] - Gen<Markup> - SpanEditHandler;Accepts:Any
+            Marker;[];
+    EndOfFile;[];

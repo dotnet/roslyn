@@ -1,0 +1,30 @@
+﻿RazorDocument - [0..44)::44 - [@code{LF}                    @* comment *@LF]
+    MarkupBlock - [0..44)::44
+        MarkupTextLiteral - [0..0)::0 - [] - Gen<Markup> - SpanEditHandler;Accepts:Any
+            Marker;[];
+        CSharpCodeBlock - [0..9)::9
+            RazorDirective - [0..9)::9 - Directive:{code;CodeBlock;Unrestricted}
+                CSharpTransition - [0..1)::1 - Gen<None> - SpanEditHandler;Accepts:None
+                    Transition;[@];
+                RazorDirectiveBody - [1..9)::8
+                    RazorMetaCode - [1..5)::4 - Gen<None> - SpanEditHandler;Accepts:None
+                        Identifier;[code];
+                    CSharpCodeBlock - [5..9)::4
+                        RazorMetaCode - [5..6)::1 - Gen<None> - AutoCompleteEditHandler;Accepts:None,AutoComplete:[<null>];AtEnd
+                            LeftBrace;[{];
+                        CSharpCodeBlock - [6..8)::2
+                            CSharpStatementLiteral - [6..8)::2 - [LF] - Gen<Stmt> - CodeBlockEditHandler;Accepts:Any;CodeBlock
+                                NewLine;[LF];
+                        RazorMetaCode - [8..9)::1 - Gen<None> - SpanEditHandler;Accepts:None
+                            RightBrace;[}];
+        MarkupTextLiteral - [9..29)::20 - [                    ] - Gen<Markup> - SpanEditHandler;Accepts:Any
+            Whitespace;[                    ];
+        RazorComment - [29..42)::13
+            RazorCommentTransition;[@];
+            RazorCommentStar;[*];
+            RazorCommentLiteral;[ comment ];
+            RazorCommentStar;[*];
+            RazorCommentTransition;[@];
+        MarkupTextLiteral - [42..44)::2 - [LF] - Gen<Markup> - SpanEditHandler;Accepts:Any
+            NewLine;[LF];
+    EndOfFile;[];

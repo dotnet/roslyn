@@ -5,8 +5,10 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.ExceptionServices;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Editor.Implementation.Structure;
 using Microsoft.CodeAnalysis.Editor.Shared.Tagging;
 using Microsoft.CodeAnalysis.Editor.Tagging;
@@ -243,6 +245,56 @@ public sealed class AsynchronousTaggerTests
         Assert.Equal(1, tags.Count());
     }
 
+    /// <summary>
+    /// Verifies <see cref="TaggerMainThreadManager"/> completes already-canceled work with a null result rather
+    /// than a canceled task, so no first-chance <see cref="TaskCanceledException"/> is observed.
+    /// </summary>
+    [WpfTheory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task TestMainThreadManagerCanceledWorkCompletesWithoutThrowing(bool runFromBackgroundThread)
+    {
+        using var workspace = EditorTestWorkspace.CreateCSharp("class C { }");
+
+        WpfTestRunner.RequireWpfFact($"{nameof(AsynchronousTaggerTests)}.{nameof(TestMainThreadManagerCanceledWorkCompletesWithoutThrowing)} exercises {nameof(TaggerMainThreadManager)}");
+
+        var mainThreadManager = workspace.GetService<TaggerHost>().TaggerMainThreadManager;
+
+        var actionRan = false;
+        (bool, SnapshotPoint?, OneOrMany<SnapshotSpan>)? GetTaggerUIData()
+        {
+            actionRan = true;
+            return null;
+        }
+
+        using var cancellationTokenSource = new CancellationTokenSource();
+        cancellationTokenSource.Cancel();
+
+        ExceptionDispatchInfo? firstChanceCancellationException = null;
+        void FirstChanceExceptionHandler(object? sender, FirstChanceExceptionEventArgs e)
+        {
+            if (e.Exception is OperationCanceledException)
+                firstChanceCancellationException ??= ExceptionDispatchInfo.Capture(e.Exception);
+        }
+
+        AppDomain.CurrentDomain.FirstChanceException += FirstChanceExceptionHandler;
+        try
+        {
+            var result = runFromBackgroundThread
+                ? await Task.Run(async () => await mainThreadManager.PerformWorkOnMainThreadAsync(GetTaggerUIData, cancellationTokenSource.Token))
+                : await mainThreadManager.PerformWorkOnMainThreadAsync(GetTaggerUIData, cancellationTokenSource.Token);
+
+            Assert.Null(result);
+        }
+        finally
+        {
+            AppDomain.CurrentDomain.FirstChanceException -= FirstChanceExceptionHandler;
+        }
+
+        Assert.False(actionRan);
+        firstChanceCancellationException?.Throw();
+    }
+
     private sealed class TestTaggerProvider(
         TaggerHost taggerHost,
         Func<TaggerContext<TextMarkerTag>, DocumentSnapshotSpan, IEnumerable<TagSpan<TextMarkerTag>>> callback,
@@ -259,13 +311,11 @@ public sealed class AsynchronousTaggerTests
         protected override ITaggerEventSource CreateEventSource(ITextView? textView, ITextBuffer subjectBuffer)
             => eventSource;
 
-        protected override Task ProduceTagsAsync(
+        protected override async Task ProduceTagsAsync(
             TaggerContext<TextMarkerTag> context, DocumentSnapshotSpan snapshotSpan, int? caretPosition, CancellationToken cancellationToken)
         {
             foreach (var tag in callback(context, snapshotSpan))
                 context.AddTag(tag);
-
-            return Task.CompletedTask;
         }
 
         protected override bool TagEquals(TextMarkerTag tag1, TextMarkerTag tag2)

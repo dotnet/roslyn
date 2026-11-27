@@ -229,7 +229,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Get
                 CheckDefinitionInvariant()
                 Dim layout = AdaptedNamedTypeSymbol.Layout
-                Return CUShort(layout.Alignment)
+                Return layout.PackingSize
             End Get
         End Property
 

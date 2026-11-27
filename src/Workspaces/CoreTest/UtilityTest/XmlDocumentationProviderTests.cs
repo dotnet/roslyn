@@ -39,7 +39,7 @@ public sealed class XmlDocumentationProviderTests
 
         // Verify we can parse it and it contains a single node
         var xml = compilation.GetTypeByMetadataName("Microsoft.CodeAnalysis.AdditionalTextFile")!.GetDocumentationCommentXml();
-        AssertEx.NotNull(xml);
+        Assert.NotNull(xml);
         var xmlDocument = XDocument.Parse(xml);
         Assert.Equal("member", xmlDocument.Root!.Name.LocalName);
         Assert.Equal("T:Microsoft.CodeAnalysis.AdditionalTextFile", xmlDocument.Root!.Attribute("name")!.Value);

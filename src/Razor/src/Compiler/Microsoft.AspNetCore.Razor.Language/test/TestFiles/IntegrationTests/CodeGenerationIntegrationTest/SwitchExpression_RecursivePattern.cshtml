@@ -1,0 +1,12 @@
+﻿@switch (DateTimeOffset.UtcNow)
+{
+    case { Year: 2022 }:
+        <strong>Property expressions are supported by the razor syntax in the year 2022.</strong>
+        break;
+    case [{ Test: true }]:
+        break;
+    case ({ Test: { Nested.Pattern: global::Qualifier } }):
+        break;
+    case global::Test:
+        break;
+}

@@ -16,6 +16,7 @@ using Microsoft.VisualStudio.IntegrationTest.Utilities.Input;
 using Microsoft.VisualStudio.LanguageServices.Implementation.GenerateType;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
+using Xunit;
 
 namespace Roslyn.VisualStudio.NewIntegrationTests.InProcess;
 
@@ -33,7 +34,7 @@ internal sealed partial class GenerateTypeDialogInProcess
         await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
         var dialog = await TryGetDialogAsync(cancellationToken);
-        AssertEx.NotNull(dialog);
+        Assert.NotNull(dialog);
 
         Contract.ThrowIfFalse(await buttonAccessor(dialog).SimulateClickAsync(JoinableTaskFactory));
     }
@@ -82,7 +83,7 @@ internal sealed partial class GenerateTypeDialogInProcess
         await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
         var dialog = await TryGetDialogAsync(cancellationToken);
-        AssertEx.NotNull(dialog);
+        Assert.NotNull(dialog);
 
         Contract.ThrowIfFalse(await dialog.GetTestAccessor().AccessListComboBox.SimulateSelectItemAsync(JoinableTaskFactory, accessibility, cancellationToken));
     }
@@ -92,7 +93,7 @@ internal sealed partial class GenerateTypeDialogInProcess
         await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
         var dialog = await TryGetDialogAsync(cancellationToken);
-        AssertEx.NotNull(dialog);
+        Assert.NotNull(dialog);
 
         Contract.ThrowIfFalse(await dialog.GetTestAccessor().KindListComboBox.SimulateSelectItemAsync(JoinableTaskFactory, kind, cancellationToken));
     }
@@ -102,7 +103,7 @@ internal sealed partial class GenerateTypeDialogInProcess
         await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
         var dialog = await TryGetDialogAsync(cancellationToken);
-        AssertEx.NotNull(dialog);
+        Assert.NotNull(dialog);
 
         Contract.ThrowIfFalse(await dialog.GetTestAccessor().ProjectListComboBox.SimulateSelectItemAsync(JoinableTaskFactory, projectName, cancellationToken));
     }
@@ -112,7 +113,7 @@ internal sealed partial class GenerateTypeDialogInProcess
         await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
         var dialog = await TryGetDialogAsync(cancellationToken);
-        AssertEx.NotNull(dialog);
+        Assert.NotNull(dialog);
 
         Contract.ThrowIfFalse(await dialog.GetTestAccessor().CreateNewFileRadioButton.SimulateClickAsync(JoinableTaskFactory));
         Contract.ThrowIfFalse(await dialog.GetTestAccessor().CreateNewFileComboBox.SimulateSelectItemAsync(JoinableTaskFactory, newFileName, mustExist: false, cancellationToken));
@@ -141,7 +142,7 @@ internal sealed partial class GenerateTypeDialogInProcess
         await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
         var dialog = await TryGetDialogAsync(cancellationToken);
-        AssertEx.NotNull(dialog);
+        Assert.NotNull(dialog);
 
         return dialog.GetTestAccessor().CreateNewFileComboBox.Items.Cast<string>().ToImmutableArray();
     }

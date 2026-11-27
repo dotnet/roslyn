@@ -458,7 +458,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata
                 string fileActual = Path.Combine(Path.GetTempPath(), "roslyn_winmd_dump.actual.txt");
                 File.WriteAllText(fileExpected, expected);
                 File.WriteAllText(fileActual, actual);
-                Assert.True(false, "Dump is different. To investigate compare files:\r\n\"" + fileExpected + "\" \"" + fileActual + "\"");
+                Assert.Fail("Dump is different. To investigate compare files:\r\n\"" + fileExpected + "\" \"" + fileActual + "\"");
             }
         }
 

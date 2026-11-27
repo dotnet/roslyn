@@ -23,7 +23,7 @@ namespace IdeBenchmarks.Lsp
         private IGlobalOptionService? _globalOptionService;
         private LSP.CompletionParams? _completionParams;
 
-        public LspCompletionBenchmarks() : base(null)
+        public LspCompletionBenchmarks() : base(NoOpTestOutputHelper.Instance)
         {
         }
 

@@ -13,6 +13,9 @@ namespace Microsoft.CodeAnalysis.Text
     {
         private const int LargeObjectHeapLimitInChars = 40 * 1024; // 40KB
 
+        // Note: CodePagesEncodingProvider.Instance may be null on .NET Framework.
+        private static volatile bool s_encodingProviderRegistered = CodePagesEncodingProvider.Instance == null;
+
         /// <summary>
         /// Encoding to use when there is no byte order mark (BOM) on the stream. This encoder may throw a <see cref="DecoderFallbackException"/>
         /// if the stream contains invalid UTF-8 bytes.
@@ -29,23 +32,39 @@ namespace Microsoft.CodeAnalysis.Text
         /// </summary>
         internal static Encoding CreateFallbackEncoding()
         {
-            try
+            EnsureEncodingProviderRegistered();
+
+            // Try to get the default ANSI code page in the operating system's
+            // regional and language settings, and fall back to 1252 otherwise
+            return TryGetCodePageEncoding(0)
+                ?? TryGetCodePageEncoding(1252)
+                ?? Encoding.GetEncoding(name: "Latin1");
+        }
+
+        private static void EnsureEncodingProviderRegistered()
+        {
+            if (!s_encodingProviderRegistered)
             {
-                if (CodePagesEncodingProvider.Instance != null)
+                if (CodePagesEncodingProvider.Instance is { } provider)
                 {
-                    // If we're running on CoreCLR we have to register the CodePagesEncodingProvider
-                    // first
-                    Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
+                    Encoding.RegisterProvider(provider);
                 }
 
-                // Try to get the default ANSI code page in the operating system's
-                // regional and language settings, and fall back to 1252 otherwise
-                return Encoding.GetEncoding(0)
-                    ?? Encoding.GetEncoding(1252);
+                s_encodingProviderRegistered = true;
             }
-            catch (NotSupportedException)
+        }
+
+        internal static Encoding? TryGetCodePageEncoding(int codePage)
+        {
+            EnsureEncodingProviderRegistered();
+
+            try
             {
-                return Encoding.GetEncoding(name: "Latin1");
+                return Encoding.GetEncoding(codePage);
+            }
+            catch (Exception)
+            {
+                return null;
             }
         }
 

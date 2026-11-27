@@ -9,6 +9,7 @@ using static SyntaxFactory;
 internal static class CSharpSyntaxTokens
 {
     public static readonly SyntaxToken AbstractKeyword = Token(SyntaxKind.AbstractKeyword);
+    public static readonly SyntaxToken AsKeyword = Token(SyntaxKind.AsKeyword);
     public static readonly SyntaxToken AssemblyKeyword = Token(SyntaxKind.AssemblyKeyword);
     public static readonly SyntaxToken AsyncKeyword = Token(SyntaxKind.AsyncKeyword);
     public static readonly SyntaxToken AwaitKeyword = Token(SyntaxKind.AwaitKeyword);
@@ -20,6 +21,9 @@ internal static class CSharpSyntaxTokens
     public static readonly SyntaxToken CheckedKeyword = Token(SyntaxKind.CheckedKeyword);
     public static readonly SyntaxToken CloseBraceToken = Token(SyntaxKind.CloseBraceToken);
     public static readonly SyntaxToken CloseBracketToken = Token(SyntaxKind.CloseBracketToken);
+#if !OLDER_ROSLYN
+    public static readonly SyntaxToken ClosedKeyword = Token(SyntaxKind.ClosedKeyword);
+#endif
     public static readonly SyntaxToken CloseParenToken = Token(SyntaxKind.CloseParenToken);
     public static readonly SyntaxToken ColonToken = Token(SyntaxKind.ColonToken);
     public static readonly SyntaxToken CommaToken = Token(SyntaxKind.CommaToken);
@@ -32,7 +36,7 @@ internal static class CSharpSyntaxTokens
     public static readonly SyntaxToken EndOfDocumentationCommentToken = Token(SyntaxKind.EndOfDocumentationCommentToken);
     public static readonly SyntaxToken EqualsToken = Token(SyntaxKind.EqualsToken);
     public static readonly SyntaxToken ExplicitKeyword = Token(SyntaxKind.ExplicitKeyword);
-#if !ROSLYN_4_12_OR_LOWER
+#if !OLDER_ROSLYN
     public static readonly SyntaxToken ExtensionKeyword = Token(SyntaxKind.ExtensionKeyword);
 #endif
     public static readonly SyntaxToken ExternKeyword = Token(SyntaxKind.ExternKeyword);

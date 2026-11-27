@@ -12,6 +12,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -26,6 +27,7 @@ internal class TestSourceGeneratedDocumentSpanMappingService() : ISourceGenerate
 {
     public bool DidMapSpans { get; private set; }
     public bool DidMapEdits { get; private set; }
+    public bool Enabled { get; set; } = true;
 
     private readonly Dictionary<string, string> _mappedFileNames = [];
 
@@ -36,7 +38,7 @@ internal class TestSourceGeneratedDocumentSpanMappingService() : ISourceGenerate
 
     public bool CanMapSpans(SourceGeneratedDocument sourceGeneratedDocument)
     {
-        return sourceGeneratedDocument.IsRazorSourceGeneratedDocument();
+        return Enabled && sourceGeneratedDocument.IsRazorSourceGeneratedDocument();
     }
 
     public async Task<ImmutableArray<MappedTextChange>> GetMappedTextChangesAsync(SourceGeneratedDocument oldDocument, SourceGeneratedDocument newDocument, CancellationToken cancellationToken)

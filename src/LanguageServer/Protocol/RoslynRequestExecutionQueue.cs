@@ -19,8 +19,8 @@ internal sealed class RoslynRequestExecutionQueue : RequestExecutionQueue<Reques
     /// </summary>
     private CultureInfo? _cultureInfo;
 
-    public RoslynRequestExecutionQueue(AbstractLanguageServer<RequestContext> languageServer, ILspLogger logger, AbstractHandlerProvider handlerProvider)
-        : base(languageServer, logger, handlerProvider)
+    public RoslynRequestExecutionQueue(AbstractLanguageServer<RequestContext> languageServer, AbstractHandlerProvider handlerProvider)
+        : base(languageServer, handlerProvider)
     {
         _initializeManager = languageServer.GetLspServices().GetRequiredService<IInitializeManager>();
     }
@@ -41,7 +41,9 @@ internal sealed class RoslynRequestExecutionQueue : RequestExecutionQueue<Reques
     protected internal override void BeforeRequest<TRequest>(TRequest request)
     {
         // Update the locale for this request to the desired LSP locale.
-        CultureInfo.CurrentUICulture = GetCultureForRequest();
+        var culture = GetCultureForRequest();
+        if (!ReferenceEquals(CultureInfo.CurrentUICulture, culture))
+            CultureInfo.CurrentUICulture = culture;
     }
 
     /// <summary>

@@ -301,7 +301,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Throw ExceptionUtilities.Unreachable
         End Function
 
-        Friend Overrides Function IsMetadataNewSlot(Optional ignoreInterfaceImplementationChanges As Boolean = False) As Boolean
+        Friend Overrides Function IsMetadataNewSlot() As Boolean
             Throw ExceptionUtilities.Unreachable
         End Function
 

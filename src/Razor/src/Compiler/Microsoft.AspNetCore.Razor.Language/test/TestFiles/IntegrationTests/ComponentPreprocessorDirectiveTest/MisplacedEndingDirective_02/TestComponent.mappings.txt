@@ -1,0 +1,11 @@
+﻿Source Location: (2:0,2 [32] x:\dir\subdir\Test\TestComponent.razor)
+|
+#if false
+}
+@{ Test #endif }|
+Generated Location: (734:21,0 [32] )
+|
+#if false
+}
+@{ Test #endif }|
+

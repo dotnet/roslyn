@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         protected abstract TypeSyntax TypeSyntax { get; }
 
-        protected abstract SyntaxTokenList ModifiersTokenList { get; }
+        internal abstract SyntaxTokenList ModifiersTokenList { get; }
 
         protected void TypeChecks(TypeSymbol type, BindingDiagnosticBag diagnostics)
         {
@@ -137,6 +137,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     ref attributes,
                     this.DeclaringCompilation.TrySynthesizeAttribute(WellKnownMember.System_Runtime_CompilerServices_RequiredMemberAttribute__ctor));
             }
+
+            if (GetRequiresUnsafeMode(ConsList<FieldSymbol>.Empty) == RequiresUnsafeMode.Explicit)
+            {
+                AddSynthesizedAttribute(ref attributes, moduleBuilder.TrySynthesizeRequiresUnsafeAttribute());
+            }
+        }
+
+        internal override void AfterAddingTypeMembersChecks(ConversionsBase conversions, BindingDiagnosticBag diagnostics)
+        {
+            if (GetRequiresUnsafeMode(ConsList<FieldSymbol>.Empty) == RequiresUnsafeMode.Explicit)
+            {
+                DeclaringCompilation.EnsureRequiresUnsafeAttributeExists(diagnostics,
+                    ModifiersTokenList.GetModifierLocation(SyntaxKind.UnsafeKeyword, ErrorLocation),
+                    modifyCompilation: true);
+            }
+
+            base.AfterAddingTypeMembersChecks(conversions, diagnostics);
         }
 
         internal override void PostDecodeWellKnownAttributes(ImmutableArray<CSharpAttributeData> boundAttributes, ImmutableArray<AttributeSyntax> allAttributeSyntaxNodes, BindingDiagnosticBag diagnostics, AttributeLocation symbolPart, WellKnownAttributeData decodedData)
@@ -173,6 +190,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        internal sealed override RequiresUnsafeMode GetRequiresUnsafeMode(ConsList<FieldSymbol> fieldsBeingBound)
+        {
+            if (ContainingModule.UseUpdatedMemorySafetyRules)
+            {
+                return HasUnsafeModifier &&
+                    AssociatedSymbol is null &&
+                    !IsConst
+                        ? RequiresUnsafeMode.Explicit
+                        : RequiresUnsafeMode.None;
+            }
+
+            return !IsFixedSizeBuffer && GetFieldType(fieldsBeingBound).Type.ContainsPointerOrFunctionPointer()
+                ? RequiresUnsafeMode.Implicit : RequiresUnsafeMode.None;
+        }
+
         internal static DeclarationModifiers MakeModifiers(NamedTypeSymbol containingType, SyntaxToken firstIdentifier, SyntaxTokenList modifiers, bool isRefField, BindingDiagnosticBag diagnostics, out bool modifierErrors)
         {
             bool isInterface = containingType.IsInterface;
@@ -188,12 +220,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 DeclarationModifiers.Volatile |
                 DeclarationModifiers.Fixed |
                 DeclarationModifiers.Unsafe |
+                DeclarationModifiers.Safe |
                 DeclarationModifiers.Abstract |
                 DeclarationModifiers.Required; // Some of these are filtered out later, when illegal, for better error messages.
 
             var errorLocation = new SourceLocation(firstIdentifier);
             DeclarationModifiers result = ModifierUtils.MakeAndCheckNonTypeMemberModifiers(
-                isOrdinaryMethod: false, isForInterfaceMember: isInterface,
+                isForInterfaceMember: isInterface,
                 modifiers, defaultAccess, allowedModifiers, errorLocation, diagnostics, out modifierErrors, out _);
 
             if ((result & DeclarationModifiers.Abstract) != 0)
@@ -217,7 +250,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 reportBadMemberFlagIfAny(result, DeclarationModifiers.Required, diagnostics, errorLocation);
 
                 result &= ~(DeclarationModifiers.Static | DeclarationModifiers.ReadOnly | DeclarationModifiers.Const | DeclarationModifiers.Volatile | DeclarationModifiers.Required);
-                Debug.Assert((result & ~(DeclarationModifiers.AccessibilityMask | DeclarationModifiers.Fixed | DeclarationModifiers.Unsafe | DeclarationModifiers.New)) == 0);
+                Debug.Assert((result & ~(DeclarationModifiers.AccessibilityMask | DeclarationModifiers.Fixed | DeclarationModifiers.Unsafe | DeclarationModifiers.Safe | DeclarationModifiers.New)) == 0);
             }
 
             if ((result & DeclarationModifiers.Const) != 0)
@@ -231,6 +264,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 reportBadMemberFlagIfAny(result, DeclarationModifiers.ReadOnly, diagnostics, errorLocation);
                 reportBadMemberFlagIfAny(result, DeclarationModifiers.Volatile, diagnostics, errorLocation);
                 reportBadMemberFlagIfAny(result, DeclarationModifiers.Unsafe, diagnostics, errorLocation);
+                reportBadMemberFlagIfAny(result, DeclarationModifiers.Safe, diagnostics, errorLocation);
 
                 if (reportBadMemberFlagIfAny(result, DeclarationModifiers.Required, diagnostics, errorLocation))
                 {
@@ -253,7 +287,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // to determine whether or not unsafe is allowed.  Since this symbol and the containing type are
                 // in the same compilation, it won't make a difference.  We do, however, have to pass the error
                 // location explicitly.
-                containingType.CheckUnsafeModifier(result, errorLocation, diagnostics);
+                containingType.CheckUnsafeOptionForModifiers(result, diagnostics, modifiers, errorLocation);
             }
 
             if (isRefField)
@@ -344,7 +378,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        private TypeAndRefKind _lazyTypeAndRefKind;
+        private volatile TypeAndRefKind _lazyTypeAndRefKind;
 
         // Non-zero if the type of the field has been inferred from the type of its initializer expression
         // and the errors of binding the initializer have been or are being reported to compilation diagnostics.
@@ -375,7 +409,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                     if (!ContainingAssembly.RuntimeSupportsDefaultInterfaceImplementation)
                     {
-                        diagnostics.Add(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, ErrorLocation);
+                        SourceMemberMethodSymbol.ReportLackOfRuntimeSupportForStaticMembersInInterfaces(declarator, DeclaredAccessibility, diagnostics, ErrorLocation);
                     }
                 }
                 else
@@ -393,7 +427,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        protected sealed override SyntaxTokenList ModifiersTokenList
+        internal sealed override SyntaxTokenList ModifiersTokenList
         {
             get
             {
@@ -589,15 +623,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         diagnostics.Add(ErrorCode.ERR_IllegalFixedType, loc);
                     }
 
-                    if (!binder.InUnsafeRegion)
-                    {
-                        diagnosticsForFirstDeclarator.Add(ErrorCode.ERR_UnsafeNeeded, declarator.Location);
-                    }
+                    binder.ReportUnsafeIfNotAllowed(declarator.Location, diagnosticsForFirstDeclarator, disallowedUnder: MemorySafetyRulesVersion.Version1);
                 }
             }
 
             // update the lazyType only if it contains value last seen by the current thread:
+#pragma warning disable CS0420 // A reference to a volatile field will not be treated as volatile
             if (Interlocked.CompareExchange(ref _lazyTypeAndRefKind, new TypeAndRefKind(refKind, type.WithModifiers(this.RequiredCustomModifiers)), null) == null)
+#pragma warning restore CS0420 // A reference to a volatile field will not be treated as volatile
             {
                 TypeChecks(type.Type, diagnostics);
 

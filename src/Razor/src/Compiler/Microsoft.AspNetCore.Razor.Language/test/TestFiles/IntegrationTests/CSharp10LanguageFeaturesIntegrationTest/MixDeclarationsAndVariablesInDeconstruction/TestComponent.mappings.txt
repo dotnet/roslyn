@@ -1,0 +1,15 @@
+﻿Source Location: (2:0,2 [107] x:\dir\subdir\Test\TestComponent.razor)
+|
+    var tuple = (1, 2);
+    int second = 0;
+    (int first, second) = tuple;
+    _ = first + second;
+|
+Generated Location: (733:21,0 [107] )
+|
+    var tuple = (1, 2);
+    int second = 0;
+    (int first, second) = tuple;
+    _ = first + second;
+|
+

@@ -42,6 +42,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return true; }
         }
 
+        internal sealed override RequiresUnsafeMode GetRequiresUnsafeMode(ConsList<FieldSymbol> fieldsBeingBound) => RequiresUnsafeMode.None;
+
         internal override TypeWithAnnotations GetFieldType(ConsList<FieldSymbol> fieldsBeingBound)
         {
             return _type;

@@ -1,0 +1,16 @@
+﻿Source Location: (2:0,2 [57] x:\dir\subdir\Test\TestComponent.razor)
+|
+    int[] values = [1, 2, 3];
+    _ = values.Length;
+|
+Generated Location: (733:21,0 [57] )
+|
+    int[] values = [1, 2, 3];
+    _ = values.Length;
+|
+
+Source Location: (66:5,2 [16] x:\dir\subdir\Test\TestComponent.razor)
+|(int[])[1, 2, 3]|
+Generated Location: (949:31,24 [16] )
+|(int[])[1, 2, 3]|
+

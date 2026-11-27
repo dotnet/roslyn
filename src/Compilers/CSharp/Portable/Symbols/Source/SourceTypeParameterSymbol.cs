@@ -401,29 +401,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal byte GetSynthesizedNullableAttributeValue()
-        {
-            if (this.HasReferenceTypeConstraint)
-            {
-                switch (this.ReferenceTypeConstraintIsNullable)
-                {
-                    case true:
-                        return NullableAnnotationExtensions.AnnotatedAttributeValue;
-                    case false:
-                        return NullableAnnotationExtensions.NotAnnotatedAttributeValue;
-                }
-            }
-            else if (this.HasNotNullConstraint)
-            {
-                return NullableAnnotationExtensions.NotAnnotatedAttributeValue;
-            }
-            else if (!this.HasValueTypeConstraint && this.ConstraintTypesNoUseSiteDiagnostics.IsEmpty && this.IsNotNullable == false)
-            {
-                return NullableAnnotationExtensions.AnnotatedAttributeValue;
-            }
-            return NullableAnnotationExtensions.ObliviousAttributeValue;
-        }
-
         protected sealed override void DecodeWellKnownAttributeImpl(ref DecodeWellKnownAttributeArguments<AttributeSyntax, CSharpAttributeData, AttributeLocation> arguments)
         {
             Debug.Assert((object)arguments.AttributeSyntaxOpt != null);
@@ -433,7 +410,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Debug.Assert(!attribute.HasErrors);
             Debug.Assert(arguments.SymbolPart == AttributeLocation.None);
 
-            ReportExplicitUseOfReservedAttributes(in arguments, ReservedAttributes.NullableAttribute | ReservedAttributes.ExtensionMarkerAttribute);
+            ReportExplicitUseOfReservedAttributes(in arguments,
+                permitted: ReservedAttributes.DynamicAttribute
+                    | ReservedAttributes.IsReadOnlyAttribute
+                    | ReservedAttributes.IsUnmanagedAttribute
+                    | ReservedAttributes.IsByRefLikeAttribute
+                    | ReservedAttributes.TupleElementNamesAttribute
+                    | ReservedAttributes.NullableContextAttribute
+                    | ReservedAttributes.NullablePublicOnlyAttribute
+                    | ReservedAttributes.NativeIntegerAttribute
+                    | ReservedAttributes.CaseSensitiveExtensionAttribute
+                    | ReservedAttributes.RequiredMemberAttribute
+                    | ReservedAttributes.ScopedRefAttribute
+                    | ReservedAttributes.RefSafetyRulesAttribute
+                    | ReservedAttributes.RequiresLocationAttribute);
 
             base.DecodeWellKnownAttributeImpl(ref arguments);
         }

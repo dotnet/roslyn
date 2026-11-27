@@ -116,6 +116,7 @@ BC2014: the value 'Nothing' is invalid for option 'ScriptClassName'
         <Fact>
         <WorkItem(10023, "https://github.com/dotnet/roslyn/issues/10023")>
         <WorkItem("https://github.com/dotnet/roslyn/issues/78792")>
+        <ValidatePooledObjects(LeakReason:="Test intentionally triggers InvalidOperationException from using Script-kind syntax trees in a regular compilation, which leaks BinderFactory visitor")>
         Public Sub Errors_02()
             Dim compilationUnit = VisualBasic.SyntaxFactory.ParseCompilationUnit("System.Console.WriteLine(1)", options:=New VisualBasicParseOptions(kind:=SourceCodeKind.Script))
             Dim syntaxTree1 = compilationUnit.SyntaxTree

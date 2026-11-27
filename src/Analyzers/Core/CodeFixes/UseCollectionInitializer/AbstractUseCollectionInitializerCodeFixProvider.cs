@@ -87,7 +87,7 @@ internal abstract class AbstractUseCollectionInitializerCodeFixProvider<
 
         editor.ReplaceNode(oldNode, newNode);
 
-        // We only need to remove the post-matches.  The pre-matches are the arguments in teh object creation, which
+        // We only need to remove the post-matches.  The pre-matches are the arguments in the object creation, which
         // itself got replaced above.
         foreach (var match in postMatches)
             editor.RemoveNode(match.Node, SyntaxRemoveOptions.KeepUnbalancedDirectives);

@@ -230,11 +230,10 @@ internal abstract class AbstractEditorFactory(IComponentModel componentModel) : 
         if (((__EFNFLAGS)grfEFN & __EFNFLAGS.EFN_ClonedFromTemplate) != 0)
         {
             var uiThreadOperationExecutor = _componentModel.GetService<IUIThreadOperationExecutor>();
-            // TODO(cyrusn): Can this be cancellable?
             uiThreadOperationExecutor.Execute(
-                "Intellisense",
-                defaultDescription: "",
-                allowCancellation: false,
+                ServicesVSResources.Visual_Studio,
+                defaultDescription: ServicesVSResources.Formatting_new_document,
+                allowCancellation: true,
                 showProgress: false,
                 action: c => FormatDocumentCreatedFromTemplate(pHier, pszMkDocument, c.UserCancellationToken));
         }
@@ -282,7 +281,7 @@ internal abstract class AbstractEditorFactory(IComponentModel componentModel) : 
                 out pguidCmdUI);
     }
 
-    private async Task FormatDocumentCreatedFromTemplateAsync(IVsHierarchy hierarchy, string filePath, CancellationToken cancellationToken)
+    internal async Task FormatDocumentCreatedFromTemplateAsync(IVsHierarchy hierarchy, string filePath, CancellationToken cancellationToken)
     {
         // A file has been created on disk which the user added from the "Add Item" dialog. We need
         // to include this in a workspace to figure out the right options it should be formatted with.
@@ -312,6 +311,14 @@ internal abstract class AbstractEditorFactory(IComponentModel componentModel) : 
             // We have to discover .editorconfig files ourselves to ensure that code style rules are followed.
             // Normally the project system would tell us about these.
             projectToAddTo = AddEditorConfigFiles(projectToAddTo, Path.GetDirectoryName(filePath));
+
+            // Because we're adding the initial project to the solution, we need to ensure that this solution snapshot
+            // has the right fallback analyzer options.  This normally happens in Workspace.SetCurrentSolutionAsync as
+            // it mutates.  But that may never have happened so far (especially if the user has just opened VS and is
+            // making a fresh solution/project), so we have to simulate that manually here.  This ensures we pick up the
+            // right host/vs options which is needed in order to run the code cleanup pass below.
+            solution = projectToAddTo.Solution.WithFallbackAnalyzerOptionValuesFromHost(oldSolution: solution);
+            projectToAddTo = solution.GetRequiredProject(projectToAddTo.Id);
         }
 
         // We need to ensure that decisions made during new document formatting are based on the right language
@@ -330,7 +337,10 @@ internal abstract class AbstractEditorFactory(IComponentModel componentModel) : 
                 loader: fileLoader,
                 filePath: filePath));
 
-        var addedDocument = forkedSolution.GetRequiredDocument(documentId);
+        // Call WithFrozenPartialSemantics so we don't do expensive work here. Since this could be runnnig during the creation of a new solution or project, our OOP process
+        // might not be running yet. Expecting full semantics would mean we might need to synchronize everything OOP to run generators or other semantics, and that causes
+        // UI delays.
+        var addedDocument = forkedSolution.GetRequiredDocument(documentId).WithFrozenPartialSemantics(cancellationToken);
 
         var cleanupOptions = await addedDocument.GetCodeCleanupOptionsAsync(cancellationToken).ConfigureAwait(true);
 

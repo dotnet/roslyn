@@ -1,0 +1,29 @@
+﻿Source Location: (7:0,7 [233] x:\dir\subdir\Test\TestComponent.razor)
+|
+    public ref struct ValueRef
+    {
+        private ref int _value;
+    
+        public ValueRef(ref int value)
+        {
+            _value = ref value;
+        }
+    
+        public ref int Value => ref _value;
+    }
+|
+Generated Location: (557:18,0 [233] )
+|
+    public ref struct ValueRef
+    {
+        private ref int _value;
+    
+        public ValueRef(ref int value)
+        {
+            _value = ref value;
+        }
+    
+        public ref int Value => ref _value;
+    }
+|
+

@@ -1,0 +1,33 @@
+﻿[$RootKey$\TextMate\Repositories]
+"AspNetCoreRazor"="$PackageFolder$\Grammars"
+
+// Defines where the language configuration file for a given
+// grammar name is (value of the ScopeName tag in the tmlanguage file).
+[$RootKey$\TextMate\LanguageConfiguration\GrammarMapping]
+"text.aspnetcorerazor"="$PackageFolder$\language-configuration.json"
+
+// Defines where the language configuration file for a given
+// language name is (partial value of the content type name).
+[$RootKey$\TextMate\LanguageConfiguration\ContentTypeMapping]
+"Razor"="$PackageFolder$\language-configuration.json"
+
+[$RootKey$\TextMate\LanguageConfiguration\GrammarMapping]
+"source.js"="$PackageFolder$\javascript-language-configuration.json"
+"source.css"="$PackageFolder$\css-language-configuration.json"
+"source.cs"="$PackageFolder$\csharp-language-configuration.json"
+"meta.directive"="$PackageFolder$\razordirective-language-configuration.json"
+
+// Sets up Razor's default settings in Tools->Options.
+// Razor's default settings can be found in the VS repo at:
+//     src/VSCommonContent/profiles/General.vssettings
+[$RootKey$\AutomationProperties\TextEditor\Razor]
+@="#110"
+"Description"="#112"
+"Name"="Razor"
+"Package"="{f5e7e720-1401-11d1-883b-0000f87579d2}"
+"ResourcePackage"="{13b72f58-279e-49e0-a56d-296be02f0805}"
+"ProfileSave"=dword:00000001
+"VSSettingsMigration"=dword:00000001
+
+[$RootKey$\Languages\Language Services\Razor]
+"ShowBraceCompletion"=dword:00000001

@@ -110,6 +110,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests.SourceGeneration
             var exception = Assert.Throws<ArgumentException>(nameof(hintName), () => asc.Add(hintName, SourceText.From("public class D{}", Encoding.UTF8)));
 
             Assert.Contains(hintName.Replace('\\', '/'), exception.Message);
+            asc.Free();
         }
 
         [Fact]
@@ -167,6 +168,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests.SourceGeneration
             var exception = Assert.Throws<ArgumentException>("hintName", () => asc.Add(hintName2, SourceText.From("", Encoding.UTF8)));
 
             Assert.Contains(hintName2, exception.Message);
+            asc.Free();
         }
 
         [Fact]
@@ -182,6 +184,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests.SourceGeneration
 
             var exception = Assert.Throws<ArgumentException>("hintName", () => asc.CopyTo(asc2));
             Assert.Contains("hintName1", exception.Message);
+            asc.Free();
+            asc2.Free();
         }
 
         [Theory]
@@ -199,6 +203,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests.SourceGeneration
             AdditionalSourcesCollection asc = new AdditionalSourcesCollection(".cs");
             asc.Add(addHintName, SourceText.From("", Encoding.UTF8));
             Assert.True(asc.Contains(checkHintName));
+            asc.Free();
         }
 
         [Theory]
@@ -235,6 +240,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests.SourceGeneration
 
             // check the exception contains the expected hintName
             Assert.Contains("file5.cs", exception.Message);
+            asc.Free();
         }
     }
 }

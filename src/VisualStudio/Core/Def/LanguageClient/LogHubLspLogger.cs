@@ -11,7 +11,7 @@ using Microsoft.VisualStudio.LogHub;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient;
 
-internal sealed class LogHubLspLogger : AbstractLspLogger, ILspService
+internal sealed class LogHubLspLogger : ILspLogger, ILspService
 {
     private readonly TraceConfiguration _configuration;
     private readonly TraceSource _traceSource;
@@ -37,15 +37,15 @@ internal sealed class LogHubLspLogger : AbstractLspLogger, ILspService
         _configuration.Dispose();
     }
 
-    public override IDisposable? CreateContext(string context) => null;
-    public override IDisposable? CreateLanguageContext(string? language) => null;
+    public IDisposable? CreateContext(string context) => null;
+    public IDisposable? CreateLanguageContext(string? language) => null;
 
-    public override void LogDebug(string message, params object[] @params)
+    public void LogDebug(string message, params object[] @params)
     {
         _traceSource.TraceEvent(TraceEventType.Verbose, id: 0, message);
     }
 
-    public override void LogInformation(string message, params object[] @params)
+    public void LogInformation(string message, params object[] @params)
     {
         // Explicitly call TraceEvent here instead of TraceInformation.
         // TraceInformation indirectly calls string.Format which throws if the message
@@ -54,17 +54,17 @@ internal sealed class LogHubLspLogger : AbstractLspLogger, ILspService
         _traceSource.TraceEvent(TraceEventType.Information, id: 0, message);
     }
 
-    public override void LogWarning(string message, params object[] @params)
+    public void LogWarning(string message, params object[] @params)
     {
         _traceSource.TraceEvent(TraceEventType.Warning, id: 0, message);
     }
 
-    public override void LogError(string message, params object[] @params)
+    public void LogError(string message, params object[] @params)
     {
         _traceSource.TraceEvent(TraceEventType.Error, id: 0, message);
     }
 
-    public override void LogException(Exception exception, string? message = null, params object[] @params)
+    public void LogException(Exception exception, string? message = null, params object[] @params)
     {
         _traceSource.TraceEvent(TraceEventType.Error, id: 0, "Exception: {0}", exception);
     }

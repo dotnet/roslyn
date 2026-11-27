@@ -1,0 +1,38 @@
+﻿RazorDocument - [0..27)::27 - [@code {LF}LFLF<div></div>LF]
+    MarkupBlock - [0..27)::27
+        MarkupTextLiteral - [0..0)::0 - [] - Gen<Markup> - SpanEditHandler;Accepts:Any
+            Marker;[];
+        CSharpCodeBlock - [0..12)::12
+            RazorDirective - [0..10)::10 - Directive:{code;CodeBlock;Unrestricted}
+                CSharpTransition - [0..1)::1 - Gen<None> - SpanEditHandler;Accepts:None
+                    Transition;[@];
+                RazorDirectiveBody - [1..10)::9
+                    RazorMetaCode - [1..5)::4 - Gen<None> - SpanEditHandler;Accepts:None
+                        Identifier;[code];
+                    CSharpCodeBlock - [5..10)::5
+                        UnclassifiedTextLiteral - [5..6)::1 - [ ] - Gen<None> - SpanEditHandler;Accepts:AllWhitespace
+                            Whitespace;[ ];
+                        RazorMetaCode - [6..7)::1 - Gen<None> - AutoCompleteEditHandler;Accepts:None,AutoComplete:[<null>];AtEnd
+                            LeftBrace;[{];
+                        CSharpCodeBlock - [7..9)::2
+                            CSharpStatementLiteral - [7..9)::2 - [LF] - Gen<Stmt> - CodeBlockEditHandler;Accepts:Any;CodeBlock
+                                NewLine;[LF];
+                        RazorMetaCode - [9..10)::1 - Gen<None> - SpanEditHandler;Accepts:None
+                            RightBrace;[}];
+            RazorMetaCode - [10..12)::2 - Gen<None> - SpanEditHandler;Accepts:Any
+                NewLine;[LF];
+        MarkupTextLiteral - [12..14)::2 - [LF] - Gen<Markup> - SpanEditHandler;Accepts:Any
+            NewLine;[LF];
+        MarkupElement - [14..25)::11
+            MarkupStartTag - [14..19)::5 - [<div>] - Gen<Markup> - SpanEditHandler;Accepts:Any
+                OpenAngle;[<];
+                Text;[div];
+                CloseAngle;[>];
+            MarkupEndTag - [19..25)::6 - [</div>] - Gen<Markup> - SpanEditHandler;Accepts:Any
+                OpenAngle;[<];
+                ForwardSlash;[/];
+                Text;[div];
+                CloseAngle;[>];
+        MarkupTextLiteral - [25..27)::2 - [LF] - Gen<Markup> - SpanEditHandler;Accepts:Any
+            NewLine;[LF];
+    EndOfFile;[];

@@ -34,9 +34,9 @@ To profile with `dotnet trace` first run with the `-w` option to get the PID of 
 Console 1
 
 ```cmd
-e:\code\roslyn\src\Tools\Replay> dotnet run --framework net9.0 --configuration Release e:\code\example\msbuild.binlog -w
+e:\code\roslyn\src\Tools\Replay> dotnet run --framework net10.0 --configuration Release e:\code\example\msbuild.binlog -w
 Binary Log: E:\code\example\msbuild.binlog
-Client Directory: E:\code\roslyn\artifacts\bin\Replay\Release\net9.0\
+Client Directory: E:\code\roslyn\artifacts\bin\Replay\Release\net10.0\
 Output Directory: E:\code\roslyn\src\Tools\Replay\output
 Pipe Name: 0254ccf8-294e-4b8f-a606-70f105b9e4a1
 Parallel: 6

@@ -93,6 +93,10 @@ internal interface IDiagnosticAnalyzerService : IWorkspaceService
         DiagnosticKind diagnosticKind,
         CancellationToken cancellationToken);
 
+    /// <inheritdoc cref="HostDiagnosticAnalyzers.GetAllDiagnosticIds"/>
+    Task<ImmutableDictionary<ProjectId, ImmutableHashSet<string>>> GetAllDiagnosticIdsAsync(
+        Solution solution, ImmutableArray<ProjectId> projectIds, CancellationToken cancellationToken);
+
     /// <inheritdoc cref="HostDiagnosticAnalyzers.GetDiagnosticDescriptorsPerReference"/>
     Task<ImmutableDictionary<string, ImmutableArray<DiagnosticDescriptor>>> GetDiagnosticDescriptorsPerReferenceAsync(
         Solution solution, ProjectId? projectId, CancellationToken cancellationToken);

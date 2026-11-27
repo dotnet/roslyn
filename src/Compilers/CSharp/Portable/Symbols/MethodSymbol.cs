@@ -99,6 +99,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal abstract bool HasSpecialNameAttribute { get; }
 
         /// <summary>
+        /// Returns the method-level runtime async setting from
+        /// <c>RuntimeAsyncMethodGenerationAttribute</c>, or <see cref="ThreeState.Unknown"/>
+        /// if no setting was specified.
+        /// </summary>
+        internal abstract ThreeState RuntimeAsyncMethodGenerationAttributeSetting { get; }
+
+        /// <summary>
         /// If a method is annotated with `[MemberNotNull(...)]` attributes, returns the list of members
         /// listed in those attributes.
         /// Otherwise, an empty array.
@@ -370,7 +377,30 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// Indicates whether the method is effectively readonly,
         /// by either the method or the containing type being marked readonly.
         /// </summary>
-        internal virtual bool IsEffectivelyReadOnly => (IsDeclaredReadOnly || ContainingType?.IsReadOnly == true) && IsValidReadOnlyTarget;
+        internal bool IsEffectivelyReadOnly
+        {
+            get
+            {
+                if (MethodKind == MethodKind.ReducedExtension)
+                {
+                    return isExtensionEffectivelyReadOnly(ReducedFrom.Parameters[0]);
+                }
+                else if (this.IsExtensionBlockMember())
+                {
+                    return !IsStatic && !IsInitOnly &&
+                           isExtensionEffectivelyReadOnly(ContainingType.ExtensionParameter);
+                }
+                else
+                {
+                    return (IsDeclaredReadOnly || ContainingType?.IsReadOnly == true) && IsValidReadOnlyTarget;
+                }
+
+                static bool isExtensionEffectivelyReadOnly(ParameterSymbol receiverParameter)
+                {
+                    return receiverParameter is { Type.IsValueType: true, RefKind: RefKind.In or RefKind.RefReadOnlyParameter or RefKind.None };
+                }
+            }
+        }
 
         protected bool IsValidReadOnlyTarget => !IsStatic && ContainingType.IsStructType() && MethodKind != MethodKind.Constructor && !IsInitOnly;
 
@@ -968,7 +998,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                                     AllowedRequiredModifierType.System_Runtime_CompilerServices_IsExternalInit :
                                                     AllowedRequiredModifierType.None) ||
                 DeriveUseSiteInfoFromCustomModifiers(ref result, this.RefCustomModifiers, AllowedRequiredModifierType.System_Runtime_InteropServices_InAttribute) ||
-                DeriveUseSiteInfoFromParameters(ref result, this.Parameters))
+                DeriveUseSiteInfoFromParameters(ref result, this.GetParametersIncludingExtensionParameter(skipExtensionIfStatic: false)))
             {
                 return true;
             }
@@ -1219,7 +1249,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         bool IMethodSymbolInternal.IsAccessCheckedOnOverride => IsAccessCheckedOnOverride;
         bool IMethodSymbolInternal.IsExternal => IsExternal;
         bool IMethodSymbolInternal.IsHiddenBySignature => !HidesBaseMethodsByName;
-        bool IMethodSymbolInternal.IsMetadataNewSlot => IsMetadataNewSlot();
+        bool IMethodSymbolInternal.IsMetadataNewSlotIgnoringInterfaceImplementationChanges => IsMetadataNewSlot(context: null, ignoreInterfaceImplementationChanges: true);
         bool IMethodSymbolInternal.IsPlatformInvoke => GetDllImportData() != null;
         bool IMethodSymbolInternal.HasRuntimeSpecialName => HasRuntimeSpecialName;
         bool IMethodSymbolInternal.IsMetadataFinal => IsSealed;
@@ -1296,6 +1326,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 AddSynthesizedAttribute(ref attributes, declaringCompilation.TrySynthesizeAttribute(WellKnownMember.System_Runtime_CompilerServices_CompilerFeatureRequiredAttribute__ctor,
                     ImmutableArray.Create(new TypedConstant(declaringCompilation.GetSpecialType(SpecialType.System_String), TypedConstantKind.Primitive, nameof(CompilerFeatureRequiredFeatures.RequiredMembers)))
                     ));
+            }
+        }
+
+        protected static void AddClosedClassesFeatureRequiredAttribute(ref ArrayBuilder<CSharpAttributeData> attributes, MethodSymbol methodToAttribute)
+        {
+            if (methodToAttribute.ContainingType.IsClosed)
+            {
+                CSharpCompilation declaringCompilation = methodToAttribute.DeclaringCompilation;
+                AddSynthesizedAttribute(
+                    ref attributes,
+                    declaringCompilation.TrySynthesizeAttribute(
+                        WellKnownMember.System_Runtime_CompilerServices_CompilerFeatureRequiredAttribute__ctor,
+                        [new TypedConstant(declaringCompilation.GetSpecialType(SpecialType.System_String), TypedConstantKind.Primitive, nameof(CompilerFeatureRequiredFeatures.ClosedClasses))]));
             }
         }
 

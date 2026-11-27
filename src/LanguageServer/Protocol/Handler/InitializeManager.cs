@@ -9,10 +9,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler;
 
 internal sealed class InitializeManager : IInitializeManager
 {
-    public InitializeManager()
-    {
-    }
-
     private InitializeParams? _initializeParams;
 
     public ClientCapabilities GetClientCapabilities()

@@ -3,114 +3,343 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Xml.Linq;
+using System.Net.Http.Headers;
+using System.Text.Json;
 
-// Verifies the shared source files under `src/Features/CSharp/Portable/SyncedSource/FileBasedPrograms`
-// exactly match the copies shipped in the `Microsoft.DotNet.FileBasedPrograms` NuGet package
-// If any file is missing or differs, the local file is regenerated from the package content
-// and the script fails listing the changes.
+// Verifies or updates the shared source files under `src/Workspaces/CSharp/Portable/SyncedSource/FileBasedPrograms`
+// using files from dotnet/sdk at the commit specified in `src/Workspaces/CSharp/Portable/SyncedSource/commitid.txt`.
 //
-// We do this instead of including the source package directly as `PackageReference`
-// because that would not work in source build (which requires roslyn to build before sdk).
+// Usage:
+//   dotnet run --file eng/ensure-sources-synced.cs
+//   dotnet run --file eng/ensure-sources-synced.cs -- --verify
+//   dotnet run --file eng/ensure-sources-synced.cs -- --update
+//   dotnet run --file eng/ensure-sources-synced.cs -- --update --sdk-branch <branch>
+//   dotnet run --file eng/ensure-sources-synced.cs -- --update --repo-root <path> --fail-on-rate-limit
+//
+// Default mode when no args are passed: update
+//
+// When `--sdk-branch` is passed, the `commitid.txt` file is updated from a dotnet/sdk branch on GitHub, before updating the source files.
+// This is the preferred way to pick up new upstream changes, e.g.:
+//   dotnet run --file eng/ensure-sources-synced.cs -- --sdk-branch release/11.0.1xx
+//
+// Automation can use --repo-root to update another checkout and --fail-on-rate-limit to require a complete sync.
+// Set GITHUB_TOKEN to authenticate GitHub API requests.
 
-var root = Path.Join(AppContext.GetData("EntryPointFileDirectoryPath") as string, "..");
-if (!Directory.Exists(root)) throw new InvalidOperationException($"Could not locate repo root: {root}");
-
-var versionDetailsProps = Path.Combine(root, "eng", "Version.Details.props");
-if (!File.Exists(versionDetailsProps)) throw new InvalidOperationException($"'{versionDetailsProps}' not found.");
-
-var packageVersion = GetPackageVersion(versionDetailsProps, "MicrosoftDotNetFileBasedProgramsPackageVersion");
-
-var globalPackagesFolder = GetGlobalPackagesFolder();
-if (!Directory.Exists(globalPackagesFolder)) throw new InvalidOperationException($"Global packages folder not found: {globalPackagesFolder}");
-
-var packageRoot = Path.Combine(globalPackagesFolder, "microsoft.dotnet.filebasedprograms", packageVersion);
-if (!Directory.Exists(packageRoot)) throw new InvalidOperationException($"Package folder not found: {packageRoot}");
-
-var contentFilesDir1 = Path.Combine(packageRoot, "contentFiles", "cs", "any");
-if (!Directory.Exists(contentFilesDir1)) throw new InvalidOperationException($"contentFiles directory not found: {contentFilesDir1}");
-
-var contentFilesDir2 = Path.Combine(packageRoot, "contentFiles", "cs", "netstandard2.0");
-if (!Directory.Exists(contentFilesDir2)) throw new InvalidOperationException($"contentFiles directory not found: {contentFilesDir2}");
-
-var localSourceDir = Path.Combine(root, "src", "Features", "CSharp", "Portable", "SyncedSource", "FileBasedPrograms");
-if (!Directory.Exists(Path.GetDirectoryName(localSourceDir))) throw new InvalidOperationException($"Local source directory not found: {localSourceDir}");
-
-var extensions = new[] { ".cs", ".resx", ".editorconfig" };
-
-var packageFiles = Directory.GetFiles(contentFilesDir1, "*", SearchOption.TopDirectoryOnly)
-    .Concat(Directory.GetFiles(contentFilesDir2, "*", SearchOption.TopDirectoryOnly))
-    .Where(f => extensions.Any(ext => f.EndsWith(ext, StringComparison.OrdinalIgnoreCase)))
-    .ToList();
-if (packageFiles.Count == 0) throw new InvalidOperationException("No package files found.");
-
-var updateSnapshots = string.IsNullOrEmpty(Environment.GetEnvironmentVariable("CI"));
-
-if (updateSnapshots) Directory.CreateDirectory(localSourceDir);
-
-var mismatches = new List<string>();
-foreach (var pkgFile in packageFiles)
+try
 {
-    var fileName = Path.GetFileName(pkgFile);
-    var localFile = Path.Combine(localSourceDir, fileName);
-    var pkgContent = File.ReadAllText(pkgFile);
+    await MainAsync(args).ConfigureAwait(false);
+}
+catch (GitHubRateLimitException ex) when (!args.Contains("--fail-on-rate-limit", StringComparer.Ordinal))
+{
+    LogAzDoWarning($"Skipping synced source check due to GitHub rate limit: {ex.Message}");
+}
 
-    if (!File.Exists(localFile))
+return;
+
+static async Task MainAsync(string[] args)
+{
+    var (mode, sdkBranch, repoRoot) = ParseArgs(args);
+
+    var root = repoRoot ?? Path.Join(AppContext.GetData("EntryPointFileDirectoryPath") as string, "..");
+    if (!Directory.Exists(root)) throw new InvalidOperationException($"Could not locate repo root: {root}");
+
+    var commitIdPath = Path.Combine(root, "src", "Workspaces", "CSharp", "Portable", "SyncedSource", "commitid.txt");
+    if (!File.Exists(commitIdPath)) throw new InvalidOperationException($"'{commitIdPath}' not found.");
+
+    var localSourceDir = Path.Combine(root, "src", "Workspaces", "CSharp", "Portable", "SyncedSource", "FileBasedPrograms");
+
+    var httpClient = CreateHttpClient();
+
+    if (sdkBranch is not null)
     {
-        // Create missing file from package content.
-        if (updateSnapshots) File.WriteAllText(localFile, pkgContent);
-        mismatches.Add($"Added missing file: {fileName}");
-        continue;
+        var branchCommit = await GetBranchHeadCommitAsync(httpClient, sdkBranch).ConfigureAwait(false);
+        File.WriteAllText(commitIdPath, branchCommit);
+        Console.WriteLine($"Updated '{commitIdPath}' to dotnet/sdk '{sdkBranch}' head commit '{branchCommit}'.");
     }
 
-    var localContent = File.ReadAllText(localFile);
-    if (!string.Equals(localContent.ReplaceLineEndings(), pkgContent.ReplaceLineEndings(), StringComparison.Ordinal))
+    var sdkCommit = File.ReadAllText(commitIdPath).Trim();
+    if (string.IsNullOrWhiteSpace(sdkCommit)) throw new InvalidOperationException($"'{commitIdPath}' is empty.");
+
+    var extensions = new[] { ".cs", ".resx", ".editorconfig" };
+    var sourceFiles = await GetDirectoryFilesAsync(
+        httpClient,
+        sdkCommit,
+        githubDirectoryPath: "src/Cli/Microsoft.DotNet.FileBasedPrograms",
+        includeFile: static name =>
+            name.EndsWith(".cs", StringComparison.OrdinalIgnoreCase) ||
+            name.EndsWith(".resx", StringComparison.OrdinalIgnoreCase),
+        mapRelativePath: static name => name).ConfigureAwait(false);
+
+    var commonFiles = await GetDirectoryFilesAsync(
+        httpClient,
+        sdkCommit,
+        githubDirectoryPath: "src/Common",
+        includeFile: static name => string.Equals(name, "MSBuildUtilities.cs", StringComparison.OrdinalIgnoreCase),
+        mapRelativePath: static name => name).ConfigureAwait(false);
+
+    var editorConfigFiles = await GetDirectoryFilesAsync(
+        httpClient,
+        sdkCommit,
+        githubDirectoryPath: "eng",
+        includeFile: static name => string.Equals(name, "SourcePackage.editorconfig", StringComparison.OrdinalIgnoreCase),
+        mapRelativePath: static _ => ".editorconfig").ConfigureAwait(false);
+
+    var sourcePackageFiles = sourceFiles
+        .Concat(commonFiles)
+        .Concat(editorConfigFiles)
+        .ToList();
+    if (sourcePackageFiles.Count == 0) throw new InvalidOperationException("No source files found in dotnet/sdk.");
+
+    if (mode == SyncMode.Update)
     {
-        // Regenerate local file to match package.
-        if (updateSnapshots) File.WriteAllText(localFile, pkgContent);
-        mismatches.Add($"Updated file: {fileName}");
+        Directory.CreateDirectory(localSourceDir);
     }
+
+    var expectedRelativePaths = sourcePackageFiles
+        .Select(f => f.RelativePath)
+        .ToHashSet(StringComparer.OrdinalIgnoreCase);
+
+    var mismatches = new List<string>();
+    foreach (var sourceFile in sourcePackageFiles)
+    {
+        var localFile = Path.Combine(localSourceDir, sourceFile.RelativePath.Replace('/', Path.DirectorySeparatorChar));
+        var sourceContent = await GetGitHubStringAsync(httpClient, sourceFile.DownloadUrl).ConfigureAwait(false);
+
+        if (!File.Exists(localFile))
+        {
+            if (mode == SyncMode.Update)
+            {
+                var directory = Path.GetDirectoryName(localFile);
+                if (!string.IsNullOrEmpty(directory))
+                    Directory.CreateDirectory(directory);
+                File.WriteAllText(localFile, sourceContent);
+            }
+
+            mismatches.Add($"Added missing file: {sourceFile.RelativePath}");
+            continue;
+        }
+
+        var localContent = File.ReadAllText(localFile);
+        if (!string.Equals(localContent.ReplaceLineEndings(), sourceContent.ReplaceLineEndings(), StringComparison.Ordinal))
+        {
+            if (mode == SyncMode.Update)
+                File.WriteAllText(localFile, sourceContent);
+
+            mismatches.Add($"Updated file: {sourceFile.RelativePath}");
+        }
+    }
+
+    if (Directory.Exists(localSourceDir))
+    {
+        var localMirrorFiles = Directory.GetFiles(localSourceDir, "*", SearchOption.AllDirectories)
+            .Where(f => extensions.Any(ext => f.EndsWith(ext, StringComparison.OrdinalIgnoreCase)))
+            .Select(f => Path.GetRelativePath(localSourceDir, f).Replace('\\', '/'))
+            .ToHashSet(StringComparer.OrdinalIgnoreCase);
+
+        foreach (var relativePath in expectedRelativePaths)
+            localMirrorFiles.Remove(relativePath);
+
+        if (localMirrorFiles.Count > 0)
+        {
+            if (mode == SyncMode.Verify)
+            {
+                mismatches.Add("Extra local files (not in dotnet/sdk): " + string.Join(", ", localMirrorFiles.OrderBy(x => x, StringComparer.OrdinalIgnoreCase)));
+            }
+            else
+            {
+                foreach (var remainingFile in localMirrorFiles.OrderBy(x => x, StringComparer.OrdinalIgnoreCase))
+                {
+                    File.Delete(Path.Combine(localSourceDir, remainingFile));
+                    mismatches.Add($"Deleting extra local file (not in dotnet/sdk): {remainingFile}");
+                }
+            }
+        }
+    }
+
+    if (mismatches.Count > 0)
+    {
+        var details = string.Join("\n", mismatches);
+
+        if (mode == SyncMode.Verify)
+        {
+            throw new InvalidOperationException(
+                "Shared source for FileBasedPrograms is out of sync with dotnet/sdk. " +
+                "Run `dotnet run --file eng/ensure-sources-synced.cs -- --update` to refresh snapshots. Changes:\n" +
+                details);
+        }
+
+        Console.WriteLine("Updated synced sources from dotnet/sdk:");
+        Console.WriteLine(details);
+        return;
+    }
+
+    Console.WriteLine("OK");
 }
 
-// If there are extra local files that are expected to mirror package files, report them but do not delete.
-var localMirrorFiles = Directory.GetFiles(localSourceDir, "*", SearchOption.TopDirectoryOnly)
-    .Where(f => extensions.Any(ext => f.EndsWith(ext, StringComparison.OrdinalIgnoreCase)))
-    .Select(Path.GetFileName)
-    .ToHashSet(StringComparer.OrdinalIgnoreCase);
-foreach (var pkgName in packageFiles.Select(Path.GetFileName))
-    localMirrorFiles.Remove(pkgName);
-if (localMirrorFiles.Count > 0)
+static (SyncMode Mode, string? SdkBranch, string? RepoRoot) ParseArgs(string[] args)
 {
-    mismatches.Add("Extra local files (not in package): " + string.Join(", ", localMirrorFiles));
+    SyncMode? mode = null;
+    string? sdkBranch = null;
+    string? repoRoot = null;
+
+    for (var i = 0; i < args.Length; i++)
+    {
+        switch (args[i])
+        {
+            case "--update":
+                if (mode == SyncMode.Verify)
+                    throw new InvalidOperationException("Cannot pass both '--verify' and '--update'.");
+                mode = SyncMode.Update;
+                break;
+
+            case "--verify":
+                if (mode == SyncMode.Update)
+                    throw new InvalidOperationException("Cannot pass both '--update' and '--verify'.");
+                mode = SyncMode.Verify;
+                break;
+
+            case "--sdk-branch":
+                i++;
+                if (i == args.Length)
+                    throw new InvalidOperationException("'--sdk-branch' requires a branch name argument.");
+
+                sdkBranch = args[i];
+                break;
+
+            case "--repo-root":
+                i++;
+                if (i == args.Length)
+                    throw new InvalidOperationException("'--repo-root' requires a path argument.");
+
+                repoRoot = Path.GetFullPath(args[i]);
+                break;
+
+            case "--fail-on-rate-limit":
+                break;
+
+            default:
+                throw new InvalidOperationException($"Unrecognized argument: '{args[i]}'. Expected '--update', '--verify', '--sdk-branch <branch>', '--repo-root <path>', or '--fail-on-rate-limit'.");
+        }
+    }
+
+    mode ??= SyncMode.Update;
+
+    if (sdkBranch is not null && mode != SyncMode.Update)
+        throw new InvalidOperationException("'--sdk-branch' is only valid together with '--update' (or the default update mode).");
+
+    return (mode.Value, sdkBranch, repoRoot);
 }
 
-if (mismatches.Count > 0)
+static HttpClient CreateHttpClient()
 {
-    var action = updateSnapshots ? "Regenerated" : "Not regenerated in CI";
-    throw new InvalidOperationException($"Shared source for FileBasedPrograms is out of sync with package. {action}. Changes:\n" + string.Join("\n", mismatches));
+    var client = new HttpClient();
+    client.DefaultRequestHeaders.UserAgent.Add(new ProductInfoHeaderValue("roslyn-ensure-sources-synced", "1.0"));
+    return client;
 }
 
-Console.WriteLine("OK");
-
-static string GetPackageVersion(string xmlFilePath, string propertyName)
+static async Task<string> GetGitHubStringAsync(HttpClient client, string url)
 {
-    var doc = XDocument.Load(xmlFilePath);
-    // Look for <{propertyName}>{version}</{propertyName}>
-    var packageVersionElement = doc.Descendants().FirstOrDefault(e =>
-        string.Equals(e.Name.LocalName, propertyName, StringComparison.OrdinalIgnoreCase))
-        ?? throw new InvalidOperationException($"'{propertyName}' not found in '{xmlFilePath}'");
-    return packageVersionElement.Value;
+    using var request = new HttpRequestMessage(HttpMethod.Get, url);
+    var token = Environment.GetEnvironmentVariable("GITHUB_TOKEN");
+    if (request.RequestUri?.Host == "api.github.com" && !string.IsNullOrWhiteSpace(token))
+        request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+    using var response = await client.SendAsync(request).ConfigureAwait(false);
+    var payload = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
+
+    if (IsRateLimitResponse(response.StatusCode, response.Headers, payload))
+    {
+        throw new GitHubRateLimitException($"GitHub request hit rate limit at '{url}'.");
+    }
+
+    if (!response.IsSuccessStatusCode)
+    {
+        throw new InvalidOperationException($"GitHub request failed ({(int)response.StatusCode}) at '{url}'.");
+    }
+
+    return payload;
 }
 
-static string GetGlobalPackagesFolder()
+static async Task<string> GetBranchHeadCommitAsync(HttpClient client, string branch)
 {
-    // Respect NUGET_PACKAGES if set; otherwise default location under user profile.
-    var envOverride = Environment.GetEnvironmentVariable("NUGET_PACKAGES");
-    if (!string.IsNullOrWhiteSpace(envOverride))
-        return envOverride!;
+    var url = $"https://api.github.com/repos/dotnet/sdk/branches/{Uri.EscapeDataString(branch)}";
+    var payload = await GetGitHubStringAsync(client, url).ConfigureAwait(false);
 
-    var userProfile = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
-    if (string.IsNullOrWhiteSpace(userProfile))
-        throw new InvalidOperationException("Cannot determine user profile path for global packages folder.");
-    return Path.Combine(userProfile, ".nuget", "packages");
+    using var document = JsonDocument.Parse(payload);
+    if (!document.RootElement.TryGetProperty("commit", out var commitElement) ||
+        !commitElement.TryGetProperty("sha", out var shaElement))
+    {
+        throw new InvalidOperationException($"Unexpected GitHub API response at '{url}'.");
+    }
+
+    return shaElement.GetString() ?? throw new InvalidOperationException($"Branch '{branch}' has no commit sha in '{url}'.");
 }
+
+static async Task<List<SyncedFile>> GetDirectoryFilesAsync(
+    HttpClient client,
+    string commit,
+    string githubDirectoryPath,
+    Func<string, bool> includeFile,
+    Func<string, string> mapRelativePath)
+{
+    var url = $"https://api.github.com/repos/dotnet/sdk/contents/{githubDirectoryPath}?ref={commit}";
+    var payload = await GetGitHubStringAsync(client, url).ConfigureAwait(false);
+
+    using var document = JsonDocument.Parse(payload);
+    if (document.RootElement.ValueKind != JsonValueKind.Array)
+        throw new InvalidOperationException($"Unexpected GitHub API response at '{url}'.");
+
+    var files = new List<SyncedFile>();
+    foreach (var item in document.RootElement.EnumerateArray())
+    {
+        var type = item.GetProperty("type").GetString();
+        if (!string.Equals(type, "file", StringComparison.Ordinal))
+            continue;
+
+        var name = item.GetProperty("name").GetString()
+            ?? throw new InvalidOperationException($"File entry missing 'name' in '{url}'.");
+        if (!includeFile(name))
+            continue;
+
+        var downloadUrl = item.GetProperty("download_url").GetString();
+        if (string.IsNullOrWhiteSpace(downloadUrl))
+            throw new InvalidOperationException($"File '{name}' has no download URL in '{url}'.");
+
+        files.Add(new SyncedFile(mapRelativePath(name), downloadUrl));
+    }
+
+    files.Sort(static (a, b) => StringComparer.OrdinalIgnoreCase.Compare(a.RelativePath, b.RelativePath));
+    return files;
+}
+
+static bool IsRateLimitResponse(System.Net.HttpStatusCode statusCode, HttpResponseHeaders headers, string responseBody)
+{
+    if (statusCode == System.Net.HttpStatusCode.TooManyRequests)
+        return true;
+
+    if (statusCode != System.Net.HttpStatusCode.Forbidden)
+        return false;
+
+    if (headers.TryGetValues("X-RateLimit-Remaining", out var remainingValues)
+        && remainingValues.Any(static v => string.Equals(v, "0", StringComparison.OrdinalIgnoreCase)))
+    {
+        return true;
+    }
+
+    return responseBody.Contains("rate limit", StringComparison.OrdinalIgnoreCase);
+}
+
+static void LogAzDoWarning(string message)
+{
+    Console.WriteLine($"##vso[task.logissue type=warning]{message}");
+}
+
+enum SyncMode
+{
+    Update,
+    Verify,
+}
+
+readonly record struct SyncedFile(string RelativePath, string DownloadUrl);
+
+sealed class GitHubRateLimitException(string message) : Exception(message);

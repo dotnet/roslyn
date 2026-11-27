@@ -1,0 +1,2 @@
+﻿[0000] OpenComponent<global::Test.MyComponent>()
+[0001] AddComponentParameter(nameof(global::Test.MyComponent. Prop ), global::Microsoft.AspNetCore.Components.CompilerServices.RuntimeHelpers.TypeCheck<global::System.Int32>( 1 ))

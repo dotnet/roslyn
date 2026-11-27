@@ -1,0 +1,32 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
+  <file datatype="xml" source-language="en" target-language="it" original="../ComponentDebuggerLaunchProfile.xaml">
+    <body>
+      <trans-unit id="DynamicEnumProperty|targetProject|Description">
+        <source>A project that uses this component, whose compilation will be debugged.</source>
+        <target state="translated">Progetto che usa questo componente, di cui verrà eseguito il debug della compilazione.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DynamicEnumProperty|targetProject|DisplayName">
+        <source>Target Project</source>
+        <target state="translated">Progetto di destinazione</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Rule|ComponentDebuggerLaunchProfile|Description">
+        <source>Allows a user to debug a Roslyn Component by running it in the context of another projects build.</source>
+        <target state="translated">Consente a un utente di eseguire il debug di un componente Roslyn eseguendolo nel contesto di un'altra compilazione di progetti.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Rule|ComponentDebuggerLaunchProfile|DisplayName">
+        <source>Roslyn Component</source>
+        <target state="translated">Componente Roslyn</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="StringProperty|Description|Description">
+        <source>A Roslyn Component can be debugged in the context of compiling a second project that uses it. Ensure your target project is referencing this component for it to appear in the list.</source>
+        <target state="translated">È possibile eseguire il debug di un componente Roslyn nel contesto della compilazione di un secondo progetto in cui viene usato. Assicurarsi che il progetto di destinazione faccia riferimento a questo componente per consentirne la visualizzazione nell'elenco.</target>
+        <note />
+      </trans-unit>
+    </body>
+  </file>
+</xliff>

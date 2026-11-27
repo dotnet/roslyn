@@ -1,0 +1,13 @@
+﻿Source Location: (2:0,2 [101] x:\dir\subdir\Test\TestComponent.razor)
+|
+    int Increment(int value) => value + 1;
+    var increment = Increment;
+    _ = increment(1);
+|
+Generated Location: (733:21,0 [101] )
+|
+    int Increment(int value) => value + 1;
+    var increment = Increment;
+    _ = increment(1);
+|
+

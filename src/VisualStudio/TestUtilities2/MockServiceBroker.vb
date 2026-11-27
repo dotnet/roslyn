@@ -13,10 +13,12 @@ Imports Microsoft.VisualStudio.Shell.ServiceBroker
 Imports Roslyn.Utilities
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests
+#Disable Warning VSMEF003 ' Exported type not implemented by exporting class -- SVsFullAccessServiceBroker is just a contract type but isn't actually implemented
     <PartNotDiscoverable>
     <Export(GetType(SVsFullAccessServiceBroker))>
     <Export(GetType(MockServiceBroker))>
     Friend Class MockServiceBroker
+#Enable Warning VSMEF003 ' Exported type not implemented by exporting class
         Implements IServiceBroker
 
         Private ReadOnly _services As New ConcurrentDictionary(Of Type, Object)()

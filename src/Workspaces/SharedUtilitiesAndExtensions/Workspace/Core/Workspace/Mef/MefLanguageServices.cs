@@ -49,11 +49,6 @@ internal sealed class MefLanguageServices : HostLanguageServices
 
     public override string Language => _language;
 
-    public bool HasServices
-    {
-        get { return _services.Length > 0; }
-    }
-
     public override void Dispose()
     {
         ImmutableArray<IDisposable> disposableServices;

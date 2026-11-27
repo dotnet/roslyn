@@ -42,7 +42,7 @@ internal static class ITextBufferVisibilityTrackerExtensions
     /// Waits the specified amount of time while the specified <paramref name="subjectBuffer"/> is not visible.  If
     /// any document visibility changes happen, the delay will cancel.
     /// </summary>
-    public static Task DelayWhileNonVisibleAsync(
+    public static async Task DelayWhileNonVisibleAsync(
         this ITextBufferVisibilityTracker? service,
         IThreadingContext threadingContext,
         IAsynchronousOperationListener listener,
@@ -52,7 +52,7 @@ internal static class ITextBufferVisibilityTrackerExtensions
     {
         // Only add a delay if we have access to a service that will tell us when the buffer become visible or not.
         if (service is null)
-            return Task.CompletedTask;
+            return;
 
         // Because cancellation is both expensive, and a super common thing to occur while we're delaying the caller
         // until visibility, we special case the implementation here and transition to the canceled state
@@ -63,14 +63,14 @@ internal static class ITextBufferVisibilityTrackerExtensions
         // it's very reasonable for the delay-task to complete synchronously (we've already been canceled, or the
         // buffer is already visible.  So fast path that out.
         if (delayTask.IsCompleted)
-            return delayTask;
+            await delayTask.ConfigureAwait(false);
 
         var taskOfTask = delayTask.ContinueWith(
             // Convert a successfully completed task when we were canceled to a canceled task.  Otherwise, return
             // the faulted or non-canceled task as is.
             task => task.Status == TaskStatus.RanToCompletion && cancellationToken.IsCancellationRequested ? Task.FromCanceled(cancellationToken) : task,
             CancellationToken.None, TaskContinuationOptions.ExecuteSynchronously, TaskScheduler.Default);
-        return taskOfTask.Unwrap();
+        await taskOfTask.Unwrap().ConfigureAwait(false);
 
         // Normal delay logic, except that this does not throw in the event of cancellation, but instead returns
         // gracefully.  The above task continuation logic then ensures we return a canceled task without needing

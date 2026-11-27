@@ -52,7 +52,10 @@ internal abstract partial class AbstractImplementInterfaceService<TTypeDeclarati
                 return null;
             }
 
-            if (!CodeGenerator.CanAdd(document.Project.Solution, classOrStructType, cancellationToken))
+            var codeGenerationContext = new CodeGenerationContext(
+                contextLocation: classOrStructDecl.GetLocation());
+
+            if (!CodeGenerator.CanAdd(document.Project.Solution, classOrStructType, codeGenerationContext, cancellationToken))
             {
                 return null;
             }

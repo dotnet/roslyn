@@ -1,0 +1,40 @@
+﻿Document - 
+    RazorCompiledItemAttribute - 
+    NamespaceDeclaration -  - AspNetCoreGeneratedDocument
+        UsingDirective - (1:0,1 [20] ) - global::System
+        UsingDirective - (24:1,1 [40] ) - global::System.Collections.Generic
+        UsingDirective - (67:2,1 [25] ) - global::System.Linq
+        UsingDirective - (95:3,1 [36] ) - global::System.Threading.Tasks
+        UsingDirective - (134:4,1 [38] ) - global::Microsoft.AspNetCore.Mvc
+        UsingDirective - (175:5,1 [48] ) - global::Microsoft.AspNetCore.Mvc.Rendering
+        UsingDirective - (226:6,1 [51] ) - global::Microsoft.AspNetCore.Mvc.ViewFeatures
+        RazorSourceChecksumAttribute - 
+        RazorCompiledItemMetadataAttribute - 
+        CreateNewOnMetadataUpdateAttribute - 
+        ClassDeclaration -  - internal sealed - TestFiles_IntegrationTests_CodeGenerationIntegrationTest_SectionInTagHelperAfterFunctionsDirective - global::Microsoft.AspNetCore.Mvc.Razor.RazorPage<dynamic> - 
+            DefaultTagHelperRuntime - 
+            FieldDeclaration -  - private - global::DivTagHelper - __DivTagHelper
+            MethodDeclaration -  - public async override - global::System.Threading.Tasks.Task - ExecuteAsync
+                TagHelper - (31:1,0 [189] SectionInTagHelperAfterFunctionsDirective.cshtml) - div - TagMode.StartTagAndEndTag
+                    DefaultTagHelperBody - 
+                        HtmlContent - (36:1,5 [2] SectionInTagHelperAfterFunctionsDirective.cshtml)
+                            LazyIntermediateToken - (36:1,5 [2] SectionInTagHelperAfterFunctionsDirective.cshtml) - Html - \n
+                        Section -  - head
+                            HtmlContent - (114:5,19 [31] SectionInTagHelperAfterFunctionsDirective.cshtml)
+                                LazyIntermediateToken - (114:5,19 [31] SectionInTagHelperAfterFunctionsDirective.cshtml) - Html - \n        Section content\n    
+                        Section -  - scripts
+                            HtmlContent - (170:8,22 [30] SectionInTagHelperAfterFunctionsDirective.cshtml)
+                                LazyIntermediateToken - (170:8,22 [30] SectionInTagHelperAfterFunctionsDirective.cshtml) - Html - \n        Script content\n    
+                        HtmlContent - (203:11,0 [11] SectionInTagHelperAfterFunctionsDirective.cshtml)
+                            LazyIntermediateToken - (203:11,0 [11] SectionInTagHelperAfterFunctionsDirective.cshtml) - Html -     after\n
+                    DefaultTagHelperCreate -  - DivTagHelper
+                    DefaultTagHelperExecute - 
+                HtmlContent - (220:12,6 [2] SectionInTagHelperAfterFunctionsDirective.cshtml)
+                    LazyIntermediateToken - (220:12,6 [2] SectionInTagHelperAfterFunctionsDirective.cshtml) - Html - \n
+            CSharpCode - (54:2,16 [38] SectionInTagHelperAfterFunctionsDirective.cshtml)
+                LazyIntermediateToken - (54:2,16 [38] SectionInTagHelperAfterFunctionsDirective.cshtml) - CSharp - \n        public int Value => 1;\n    
+            Inject - 
+            Inject - 
+            Inject - 
+            Inject - 
+            Inject - 

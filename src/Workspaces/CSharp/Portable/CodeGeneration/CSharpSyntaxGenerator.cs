@@ -655,7 +655,7 @@ internal sealed class CSharpSyntaxGenerator() : SyntaxGenerator
             case SyntaxKind.ConversionOperatorDeclaration:
             case SyntaxKind.OperatorDeclaration:
                 var method = (BaseMethodDeclarationSyntax)declaration;
-                return (method.Body == null && method.ExpressionBody == null) ? method.WithSemicolonToken(default).WithBody(CreateBlock()) : method;
+                return method is { Body: null, ExpressionBody: null } ? method.WithSemicolonToken(default).WithBody(CreateBlock()) : method;
 
             case SyntaxKind.PropertyDeclaration:
                 var prop = (PropertyDeclarationSyntax)declaration;
@@ -677,16 +677,9 @@ internal sealed class CSharpSyntaxGenerator() : SyntaxGenerator
         => accessorList.WithAccessors([.. accessorList.Accessors.Select(WithBody)]);
 
     private static AccessorDeclarationSyntax WithBody(AccessorDeclarationSyntax accessor)
-    {
-        if (accessor.Body == null && accessor.ExpressionBody == null)
-        {
-            return accessor.WithSemicolonToken(default).WithBody(CreateBlock(null));
-        }
-        else
-        {
-            return accessor;
-        }
-    }
+        => accessor is { Body: null, ExpressionBody: null }
+            ? accessor.WithSemicolonToken(default).WithBody(CreateBlock(null))
+            : accessor;
 
     private static AccessorListSyntax? WithoutBodies(AccessorListSyntax? accessorList)
         => accessorList?.WithAccessors([.. accessorList.Accessors.Select(WithoutBody)]);
@@ -1510,7 +1503,8 @@ internal sealed class CSharpSyntaxGenerator() : SyntaxGenerator
         DeclarationModifiers.Sealed |
         DeclarationModifiers.Static |
         DeclarationModifiers.Unsafe |
-        DeclarationModifiers.File;
+        DeclarationModifiers.File |
+        DeclarationModifiers.Closed;
 
     private static readonly DeclarationModifiers s_recordModifiers =
         DeclarationModifiers.Abstract |
@@ -1645,6 +1639,12 @@ internal sealed class CSharpSyntaxGenerator() : SyntaxGenerator
                     }
                 }
 
+                // 'closed' implies abstract on classes and 'closed abstract' can't be explicitly combined.
+                if (modifiers.IsClosed && modifiers.IsAbstract)
+                {
+                    modifiers = modifiers.WithIsAbstract(false);
+                }
+
                 // We're updating the modifiers for something.  We don't want to add elastic trivia in that case as
                 // we don't want the act of adding/removing/modifying modifiers to change the formatting of the parent
                 // construct.
@@ -1711,6 +1711,7 @@ internal sealed class CSharpSyntaxGenerator() : SyntaxGenerator
         AddIf(modifiers.IsExtern, ExternKeyword);
         AddIf(modifiers.IsRequired, RequiredKeyword);
         AddIf(modifiers.IsFixed, FixedKeyword);
+        AddIf(modifiers.IsClosed, ClosedKeyword);
 
         // partial and ref must be last
         AddIf(modifiers.IsRef, RefKeyword);

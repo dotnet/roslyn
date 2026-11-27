@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Threading;
@@ -27,13 +26,17 @@ internal partial class TaggerEventSources
             // only process a tag change once.
             _asyncDelay = new AsyncBatchingWorkQueue(
                 DelayTimeSpan.Short,
-                processBatchAsync: cancellationToken =>
+                processBatchAsync: async cancellationToken =>
                 {
                     RaiseChanged();
-                    return ValueTask.CompletedTask;
                 },
-                asyncListener,
-                CancellationToken.None);
+                asyncListener);
+        }
+
+        public override void Disconnect()
+        {
+            _asyncDelay.Dispose();
+            base.Disconnect();
         }
 
         protected override void ConnectToWorkspace(Workspace workspace)

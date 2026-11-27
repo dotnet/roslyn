@@ -1,0 +1,63 @@
+﻿@{
+ViewBag.Title="Home Page";
+}
+@section featured {
+<div>
+
+</div>
+}
+<html>
+<body>
+    <div class="navbar navbar-inverse navbar-fixed-top">
+        <div class="container">
+            <div class="navbar-collapse collapse">
+                <ul class="nav ">
+                    <li>@Html.ActionLink("Home", "Index", "Home")</li>
+                    <li>@Html.ActionLink( "About", "About", "Home")</li>
+                    <li>@Html.ActionLink("Contact", "Contact", "Home")</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+<div>
+    @{
+        <span>foo</span>
+        <span>foo</span>
+}
+</div>
+<div>
+@functions {
+
+int userAge = 0;
+
+string HelloMessage(string user)
+{
+var msg = "Hi " + user + "how are you?";
+return msg;
+}
+
+int Age
+{
+get
+{
+return userAge;
+}
+set
+{
+userAge = value;
+}
+}
+}
+</div>
+</body>
+</html>
+
+@if (true)
+{
+    <b>
+        @if (false)
+        {
+        <c></c>
+        }
+    </b>
+}

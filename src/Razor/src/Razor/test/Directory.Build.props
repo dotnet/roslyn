@@ -1,0 +1,13 @@
+﻿<Project>
+  <Import Project="$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildThisFileDirectory).., Directory.Build.props))\Directory.Build.props" Condition="'$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildThisFileDirectory), Directory.Build.props))'!= ''" />
+
+  <PropertyGroup>
+    <ExcludeFromSourceOnlyBuild>true</ExcludeFromSourceOnlyBuild>
+    <DeveloperBuildTestTfms>$(NetVSAndVSCode)</DeveloperBuildTestTfms>
+    <StandardTestTfms>$(DeveloperBuildTestTfms)</StandardTestTfms>
+    <StandardTestTfms Condition=" '$(DeveloperBuild)' != 'true' ">$(StandardTestTfms)</StandardTestTfms>
+    <StandardTestTfms Condition=" '$(DeveloperBuild)' != 'true' AND '$(OS)' == 'Windows_NT' ">net472;$(StandardTestTfms)</StandardTestTfms>
+    <RollForward Condition="'$(IsTestProject)' == 'true'">LatestMajor</RollForward>
+    <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
+  </PropertyGroup>
+</Project>

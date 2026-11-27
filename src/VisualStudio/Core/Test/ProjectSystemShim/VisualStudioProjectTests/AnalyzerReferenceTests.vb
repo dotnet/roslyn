@@ -2,13 +2,10 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
-Imports System.ComponentModel.Composition
 Imports System.IO
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
-Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.Test.Utilities
-Imports Microsoft.CodeAnalysis.Workspaces.AnalyzerRedirecting
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
 Imports Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
 Imports Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Framework
@@ -19,7 +16,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
     Public Class AnalyzerReferenceTests
         <WpfFact>
         Public Async Function RemoveAndReAddInSameBatchWorksCorrectly() As Task
-            Using environment = New TestEnvironment(GetType(TestDynamicFileInfoProviderThatProducesNoFiles))
+            Using environment = New TestEnvironment()
                 Dim project = Await environment.ProjectFactory.CreateAndAddToWorkspaceAsync(
                     "Project", LanguageNames.CSharp, CancellationToken.None)
                 Const analyzerPath = "Z:\TestAnalyzer.dll"
@@ -41,7 +38,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
         <WpfTheory>
         <CombinatorialData>
         Public Async Function LoadDiagnosticsRemovedOnAnalyzerReferenceRemoval(removeInBatch As Boolean) As Task
-            Using environment = New TestEnvironment(GetType(TestDynamicFileInfoProviderThatProducesNoFiles))
+            Using environment = New TestEnvironment()
                 Dim project = Await environment.ProjectFactory.CreateAndAddToWorkspaceAsync(
                     "Project", LanguageNames.CSharp, CancellationToken.None)
                 Dim analyzerPath = "Z:\TestAnalyzer" + Guid.NewGuid().ToString() + ".dll"
@@ -61,7 +58,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
         <WpfTheory>
         <CombinatorialData>
         Public Async Function LoadDiagnosticsRemovedOnProjectRemoval(removeInBatch As Boolean) As Task
-            Using environment = New TestEnvironment(GetType(TestDynamicFileInfoProviderThatProducesNoFiles))
+            Using environment = New TestEnvironment()
                 Dim project = Await environment.ProjectFactory.CreateAndAddToWorkspaceAsync(
                     "Project", LanguageNames.CSharp, CancellationToken.None)
                 Dim analyzerPath = "Z:\TestAnalyzer" + Guid.NewGuid().ToString() + ".dll"
@@ -80,7 +77,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
 
         <WpfFact>
         Public Async Function LoadDiagnosticsStayIfRemoveAndAddInBatch() As Task
-            Using environment = New TestEnvironment(GetType(TestDynamicFileInfoProviderThatProducesNoFiles))
+            Using environment = New TestEnvironment()
                 Dim project = Await environment.ProjectFactory.CreateAndAddToWorkspaceAsync(
                     "Project", LanguageNames.CSharp, CancellationToken.None)
                 Dim analyzerPath = "Z:\TestAnalyzer" + Guid.NewGuid().ToString() + ".dll"
@@ -207,7 +204,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
 
         <WpfFact>
         Public Async Function RedirectedAnalyzers_CSharp() As Task
-            Using environment = New TestEnvironment(GetType(Redirector))
+            Using environment = New TestEnvironment(GetType(TestAnalyzerAssemblyRedirector))
                 Dim project = Await environment.ProjectFactory.CreateAndAddToWorkspaceAsync(
                     "Project", LanguageNames.CSharp, CancellationToken.None)
 
@@ -225,22 +222,5 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
                 }, environment.Workspace.CurrentSolution.Projects.Single().AnalyzerReferences.Select(Function(r) r.FullPath))
             End Using
         End Function
-
-        <Export(GetType(IAnalyzerAssemblyRedirector))>
-        Private Class Redirector
-            Implements IAnalyzerAssemblyRedirector
-
-            <ImportingConstructor, Obsolete(MefConstruction.ImportingConstructorMessage, True)>
-            Public Sub New()
-            End Sub
-
-            Public Function RedirectPath(fullPath As String) As String Implements IAnalyzerAssemblyRedirector.RedirectPath
-                If fullPath.Contains("Microsoft.NET.Sdk") Then
-                    Return Path.ChangeExtension(fullPath, ".redirected.dll")
-                End If
-
-                Return Nothing
-            End Function
-        End Class
     End Class
 End Namespace

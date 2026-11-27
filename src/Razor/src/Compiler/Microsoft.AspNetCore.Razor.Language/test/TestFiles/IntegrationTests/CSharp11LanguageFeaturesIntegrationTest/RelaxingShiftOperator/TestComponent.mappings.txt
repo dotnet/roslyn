@@ -1,0 +1,18 @@
+﻿Source Location: (2:0,2 [71] x:\dir\subdir\Test\TestComponent.razor)
+|
+    short amount = 1;
+    var value = 8 << amount;
+    _ = value;
+|
+Generated Location: (733:21,0 [71] )
+|
+    short amount = 1;
+    var value = 8 << amount;
+    _ = value;
+|
+
+Source Location: (85:6,7 [11] x:\dir\subdir\Test\TestComponent.razor)
+|8 << amount|
+Generated Location: (1009:33,24 [11] )
+|8 << amount|
+

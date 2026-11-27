@@ -1,0 +1,11 @@
+﻿Document - 
+    NamespaceDeclaration -  - Test
+        UsingDirective - (3:1,1 [22] ) - global::System
+        UsingDirective - (26:2,1 [42] ) - global::System.Collections.Generic
+        UsingDirective - (69:3,1 [27] ) - global::System.Linq
+        UsingDirective - (97:4,1 [38] ) - global::System.Threading.Tasks
+        UsingDirective - (136:5,1 [47] ) - global::Microsoft.AspNetCore.Components
+        ClassDeclaration -  - public partial - TestComponent - global::Microsoft.AspNetCore.Components.ComponentBase - 
+            MethodDeclaration -  - protected override - void - BuildRenderTree
+                CSharpCode - (2:0,2 [99] x:\dir\subdir\Test\TestComponent.cshtml)
+                    LazyIntermediateToken - (2:0,2 [99] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - \n#pragma warning disable 219 // variable declared but not used\n#if true\n    var x = 1;\n#endif\n

@@ -97,7 +97,7 @@ internal sealed partial class VisualStudioErrorReportingService : IErrorReportin
 
             activityLog.LogEntry(
                 (uint)__ACTIVITYLOG_ENTRYTYPE.ALE_ERROR,
-                nameof(VisualStudioErrorReportingService),
+                "Roslyn",
                 string.Join(Environment.NewLine, message, detailedError));
         });
     }

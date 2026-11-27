@@ -941,7 +941,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     // As in dev11, we don't compare obsoleteness to the immediately-overridden member,
                     // but to the least-overridden member.
-                    var leastOverriddenMember = overriddenMember.GetLeastOverriddenMember(overriddenMember.ContainingType);
+                    var leastOverriddenMember = overriddenMember.GetLeastOverriddenMember(this);
 
                     overridingMember.ForceCompleteObsoleteAttribute();
                     leastOverriddenMember.ForceCompleteObsoleteAttribute();
@@ -989,6 +989,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                                             diagnostics,
                                                             (diagnostics, overriddenEvent, overridingEvent, location) => diagnostics.Add(ErrorCode.WRN_NullabilityMismatchInTypeOnOverride, location),
                                                             overridingMemberLocation);
+
+                            CheckRequiresUnsafeMismatch(
+                                implementedMember: null,
+                                overridingEvent,
+                                ErrorCode.ERR_RequiresUnsafeOverridingSafe,
+                                overridingMemberLocation,
+                                static l => l,
+                                diagnostics);
                         }
                     }
                     else
@@ -1204,6 +1212,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     },
                     overridingMemberLocation,
                     invokedAsExtensionMethod: false);
+
+                CheckRequiresUnsafeMismatch(
+                    implementedMember: null,
+                    overridingMethod,
+                    ErrorCode.ERR_RequiresUnsafeOverridingSafe,
+                    overridingMemberLocation,
+                    static l => l,
+                    diagnostics);
             }
         }
 
@@ -1545,6 +1561,28 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
         }
+
+        internal static void CheckRequiresUnsafeMismatch<TArg>(
+            Symbol? implementedMember,
+            Symbol? overridingMember,
+            ErrorCode errorCode,
+            TArg arg,
+            Func<TArg, Location> overridingMemberLocation,
+            BindingDiagnosticBag diagnostics)
+        {
+            if (overridingMember is null)
+            {
+                return;
+            }
+
+            Debug.Assert(implementedMember is not null || overridingMember.IsDefinition);
+
+            var leastOverriddenMember = implementedMember ?? overridingMember.GetLeastOverriddenMember(overridingMember.ContainingType);
+            if (overridingMember.GetRequiresUnsafeMode(ConsList<FieldSymbol>.Empty) == RequiresUnsafeMode.Explicit && leastOverriddenMember.GetRequiresUnsafeMode(ConsList<FieldSymbol>.Empty) == RequiresUnsafeMode.None)
+            {
+                diagnostics.Add(errorCode, overridingMemberLocation(arg), overridingMember, leastOverriddenMember);
+            }
+        }
 #nullable disable
 
         private static bool PerformValidNullableOverrideCheck(
@@ -1872,7 +1910,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             needSynthesizedImplementation = false;
                         }
                     }
-                    else if (implementingMethod.IsMetadataVirtual(MethodSymbol.IsMetadataVirtualOption.IgnoreInterfaceImplementationChanges))
+                    else if (implementingMethod.IsMetadataVirtual(null, ignoreInterfaceImplementationChanges: true))
                     {
                         // If the signatures match and the implementation method is definitely virtual, then we're set.
                         needSynthesizedImplementation = false;

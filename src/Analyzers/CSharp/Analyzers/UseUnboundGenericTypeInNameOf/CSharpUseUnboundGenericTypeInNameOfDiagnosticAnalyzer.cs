@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseUnboundGenericTypeInNameOf;
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 internal sealed class CSharpUseUnboundGenericTypeInNameOfDiagnosticAnalyzer()
-    : AbstractBuiltInCodeStyleDiagnosticAnalyzer(
+    : AbstractBuiltInUnnecessaryCodeStyleDiagnosticAnalyzer(
         IDEDiagnosticIds.UseUnboundGenericTypeInNameOfDiagnosticId,
         EnforceOnBuildValues.UseUnboundGenericTypeInNameOf,
         CSharpCodeStyleOptions.PreferUnboundGenericTypeInNameOf,

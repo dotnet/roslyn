@@ -26,8 +26,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Scripting.Hosting
                 var buildPaths = new BuildPaths(
                     clientDir: csiDirectory,
                     workingDir: Directory.GetCurrentDirectory(),
-                    sdkDir: RuntimeMetadataReferenceResolver.GetDesktopFrameworkDirectory(),
-                    tempDir: Path.GetTempPath());
+                    sdkDir: RuntimeMetadataReferenceResolver.GetDesktopFrameworkDirectory());
 
                 var compiler = new CSharpInteractiveCompiler(
                     responseFile: Path.Combine(csiDirectory, InteractiveResponseFileName),

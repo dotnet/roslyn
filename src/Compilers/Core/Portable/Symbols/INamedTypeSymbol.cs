@@ -165,8 +165,8 @@ namespace Microsoft.CodeAnalysis
         ISymbol? AssociatedSymbol { get; }
 
         /// <summary>
-        /// Determines if the symbol might contain extension methods. 
-        /// If false, the symbol does not contain extension methods. 
+        /// Determines if the symbol might contain extension members or methods. 
+        /// If false, the symbol does not contain extension members or methods. 
         /// </summary>
         bool MightContainExtensionMethods { get; }
 
@@ -222,5 +222,10 @@ namespace Microsoft.CodeAnalysis
         /// Returns null otherwise.
         /// </summary>
         string? ExtensionMarkerName { get; }
+
+        /// <summary>
+        /// Returns the type layout information for this type.
+        /// </summary>
+        TypeLayout TypeLayout { get; }
     }
 }

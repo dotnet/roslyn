@@ -13,6 +13,7 @@ using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
@@ -567,8 +568,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        // TODO (tomat): sealed
-        internal override bool IsMetadataNewSlot(bool ignoreInterfaceImplementationChanges = false)
+#nullable enable
+        internal override bool IsMetadataNewSlot(ModuleSymbol? context, bool ignoreInterfaceImplementationChanges = false)
         {
             if (IsExplicitInterfaceImplementation && _containingType.IsInterface)
             {
@@ -582,21 +583,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // in NamedTypeSymbolAdapter.cs).
             return this.IsOverride ?
                 this.RequiresExplicitOverride(out _) :
-                !this.IsStatic && this.IsMetadataVirtual(ignoreInterfaceImplementationChanges ? IsMetadataVirtualOption.IgnoreInterfaceImplementationChanges : IsMetadataVirtualOption.None);
+                !this.IsStatic && this.IsMetadataVirtual(context, ignoreInterfaceImplementationChanges);
         }
 
-        // TODO (tomat): sealed?
-        internal override bool IsMetadataVirtual(IsMetadataVirtualOption option = IsMetadataVirtualOption.None)
+        internal override bool IsMetadataVirtual(ModuleSymbol? context, bool ignoreInterfaceImplementationChanges = false)
         {
-#if DEBUG
-            if (option == IsMetadataVirtualOption.ForceCompleteIfNeeded && !this.flags.IsMetadataVirtualLocked)
+            Debug.Assert(context is not null || ignoreInterfaceImplementationChanges);
+
+            if (!ignoreInterfaceImplementationChanges && context != (object)ContainingModule)
             {
                 this.ContainingSymbol.ForceComplete(locationOpt: null, filter: null, cancellationToken: CancellationToken.None);
             }
-#endif
 
-            return this.flags.IsMetadataVirtual(ignoreInterfaceImplementationChanges: option == IsMetadataVirtualOption.IgnoreInterfaceImplementationChanges);
+            return this.flags.IsMetadataVirtual(ignoreInterfaceImplementationChanges);
         }
+#nullable disable
 
         internal void EnsureMetadataVirtual()
         {
@@ -684,19 +685,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal bool IsUnsafe
-        {
-            get
-            {
-                return (this.DeclarationModifiers & DeclarationModifiers.Unsafe) != 0;
-            }
-        }
-
-        public sealed override bool IsAsync
+        internal bool HasAsyncModifier
         {
             get
             {
                 return (this.DeclarationModifiers & DeclarationModifiers.Async) != 0;
+            }
+        }
+
+        public override bool IsAsync
+        {
+            get
+            {
+                return HasAsyncModifier;
             }
         }
 
@@ -733,6 +734,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         #endregion
 
         #region Syntax
+
+        private SyntaxTokenList Modifiers
+        {
+            get
+            {
+                return SyntaxNode switch
+                {
+                    BaseMethodDeclarationSyntax method => method.Modifiers,
+                    AccessorDeclarationSyntax accessor => accessor.Modifiers,
+                    _ => default,
+                };
+            }
+        }
 
         internal (BlockSyntax blockBody, ArrowExpressionClauseSyntax arrowBody) Bodies
         {
@@ -882,8 +896,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
 #nullable enable
-        internal override void ForceComplete(SourceLocation? locationOpt, Predicate<Symbol>? filter, CancellationToken cancellationToken)
+        internal sealed override void ForceComplete(SourceLocation? locationOpt, Predicate<Symbol>? filter, CancellationToken cancellationToken)
         {
+            PartialImplementationPart?.ForceComplete(locationOpt, filter, cancellationToken);
+
             if (filter?.Invoke(this) == false)
             {
                 return;
@@ -963,6 +979,20 @@ done:
             CompletionPart allParts = CompletionPart.MethodSymbolAll;
             state.SpinWaitComplete(allParts, cancellationToken);
         }
+
+        public override bool IsDefinedInSourceTree(
+            SyntaxTree tree,
+            TextSpan? definedWithinSpan,
+            CancellationToken cancellationToken = default)
+        {
+            // Since only the declaring (and not the implementing) part of a partial method, constructor, or accessor appears in the member
+            // list, we need to ensure we complete the implementation part when needed.
+            return
+                (this.SyntaxRef is { } syntaxRef
+                    ? IsDefinedInSourceTree(syntaxRef, tree, definedWithinSpan)
+                    : base.IsDefinedInSourceTree(tree, definedWithinSpan, cancellationToken)) ||
+                this.PartialImplementationPart?.IsDefinedInSourceTree(tree, definedWithinSpan, cancellationToken) == true;
+        }
 #nullable disable
 
         protected sealed override void NoteAttributesComplete(bool forReturnType)
@@ -980,6 +1010,19 @@ done:
             if (IsDeclaredReadOnly && !ContainingType.IsReadOnly)
             {
                 compilation.EnsureIsReadOnlyAttributeExists(diagnostics, _location, modifyCompilation: true);
+            }
+
+            if (ContainingModule.UseUpdatedMemorySafetyRules && AssociatedSymbol is null && IsExtern && !HasUnsafeModifier && !HasSafeModifier)
+            {
+                diagnostics.Add(ErrorCode.ERR_ExternMemberRequiresUnsafeOrSafe,
+                    Modifiers.GetModifierLocation(SyntaxKind.ExternKeyword, _location));
+            }
+
+            if (GetRequiresUnsafeMode(ConsList<FieldSymbol>.Empty) == RequiresUnsafeMode.Explicit)
+            {
+                compilation.EnsureRequiresUnsafeAttributeExists(diagnostics,
+                    Modifiers.GetModifierLocation(SyntaxKind.UnsafeKeyword, _location),
+                    modifyCompilation: true);
             }
 
             if (compilation.ShouldEmitNullableAttributes(this) &&
@@ -1059,13 +1102,37 @@ done:
 
                 if ((((hasBody || IsExtern) && !(IsStatic && IsVirtual)) || IsExplicitInterfaceImplementation) && !ContainingAssembly.RuntimeSupportsDefaultInterfaceImplementation)
                 {
-                    diagnostics.Add(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, location);
+                    if (IsStatic && !IsExplicitInterfaceImplementation)
+                    {
+                        ReportLackOfRuntimeSupportForStaticMembersInInterfaces(declarationSyntax, DeclaredAccessibility, diagnostics, location);
+                    }
+                    else
+                    {
+                        diagnostics.Add(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, location);
+                    }
                 }
 
                 if (((!hasBody && IsAbstract) || IsVirtual) && !IsExplicitInterfaceImplementation && IsStatic && !ContainingAssembly.RuntimeSupportsStaticAbstractMembersInInterfaces)
                 {
                     diagnostics.Add(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfaces, location);
                 }
+            }
+        }
+
+        public static void ReportLackOfRuntimeSupportForStaticMembersInInterfaces(SyntaxNode declarationSyntax, Accessibility declaredAccessibility, BindingDiagnosticBag diagnostics, Location location)
+        {
+            switch (declaredAccessibility)
+            {
+                case Accessibility.Protected:
+                case Accessibility.ProtectedOrInternal:
+                case Accessibility.ProtectedAndInternal:
+
+                    diagnostics.Add(ErrorCode.ERR_RuntimeDoesNotSupportProtectedAccessForInterfaceMember, location);
+                    break;
+
+                default:
+                    Binder.CheckFeatureAvailability(declarationSyntax, MessageID.IDS_FeatureStaticMembersInInterfaces, diagnostics, location);
+                    break;
             }
         }
 

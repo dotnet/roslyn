@@ -50,8 +50,7 @@ namespace Roslyn.Test.Utilities
         internal static BuildPaths StandardBuildPaths => new BuildPaths(
             clientDir: Path.Combine(RootDirectory, "compiler"),
             workingDir: Path.Combine(RootDirectory, "source"),
-            sdkDir: Path.Combine(RootDirectory, "sdk"),
-            tempDir: null);
+            sdkDir: Path.Combine(RootDirectory, "sdk"));
 
         internal CommonCompiler Compiler { get; }
         internal TestableFileSystem FileSystem { get; }
@@ -118,7 +117,7 @@ namespace Roslyn.Test.Utilities
 
             fileSystem ??= TestableFileSystem.CreateForMap();
             var args = new List<string>();
-            AppendNetCoreApp(fileSystem, buildPaths.SdkDirectory!, args, includeVisualBasicRuntime: false);
+            AppendNetCoreApp(fileSystem, buildPaths.SdkDirectory, args, includeVisualBasicRuntime: false);
             args.AddRange(commandLineArguments);
 
             var compiler = new CSharpCompilerImpl(args.ToArray(), buildPaths, fileSystem);
@@ -185,7 +184,7 @@ namespace Roslyn.Test.Utilities
                     throw new Exception("invalid value");
             }
 
-            AppendNetCoreApp(fileSystem, buildPaths.SdkDirectory!, args, includeVisualBasicRuntime: false);
+            AppendNetCoreApp(fileSystem, buildPaths.SdkDirectory, args, includeVisualBasicRuntime: false);
             args.AddRange(commandLineArguments);
 
             var compiler = new BasicCompilerImpl(args.ToArray(), buildPaths, fileSystem);

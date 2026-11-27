@@ -1,0 +1,370 @@
+@using Eis.Infrastructure.Extensions
+@using Eis.WebHost.Areas.Basis.Models
+@model SinglePageMultiModel
+
+@{
+    Layout = null;
+    var pageInfo = Model.Page;
+    var grids = Model.PageGrids;
+    var buttons = Model.PageButtons;
+    var rowButtons = Model.PageGridRowButtons;
+    // 预处理快速查询标识
+    bool hasQuickSearch = grids.Any(g => g.QuickSearch != null);
+
+    // 优雅构建 ace_ajax 依赖的 scripts 数组 [null, "js1", "js2", null]
+    var jsFiles = new List<string> { "null" };
+    if (pageInfo.JscriptFiles.IsPresent())
+    {
+        jsFiles.AddRange(pageInfo.JscriptFiles.SplitComma().Select(s => $"\"{s}\""));
+    }
+    jsFiles.Add("null");
+    string scriptsArrayJson = $"[{string.Join(", ", jsFiles)}]";
+}
+
+<!-- ================= 1. 页面元数据与样式 ================= -->
+<pg-title>@Html.Raw(pageInfo.Title)</pg-title>
+
+@if (pageInfo.CssFiles.IsPresent())
+{
+    foreach (var cssFile in pageInfo.CssFiles.SplitComma())
+    {
+        <link href="@cssFile" rel="stylesheet" />
+    }
+}
+
+<!-- 全局表格函数注入 -->
+<script>
+    @foreach (var grid in grids.Where(g => g.GridJsFunc.IsPresent()))
+    {
+        @Html.Raw(System.Net.WebUtility.HtmlDecode(grid.GridJsFunc))
+        @:;
+    }
+</script>
+
+<!-- ================= 2. 页面头部与工具栏 ================= -->
+<div class="page-header">
+    <h1>
+        <pg-header subject="@pageInfo.Title">@pageInfo.Description</pg-header>
+        <small class="pull-right">
+            @foreach (var btn in buttons)
+            {
+                 <button id="@btn.Id"
+                             title="@btn.Name"
+                             data-bind-grid="@btn.BindGridId"
+                             data-bind-eventflow="@btn.BindEventflow" 
+                             class="btn page-button @btn.ClassName @(btn.BindEventflow.IsPresent() ? "btn-eventflow" : "")">
+												<i class="ace-icon fa @btn.Icon bigger-120"></i>
+												@Html.Raw(btn.Name)
+											</button>
+            }
+        </small>
+    </h1>
+</div>
+
+<!-- ================= 3. 主体内容区：Tab页签与表格 ================= -->
+<div class="row">
+    <div class="col-xs-12">
+        <div class="tabbable tabs-pure">
+            <ul class="nav nav-tabs" id="pageGridTab">
+                @foreach (var grid in grids)
+                {
+                    <li>
+                        <a data-toggle="tab" href="#@grid.Id" data-grid-id="@grid.Id">
+                            <i class="ace-icon fa @grid.Icon bigger-120"></i> @grid.Subject
+                        </a>
+                    </li>
+                }
+            </ul>
+
+            <div class="tab-content">
+                @foreach (var grid in grids)
+                {
+                    <div id="@grid.Id" class="tab-pane fade in">
+                        <jq-grid grid-model="@grid.GridControlModel"
+                                 show-searchbar="grid.ShowSearchBar"
+                                 is-desensitization="grid.IsDesensitization"
+                                 source-datatype="Local"
+                                 wrapper="pageGridTab,@grid.Id">
+                        </jq-grid>
+                    </div>
+                }
+            </div>
+        </div>
+
+        <!-- ================= 4. 快速查询侧边栏 ================= -->
+        @if (hasQuickSearch)
+        {
+            <div id="right-menu" class="modal aside" data-body-scroll="false" data-offset="true" data-placement="right" data-fixed="true" data-backdrop="invisible" tabindex="-1">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <div class="pull-right onpage-help-modal-buttons">
+                                <button type="button" class="bootbox-close-button close" data-dismiss="modal" aria-hidden="true">×</button>
+                            </div>
+                            <h4 class="modal-title">
+                                <i class="ace-icon fa fa-search"></i> <localizer>快速过滤</localizer>
+                            </h4>
+                        </div>
+                        <div class="modal-body">
+                            <div id="treeDeptDiv" class="widget-main">
+                                @foreach (var grid in grids.Where(g => g.QuickSearch != null))
+                                {
+                                    <div id="quick-search-@grid.Id" class="quick-serch hide" data-grid="@grid.Id">
+                                        
+                                        @* 字典类勾选 (统一使用 class="qs-in-type") *@
+                                        @foreach (var dic in grid.QuickSearch!.DictionaryList)
+                                        {
+                                            <div>
+                                                <label class="control-label bolder blue">@dic.Key.Name :</label>
+                                                <div>
+                                                    @foreach (var item in dic.Value)
+                                                    {
+                                                        <label><input data-field="@dic.Key.Code" value="@item.Value" type="checkbox" class="ace qs-in-type" /><span class="lbl">@item.Text</span></label>
+                                                    }
+                                                </div>
+                                            </div>
+                                        }
+
+                                        @* 布尔/三态勾选 (统一使用 class="qs-bool-type") *@
+                                        @foreach (var chkbox in grid.QuickSearch.CheckboxList)
+                                        {
+                                            <div>
+                                                <label class="control-label bolder blue">@chkbox.Name :</label>
+                                                <div>
+                                                    <label><input data-field="@chkbox.Code" value="1" type="checkbox" class="ace qs-bool-type" /><span class="lbl">是</span></label>
+                                                    <label><input data-field="@chkbox.Code" value="0" type="checkbox" class="ace qs-bool-type" /><span class="lbl">否</span></label>
+                                                    <label><input data-field="@chkbox.Code" value="99" type="checkbox" class="ace qs-bool-type" /><span class="lbl">未指定</span></label>
+                                                </div>
+                                            </div>
+                                        }
+
+                                        @* 文本类勾选 (统一使用 class="qs-in-type") *@
+                                        @foreach (var dic in grid.QuickSearch.TextList)
+                                        {
+                                            <div>
+                                                <label class="control-label bolder blue">@dic.Key.Name :</label>
+                                                <div>
+                                                    @foreach (var item in dic.Value)
+                                                    {
+                                                        <label><input data-field="@dic.Key.Code" value="@item" type="checkbox" class="ace qs-in-type" /><span class="lbl">@item</span></label>
+                                                    }
+                                                </div>
+                                            </div>
+                                        }
+
+                                        @* 树形筛选 *@
+                                        @foreach (var item in grid.QuickSearch.TreeModelList)
+                                        {
+                                            <label class="control-label bolder blue">@item.Key.Name :</label>
+                                            <div class="scrollable">
+                                                <js-tree id="tree-@item.Key.Code" tree-model="item.Value"></js-tree>
+                                            </div>
+                                        }
+                                    </div>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                    <button class="aside-trigger btn btn-pink btn-app btn-xs ace-settings-btn" data-target="#right-menu" data-toggle="modal" type="button">
+                        <i data-icon1="fa-search-plus" data-icon2="fa-search-minus" class="ace-icon fa fa-search-plus bigger-110 icon-only"></i>
+                    </button>
+                </div>
+            </div>
+        }
+    </div>
+</div>
+
+<!-- ================= 5. 页面核心脚本 ================= -->
+<script type="text/javascript">
+    $('.page-content-area').ace_ajax('loadScripts', @Html.Raw(scriptsArrayJson), function () {
+        
+        // 1. 初始化基础组件
+        $('.modal.aside').ace_aside();
+        $(document).one('ajaxloadstart.page', function () {
+            $('.modal.aside').remove();
+            $(window).off('.aside');
+        });
+
+        // 2. 表格通用事件：自定义加载完成事件
+        @foreach (var grid in grids.Where(g => g.GridCompleteEvent.IsPresent()))
+        {
+            <text>
+            $("#grid-@grid.Id").on("jqGridGridComplete",function(){
+                const  $grid = $(this);
+                @Html.Raw(grid.GridCompleteEvent)
+             });
+            </text>
+        }
+
+        // 3. 根据绑定表格渲染行按钮
+        @foreach (var grid in grids)
+        {
+            var gridRowButtons = rowButtons.Where(b => b.BindGridId == grid.Id).ToList();
+            if (gridRowButtons.Count > 0)
+            {
+                <text>
+                $("#grid-@grid.Id").on("jqGridGridComplete", function () {
+                    const $grid = $(this);
+                    const ids = $grid.jqGrid('getDataIDs');
+                    ids.forEach(function (rowId) {
+                        $grid.jqGrid(
+                            'setCell',
+                            rowId,
+                            'oper',
+                            `@Html.Raw(gridRowButtons.Select(b => $"<button type='button' class='btn btn-white btn-xs btn-row-oper' data-bind-grid='{b.BindGridId}' data-eventflow='{b.BindEventflow}' data-id='{b.Id}' data-rowid='${{rowId}}'>{b.Name}</button>").JoinString("  "))`
+                        );
+                    });
+                });
+                </text>
+            }
+        }
+
+        @if (rowButtons.Count > 0)
+        {
+            <text>
+            $('#pageGridTab').siblings('.tab-content').on('click', '.btn-row-oper', function (e) {
+                e.stopPropagation();
+                const { rowid, id, eventflow, bindGrid } = $(this).data();
+                const $grid = $(`#grid-${bindGrid}`);
+                const oper = $(this).text().trim();
+                const rowData = $grid.jqGrid('getRowData', rowid);
+                                               
+                if (eventflow) {
+                             bootbox.confirm($.lang("confirm_to_execute", `确认执行【{0}】操作吗?`).replace("{0}", oper), function (result) {
+                        if (result) {
+                            $.workflow.executeEventflow(eventflow, [rowData.fid], () => $grid.refresh());
+                        }
+                    });
+                } else {
+                    @foreach (var btn in rowButtons.Where(b => b.JsFunc.IsPresent()))
+                    {
+                        <text>
+                        if (bindGrid === "@btn.BindGridId" && id === "@btn.Id") {
+                            @Html.Raw(btn.JsFunc)
+                        }
+                        </text>
+                    }
+                }
+            });
+            </text>
+        }
+
+        // 4. 自定义 JS 函数的按钮绑定 (无法抽象的部分)
+        @foreach (var btn in buttons.Where(b => b.JsFunc.IsPresent()))
+        {
+            <text>$("#@btn.Id").on(ace.click_event, function () { @Html.Raw(btn.JsFunc) });</text>
+        }
+
+        // 5. 事件流按钮的统一代理绑定 (大幅减少 JS 代码)
+        $('.btn-eventflow').on(ace.click_event, function () {
+            let $btn = $(this);
+            const { bindGrid, bindEventflow } = $btn.data();
+            const $grid = $(`#grid-${bindGrid}`);
+            const rowDatas = $grid.getSelectedRows();
+
+            if (!rowDatas || rowDatas.length === 0) return;
+            let oper=$btn.text();
+            bootbox.confirm(`确认执行【${oper}】吗?`, function (result) {
+                if (result) {
+                    const fids = rowDatas.map(r => r.fid);
+                    $.workflow.executeEventflow(bindEventflow, fids, () => $grid.refresh());
+                }
+            });
+        });
+
+        // 6. Tab 页签切换联动逻辑
+        $('#pageGridTab').on('shown.bs.tab', 'a[data-toggle="tab"]', function (e) {
+            const gridId = $(this).data('grid-id');
+            const $tab = $(this);
+            $(".page-button").addClass("hide")
+                     .filter("[data-bind-grid='" + gridId + "']")
+                     .removeClass("hide");
+            // 延迟加载表格
+            if (!$tab.data('isload')) {
+                $(`#grid-${gridId}`).refresh();
+                $tab.data('isload', true);
+            }
+
+            // 联动切换右侧搜索面板
+            if ($("#right-menu").length) {
+                $(".quick-serch").addClass("hide");
+                $(`#quick-search-${gridId}`).removeClass("hide");
+            }
+        });
+
+        // 初始化：默认触发第一个Tab
+        $('#pageGridTab a:first').trigger('click');
+
+        // 7. 快速查询核心业务逻辑
+        @if (hasQuickSearch)
+        {
+            <text>
+            const $rightMenu = $("#right-menu");
+
+            // 监听 Checkbox 与 Tree 变化
+            $rightMenu.on('change', "input[type='checkbox']", function () {
+                triggerSearch($(this).closest(".quick-serch"));
+            });
+
+            $rightMenu.on("changed.jstree", "[id^='tree-']", function (e, data) {
+                if (data && data.selected && data.node) {
+                    triggerSearch($(this).closest(".quick-serch"));
+                }
+            });
+
+            function triggerSearch($container) {
+                const filters = { groupOp: "AND", rules: [], groups: [] };
+                
+                // 处理 IN 操作 (字典/文本)
+                const inValues = {};
+                $container.find(".qs-in-type:checked").each(function () {
+                    const field = $.firstToLowerCase($(this).data("field"));
+                    inValues[field] = inValues[field] || [];
+                    inValues[field].push($(this).val());
+                });
+                
+                for (const [key, vals] of Object.entries(inValues)) {
+                    filters.rules.push({ field: key, op: "in", data: vals });
+                }
+
+                // 处理 OR 逻辑操作 (布尔/三态)
+                const $boolChecks = $container.find(".qs-bool-type:checked");
+                if ($boolChecks.length > 0 && $boolChecks.length < 3) {
+                    const field = $.firstToLowerCase($boolChecks.first().data("field"));
+                    const boolRules = Array.from($boolChecks).map(el => {
+                        const val = el.value;
+                        return val === "99" 
+                            ? { field: field, op: "nu", data: "1" } 
+                            : { field: field, op: "eq", data: val };
+                    });
+                    filters.groups.push({ groupOp: "OR", rules: boolRules });
+                }
+
+                // 处理树形结构关联
+                $container.find(".jstree").each(function () {
+                    const field = $(this).attr("id").replace("tree-", "");
+                    const ids = buildTreeCondition($(this));
+                    if (ids.length > 0) {
+                        filters.rules.push({ field: $.firstToLowerCase(field), op: "in", data: ids });
+                    }
+                });
+
+                // 执行网格查询
+                $(`#grid-${$container.data("grid")}`).search(filters);
+            }
+
+            function buildTreeCondition($tree) {
+                const treeIns = $tree.jstree(true);
+                const nodes = treeIns.get_selected(true);
+                if (nodes.length === 0) return [];
+
+                const node = nodes[0];
+                // 如果是唯一根节点，不作为筛选条件
+                if (node.parent === "#" && treeIns.get_node("#").children.length === 1) return [];
+                
+                return [node.data.fid, ...node.children_d.map(cn => treeIns.get_node(cn).data.fid)];
+            }
+            </text>
+        }
+    });
+</script>

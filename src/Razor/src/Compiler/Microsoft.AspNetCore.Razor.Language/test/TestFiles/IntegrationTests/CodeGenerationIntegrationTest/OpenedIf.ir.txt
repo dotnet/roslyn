@@ -1,0 +1,40 @@
+﻿Document - 
+    RazorCompiledItemAttribute - 
+    NamespaceDeclaration -  - AspNetCoreGeneratedDocument
+        UsingDirective - (1:0,1 [20] ) - global::System
+        UsingDirective - (24:1,1 [40] ) - global::System.Collections.Generic
+        UsingDirective - (67:2,1 [25] ) - global::System.Linq
+        UsingDirective - (95:3,1 [36] ) - global::System.Threading.Tasks
+        UsingDirective - (134:4,1 [38] ) - global::Microsoft.AspNetCore.Mvc
+        UsingDirective - (175:5,1 [48] ) - global::Microsoft.AspNetCore.Mvc.Rendering
+        UsingDirective - (226:6,1 [51] ) - global::Microsoft.AspNetCore.Mvc.ViewFeatures
+        RazorSourceChecksumAttribute - 
+        RazorCompiledItemMetadataAttribute - 
+        CreateNewOnMetadataUpdateAttribute - 
+        ClassDeclaration -  - internal sealed - TestFiles_IntegrationTests_CodeGenerationIntegrationTest_OpenedIf - global::Microsoft.AspNetCore.Mvc.Razor.RazorPage<dynamic> - 
+            DefaultTagHelperRuntime - 
+            FieldDeclaration -  - private - global::Microsoft.AspNetCore.Mvc.Razor.TagHelpers.BodyTagHelper - __Microsoft_AspNetCore_Mvc_Razor_TagHelpers_BodyTagHelper
+            MethodDeclaration -  - public async override - global::System.Threading.Tasks.Task - ExecuteAsync
+                HtmlContent - (0:0,0 [8] OpenedIf.cshtml)
+                    LazyIntermediateToken - (0:0,0 [5] OpenedIf.cshtml) - Html - <html
+                    LazyIntermediateToken - (5:0,5 [1] OpenedIf.cshtml) - Html - >
+                    LazyIntermediateToken - (6:0,6 [2] OpenedIf.cshtml) - Html - \n
+                TagHelper - (8:1,0 [39] OpenedIf.cshtml) - body - TagMode.StartTagAndEndTag
+                    DefaultTagHelperBody - 
+                        HtmlContent - (14:1,6 [2] OpenedIf.cshtml)
+                            LazyIntermediateToken - (14:1,6 [2] OpenedIf.cshtml) - Html - \n
+                        CSharpCode - (17:2,1 [14] OpenedIf.cshtml)
+                            LazyIntermediateToken - (17:2,1 [14] OpenedIf.cshtml) - CSharp - if (true) { \n
+                        HtmlContent - (31:3,0 [16] OpenedIf.cshtml)
+                            LazyIntermediateToken - (31:3,0 [7] OpenedIf.cshtml) - Html - </body>
+                            LazyIntermediateToken - (38:3,7 [2] OpenedIf.cshtml) - Html - \n
+                            LazyIntermediateToken - (40:4,0 [7] OpenedIf.cshtml) - Html - </html>
+                        CSharpCode - (47:4,7 [0] OpenedIf.cshtml)
+                            LazyIntermediateToken - (47:4,7 [0] OpenedIf.cshtml) - CSharp - 
+                    DefaultTagHelperCreate -  - Microsoft.AspNetCore.Mvc.Razor.TagHelpers.BodyTagHelper
+                    DefaultTagHelperExecute - 
+            Inject - 
+            Inject - 
+            Inject - 
+            Inject - 
+            Inject - 

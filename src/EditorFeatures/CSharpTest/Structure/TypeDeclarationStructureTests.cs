@@ -249,4 +249,22 @@ public sealed class TypeDeclarationStructureTests : AbstractCSharpSyntaxNodeStru
                 """,
             Region("comment", "// comment ...", autoCollapse: true),
             Region("textspan1", "hint1", CSharpStructureHelpers.Ellipsis, autoCollapse: false));
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/81662")]
+    public Task TestExtension1()
+        => VerifyBlockSpansAsync("""
+                {|hint:$$extension{|textspan:(string s)
+                {
+                }|}|}
+                """,
+            Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: false));
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/81662")]
+    public Task TestExtension2()
+        => VerifyBlockSpansAsync("""
+                {|hint:$$extension<T>{|textspan:(string s)
+                {
+                }|}|}
+                """,
+            Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: false));
 }

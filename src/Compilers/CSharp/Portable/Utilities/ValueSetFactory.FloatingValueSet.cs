@@ -17,25 +17,25 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// A value set implementation for <see cref="System.Single"/> and <see cref="System.Double"/>.
         /// </summary>
         /// <typeparam name="TFloating">A floating-point type.</typeparam>
-        private sealed class FloatingValueSet<TFloating> : IValueSet<TFloating>
+        private sealed class FloatingValueSet<TFloating> : IConstantValueSet<TFloating>
         {
-            private readonly IValueSet<TFloating> _numbers;
+            private readonly IConstantValueSet<TFloating> _numbers;
             private readonly bool _hasNaN;
             private readonly FloatingTC<TFloating> _tc;
 
-            private FloatingValueSet(IValueSet<TFloating> numbers, bool hasNaN, FloatingTC<TFloating> tc)
+            private FloatingValueSet(IConstantValueSet<TFloating> numbers, bool hasNaN, FloatingTC<TFloating> tc)
             {
                 RoslynDebug.Assert(numbers is NumericValueSet<TFloating>);
                 (_numbers, _hasNaN, _tc) = (numbers, hasNaN, tc);
             }
 
-            internal static IValueSet<TFloating> AllValues(FloatingTC<TFloating> tc) => new FloatingValueSet<TFloating>(
+            internal static IConstantValueSet<TFloating> AllValues(FloatingTC<TFloating> tc) => new FloatingValueSet<TFloating>(
                 numbers: NumericValueSet<TFloating>.AllValues(tc), hasNaN: true, tc);
 
-            internal static IValueSet<TFloating> NoValues(FloatingTC<TFloating> tc) => new FloatingValueSet<TFloating>(
+            internal static IConstantValueSet<TFloating> NoValues(FloatingTC<TFloating> tc) => new FloatingValueSet<TFloating>(
                 numbers: NumericValueSet<TFloating>.NoValues(tc), hasNaN: false, tc);
 
-            internal static IValueSet<TFloating> Random(int expectedSize, Random random, FloatingTC<TFloating> tc)
+            internal static IConstantValueSet<TFloating> Random(int expectedSize, Random random, FloatingTC<TFloating> tc)
             {
                 bool hasNan = random.NextDouble() < 0.5;
                 if (hasNan)
@@ -43,12 +43,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (expectedSize < 1)
                     expectedSize = 2;
                 return new FloatingValueSet<TFloating>(
-                    numbers: (IValueSet<TFloating>)new NumericValueSetFactory<TFloating>(tc).Random(expectedSize, random), hasNaN: hasNan, tc);
+                    numbers: (IConstantValueSet<TFloating>)new NumericValueSetFactory<TFloating>(tc).Random(expectedSize, random), hasNaN: hasNan, tc);
             }
 
             public bool IsEmpty => !_hasNaN && _numbers.IsEmpty;
 
-            ConstantValue IValueSet.Sample
+            ConstantValue IConstantValueSet.Sample
             {
                 get
                 {
@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            public static IValueSet<TFloating> Related(BinaryOperatorKind relation, TFloating value, FloatingTC<TFloating> tc)
+            public static IConstantValueSet<TFloating> Related(BinaryOperatorKind relation, TFloating value, FloatingTC<TFloating> tc)
             {
                 if (tc.Related(Equal, tc.NaN, value))
                 {
@@ -95,7 +95,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     );
             }
 
-            public IValueSet<TFloating> Intersect(IValueSet<TFloating> o)
+            public IConstantValueSet<TFloating> Intersect(IConstantValueSet<TFloating> o)
             {
                 if (this == o)
                     return this;
@@ -108,9 +108,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     _tc);
             }
 
-            IValueSet IValueSet.Intersect(IValueSet other) => this.Intersect((IValueSet<TFloating>)other);
+            IValueSet IValueSet.Intersect(IValueSet other) => this.Intersect((IConstantValueSet<TFloating>)other);
 
-            public IValueSet<TFloating> Union(IValueSet<TFloating> o)
+            public IConstantValueSet<TFloating> Union(IConstantValueSet<TFloating> o)
             {
                 if (this == o)
                     return this;
@@ -123,9 +123,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     _tc);
             }
 
-            IValueSet IValueSet.Union(IValueSet other) => this.Union((IValueSet<TFloating>)other);
+            IValueSet IValueSet.Union(IValueSet other) => this.Union((IConstantValueSet<TFloating>)other);
 
-            public IValueSet<TFloating> Complement()
+            public IConstantValueSet<TFloating> Complement()
             {
                 return new FloatingValueSet<TFloating>(
                     numbers: this._numbers.Complement(),
@@ -135,7 +135,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             IValueSet IValueSet.Complement() => this.Complement();
 
-            bool IValueSet.Any(BinaryOperatorKind relation, ConstantValue value) =>
+            bool IConstantValueSet.Any(BinaryOperatorKind relation, ConstantValue value) =>
                 value.IsBad || this.Any(relation, _tc.FromConstantValue(value));
 
             public bool Any(BinaryOperatorKind relation, TFloating value)
@@ -145,7 +145,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     _numbers.Any(relation, value);
             }
 
-            bool IValueSet.All(BinaryOperatorKind relation, ConstantValue value) => !value.IsBad && All(relation, _tc.FromConstantValue(value));
+            bool IConstantValueSet.All(BinaryOperatorKind relation, ConstantValue value) => !value.IsBad && All(relation, _tc.FromConstantValue(value));
 
             public bool All(BinaryOperatorKind relation, TFloating value)
             {

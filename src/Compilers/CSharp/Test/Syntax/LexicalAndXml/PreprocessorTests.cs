@@ -283,7 +283,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     default:
                         if (null != exp.Text)
                         {
-                            Assert.True(false, String.Format("You are expecting some text in the directive, but this method doesn't know how to verify it for `{0}`.", exp.Kind));
+                            Assert.Fail(String.Format("You are expecting some text in the directive, but this method doesn't know how to verify it for `{0}`.", exp.Kind));
                         }
                         break;
                 } // switch
@@ -347,7 +347,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                         }
                         else
                         {
-                            Assert.True(false, "Warning ID must be an identifier or numeric literal");
+                            Assert.Fail("Warning ID must be an identifier or numeric literal");
                         }
                     }
                 }
@@ -3222,9 +3222,9 @@ class A { }
         [Theory]
         [InlineData(LanguageVersion.CSharp4, "4")]
         [InlineData(LanguageVersion.CSharp9, "9.0")]
-        [InlineData(LanguageVersion.Latest, "latest (14.0)")]
-        [InlineData(LanguageVersion.LatestMajor, "latestmajor (14.0)")]
-        [InlineData(LanguageVersion.Default, "default (14.0)")]
+        [InlineData(LanguageVersion.Latest, "latest (15.0)")]
+        [InlineData(LanguageVersion.LatestMajor, "latestmajor (15.0)")]
+        [InlineData(LanguageVersion.Default, "default (15.0)")]
         [InlineData(LanguageVersion.Preview, "preview")]
         public void TestErrorWithVersion(LanguageVersion version, string expectedLanguageVersion)
         {

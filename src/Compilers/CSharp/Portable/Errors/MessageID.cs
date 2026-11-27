@@ -4,7 +4,6 @@
 
 using System;
 using System.Diagnostics;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -305,6 +304,18 @@ namespace Microsoft.CodeAnalysis.CSharp
         IDS_CollectionExpression = MessageBase + 12856,
 
         IDS_FeatureUserDefinedCompoundAssignmentOperators = MessageBase + 12857,
+
+        IDS_FeatureCollectionExpressionArguments = MessageBase + 12858,
+
+        IDS_FeatureUnsafeEvolution = MessageBase + 12859,
+
+        IDS_FeatureUnions = MessageBase + 12860,
+        IDS_FeatureStaticMembersInInterfaces = MessageBase + 12861,
+        IDS_FeatureClosedClasses = MessageBase + 12862,
+        IDS_FeatureExtensionIndexers = MessageBase + 12863,
+        IDS_FeatureLabeledBreakContinue = MessageBase + 12864,
+
+        IDS_FeatureTypeParameterInferenceFromConstraints = MessageBase + 12865,
     }
 
     // Message IDs may refer to strings that need to be localized.
@@ -485,9 +496,20 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // PREFER reporting diagnostics in binding when diagnostics do not affect the shape of the syntax tree
 
                 // C# preview features.
-                //return LanguageVersion.Preview;
+                case MessageID.IDS_FeatureUnsafeEvolution:
+                case MessageID.IDS_FeatureTypeParameterInferenceFromConstraints:
+                    return LanguageVersion.Preview;
 
-                // C# 13.0 features.
+                // C# 15.0 features.
+                case MessageID.IDS_FeatureCollectionExpressionArguments:
+                case MessageID.IDS_FeatureUnions:
+                case MessageID.IDS_FeatureStaticMembersInInterfaces:
+                case MessageID.IDS_FeatureClosedClasses: // semantic check
+                case MessageID.IDS_FeatureLabeledBreakContinue:
+                case MessageID.IDS_FeatureExtensionIndexers:
+                    return LanguageVersion.CSharp15;
+
+                // C# 14.0 features.
                 case MessageID.IDS_FeatureFieldKeyword:
                 case MessageID.IDS_FeatureFirstClassSpan:
                 case MessageID.IDS_FeatureUnboundGenericTypesInNameof:

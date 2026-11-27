@@ -23,13 +23,12 @@ internal sealed partial class UseExplicitTupleNameCodeFixProvider() : SyntaxEdit
     public override ImmutableArray<string> FixableDiagnosticIds { get; }
         = [IDEDiagnosticIds.UseExplicitTupleNameDiagnosticId];
 
-    public override Task RegisterCodeFixesAsync(CodeFixContext context)
+    public override async Task RegisterCodeFixesAsync(CodeFixContext context)
     {
         RegisterCodeFix(context, AnalyzersResources.Use_explicitly_provided_tuple_name, nameof(AnalyzersResources.Use_explicitly_provided_tuple_name));
-        return Task.CompletedTask;
     }
 
-    protected override Task FixAllAsync(
+    protected override async Task FixAllAsync(
         Document document, ImmutableArray<Diagnostic> diagnostics,
         SyntaxEditor editor, CancellationToken cancellationToken)
     {
@@ -47,7 +46,5 @@ internal sealed partial class UseExplicitTupleNameCodeFixProvider() : SyntaxEdit
 
             editor.ReplaceNode(oldNameNode, newNameNode);
         }
-
-        return Task.CompletedTask;
     }
 }

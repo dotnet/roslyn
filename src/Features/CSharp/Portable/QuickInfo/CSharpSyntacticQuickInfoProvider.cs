@@ -28,11 +28,6 @@ internal sealed class CSharpSyntacticQuickInfoProvider() : CommonQuickInfoProvid
         SyntaxToken token)
         => Task.FromResult(BuildQuickInfo(token, context.CancellationToken));
 
-    protected override Task<QuickInfoItem?> BuildQuickInfoAsync(
-        CommonQuickInfoContext context,
-        SyntaxToken token)
-        => Task.FromResult(BuildQuickInfo(token, context.CancellationToken));
-
     private static QuickInfoItem? BuildQuickInfo(SyntaxToken token, CancellationToken cancellationToken)
     {
         switch (token.Kind())

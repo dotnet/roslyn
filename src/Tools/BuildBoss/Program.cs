@@ -36,6 +36,7 @@ namespace BuildBoss
             string repositoryDirectory = null;
             string configuration = "Debug";
             string primarySolution = null;
+            bool checkPackageInstall = false;
             List<string> solutionFiles;
 
             var options = new OptionSet
@@ -43,6 +44,10 @@ namespace BuildBoss
                 { "r|root=", "The repository root", value => repositoryDirectory = value },
                 { "c|configuration=", "Build configuration", value => configuration = value },
                 { "p|primary=", "Primary solution file name (which contains all projects)", value => primarySolution = value },
+                // The trailing ':' makes the value optional, so a bare --check-package-install turns the
+                // check on. Without it Mono.Options silently discards an explicit value and
+                // --check-package-install=false would still run the check.
+                { "check-package-install:", "Verify our NuGet packages can be installed", value => checkPackageInstall = value is null || bool.Parse(value) },
             };
 
             if (configuration is not "Debug" and not "Release")
@@ -79,7 +84,7 @@ namespace BuildBoss
                 solutionFiles = Directory.EnumerateFiles(repositoryDirectory, "*.sln").ToList();
             }
 
-            return Go(repositoryDirectory, configuration, primarySolution, solutionFiles);
+            return Go(repositoryDirectory, configuration, primarySolution, solutionFiles, checkPackageInstall);
         }
 
         private static string FindRepositoryRoot(string startDirectory)
@@ -93,20 +98,36 @@ namespace BuildBoss
             return dir;
         }
 
-        private static bool Go(string repositoryDirectory, string configuration, string primarySolution, List<string> solutionFileNames)
+        private static bool Go(string repositoryDirectory, string configuration, string primarySolution, List<string> solutionFileNames, bool checkPackageInstall)
         {
             var allGood = true;
-            foreach (var solutionFileName in solutionFileNames)
+            var artifactsDirectory = Path.Combine(repositoryDirectory, "artifacts");
+            var logDirectory = Path.Combine(artifactsDirectory, "log", configuration, "BuildBoss");
+            if (Directory.Exists(logDirectory))
             {
-                allGood &= ProcessSolution(Path.Combine(repositoryDirectory, solutionFileName), isPrimarySolution: solutionFileName == primarySolution);
+                Directory.Delete(logDirectory, recursive: true);
             }
 
-            var artifactsDirectory = Path.Combine(repositoryDirectory, "artifacts");
+            Directory.CreateDirectory(logDirectory);
 
-            allGood &= ProcessTargets(repositoryDirectory);
-            allGood &= ProcessPackages(repositoryDirectory, artifactsDirectory, configuration);
-            allGood &= ProcessStructuredLog(artifactsDirectory, configuration);
-            allGood &= ProcessOptProf(repositoryDirectory, artifactsDirectory, configuration);
+            foreach (var solutionFileName in solutionFileNames)
+            {
+                allGood &= ProcessSolution(
+                    Path.Combine(repositoryDirectory, solutionFileName),
+                    solutionFileName == primarySolution,
+                    Path.Combine(logDirectory, $"Solution-{Path.GetFileName(solutionFileName)}.log"));
+            }
+
+            allGood &= ProcessGeneratedFiles(repositoryDirectory, Path.Combine(logDirectory, "GeneratedFiles.log"));
+            allGood &= ProcessTargets(repositoryDirectory, Path.Combine(logDirectory, "Targets.log"));
+            allGood &= ProcessPackages(repositoryDirectory, artifactsDirectory, configuration, Path.Combine(logDirectory, "PackageContents.log"));
+            allGood &= ProcessStructuredLog(artifactsDirectory, configuration, Path.Combine(logDirectory, "StructuredLog.log"));
+            allGood &= ProcessOptProf(repositoryDirectory, artifactsDirectory, configuration, Path.Combine(logDirectory, "OptProf.log"));
+
+            if (checkPackageInstall)
+            {
+                allGood &= ProcessPackageInstall(artifactsDirectory, configuration, Path.Combine(logDirectory, "PackageInstall.log"));
+            }
 
             if (!allGood)
             {
@@ -116,11 +137,21 @@ namespace BuildBoss
             return allGood;
         }
 
-        private static bool CheckCore(ICheckerUtil util, string title)
+        private static bool CheckCore(ICheckerUtil util, string title, string logFilePath)
         {
             Console.Write($"Processing {title} ... ");
             var textWriter = new StringWriter();
-            if (util.Check(textWriter))
+            var succeeded = util.Check(textWriter);
+            var output = textWriter.ToString();
+
+            using (var logWriter = new StreamWriter(logFilePath, append: false, SharedUtil.Encoding))
+            {
+                logWriter.WriteLine($"Check: {title}");
+                logWriter.WriteLine($"Result: {(succeeded ? "passed" : "FAILED")}");
+                logWriter.Write(output);
+            }
+
+            if (succeeded)
             {
                 Console.WriteLine("passed");
                 return true;
@@ -128,41 +159,53 @@ namespace BuildBoss
             else
             {
                 Console.WriteLine("FAILED");
-                Console.WriteLine(textWriter.ToString());
+                Console.WriteLine(output);
                 return false;
             }
         }
 
-        private static bool ProcessSolution(string solutionFilePath, bool isPrimarySolution)
+        private static bool ProcessSolution(string solutionFilePath, bool isPrimarySolution, string logFilePath)
         {
             var util = new SolutionCheckerUtil(solutionFilePath, isPrimarySolution);
-            return CheckCore(util, $"Solution {solutionFilePath}");
+            return CheckCore(util, $"Solution {solutionFilePath}", logFilePath);
         }
 
-        private static bool ProcessTargets(string repositoryDirectory)
+        private static bool ProcessGeneratedFiles(string repositoryDirectory, string logFilePath)
+        {
+            var checker = new GeneratedFilesCheckerUtil(repositoryDirectory);
+            return CheckCore(checker, $"Generated files {repositoryDirectory}", logFilePath);
+        }
+
+        private static bool ProcessTargets(string repositoryDirectory, string logFilePath)
         {
             var targetsDirectory = Path.Combine(repositoryDirectory, @"eng\targets");
             var checker = new TargetsCheckerUtil(targetsDirectory);
-            return CheckCore(checker, $"Targets {targetsDirectory}");
+            return CheckCore(checker, $"Targets {targetsDirectory}", logFilePath);
         }
 
-        private static bool ProcessStructuredLog(string artifactsDirectory, string configuration)
+        private static bool ProcessStructuredLog(string artifactsDirectory, string configuration, string checkLogFilePath)
         {
-            var logFilePath = Path.Combine(artifactsDirectory, $@"log\{configuration}\Build.binlog");
-            var util = new StructuredLoggerCheckerUtil(logFilePath);
-            return CheckCore(util, $"Structured log {logFilePath}");
+            var binaryLogFilePath = Path.Combine(artifactsDirectory, $@"log\{configuration}\Build.binlog");
+            var util = new StructuredLoggerCheckerUtil(binaryLogFilePath);
+            return CheckCore(util, $"Structured log {binaryLogFilePath}", checkLogFilePath);
         }
 
-        private static bool ProcessPackages(string repositoryDirectory, string artifactsDirectory, string configuration)
+        private static bool ProcessPackages(string repositoryDirectory, string artifactsDirectory, string configuration, string logFilePath)
         {
             var util = new PackageContentsChecker(repositoryDirectory, artifactsDirectory, configuration);
-            return CheckCore(util, $"NuPkg and VSIX files");
+            return CheckCore(util, $"NuPkg and VSIX files", logFilePath);
         }
 
-        private static bool ProcessOptProf(string repositoryDirectory, string artifactsDirectory, string configuration)
+        private static bool ProcessOptProf(string repositoryDirectory, string artifactsDirectory, string configuration, string logFilePath)
         {
             var util = new OptProfCheckerUtil(repositoryDirectory, artifactsDirectory, configuration);
-            return CheckCore(util, $"OptProf inputs");
+            return CheckCore(util, $"OptProf inputs", logFilePath);
+        }
+
+        private static bool ProcessPackageInstall(string artifactsDirectory, string configuration, string logFilePath)
+        {
+            var util = new PackageInstallChecker(artifactsDirectory, configuration);
+            return CheckCore(util, "NuGet package install", logFilePath);
         }
     }
 }

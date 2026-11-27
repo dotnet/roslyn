@@ -25,8 +25,6 @@ namespace Microsoft.CodeAnalysis
             public const EventTask AnalyzerAssemblyLoader = (EventTask)5;
         }
 
-        private CodeAnalysisEventSource() { }
-
         [Event(1, Keywords = Keywords.Performance, Level = EventLevel.Informational, Opcode = EventOpcode.Start, Task = Tasks.GeneratorDriverRunTime)]
         internal void StartGeneratorDriverRunTime(string id) => WriteEvent(1, id);
 

@@ -318,7 +318,7 @@ internal static class NamedTypeGenerator
     private static BaseListSyntax? GenerateBaseList(INamedTypeSymbol namedType)
     {
         var types = new List<BaseTypeSyntax>();
-        if (namedType.TypeKind == TypeKind.Class && namedType.BaseType != null && namedType.BaseType.SpecialType != Microsoft.CodeAnalysis.SpecialType.System_Object)
+        if (namedType is { TypeKind: TypeKind.Class, BaseType: not null, BaseType.SpecialType: not SpecialType.System_Object })
             types.Add(SimpleBaseType(namedType.BaseType.GenerateTypeSyntax()));
 
         foreach (var type in namedType.Interfaces)

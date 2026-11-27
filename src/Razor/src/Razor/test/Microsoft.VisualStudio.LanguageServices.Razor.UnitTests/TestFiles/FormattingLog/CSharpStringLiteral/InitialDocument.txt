@@ -1,0 +1,3 @@
+@{
+    var s1 = "   test    test   ";
+}

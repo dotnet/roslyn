@@ -6,11 +6,15 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Basic.Reference.Assemblies;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.FindSymbols;
+using Microsoft.CodeAnalysis.FindSymbols.Finders;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
@@ -108,6 +112,48 @@ public sealed class FindReferencesTests : TestBase
         var result = (await SymbolFinder.FindReferencesAsync(symbol, solution)).ToList();
         Assert.Equal(1, result.Count); // 1 symbol found
         Assert.Equal(3, result[0].Locations.Count()); // 3 locations found
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/82471")]
+    public async Task AnonymousFunctionMethodReferencesAreNotSearched()
+    {
+        var text = """
+
+            using System;
+
+            public class C
+            {
+                public void M()
+                {
+                    Action a = () => { };
+                }
+            }
+
+            """;
+        using var workspace = CreateWorkspace();
+        var solution = GetSingleDocumentSolution(workspace, text);
+        var project = solution.Projects.Single();
+        var document = project.Documents.Single();
+        var root = await document.GetSyntaxRootAsync();
+        var semanticModel = await document.GetSemanticModelAsync();
+        var lambda = root.DescendantNodes().OfType<ParenthesizedLambdaExpressionSyntax>().Single();
+        var symbol = (IMethodSymbol)semanticModel.GetSymbolInfo(lambda).Symbol;
+
+        Assert.Equal(MethodKind.AnonymousFunction, symbol.MethodKind);
+        Assert.Empty(symbol.Name);
+
+        var searchedDocuments = new List<Document>();
+        await OrdinaryMethodReferenceFinder.Instance.DetermineDocumentsToSearchAsync(
+            symbol,
+            globalAliases: null,
+            project,
+            documents: ImmutableHashSet.Create(document),
+            static (document, searchedDocuments) => searchedDocuments.Add(document),
+            searchedDocuments,
+            FindReferencesSearchOptions.Default,
+            CancellationToken.None);
+
+        Assert.Empty(searchedDocuments);
     }
 
     [Fact]
@@ -730,6 +776,138 @@ public sealed class FindReferencesTests : TestBase
         Assert.True(fieldUsage.SymbolUsageInfo.IsWrittenTo(),
             "Field should be WRITTEN in 'InnerC.Field = 5'. " +
             $"UsageInfo: {fieldUsage.SymbolUsageInfo}");
+    }
+
+    [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/82744")]
+    public async Task FindReferences_PartialMemberThroughRetargetingReference(
+        [CombinatorialValues("M", "P", "E")] string memberName,
+        bool searchImplementationPart)
+    {
+        var solution = CreateWorkspace().CurrentSolution;
+
+        // Lib compiles against netstandard2.0 and App against netcoreapp, so App sees Lib through a retargeting assembly.
+        solution = AddProjectWithMetadataReferences(solution, "Lib", LanguageNames.CSharp, """
+            namespace N
+            {
+                public partial class C
+                {
+                    public partial void M();
+                    public partial int P { get; }
+                    public partial event System.Action E;
+
+                    void SameProjectUse()
+                    {
+                        M();
+                        _ = P;
+                        E += null;
+                    }
+                }
+
+                public partial class C
+                {
+                    public partial void M() { }
+                    public partial int P => 0;
+                    public partial event System.Action E { add { } remove { } }
+                }
+            }
+            """, NetStandard20.References.All);
+        var libProjectId = solution.Projects.Single(p => p.Name == "Lib").Id;
+
+        solution = AddProjectWithMetadataReferences(solution, "App", LanguageNames.CSharp, """
+            class D
+            {
+                void CrossProjectUse(N.C c)
+                {
+                    c.M();
+                    _ = c.P;
+                    c.E += null;
+                }
+            }
+            """, NetCoreApp.References, libProjectId);
+
+        var libCompilation = await solution.GetProject(libProjectId).GetCompilationAsync();
+        var appCompilation = await solution.Projects.Single(p => p.Name == "App").GetCompilationAsync();
+        var libAsSeenByApp = appCompilation.GetAssemblyOrModuleSymbol(appCompilation.References.OfType<CompilationReference>().Single());
+        Assert.False(SymbolEqualityComparer.Default.Equals(libCompilation.Assembly, libAsSeenByApp));
+
+        var definitionPart = libCompilation.GetTypeByMetadataName("N.C").GetMembers(memberName).Single();
+        var searchSymbol = !searchImplementationPart ? definitionPart : definitionPart switch
+        {
+            IMethodSymbol method => method.PartialImplementationPart,
+            IPropertySymbol property => property.PartialImplementationPart,
+            IEventSymbol @event => @event.PartialImplementationPart,
+            _ => null,
+        };
+        Assert.NotNull(searchSymbol);
+
+        // The cross-project use must be found, and attributed to the same definitions as the same-project use.
+        var references = await SymbolFinder.FindReferencesAsync(searchSymbol, solution);
+        var sameProjectDefinitions = DefinitionsReferencedFrom("Lib.cs");
+        Assert.NotEmpty(sameProjectDefinitions);
+        Assert.Equal(sameProjectDefinitions, DefinitionsReferencedFrom("App.cs"));
+
+        string[] DefinitionsReferencedFrom(string documentName)
+            => references
+                .Where(r => r.Locations.Any(l => !l.IsImplicit && l.Document.Name == documentName))
+                .Select(r => $"{r.Definition.ToDisplayString()} at {r.Definition.Locations.First().SourceSpan}")
+                .OrderBy(d => d, StringComparer.Ordinal)
+                .ToArray();
+    }
+
+    [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/82744")]
+    public async Task FindReferences_PartialMethodCascadesToInterfaceMemberFromEitherPart(bool searchImplementationPart)
+    {
+        using var workspace = CreateWorkspace();
+        var solution = GetSingleDocumentSolution(workspace, """
+            interface I
+            {
+                void M();
+            }
+
+            partial class C : I
+            {
+                public partial void M();
+                public partial void M() { }
+
+                void Use(I i) => i.M();
+            }
+            """);
+
+        var compilation = await solution.Projects.Single().GetCompilationAsync();
+        var definitionPart = (IMethodSymbol)compilation.GetTypeByMetadataName("C").GetMembers("M").Single();
+        var references = await SymbolFinder.FindReferencesAsync(
+            searchImplementationPart ? definitionPart.PartialImplementationPart : definitionPart, solution);
+
+        var interfaceMember = references.Single(r => r.Definition.ContainingType.Name == "I");
+        Assert.Single(interfaceMember.Locations);
+    }
+
+    [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/82744")]
+    public async Task FindReferences_PartialMethodParameter(
+        [CombinatorialValues("value", "other")] string implementationName,
+        bool searchImplementationPart)
+    {
+        using var workspace = CreateWorkspace();
+        var solution = GetSingleDocumentSolution(workspace, $$"""
+            partial class C
+            {
+                partial void M(int value);
+                partial void M(int {{implementationName}}) { _ = {{implementationName}}; }
+
+                void Use() => M(value: 1);
+            }
+            """);
+
+        var compilation = await solution.Projects.Single().GetCompilationAsync();
+        var definitionPart = (IMethodSymbol)compilation.GetTypeByMetadataName("C").GetMembers("M").Single();
+        var method = searchImplementationPart ? definitionPart.PartialImplementationPart : definitionPart;
+        var references = await SymbolFinder.FindReferencesAsync(method.Parameters.Single(), solution);
+
+        var referencedNames = references
+            .SelectMany(r => r.Locations)
+            .Select(l => l.Location.SourceTree.GetText().ToString(l.Location.SourceSpan))
+            .OrderBy(n => n, StringComparer.Ordinal);
+        Assert.Equal(new[] { implementationName, "value" }.OrderBy(n => n, StringComparer.Ordinal), referencedNames);
     }
 
     private static void Verify(ReferencedSymbol reference, HashSet<int> expectedMatchedLines)

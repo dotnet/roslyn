@@ -56,11 +56,11 @@ internal abstract class AbstractAliasAmbiguousTypeCodeFixProvider : CodeFixProvi
 
             actions.Add(CodeAction.Create(
                 title,
-                cancellationToken =>
+                async cancellationToken =>
                 {
                     var aliasDirective = syntaxGenerator.AliasImportDeclaration(typeName, symbol);
                     var newRoot = addImportService.AddImport(semanticModel, root, diagnosticNode, aliasDirective, syntaxGenerator, placementOption, cancellationToken);
-                    return Task.FromResult(document.WithSyntaxRoot(newRoot));
+                    return document.WithSyntaxRoot(newRoot);
                 },
                 title));
         }
@@ -117,7 +117,7 @@ internal abstract class AbstractAliasAmbiguousTypeCodeFixProvider : CodeFixProvi
                     result.Add(current.Name);
                 }
 
-                // We walked upwards to get the name segments.  So reverse teh order here so it goes from outer-most to
+                // We walked upwards to get the name segments.  So reverse the order here so it goes from outer-most to
                 // inner-most names.
                 result.ReverseContents();
                 return result.ToImmutableAndClear();

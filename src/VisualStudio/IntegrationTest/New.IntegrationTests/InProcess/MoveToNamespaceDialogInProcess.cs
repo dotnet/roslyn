@@ -14,6 +14,7 @@ using Microsoft.VisualStudio.Extensibility.Testing;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Input;
 using Microsoft.VisualStudio.LanguageServices.Implementation.MoveToNamespace;
 using Roslyn.Test.Utilities;
+using Xunit;
 
 namespace Roslyn.VisualStudio.NewIntegrationTests.InProcess;
 
@@ -31,7 +32,7 @@ internal sealed partial class MoveToNamespaceDialogInProcess
         await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
         var dialog = await TryGetDialogAsync(cancellationToken);
-        AssertEx.NotNull(dialog);
+        Assert.NotNull(dialog);
 
         Contract.ThrowIfFalse(await buttonAccessor(dialog).SimulateClickAsync(JoinableTaskFactory));
     }
@@ -92,7 +93,7 @@ internal sealed partial class MoveToNamespaceDialogInProcess
         await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
         var dialog = await TryGetDialogAsync(cancellationToken);
-        AssertEx.NotNull(dialog);
+        Assert.NotNull(dialog);
 
         var success = await dialog.GetTestAccessor().NamespaceBox.SimulateSelectItemAsync(JoinableTaskFactory, @namespace, mustExist: false, cancellationToken);
         Contract.ThrowIfFalse(success);

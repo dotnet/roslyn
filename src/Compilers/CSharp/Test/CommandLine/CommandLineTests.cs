@@ -43,6 +43,7 @@ using static Roslyn.Test.Utilities.SharedResourceHelpers;
 
 namespace Microsoft.CodeAnalysis.CSharp.CommandLine.UnitTests
 {
+    [ValidatePooledObjects(WaitForOutstandingObjectsToBeFreed = true)]
     public class CommandLineTests : CommandLineTestBase
     {
 #if NET
@@ -1661,7 +1662,7 @@ class C
         [InlineData("iso1")]
         [InlineData("8.1")]
         [InlineData("10.1")]
-        [InlineData("15")]
+        [InlineData("16")]
         [InlineData("1000")]
         public void LangVersion_BadVersion(string value)
         {
@@ -1720,15 +1721,19 @@ class C
             // - [ ] update the feature status page
             // - [ ] update all the tests that call this canary
             // - [ ] replace all references to C# "Next" (such as `TestOptions.RegularNext` or `LanguageVersionFacts.CSharpNext`) with the new version and fix failing tests
+            // - [ ] replace references to C# "preview" in breaking change docs
             // - [ ] update _MaxAvailableLangVersion cap (a relevant test should break when new version is introduced)
             // - [ ] update the "UpgradeProject" codefixer
+            // - [ ] Remove the `ExperimentalUrl` section from any entries for language features being shipped in Syntax.xml and OperationInterfaces.xml, and rerun the generator
+            // - [ ] Search the codebase for references tied to issues linked from Syntax.xml and OperationInterfaces.xml, and remove suppressions or attributes added for those issues
+            // - [ ] Search for any remaining uses of `Experimental` on APIs and remove if the feature is being shipped in stable form
             // - [ ] test VS insertion and deal with breaking changes. (note: the runtime repo uses "preview" so breaks are resolved sooner)
             //
             // Other repos also need updates:
             // - [ ] email release management to add to the release notes. See csharp-version in release.json in previous example: https://github.com/dotnet/core/pull/9493
             // - [ ] make csharplang updates documented at https://github.com/dotnet/csharplang/blob/main/Design-Process.md#steps-to-move-a-triaged-feature-to-an-implemented-feature
             // - [ ] push the list of specs to Codex. See previous example: https://devdiv.visualstudio.com/OnlineServices/_git/CodexV2Data/pullrequest/618779
-            AssertEx.SetEqual(["default", "1", "2", "3", "4", "5", "6", "7.0", "7.1", "7.2", "7.3", "8.0", "9.0", "10.0", "11.0", "12.0", "13.0", "14.0", "latest", "latestmajor", "preview"],
+            AssertEx.SetEqual(["default", "1", "2", "3", "4", "5", "6", "7.0", "7.1", "7.2", "7.3", "8.0", "9.0", "10.0", "11.0", "12.0", "13.0", "14.0", "15.0", "latest", "latestmajor", "preview"],
                 Enum.GetValues(typeof(LanguageVersion)).Cast<LanguageVersion>().Select(v => v.ToDisplayString()));
             // For minor versions and new major versions, the format should be "x.y", such as "7.1"
         }
@@ -1765,6 +1770,7 @@ class C
                 ErrorCode.ERR_FeatureNotAvailableInVersion12,
                 ErrorCode.ERR_FeatureNotAvailableInVersion13,
                 ErrorCode.ERR_FeatureNotAvailableInVersion14,
+                ErrorCode.ERR_FeatureNotAvailableInVersion15,
             };
 
             AssertEx.SetEqual(versions, errorCodes);
@@ -1791,9 +1797,10 @@ class C
             InlineData(LanguageVersion.CSharp12, LanguageVersion.CSharp12),
             InlineData(LanguageVersion.CSharp13, LanguageVersion.CSharp13),
             InlineData(LanguageVersion.CSharp14, LanguageVersion.CSharp14),
-            InlineData(LanguageVersion.CSharp14, LanguageVersion.LatestMajor),
-            InlineData(LanguageVersion.CSharp14, LanguageVersion.Latest),
-            InlineData(LanguageVersion.CSharp14, LanguageVersion.Default),
+            InlineData(LanguageVersion.CSharp15, LanguageVersion.CSharp15),
+            InlineData(LanguageVersion.CSharp15, LanguageVersion.LatestMajor),
+            InlineData(LanguageVersion.CSharp15, LanguageVersion.Latest),
+            InlineData(LanguageVersion.CSharp15, LanguageVersion.Default),
             InlineData(LanguageVersion.Preview, LanguageVersion.Preview),
             ]
         public void LanguageVersion_MapSpecifiedToEffectiveVersion(LanguageVersion expectedMappedVersion, LanguageVersion input)
@@ -1840,6 +1847,10 @@ class C
             InlineData("12.0", true, LanguageVersion.CSharp12),
             InlineData("13", true, LanguageVersion.CSharp13),
             InlineData("13.0", true, LanguageVersion.CSharp13),
+            InlineData("14", true, LanguageVersion.CSharp14),
+            InlineData("14.0", true, LanguageVersion.CSharp14),
+            InlineData("15", true, LanguageVersion.CSharp15),
+            InlineData("15.0", true, LanguageVersion.CSharp15),
             InlineData("08", false, LanguageVersion.Default),
             InlineData("07.1", false, LanguageVersion.Default),
             InlineData("default", true, LanguageVersion.Default),
@@ -4870,7 +4881,7 @@ C:\*.cs(100,7): error CS0103: The name 'Goo' does not exist in the current conte
             parsedArgs = DefaultParse(new[] { @"/nullable+", "/langversion:7.0", "a.cs" }, WorkingDirectory);
             parsedArgs.Errors.Verify(
                 // error CS8630: Invalid 'nullable' value: 'Enabled' for C# 7.0. Please use language version '8.0' or greater.
-                Diagnostic(ErrorCode.ERR_NullableOptionNotAvailable).WithArguments("nullable", "Enable", "7.0", "8.0").WithLocation(1, 1)
+                Diagnostic(ErrorCode.ERR_CompilationOptionNotAvailable).WithArguments("nullable", "Enable", "7.0", "8.0").WithLocation(1, 1)
                 );
             Assert.Equal(NullableContextOptions.Enable, parsedArgs.CompilationOptions.NullableContextOptions);
 
@@ -4899,7 +4910,7 @@ C:\*.cs(100,7): error CS0103: The name 'Goo' does not exist in the current conte
             parsedArgs = DefaultParse(new[] { @"/nullable:enable", "/langversion:7.0", "a.cs" }, WorkingDirectory);
             parsedArgs.Errors.Verify(
                 // error CS8630: Invalid 'nullable' value: 'Enable' for C# 7.0. Please use language version '8.0' or greater.
-                Diagnostic(ErrorCode.ERR_NullableOptionNotAvailable).WithArguments("nullable", "Enable", "7.0", "8.0").WithLocation(1, 1));
+                Diagnostic(ErrorCode.ERR_CompilationOptionNotAvailable).WithArguments("nullable", "Enable", "7.0", "8.0").WithLocation(1, 1));
             Assert.Equal(NullableContextOptions.Enable, parsedArgs.CompilationOptions.NullableContextOptions);
 
             parsedArgs = DefaultParse(new[] { @"/nullable:disable", "/langversion:7.0", "a.cs" }, WorkingDirectory);
@@ -5110,7 +5121,7 @@ C:\*.cs(100,7): error CS0103: The name 'Goo' does not exist in the current conte
             parsedArgs = DefaultParse(new[] { @"/nullable+", "/langversion:7.3", "a.cs" }, WorkingDirectory);
             parsedArgs.Errors.Verify(
                 // error CS8630: Invalid 'nullable' value: 'Enable' for C# 7.3. Please use language version '8.0' or greater.
-                Diagnostic(ErrorCode.ERR_NullableOptionNotAvailable).WithArguments("nullable", "Enable", "7.3", "8.0").WithLocation(1, 1)
+                Diagnostic(ErrorCode.ERR_CompilationOptionNotAvailable).WithArguments("nullable", "Enable", "7.3", "8.0").WithLocation(1, 1)
                 );
             Assert.Equal(NullableContextOptions.Enable, parsedArgs.CompilationOptions.NullableContextOptions);
 
@@ -5121,14 +5132,14 @@ C:\*.cs(100,7): error CS0103: The name 'Goo' does not exist in the current conte
             parsedArgs = DefaultParse(new[] { @"/nullable", "/langversion:7.3", "a.cs" }, WorkingDirectory);
             parsedArgs.Errors.Verify(
                 // error CS8630: Invalid 'nullable' value: 'Enabled' for C# 7.3. Please use language version '8.0' or greater.
-                Diagnostic(ErrorCode.ERR_NullableOptionNotAvailable).WithArguments("nullable", "Enable", "7.3", "8.0").WithLocation(1, 1)
+                Diagnostic(ErrorCode.ERR_CompilationOptionNotAvailable).WithArguments("nullable", "Enable", "7.3", "8.0").WithLocation(1, 1)
                 );
             Assert.Equal(NullableContextOptions.Enable, parsedArgs.CompilationOptions.NullableContextOptions);
 
             parsedArgs = DefaultParse(new[] { @"/nullable:enable", "/langversion:7.3", "a.cs" }, WorkingDirectory);
             parsedArgs.Errors.Verify(
                 // error CS8630: Invalid 'nullable' value: 'Enabled' for C# 7.3. Please use language version '8.0' or greater.
-                Diagnostic(ErrorCode.ERR_NullableOptionNotAvailable).WithArguments("nullable", "Enable", "7.3", "8.0").WithLocation(1, 1)
+                Diagnostic(ErrorCode.ERR_CompilationOptionNotAvailable).WithArguments("nullable", "Enable", "7.3", "8.0").WithLocation(1, 1)
                 );
             Assert.Equal(NullableContextOptions.Enable, parsedArgs.CompilationOptions.NullableContextOptions);
 
@@ -5203,7 +5214,7 @@ C:\*.cs(100,7): error CS0103: The name 'Goo' does not exist in the current conte
             parsedArgs = DefaultParse(new[] { @"/nullable:warnings", "/langversion:7.0", "a.cs" }, WorkingDirectory);
             parsedArgs.Errors.Verify(
                 // error CS8630: Invalid 'nullable' value: 'Warnings' for C# 7.0. Please use language version '8.0' or greater.
-                Diagnostic(ErrorCode.ERR_NullableOptionNotAvailable).WithArguments("nullable", "Warnings", "7.0", "8.0").WithLocation(1, 1)
+                Diagnostic(ErrorCode.ERR_CompilationOptionNotAvailable).WithArguments("nullable", "Warnings", "7.0", "8.0").WithLocation(1, 1)
                 );
             Assert.Equal(NullableContextOptions.Warnings, parsedArgs.CompilationOptions.NullableContextOptions);
 
@@ -5260,14 +5271,14 @@ C:\*.cs(100,7): error CS0103: The name 'Goo' does not exist in the current conte
             parsedArgs = DefaultParse(new[] { @"/nullable:Warnings", "/langversion:7.3", "a.cs" }, WorkingDirectory);
             parsedArgs.Errors.Verify(
                 // error CS8630: Invalid 'nullable' value: 'Annotations' for C# 7.3. Please use language version '8.0' or greater.
-                Diagnostic(ErrorCode.ERR_NullableOptionNotAvailable).WithArguments("nullable", "Warnings", "7.3", "8.0").WithLocation(1, 1)
+                Diagnostic(ErrorCode.ERR_CompilationOptionNotAvailable).WithArguments("nullable", "Warnings", "7.3", "8.0").WithLocation(1, 1)
                 );
             Assert.Equal(NullableContextOptions.Warnings, parsedArgs.CompilationOptions.NullableContextOptions);
 
             parsedArgs = DefaultParse(new[] { @"/nullable:annotations", "/langversion:7.0", "a.cs" }, WorkingDirectory);
             parsedArgs.Errors.Verify(
                 // error CS8630: Invalid 'nullable' value: 'Annotations' for C# 7.0. Please use language version '8.0' or greater.
-                Diagnostic(ErrorCode.ERR_NullableOptionNotAvailable).WithArguments("nullable", "Annotations", "7.0", "8.0").WithLocation(1, 1)
+                Diagnostic(ErrorCode.ERR_CompilationOptionNotAvailable).WithArguments("nullable", "Annotations", "7.0", "8.0").WithLocation(1, 1)
                 );
             Assert.Equal(NullableContextOptions.Annotations, parsedArgs.CompilationOptions.NullableContextOptions);
 
@@ -5324,7 +5335,7 @@ C:\*.cs(100,7): error CS0103: The name 'Goo' does not exist in the current conte
             parsedArgs = DefaultParse(new[] { @"/nullable:Annotations", "/langversion:7.3", "a.cs" }, WorkingDirectory);
             parsedArgs.Errors.Verify(
                 // error CS8630: Invalid 'nullable' value: 'Annotations' for C# 7.3. Please use language version '8.0' or greater.
-                Diagnostic(ErrorCode.ERR_NullableOptionNotAvailable).WithArguments("nullable", "Annotations", "7.3", "8.0").WithLocation(1, 1)
+                Diagnostic(ErrorCode.ERR_CompilationOptionNotAvailable).WithArguments("nullable", "Annotations", "7.3", "8.0").WithLocation(1, 1)
                 );
             Assert.Equal(NullableContextOptions.Annotations, parsedArgs.CompilationOptions.NullableContextOptions);
         }
@@ -5793,7 +5804,7 @@ C:\*.cs(100,7): error CS0103: The name 'Goo' does not exist in the current conte
 
             parsedArgs = DefaultParse(new[] { "/CodePage:1252", "a.cs" }, WorkingDirectory);
             parsedArgs.Errors.Verify();
-            Assert.Equal("Western European (Windows)", parsedArgs.Encoding.EncodingName);
+            Assert.Equal(1252, parsedArgs.Encoding.CodePage);
 
             //  error
             parsedArgs = DefaultParse(new[] { "/codepage:0", "a.cs" }, WorkingDirectory);
@@ -5829,6 +5840,16 @@ C:\*.cs(100,7): error CS0103: The name 'Goo' does not exist in the current conte
             parsedArgs = DefaultParse(new[] { "/checksumAlgorithm:sha256", "a.cs" }, WorkingDirectory);
             parsedArgs.Errors.Verify();
             Assert.Equal(SourceHashAlgorithm.Sha256, parsedArgs.ChecksumAlgorithm);
+            Assert.Equal(HashAlgorithmName.SHA256, parsedArgs.EmitOptions.PdbChecksumAlgorithm);
+
+            parsedArgs = DefaultParse(["/checksumAlgorithm:sHa384", "a.cs"], WorkingDirectory);
+            parsedArgs.Errors.Verify();
+            Assert.Equal(SourceHashAlgorithm.Sha384, parsedArgs.ChecksumAlgorithm);
+            Assert.Equal(HashAlgorithmName.SHA256, parsedArgs.EmitOptions.PdbChecksumAlgorithm);
+
+            parsedArgs = DefaultParse(["/checksumAlgorithm:sha512", "a.cs"], WorkingDirectory);
+            parsedArgs.Errors.Verify();
+            Assert.Equal(SourceHashAlgorithm.Sha512, parsedArgs.ChecksumAlgorithm);
             Assert.Equal(HashAlgorithmName.SHA256, parsedArgs.EmitOptions.PdbChecksumAlgorithm);
 
             parsedArgs = DefaultParse(new[] { "a.cs" }, WorkingDirectory);
@@ -6340,6 +6361,7 @@ public class CS1698_a {}
         }
 
         [ConditionalFact(typeof(ClrOnly), Reason = "https://github.com/dotnet/roslyn/issues/30926")]
+        [ValidatePooledObjects(LeakReason = "Binary file detection exception path")]
         public void BinaryFileErrorTest()
         {
             var binaryPath = Temp.CreateFile().WriteAllBytes(Net461.Resources.mscorlib).Path;
@@ -7396,6 +7418,7 @@ public class C
             var file = dir.CreateFile(fileName);
             file.WriteAllText(source);
 
+            Assert.Equal("UseLegacyStrongNameProvider", Feature.UseLegacyStrongNameProvider);
             var cmd = CreateCSharpCompiler(null, dir.Path, new[] { "/nologo", "a.cs", "/keyFile:key.snk", "/features:UseLegacyStrongNameProvider" });
             var comp = cmd.CreateCompilation(TextWriter.Null, new TouchedFileLogger(), NullErrorLogger.Instance);
 
@@ -7838,6 +7861,137 @@ class C
             FreeLibrary(lib);
         }
 
+        [Theory]
+        [InlineData("-memorysafetyrulesversion:2", MemorySafetyRulesVersion.Version2)]
+        [InlineData("/MEMORYSAFETYRULESVERSION:2", MemorySafetyRulesVersion.Version2)]
+        [InlineData("/memorysafetyrulesversion:\"1\"", MemorySafetyRulesVersion.Version1)]
+        [InlineData("/memorysafetyrulesversion:\" 2 \"", MemorySafetyRulesVersion.Version2)]
+        [InlineData("/memorysafetyrulesversion:+2", MemorySafetyRulesVersion.Version2)]
+        [InlineData("/memorysafetyrulesversion:02", MemorySafetyRulesVersion.Version2)]
+        [InlineData("/memorysafetyrulesversion:1 /memorysafetyrulesversion:2", MemorySafetyRulesVersion.Version2)]
+        [InlineData("/memorysafetyrulesversion:2 /memorysafetyrulesversion:1", MemorySafetyRulesVersion.Version1)]
+        [InlineData("/memorysafetyrulesversion:999 /memorysafetyrulesversion:1", MemorySafetyRulesVersion.Version1)]
+        public void MemorySafetyRules_Parse(string commandLine, MemorySafetyRulesVersion expectedVersion)
+        {
+            var args = FullParse($"{commandLine} /langversion:preview /t:library a.cs", WorkingDirectory);
+            args.Errors.Verify();
+            Assert.Equal(expectedVersion, args.CompilationOptions.MemorySafetyRulesVersion);
+        }
+
+        [Theory]
+        [InlineData("/memorysafetyrulesversion", MemorySafetyRulesVersion.Version1)]
+        [InlineData("/memorysafetyrulesversion:", MemorySafetyRulesVersion.Version1)]
+        [InlineData("/memorysafetyrulesversion:\"\"", MemorySafetyRulesVersion.Version1)]
+        [InlineData("/memorysafetyrulesversion:\" \"", MemorySafetyRulesVersion.Version1)]
+        [InlineData("/memorysafetyrulesversion:abc", MemorySafetyRulesVersion.Version1)]
+        [InlineData("/memorysafetyrulesversion:1.5", MemorySafetyRulesVersion.Version1)]
+        [InlineData("/memorysafetyrulesversion:0x2", MemorySafetyRulesVersion.Version1)]
+        [InlineData("/memorysafetyrulesversion:2147483648", MemorySafetyRulesVersion.Version1)]
+        [InlineData("/memorysafetyrulesversion:-2147483649", MemorySafetyRulesVersion.Version1)]
+        [InlineData("/memorysafetyrulesversion:2 /memorysafetyrulesversion:abc", MemorySafetyRulesVersion.Version2)]
+        [InlineData("/memorysafetyrulesversion:abc /memorysafetyrulesversion:2", MemorySafetyRulesVersion.Version2)]
+        [InlineData("/features:updated-memory-safety-rules /memorysafetyrulesversion:abc", MemorySafetyRulesVersion.Version2)]
+        [InlineData("/memorysafetyrulesversion:abc /features:updated-memory-safety-rules", MemorySafetyRulesVersion.Version2)]
+        public void MemorySafetyRules_SwitchNeedsNumber(string commandLine, MemorySafetyRulesVersion expectedVersion)
+        {
+            var args = FullParse($"{commandLine} /langversion:preview /t:library a.cs", WorkingDirectory);
+            args.Errors.Verify(
+                // error CS2035: Command-line syntax error: Missing ':<number>' for 'memorysafetyrulesversion' option
+                Diagnostic(ErrorCode.ERR_SwitchNeedsNumber).WithArguments("memorysafetyrulesversion"));
+            Assert.Equal(expectedVersion, args.CompilationOptions.MemorySafetyRulesVersion);
+        }
+
+        [Theory]
+        [InlineData(int.MinValue)]
+        [InlineData(-1)]
+        [InlineData(0)]
+        [InlineData(3)]
+        [InlineData(999)]
+        [InlineData(int.MaxValue)]
+        public void MemorySafetyRules_InvalidVersion(int value)
+        {
+            var args = FullParse($"/memorysafetyrulesversion:{value} /langversion:preview /t:library a.cs", WorkingDirectory);
+            args.Errors.Verify(
+                // error CS9400: Invalid 'MemorySafetyRulesVersion' value: '{value}'. Accepted values are: 1, 2
+                Diagnostic(ErrorCode.ERR_BadCompilationOptionValueAccepted).WithArguments("MemorySafetyRulesVersion", value, "1, 2"));
+            Assert.Equal((MemorySafetyRulesVersion)value, args.CompilationOptions.MemorySafetyRulesVersion);
+        }
+
+        [Fact]
+        public void MemorySafetyRules_Help()
+        {
+            var compiler = CreateCSharpCompiler(null, WorkingDirectory, ["/help", "/nologo", "/preferreduilang:en"]);
+            var output = new StringWriter(CultureInfo.InvariantCulture);
+
+            Assert.Equal(0, compiler.Run(output));
+            AssertEx.AssertContainsToleratingWhitespaceDifferences($"""
+                -memorysafetyrulesversion:<n>  Set memory safety rules version as
+                                              `{(int)MemorySafetyRulesVersion.Version1}` (legacy),
+                                              `{(int)MemorySafetyRulesVersion.Version2}` (updated: unsafe members require unsafe context at use site)
+                """, output.ToString());
+        }
+
+        [Theory]
+        [InlineData("", MemorySafetyRulesVersion.Version1)]
+        [InlineData("/memorysafetyrulesversion:1", MemorySafetyRulesVersion.Version1)]
+        [InlineData("/memorysafetyrulesversion:2", MemorySafetyRulesVersion.Version2)]
+        [InlineData("/features:updated-memory-safety-rules", MemorySafetyRulesVersion.Version2)]
+        [InlineData("/features:updated-memory-safety-rules=false", MemorySafetyRulesVersion.Version2)]
+        [InlineData("/features:updated-memory-safety-rules /memorysafetyrulesversion:1", MemorySafetyRulesVersion.Version2)]
+        [InlineData("/memorysafetyrulesversion:1 /features:updated-memory-safety-rules", MemorySafetyRulesVersion.Version2)]
+        [InlineData("/features:updated-memory-safety-rules /memorysafetyrulesversion:2", MemorySafetyRulesVersion.Version2)]
+        [InlineData("/memorysafetyrulesversion:2 /features:updated-memory-safety-rules", MemorySafetyRulesVersion.Version2)]
+        [InlineData("/features:updated-memory-safety-rules /features", MemorySafetyRulesVersion.Version1)]
+        public void MemorySafetyRules_FeatureFlag(string commandLine, MemorySafetyRulesVersion expectedVersion)
+        {
+            var args = FullParse($"{commandLine} /langversion:preview /t:library a.cs", WorkingDirectory);
+            args.Errors.Verify();
+            Assert.Equal(expectedVersion, args.CompilationOptions.MemorySafetyRulesVersion);
+        }
+
+        [Theory]
+        [InlineData("/features:updated-memory-safety-rules /memorysafetyrulesversion:999")]
+        [InlineData("/memorysafetyrulesversion:999 /features:updated-memory-safety-rules")]
+        public void MemorySafetyRules_FeatureFlag_InvalidVersion(string commandLine)
+        {
+            var args = FullParse($"{commandLine} /langversion:preview /t:library a.cs", WorkingDirectory);
+            args.Errors.Verify(
+                // error CS9400: Invalid 'MemorySafetyRulesVersion' value: '999'. Accepted values are: 1, 2
+                Diagnostic(ErrorCode.ERR_BadCompilationOptionValueAccepted).WithArguments("MemorySafetyRulesVersion", "999", "1, 2"));
+            Assert.Equal((MemorySafetyRulesVersion)999, args.CompilationOptions.MemorySafetyRulesVersion);
+        }
+
+        [Theory]
+        [InlineData("15")]
+        [InlineData("preview")]
+        public void MemorySafetyRules_FeatureFlag_LangVersion(string languageVersion)
+        {
+            var args = FullParse($"/features:updated-memory-safety-rules /langversion:{languageVersion} /t:library a.cs", WorkingDirectory);
+            args.Errors.Verify();
+
+            var compilation = CSharpCompilation.Create("test",
+                syntaxTrees: [CSharpSyntaxTree.ParseText("", args.ParseOptions)],
+                references: [MscorlibRef],
+                options: args.CompilationOptions);
+
+            if (languageVersion == "preview")
+            {
+                compilation.VerifyDiagnostics(
+                    // warning CS9402: Feature flag 'updated-memory-safety-rules' is deprecated and will be removed in a future version. Use MSBuild property 'MemorySafetyRulesVersion=2' or compiler option '/memorysafetyrulesversion:2' instead.
+                    Diagnostic(ErrorCode.WRN_DeprecatedFeatureFlag).WithArguments("updated-memory-safety-rules", "MemorySafetyRulesVersion=2", "/memorysafetyrulesversion:2").WithLocation(1, 1));
+            }
+            else
+            {
+                compilation.VerifyDiagnostics(
+                    // error CS8630: Invalid 'MemorySafetyRulesVersion' value: '2' for C# 15.0. Please use language version 'preview' or greater.
+                    Diagnostic(ErrorCode.ERR_CompilationOptionNotAvailable).WithArguments("MemorySafetyRulesVersion", "2", "15.0", "preview").WithLocation(1, 1),
+                    // warning CS9402: Feature flag 'updated-memory-safety-rules' is deprecated and will be removed in a future version. Use MSBuild property 'MemorySafetyRulesVersion=2' or compiler option '/memorysafetyrulesversion:2' instead.
+                    Diagnostic(ErrorCode.WRN_DeprecatedFeatureFlag).WithArguments("updated-memory-safety-rules", "MemorySafetyRulesVersion=2", "/memorysafetyrulesversion:2").WithLocation(1, 1));
+            }
+
+            Assert.Equal(MemorySafetyRulesVersion.Version2, compilation.Options.MemorySafetyRulesVersion);
+        }
+
         [WorkItem(544926, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544926")]
         [ConditionalFact(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/30289")]
         public void ResponseFilesWithNoconfig_01()
@@ -8149,6 +8303,7 @@ namespace System
             var src = Temp.CreateFile("NoStdLib02.cs");
             src.WriteAllText(source + mslib);
 
+            Assert.Equal("noRefSafetyRulesAttribute", Feature.NoRefSafetyRulesAttribute);
             var outWriter = new StringWriter(CultureInfo.InvariantCulture);
             int exitCode = CreateCSharpCompiler(null, WorkingDirectory, new[] { "/nologo", "/noconfig", "/nostdlib", "/runtimemetadataversion:v4.0.30319", "/nowarn:8625", "/features:noRefSafetyRulesAttribute", src.ToString() }).Run(outWriter);
             Assert.Equal(0, exitCode);
@@ -8632,7 +8787,7 @@ $@"{fileName}(12,20): error CS1522: Empty switch block
             CleanupAllGeneratedFiles(source);
         }
 
-        [ConditionalFact(typeof(DesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/79351"), WorkItem(546025, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546025")]
+        [Fact, WorkItem(546025, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546025")]
         public void TestWin32ResWithBadResFile_CS1583ERR_BadWin32Res_01()
         {
             string source = Temp.CreateFile(prefix: "", extension: ".cs").WriteAllText(@"class Test { static void Main() {} }").Path;
@@ -8651,7 +8806,8 @@ $@"{fileName}(12,20): error CS1522: Empty switch block
             }).Run(outWriter);
 
             Assert.Equal(1, exitCode);
-            Assert.Equal("error CS1583: Error reading Win32 resources -- Image is too small.", outWriter.ToString().Trim());
+            // https://github.com/dotnet/roslyn/issues/79351: This used to write "Image is too small." instead of "Unknown file format."
+            Assert.Equal("error CS1583: Error reading Win32 resources -- Unknown file format.", outWriter.ToString().Trim());
 
             CleanupAllGeneratedFiles(source);
             CleanupAllGeneratedFiles(badres);
@@ -9431,7 +9587,7 @@ public class C { }
                 responseFile: null,
                 srcDirectory,
                 new[] { "/reportanalyzer", "/t:library", srcFile.Path },
-                analyzers: [new WarningDiagnosticAnalyzer(), new DiagnosticSuppressorForId("Warning01", "Suppressor01")],
+                analyzers: [new WarningDiagnosticAnalyzer(), new ConcurrentAnalyzer(["C"]), new DiagnosticSuppressorForId("Warning01", "Suppressor01")],
                 generators: new[] { new DoNothingGenerator().AsSourceGenerator() });
             var exitCode = csc.Run(outWriter);
             Assert.Equal(0, exitCode);
@@ -9441,6 +9597,67 @@ public class C { }
             Assert.Contains($"{nameof(DiagnosticSuppressorForId)} (Suppressor01)", output, StringComparison.Ordinal);
             Assert.Contains(CodeAnalysisResources.GeneratorNameColumnHeader, output, StringComparison.Ordinal);
             Assert.Contains(typeof(DoNothingGenerator).FullName, output, StringComparison.Ordinal);
+
+            Assert.DoesNotContain(CodeAnalysisResources.AllAnalyzersConcurrentMessage, output, StringComparison.Ordinal);
+            Assert.Contains(string.Format(CodeAnalysisResources.SuppressorsNonConcurrentCountMessage, 1), output, StringComparison.Ordinal);
+            var nonConcurrentSection = output[output.IndexOf(CodeAnalysisResources.NonConcurrentAnalyzersHeader)..];
+            Assert.Contains(nameof(WarningDiagnosticAnalyzer), nonConcurrentSection, StringComparison.Ordinal);
+            Assert.DoesNotContain(nameof(DiagnosticSuppressorForId), nonConcurrentSection, StringComparison.Ordinal);
+            Assert.DoesNotContain(typeof(ConcurrentAnalyzer).Assembly.FullName, nonConcurrentSection, StringComparison.Ordinal);
+            Assert.DoesNotContain(nameof(ConcurrentAnalyzer), nonConcurrentSection, StringComparison.Ordinal);
+            CleanupAllGeneratedFiles(srcFile.Path);
+        }
+
+        [Fact]
+        public void ReportAnalyzerOutput_AllConcurrentAnalyzers()
+        {
+            var srcFile = Temp.CreateFile().WriteAllText(@"class C {}");
+            var srcDirectory = Path.GetDirectoryName(srcFile.Path);
+
+            var outWriter = new StringWriter(CultureInfo.InvariantCulture);
+            var csc = CreateCSharpCompiler(
+                responseFile: null,
+                srcDirectory,
+                new[] { "/reportanalyzer", "/t:library", srcFile.Path },
+                analyzers: [new ConcurrentAnalyzer(["C"]), new DiagnosticSuppressorForId("Warning01", "Suppressor01")],
+                generators: new[] { new DoNothingGenerator().AsSourceGenerator() });
+            var exitCode = csc.Run(outWriter);
+            Assert.Equal(0, exitCode);
+            var output = outWriter.ToString();
+            Assert.Contains(CodeAnalysisResources.AnalyzerExecutionTimeColumnHeader, output, StringComparison.Ordinal);
+            Assert.Contains($"{nameof(DiagnosticSuppressorForId)} (Suppressor01)", output, StringComparison.Ordinal);
+            Assert.Contains(CodeAnalysisResources.GeneratorNameColumnHeader, output, StringComparison.Ordinal);
+            Assert.Contains(typeof(DoNothingGenerator).FullName, output, StringComparison.Ordinal);
+
+            Assert.Contains(string.Format(CodeAnalysisResources.SuppressorsNonConcurrentCountMessage, 1), output, StringComparison.Ordinal);
+            Assert.DoesNotContain(CodeAnalysisResources.NonConcurrentAnalyzersHeader, output, StringComparison.Ordinal);
+            Assert.Contains(CodeAnalysisResources.AllAnalyzersConcurrentMessage, output, StringComparison.Ordinal);
+            CleanupAllGeneratedFiles(srcFile.Path);
+        }
+
+        [Fact]
+        public void ReportAnalyzerOutput_AllConcurrentAnalyzers_NoSuppressors()
+        {
+            var srcFile = Temp.CreateFile().WriteAllText(@"class C {}");
+            var srcDirectory = Path.GetDirectoryName(srcFile.Path);
+
+            var outWriter = new StringWriter(CultureInfo.InvariantCulture);
+            var csc = CreateCSharpCompiler(
+                responseFile: null,
+                srcDirectory,
+                new[] { "/reportanalyzer", "/t:library", srcFile.Path },
+                analyzers: [new ConcurrentAnalyzer(["C"])],
+                generators: new[] { new DoNothingGenerator().AsSourceGenerator() });
+            var exitCode = csc.Run(outWriter);
+            Assert.Equal(0, exitCode);
+            var output = outWriter.ToString();
+            Assert.Contains(CodeAnalysisResources.AnalyzerExecutionTimeColumnHeader, output, StringComparison.Ordinal);
+            Assert.Contains(CodeAnalysisResources.GeneratorNameColumnHeader, output, StringComparison.Ordinal);
+            Assert.Contains(typeof(DoNothingGenerator).FullName, output, StringComparison.Ordinal);
+
+            Assert.DoesNotContain(string.Format(CodeAnalysisResources.SuppressorsNonConcurrentCountMessage, 0), output, StringComparison.Ordinal);
+            Assert.DoesNotContain(CodeAnalysisResources.NonConcurrentAnalyzersHeader, output, StringComparison.Ordinal);
+            Assert.Contains(CodeAnalysisResources.AllAnalyzersConcurrentMessage, output, StringComparison.Ordinal);
             CleanupAllGeneratedFiles(srcFile.Path);
         }
 
@@ -9854,8 +10071,8 @@ using System.Diagnostics; // Unused.
             args = DefaultParse(new[] { "/features:Test", "a.vb", "/Features:Experiment" }, WorkingDirectory);
             args.Errors.Verify();
             Assert.Equal(2, args.ParseOptions.Features.Count);
-            Assert.True(args.ParseOptions.Features.ContainsKey("Test"));
-            Assert.True(args.ParseOptions.Features.ContainsKey("Experiment"));
+            Assert.True(args.ParseOptions.HasFeature("Test"));
+            Assert.True(args.ParseOptions.HasFeature("Experiment"));
 
             args = DefaultParse(new[] { "/features:Test=false,Key=value", "a.vb" }, WorkingDirectory);
             args.Errors.Verify();
@@ -11657,6 +11874,7 @@ class C {
             // Legacy feature flag
             using (var dir = new DisposableDirectory(Temp))
             {
+                Assert.Equal("pdb-path-determinism", Feature.PdbPathDeterminism);
                 var pdbPath = Path.Combine(dir.Path, "a.pdb");
                 AssertPdbEmit(dir, pdbPath, @"a.pdb", $@"/features:pdb-path-determinism");
             }
@@ -11958,6 +12176,30 @@ class C
         }
 
         [Fact]
+        public void RefOnly_EmbeddedDebugInformation()
+        {
+            var dir = Temp.CreateDirectory();
+            var src = dir.CreateFile("a.cs");
+            src.WriteAllText("public class C { }");
+
+            var outWriter = new StringWriter(CultureInfo.InvariantCulture);
+            var csc = CreateCSharpCompiler(null, dir.Path,
+                new[] { "/nologo", "/target:library", "/out:a.dll", "/refonly", "/debug:embedded", "/deterministic", "a.cs" });
+
+            Assert.Equal(0, csc.Run(outWriter));
+            Assert.Equal("", outWriter.ToString());
+
+            using (var peReader = new PEReader(File.OpenRead(Path.Combine(dir.Path, "a.dll"))))
+            {
+                AssertEx.Equal(
+                    new[] { DebugDirectoryEntryType.Reproducible },
+                    peReader.ReadDebugDirectory().Select(entry => entry.Type));
+            }
+
+            CleanupAllGeneratedFiles(dir.Path);
+        }
+
+        [Fact]
         public void CompilingCodeWithInvalidPreProcessorSymbolsShouldProvideDiagnostics()
         {
             var parsedArgs = DefaultParse(new[] { "/define:1", "a.cs" }, WorkingDirectory);
@@ -12017,7 +12259,7 @@ class C
             // Missing Microsoft.CodeAnalysis.CSharp.dll.
             var result = ProcessUtilities.Run(cscPath, arguments: "/nologo /t:library unknown.cs", workingDirectory: dir.Path);
             Assert.Equal(1, result.ExitCode);
-            Assert.Equal(
+            AssertEx.Equal(
                 $"Could not load file or assembly '{typeof(CSharpCompilation).Assembly.FullName}' or one of its dependencies. The system cannot find the file specified.",
                 result.Output.Trim());
 
@@ -12025,8 +12267,8 @@ class C
             dir.CopyFile(typeof(CSharpCompilation).Assembly.Location);
             result = ProcessUtilities.Run(cscPath, arguments: "/nologo /t:library unknown.cs", workingDirectory: dir.Path);
             Assert.Equal(1, result.ExitCode);
-            Assert.Equal(
-                $"Could not load file or assembly '{typeof(ImmutableArray).Assembly.FullName}' or one of its dependencies. The system cannot find the file specified.",
+            AssertEx.Equal(
+                $"Could not load file or assembly '{typeof(ImmutableArray).Assembly.FullName.Replace(".10", ".0")}' or one of its dependencies. The system cannot find the file specified.",
                 result.Output.Trim());
         }
 
@@ -12300,16 +12542,198 @@ public class TestAnalyzer : DiagnosticAnalyzer
         }
 
         [Fact]
-        public void StrongNameProviderWithCustomTempPath()
+        public void StrongNameProviderUsesOutputDirectory()
         {
-            var tempDir = Temp.CreateDirectory();
             var workingDir = Temp.CreateDirectory();
             workingDir.CreateFile("a.cs");
 
-            var buildPaths = new BuildPaths(clientDir: "", workingDir: workingDir.Path, sdkDir: null, tempDir: tempDir.Path);
+            var buildPaths = new BuildPaths(clientDir: "", workingDir: workingDir.Path, sdkDir: null);
             var csc = new MockCSharpCompiler(null, buildPaths, args: new[] { "/features:UseLegacyStrongNameProvider", "/nostdlib", "a.cs" });
             var comp = csc.CreateCompilation(new StringWriter(), new TouchedFileLogger(), errorLogger: null);
             Assert.True(!comp.SignUsingBuilder);
+            Assert.Equal(workingDir.Path, comp.Options.StrongNameProvider.FileSystem.GetSigningPath());
+        }
+
+        private sealed class LegacySigningCompiler : MockCSharpCompiler
+        {
+            private readonly Action<string> _beforeSign;
+            private readonly Action<string> _createSigningFile;
+
+            public LegacySigningCompiler(string workingDirectory, string[] arguments, Action<string> beforeSign, Action<string> createSigningFile = null)
+                : base(null, workingDirectory, arguments, additionalReferences: [MscorlibRef])
+            {
+                _beforeSign = beforeSign;
+                _createSigningFile = createSigningFile;
+            }
+
+            public override Compilation CreateCompilation(
+                TextWriter consoleOutput,
+                TouchedFileLogger touchedFilesLogger,
+                ErrorLogger errorLogger,
+                ImmutableArray<AnalyzerConfigOptionsResult> syntaxDiagOptionsOpt,
+                AnalyzerConfigOptionsResult globalDiagnosticOptionsOpt)
+            {
+                var compilation = base.CreateCompilation(consoleOutput, touchedFilesLogger, errorLogger, syntaxDiagOptionsOpt, globalDiagnosticOptionsOpt);
+                var original = (DesktopStrongNameProvider)compilation.Options.StrongNameProvider;
+                var fileSystem = new TestStrongNameFileSystem(original.FileSystem.GetSigningPath())
+                {
+                    CreateFileStreamFunc = (path, mode, access, share) =>
+                    {
+                        Assert.Equal(FileMode.CreateNew, mode);
+                        _createSigningFile?.Invoke(path);
+                        return original.FileSystem.CreateFileStream(path, mode, access, share);
+                    }
+                };
+                var provider = new TestDesktopStrongNameProvider(fileSystem: fileSystem)
+                {
+                    SignFileFunc = (keys, path) =>
+                    {
+                        _beforeSign(path);
+                        original.SignFile(keys, path);
+                    }
+                };
+                return compilation.WithOptions(compilation.Options.WithStrongNameProvider(provider));
+            }
+        }
+
+        [ConditionalTheory(typeof(WindowsOnly))]
+        [InlineData(false, false)]
+        [InlineData(true, false)]
+        [InlineData(false, true)]
+        [InlineData(true, true)]
+        public void LegacySigningOutputPaths(bool explicitOutput, bool executable)
+        {
+            var workingDirectory = Temp.CreateDirectory();
+            var outputDirectory = explicitOutput ? Temp.CreateDirectory() : workingDirectory;
+            var referenceDirectory = Temp.CreateDirectory();
+            var source = workingDirectory.CreateFile("MyLibrary.cs").WriteAllText("public class C { public static void Main() { } }");
+            var key = workingDirectory.CreateFile("key.snk").WriteAllBytes(TestResources.General.snKey);
+            var outputPath = Path.Combine(outputDirectory.Path, executable ? "MyLibrary.exe" : "MyLibrary.dll");
+            var referencePath = Path.Combine(referenceDirectory.Path, "Reference.dll");
+            var touchedPath = Path.Combine(workingDirectory.Path, "touched");
+            var stagingPaths = new List<string>();
+            var arguments = new List<string>
+            {
+                "/nologo", "/nostdlib", executable ? "/target:exe" : "/target:library", "/deterministic",
+                "/features:UseLegacyStrongNameProvider", "/keyfile:" + key.Path,
+                "/refout:" + referencePath, "/touchedfiles:" + touchedPath, source.Path
+            };
+            if (explicitOutput)
+            {
+                arguments.Add("/out:" + outputPath);
+            }
+
+            var compiler = new LegacySigningCompiler(workingDirectory.Path, arguments.ToArray(), beforeSign: path =>
+            {
+                stagingPaths.Add(path);
+            });
+
+            using var writer = new StringWriter();
+            Assert.Equal(0, compiler.Run(writer));
+            Assert.Equal("", writer.ToString());
+            Assert.Equal(2, stagingPaths.Count);
+            Assert.All(stagingPaths, path =>
+            {
+                Assert.Equal(outputDirectory.Path, Path.GetDirectoryName(path));
+                Assert.Matches(@"^legacy-sign\.[0-9a-f]{32}\.dll$", Path.GetFileName(path));
+            });
+            Assert.All(stagingPaths, path => Assert.False(File.Exists(path)));
+            using (var stream = File.OpenRead(outputPath))
+            {
+                Assert.True(ILValidation.IsStreamFullSigned(stream));
+            }
+            using (var stream = File.OpenRead(referencePath))
+            {
+                Assert.True(ILValidation.IsStreamFullSigned(stream));
+            }
+            var previousOutput = File.ReadAllBytes(outputPath);
+            var previousReference = File.ReadAllBytes(referencePath);
+            Assert.Equal(0, compiler.Run(writer));
+            Assert.Equal(4, stagingPaths.Count);
+            Assert.Equal(4, stagingPaths.Distinct().Count());
+            AssertEx.Equal(previousOutput, File.ReadAllBytes(outputPath));
+            AssertEx.Equal(previousReference, File.ReadAllBytes(referencePath));
+            Assert.All(stagingPaths, path => Assert.False(File.Exists(path)));
+            AssertEx.Equal(new[] { outputPath, referencePath }.Select(path => path.ToUpperInvariant()).Order(), File.ReadAllLines(touchedPath + ".write").Order());
+        }
+
+        [ConditionalTheory(typeof(WindowsOnly))]
+        [InlineData(false)]
+        [InlineData(true)]
+        public void LegacySigningFailureBehavior(bool failCreation)
+        {
+            var directory = Temp.CreateDirectory();
+            var source = directory.CreateFile("Library.cs").WriteAllText("public class C { }");
+            var key = directory.CreateFile("key.snk").WriteAllBytes(TestResources.General.snKey);
+            var outputPath = Path.Combine(directory.Path, "Library.dll");
+            var arguments = new[]
+            {
+                "/nologo", "/nostdlib", "/target:library", "/features:UseLegacyStrongNameProvider",
+                "/keyfile:" + key.Path, "/out:" + outputPath, source.Path
+            };
+            string stagingPath = null;
+            bool fail = false;
+            var compiler = new LegacySigningCompiler(directory.Path, arguments, beforeSign: path =>
+            {
+                stagingPath = path;
+                Assert.Equal(0, new FileInfo(outputPath).Length);
+                if (fail && !failCreation)
+                {
+                    throw new IOException("Injected signing failure");
+                }
+            }, createSigningFile: path =>
+            {
+                if (fail && failCreation)
+                {
+                    stagingPath = path;
+                    throw new IOException("Injected staging failure");
+                }
+            });
+            using var writer = new StringWriter();
+            Assert.Equal(0, compiler.Run(writer));
+            var signedOutput = File.ReadAllBytes(outputPath);
+            using (var stream = File.OpenRead(outputPath))
+            {
+                Assert.True(ILValidation.IsStreamFullSigned(stream));
+            }
+
+            source.WriteAllText("public class C { invalid }");
+            Assert.Equal(1, compiler.Run(writer));
+            AssertEx.Equal(signedOutput, File.ReadAllBytes(outputPath));
+
+            source.WriteAllText("public class C { }");
+            fail = true;
+            Assert.Equal(1, compiler.Run(writer));
+            Assert.Contains(failCreation ? "Injected staging failure" : "Injected signing failure", writer.ToString());
+            Assert.Empty(File.ReadAllBytes(outputPath));
+            Assert.False(File.Exists(stagingPath));
+        }
+
+        [ConditionalFact(typeof(WindowsOnly))]
+        public void LegacySigningConcurrentOutputs()
+        {
+            var directory = Temp.CreateDirectory();
+            var source = directory.CreateFile("Library.cs").WriteAllText("public class C { }");
+            var key = directory.CreateFile("key.snk").WriteAllBytes(TestResources.General.snKey);
+            var stagingPaths = new string[4];
+            System.Threading.Tasks.Parallel.For(0, stagingPaths.Length, i =>
+            {
+                var outputPath = Path.Combine(directory.Path, $"Library{i}.dll");
+                var compiler = new LegacySigningCompiler(directory.Path,
+                    ["/nologo", "/nostdlib", "/target:library", "/features:UseLegacyStrongNameProvider",
+                     "/keyfile:" + key.Path, "/out:" + outputPath, source.Path],
+                    beforeSign: path => stagingPaths[i] = path);
+                using var writer = new StringWriter();
+                Assert.True(compiler.Run(writer) == 0, writer.ToString());
+                using var stream = File.OpenRead(outputPath);
+                Assert.True(ILValidation.IsStreamFullSigned(stream));
+            });
+            Assert.Equal(stagingPaths.Length, stagingPaths.Distinct().Count());
+            Assert.All(stagingPaths, path =>
+            {
+                Assert.Equal(directory.Path, Path.GetDirectoryName(path));
+                Assert.False(File.Exists(path));
+            });
         }
 
         [Theory]
@@ -12317,16 +12741,16 @@ public class TestAnalyzer : DiagnosticAnalyzer
         [InlineData(@"/features:""InterceptorsNamespaces=NS1.NS2;NS3.NS4""")]
         public void FeaturesInterceptorsNamespaces_OptionParsing(string features)
         {
-            var tempDir = Temp.CreateDirectory();
+            Assert.Equal("InterceptorsNamespaces", Feature.InterceptorsNamespaces);
             var workingDir = Temp.CreateDirectory();
             workingDir.CreateFile("a.cs");
 
-            var buildPaths = new BuildPaths(clientDir: "", workingDir: workingDir.Path, sdkDir: null, tempDir: tempDir.Path);
+            var buildPaths = new BuildPaths(clientDir: "", workingDir: workingDir.Path, sdkDir: null);
             var csc = new MockCSharpCompiler(null, buildPaths, args: new[] { features, "a.cs" });
             var comp = (CSharpCompilation)csc.CreateCompilation(new StringWriter(), new TouchedFileLogger(), errorLogger: null);
             var options = comp.SyntaxTrees[0].Options;
             Assert.Equal(1, options.Features.Count);
-            Assert.Equal("NS1.NS2;NS3.NS4", options.Features["InterceptorsNamespaces"]);
+            Assert.Equal("NS1.NS2;NS3.NS4", options.Features[Feature.InterceptorsNamespaces]);
 
             var previewNamespaces = ((CSharpParseOptions)options).InterceptorsNamespaces;
             Assert.Equal(2, previewNamespaces.Length);
@@ -12337,16 +12761,15 @@ public class TestAnalyzer : DiagnosticAnalyzer
         [Fact]
         public void FeaturesInterceptorsNamespaces_Duplicate()
         {
-            var tempDir = Temp.CreateDirectory();
             var workingDir = Temp.CreateDirectory();
             workingDir.CreateFile("a.cs");
 
-            var buildPaths = new BuildPaths(clientDir: "", workingDir: workingDir.Path, sdkDir: null, tempDir: tempDir.Path);
+            var buildPaths = new BuildPaths(clientDir: "", workingDir: workingDir.Path, sdkDir: null);
             var csc = new MockCSharpCompiler(null, buildPaths, args: new[] { @"/features:InterceptorsNamespaces=NS1.NS2", @"/features:InterceptorsNamespaces=NS3.NS4", "a.cs" });
             var comp = (CSharpCompilation)csc.CreateCompilation(new StringWriter(), new TouchedFileLogger(), errorLogger: null);
             var options = comp.SyntaxTrees[0].Options;
             Assert.Equal(1, options.Features.Count);
-            Assert.Equal("NS3.NS4", options.Features["InterceptorsNamespaces"]);
+            Assert.Equal("NS3.NS4", options.Features[Feature.InterceptorsNamespaces]);
 
             var previewNamespaces = ((CSharpParseOptions)options).InterceptorsNamespaces;
             Assert.Equal(1, previewNamespaces.Length);
@@ -12358,11 +12781,10 @@ public class TestAnalyzer : DiagnosticAnalyzer
         {
             // '<InterceptorsPreviewNamespaces>' is recognized in the build task and passed through as a '/features:InterceptorsNamespaces=...' argument.
             // '/features:InterceptorsPreviewNamespaces=...' is included in the Features dictionary but does not enable the interceptors feature.
-            var tempDir = Temp.CreateDirectory();
             var workingDir = Temp.CreateDirectory();
             workingDir.CreateFile("a.cs");
 
-            var buildPaths = new BuildPaths(clientDir: "", workingDir: workingDir.Path, sdkDir: null, tempDir: tempDir.Path);
+            var buildPaths = new BuildPaths(clientDir: "", workingDir: workingDir.Path, sdkDir: null);
             var csc = new MockCSharpCompiler(null, buildPaths, args: new[] { @"/features:InterceptorsPreviewNamespaces=NS1.NS2", "a.cs" });
             var comp = (CSharpCompilation)csc.CreateCompilation(new StringWriter(), new TouchedFileLogger(), errorLogger: null);
             var options = comp.SyntaxTrees[0].Options;
@@ -12370,7 +12792,7 @@ public class TestAnalyzer : DiagnosticAnalyzer
             Assert.Equal(1, options.Features.Count);
             Assert.Equal("NS1.NS2", options.Features["InterceptorsPreviewNamespaces"]);
 
-            Assert.False(options.Features.ContainsKey("InterceptorsNamespaces"));
+            Assert.False(options.HasFeature(Feature.InterceptorsNamespaces));
             Assert.Empty(((CSharpParseOptions)options).InterceptorsNamespaces);
         }
 
@@ -14013,8 +14435,10 @@ class C
             Directory.Delete(dir.Path, true);
         }
 
-        [Fact]
-        public void SourceGenerators_ChecksumAlgorithm()
+        [Theory]
+        [InlineData([new[] { "/langversion:preview", "/out:checksum.exe", "/pdb:checksum.pdb", "/debug:portable", "/checksumAlgorithm:SHA256" }])]
+        [InlineData([new[] { "/langversion:preview", "/out:checksum.exe", "/pdb:checksum.pdb", "/debug:portable" }])]
+        public void SourceGenerators_ChecksumAlgorithm(string[] additionalFlags)
         {
             var dir = Temp.CreateDirectory();
             var src = dir.CreateFile("temp.cs");
@@ -14036,17 +14460,58 @@ class C
                 dir,
                 src,
                 includeCurrentAssemblyAsAnalyzerReference: false,
-                additionalFlags: new[] { "/langversion:preview", "/out:checksum.exe", "/pdb:checksum.pdb", "/debug:portable", "/checksumAlgorithm:SHA256" },
+                additionalFlags,
                 generators: new[] { generator },
                 analyzers: null);
 
             using (Stream peStream = File.OpenRead(Path.Combine(dir.Path, "checksum.exe")), pdbStream = File.OpenRead(Path.Combine(dir.Path, "checksum.pdb")))
             {
-                // TOOD: /checksumAlgorithm setting should override any checksum algorithms set by the generators:
                 PdbValidation.VerifyPdb(peStream, pdbStream, $@"
 <symbols>
   <files>
     <file id=""1"" name=""{src.Path}"" language=""C#"" checksumAlgorithm=""SHA256"" checksum=""A0-78-BB-A8-E8-B1-E1-3B-E8-63-80-7D-CE-CC-4B-0D-14-EF-06-D3-9B-14-52-E1-95-C6-64-D1-36-EC-7C-25"" />
+    <file id=""2"" name=""{genPath1}"" language=""C#"" checksumAlgorithm=""SHA256"" checksum=""FC-9C-F6-B3-BB-61-93-0E-1E-03-A2-62-0B-B5-D9-CE-1D-C9-40-79-72-4F-3A-6A-C6-5D-F3-84-69-5F-62-10""><![CDATA[﻿class G1 {{ void F() {{}} }}]]></file>
+    <file id=""3"" name=""{genPath2}"" language=""C#"" checksumAlgorithm=""SHA256"" checksum=""64-A9-4B-81-04-84-18-CD-73-F7-F8-3B-06-32-4B-9C-F9-36-D4-7A-7B-D0-2F-34-ED-8C-B7-AA-48-43-55-35""><![CDATA[﻿class G2 {{ void F() {{}} }}]]></file>
+  </files>
+</symbols>", PdbValidationOptions.ExcludeMethods);
+            }
+
+            Directory.Delete(dir.Path, true);
+        }
+
+        [Fact]
+        public void SourceGenerators_ChecksumAlgorithm_Sha1()
+        {
+            var dir = Temp.CreateDirectory();
+            var src = dir.CreateFile("temp.cs");
+            src.WriteAllText("class C { }");
+
+            var genPath1 = Path.Combine(dir.Path, "Microsoft.CodeAnalysis.Test.Utilities", "Roslyn.Test.Utilities.TestGenerators.TestSourceGenerator", "hint1.cs");
+            var genPath2 = Path.Combine(dir.Path, "Microsoft.CodeAnalysis.Test.Utilities", "Roslyn.Test.Utilities.TestGenerators.TestSourceGenerator", "hint2.cs");
+
+            var generator = new TestSourceGenerator()
+            {
+                ExecuteImpl = context =>
+                {
+                    context.AddSource("hint1", "class G1 { void F() {} }");
+                    context.AddSource("hint2", SourceText.From("class G2 { void F() {} }", Encoding.UTF8, checksumAlgorithm: SourceHashAlgorithm.Sha256));
+                }
+            };
+
+            VerifyOutput(
+                dir,
+                src,
+                includeCurrentAssemblyAsAnalyzerReference: false,
+                additionalFlags: new[] { "/langversion:preview", "/out:checksum.exe", "/pdb:checksum.pdb", "/debug:portable", "/checksumAlgorithm:SHA1" },
+                generators: new[] { generator },
+                analyzers: null);
+
+            using (Stream peStream = File.OpenRead(Path.Combine(dir.Path, "checksum.exe")), pdbStream = File.OpenRead(Path.Combine(dir.Path, "checksum.pdb")))
+            {
+                PdbValidation.VerifyPdb(peStream, pdbStream, $@"
+<symbols>
+  <files>
+    <file id=""1"" name=""{src.Path}"" language=""C#"" checksumAlgorithm=""SHA1"" checksum=""8A-B8-FF-37-76-5D-12-10-93-F1-CF-51-3E-51-1B-76-2B-90-15-C4"" />
     <file id=""2"" name=""{genPath1}"" language=""C#"" checksumAlgorithm=""SHA1"" checksum=""D8-87-89-A3-FE-EA-FD-AB-49-31-5A-25-B0-05-6B-6F-00-00-C2-DD""><![CDATA[﻿class G1 {{ void F() {{}} }}]]></file>
     <file id=""3"" name=""{genPath2}"" language=""C#"" checksumAlgorithm=""SHA1"" checksum=""F1-D0-FD-F0-08-9F-1B-32-9F-EF-41-A1-58-A3-14-FF-E8-06-A8-38""><![CDATA[﻿class G2 {{ void F() {{}} }}]]></file>
   </files>
@@ -14773,7 +15238,7 @@ class C
 """);
 
             var cmd = CreateCSharpCompiler(null, dir.Path,
-                new[] { "/t:library", "/nologo", "/warnaserror+", src.Path },
+                new[] { "/t:library", "/preferreduilang:en", "/nologo", "/warnaserror+", src.Path },
                 generators: new[] { new FailsExecuteGenerator() });
             var outWriter = new StringWriter(CultureInfo.InvariantCulture);
             var exitCode = cmd.Run(outWriter);
@@ -14818,7 +15283,7 @@ class C
 """);
 
             var cmd = CreateCSharpCompiler(null, dir.Path,
-                new[] { "/t:library", "/nologo", "/warnaserror+", src.Path },
+                new[] { "/t:library", "/preferreduilang:en", "/nologo", "/warnaserror+", src.Path },
                 generators: new[] { new FailsInitializeGenerator() });
             var outWriter = new StringWriter(CultureInfo.InvariantCulture);
             var exitCode = cmd.Run(outWriter);

@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         protected sealed override void LazyAsyncMethodChecks(CancellationToken cancellationToken)
         {
-            if (!this.IsAsync)
+            if (!this.IsAsync || this.IsPartialDefinition())
             {
                 CompleteAsyncMethodChecks(diagnosticsOpt: null, cancellationToken: cancellationToken);
                 return;

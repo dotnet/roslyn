@@ -1,0 +1,30 @@
+﻿Source Location: (2:0,2 [47] x:\dir\subdir\Test\TestComponent.cshtml)
+| RenderFragment<Person> template = (person) => |
+Generated Location: (735:21,0 [47] )
+| RenderFragment<Person> template = (person) => |
+
+Source Location: (56:0,56 [11] x:\dir\subdir\Test\TestComponent.cshtml)
+|person.Name|
+Generated Location: (1028:31,25 [11] )
+|person.Name|
+
+Source Location: (73:0,73 [2] x:\dir\subdir\Test\TestComponent.cshtml)
+|; |
+Generated Location: (1252:41,0 [2] )
+|; |
+
+Source Location: (79:1,1 [11] x:\dir\subdir\Test\TestComponent.cshtml)
+|MyComponent|
+Generated Location: (1357:47,49 [11] )
+|MyComponent|
+
+Source Location: (91:1,13 [14] x:\dir\subdir\Test\TestComponent.cshtml)
+|PersonTemplate|
+Generated Location: (1538:51,0 [14] )
+|PersonTemplate|
+
+Source Location: (108:1,30 [8] x:\dir\subdir\Test\TestComponent.cshtml)
+|template|
+Generated Location: (1781:59,0 [8] )
+|template|
+

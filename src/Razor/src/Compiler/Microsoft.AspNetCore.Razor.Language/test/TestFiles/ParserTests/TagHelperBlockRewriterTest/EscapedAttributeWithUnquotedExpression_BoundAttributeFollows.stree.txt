@@ -1,0 +1,84 @@
+﻿RazorDocument - [0..105)::105 - [@{LF    var url = "Tasks";LF}LF<button @@click="navigate(@url)" control-id="nav-button">Navigate</button>]
+    MarkupBlock - [0..105)::105
+        MarkupTextLiteral - [0..0)::0 - [] - Gen<Markup>
+            Marker;[];
+        CSharpCodeBlock - [0..29)::29
+            CSharpStatement - [0..29)::29
+                CSharpTransition - [0..1)::1 - Gen<None>
+                    Transition;[@];
+                CSharpStatementBody - [1..29)::28
+                    RazorMetaCode - [1..2)::1 - Gen<None>
+                        LeftBrace;[{];
+                    CSharpCodeBlock - [2..28)::26
+                        CSharpStatementLiteral - [2..28)::26 - [LF    var url = "Tasks";LF] - Gen<Stmt>
+                            NewLine;[LF];
+                            Whitespace;[    ];
+                            Keyword;[var];
+                            Whitespace;[ ];
+                            Identifier;[url];
+                            Whitespace;[ ];
+                            Assign;[=];
+                            Whitespace;[ ];
+                            StringLiteral;["Tasks"];
+                            Semicolon;[;];
+                            NewLine;[LF];
+                    RazorMetaCode - [28..29)::1 - Gen<None>
+                        RightBrace;[}];
+        MarkupEphemeralTextLiteral - [29..31)::2 - [LF] - Gen<None>
+            NewLine;[LF];
+        MarkupTagHelperElement - [31..105)::74 - button[StartTagAndEndTag] - ControlIdTagHelper
+            MarkupTagHelperStartTag - [31..88)::57 - [<button @@click="navigate(@url)" control-id="nav-button">] - Gen<Markup>
+                OpenAngle;[<];
+                Text;[button];
+                MarkupTextLiteral - [38..39)::1 - [ ] - Gen<Markup>
+                    Whitespace;[ ];
+                MarkupEphemeralTextLiteral - [39..40)::1 - [@] - Gen<Markup>
+                    Transition;[@];
+                MarkupTagHelperAttribute - [40..63)::23 - @click - DoubleQuotes - Unbound - [@click="navigate(@url)"]
+                    MarkupTextLiteral - [40..46)::6 - [@click] - Gen<Markup>
+                        Transition;[@];
+                        Text;[click];
+                    Equals;[=];
+                    MarkupTextLiteral - [47..48)::1 - ["] - Gen<Markup>
+                        DoubleQuote;["];
+                    MarkupTagHelperAttributeValue - [48..62)::14
+                        MarkupLiteralAttributeValue - [48..57)::9 - [navigate(]
+                            MarkupTextLiteral - [48..57)::9 - [navigate(] - Gen<Markup>
+                                Text;[navigate(];
+                        MarkupDynamicAttributeValue - [57..61)::4 - [@url]
+                            GenericBlock - [57..61)::4
+                                CSharpCodeBlock - [57..61)::4
+                                    CSharpImplicitExpression - [57..61)::4
+                                        CSharpTransition - [57..58)::1 - Gen<None>
+                                            Transition;[@];
+                                        CSharpImplicitExpressionBody - [58..61)::3
+                                            CSharpCodeBlock - [58..61)::3
+                                                CSharpExpressionLiteral - [58..61)::3 - [url] - Gen<Expr>
+                                                    Identifier;[url];
+                        MarkupLiteralAttributeValue - [61..62)::1 - [)]
+                            MarkupTextLiteral - [61..62)::1 - [)] - Gen<Markup>
+                                Text;[)];
+                    MarkupTextLiteral - [62..63)::1 - ["] - Gen<Markup>
+                        DoubleQuote;["];
+                MarkupTagHelperAttribute - [63..87)::24 - control-id - DoubleQuotes - Bound - [ control-id="nav-button"]
+                    MarkupTextLiteral - [63..64)::1 - [ ] - Gen<Markup>
+                        Whitespace;[ ];
+                    MarkupTextLiteral - [64..74)::10 - [control-id] - Gen<Markup>
+                        Text;[control-id];
+                    Equals;[=];
+                    MarkupTextLiteral - [75..76)::1 - ["] - Gen<Markup>
+                        DoubleQuote;["];
+                    MarkupTagHelperAttributeValue - [76..86)::10
+                        MarkupTextLiteral - [76..86)::10 - [nav-button] - Gen<Markup>
+                            Text;[nav-button];
+                    MarkupTextLiteral - [86..87)::1 - ["] - Gen<Markup>
+                        DoubleQuote;["];
+                CloseAngle;[>];
+            MarkupTextLiteral - [88..96)::8 - [Navigate] - Gen<Markup>
+                Text;[Navigate];
+            MarkupTagHelperEndTag - [96..105)::9 - [</button>]
+                OpenAngle;[<];
+                ForwardSlash;[/];
+                Text;[button];
+                CloseAngle;[>];
+    EndOfFile;[];

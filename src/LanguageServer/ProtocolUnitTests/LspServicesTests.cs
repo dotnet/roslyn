@@ -56,6 +56,35 @@ public sealed class LspServicesTests(ITestOutputHelper testOutputHelper) : Abstr
     }
 
     [Theory, CombinatorialData]
+    public async Task ReturnsSingleLspServiceImplementingInterface(bool mutatingLspWorkspace)
+    {
+        var composition = base.Composition.AddParts(typeof(InterfaceLspService));
+        await using var server = await CreateTestLspServerAsync("", mutatingLspWorkspace, initializationOptions: new() { ServerKind = WellKnownLspServerKinds.CSharpVisualBasicLspServer }, composition);
+
+        var lspService = server.GetRequiredLspService<ITestLspServiceInterface>();
+        Assert.IsType<InterfaceLspService>(lspService);
+    }
+
+    [Theory, CombinatorialData]
+    public async Task ExactInterfaceLspServiceOverridesImplementingService(bool mutatingLspWorkspace)
+    {
+        var composition = base.Composition.AddParts(typeof(DirectInterfaceLspService), typeof(InterfaceLspService));
+        await using var server = await CreateTestLspServerAsync("", mutatingLspWorkspace, initializationOptions: new() { ServerKind = WellKnownLspServerKinds.CSharpVisualBasicLspServer }, composition);
+
+        var lspService = server.GetRequiredLspService<ITestLspServiceInterface>();
+        Assert.IsType<DirectInterfaceLspService>(lspService);
+    }
+
+    [Theory, CombinatorialData]
+    public async Task MultipleLspServicesImplementingInterfaceThrow(bool mutatingLspWorkspace)
+    {
+        var composition = base.Composition.AddParts(typeof(InterfaceLspService), typeof(SecondInterfaceLspService));
+        await using var server = await CreateTestLspServerAsync("", mutatingLspWorkspace, initializationOptions: new() { ServerKind = WellKnownLspServerKinds.CSharpVisualBasicLspServer }, composition);
+
+        Assert.Throws<InvalidOperationException>(() => server.GetRequiredLspService<ITestLspServiceInterface>());
+    }
+
+    [Theory, CombinatorialData]
     public async Task DuplicateSpecificServicesThrow(bool mutatingLspWorkspace)
     {
         var composition = base.Composition.AddParts(typeof(CSharpLspService), typeof(CSharpLspServiceFactory), typeof(DuplicateCSharpLspService), typeof(DuplicateCSharpLspServiceFactory));
@@ -88,6 +117,8 @@ public sealed class LspServicesTests(ITestOutputHelper testOutputHelper) : Abstr
 
     internal sealed record class TestLspServiceFromFactory(string FactoryName) : ILspService { }
 
+    internal interface ITestLspServiceInterface : ILspService { }
+
     internal class TestLspServiceFactory : ILspServiceFactory
     {
         public ILspService CreateILspService(LspServices lspServices, WellKnownLspServerKinds serverKind) => new TestLspServiceFromFactory(this.GetType().Name);
@@ -107,6 +138,21 @@ public sealed class LspServicesTests(ITestOutputHelper testOutputHelper) : Abstr
     [method: ImportingConstructor]
     [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
     internal sealed class AnyLspService() : TestLspService { }
+
+    [ExportStatelessLspService(typeof(ITestLspServiceInterface), ProtocolConstants.RoslynLspLanguagesContract, WellKnownLspServerKinds.CSharpVisualBasicLspServer), Shared]
+    [method: ImportingConstructor]
+    [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    internal sealed class DirectInterfaceLspService() : ITestLspServiceInterface { }
+
+    [ExportStatelessLspService(typeof(InterfaceLspService), ProtocolConstants.RoslynLspLanguagesContract, WellKnownLspServerKinds.CSharpVisualBasicLspServer), Shared]
+    [method: ImportingConstructor]
+    [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    internal sealed class InterfaceLspService() : ITestLspServiceInterface { }
+
+    [ExportStatelessLspService(typeof(SecondInterfaceLspService), ProtocolConstants.RoslynLspLanguagesContract, WellKnownLspServerKinds.CSharpVisualBasicLspServer), Shared]
+    [method: ImportingConstructor]
+    [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    internal sealed class SecondInterfaceLspService() : ITestLspServiceInterface { }
 
     [ExportLspServiceFactory(typeof(TestLspServiceFromFactory), ProtocolConstants.RoslynLspLanguagesContract, WellKnownLspServerKinds.Any), Shared]
     [method: ImportingConstructor]

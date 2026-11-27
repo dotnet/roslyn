@@ -1,0 +1,8 @@
+﻿[0000] OpenElement("parent")
+[0001] AddMarkupContent("\r\n ")
+[0002] OpenElement("child")
+[0003] AddContent(" ")
+[0004] AddContent(DateTime.Now)
+[0005] AddContent(" ")
+[0006] AddMarkupContent("\r\n")
+[0007] AddMarkupContent("\r\n\r\n")

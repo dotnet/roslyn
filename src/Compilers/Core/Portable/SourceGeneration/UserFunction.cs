@@ -18,6 +18,7 @@ namespace Microsoft.CodeAnalysis
         public UserFunctionException(Exception innerException)
             : base("User provided code threw an exception", innerException)
         {
+            PooledObjects.PoolTracker.ForgiveLeaks();
         }
     }
 

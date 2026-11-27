@@ -16,6 +16,7 @@ using Microsoft.CodeAnalysis.ExternalAccess.HotReload.Api;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.UnitTests;
 using Roslyn.Test.Utilities;
 using Roslyn.Test.Utilities.TestGenerators;
 using Xunit;
@@ -35,6 +36,9 @@ public sealed class HotReloadServiceTests : EditAndContinueWorkspaceTestBase
            .GetRequiredDocument(documentId)
            .GetTextAsync();
 
+    private static HotReloadService CreateHotReloadService(Workspace workspace, ImmutableArray<string> capabilities)
+        => new(workspace.Services.SolutionServices, () => ValueTask.FromResult(capabilities));
+
     [Fact]
     public async Task Test()
     {
@@ -52,7 +56,7 @@ public sealed class HotReloadServiceTests : EditAndContinueWorkspaceTestBase
 
         EmitLibrary(solution.GetRequiredProject(projectId));
 
-        var hotReload = new HotReloadService(workspace.Services, ["Baseline", "AddDefinitionToExistingType", "NewTypeDefinition"]);
+        var hotReload = CreateHotReloadService(workspace, ["Baseline", "AddDefinitionToExistingType", "NewTypeDefinition"]);
 
         await hotReload.StartSessionAsync(solution, CancellationToken.None);
 
@@ -68,6 +72,7 @@ public sealed class HotReloadServiceTests : EditAndContinueWorkspaceTestBase
         Assert.Empty(result.TransientDiagnostics);
         Assert.Equal(1, result.ProjectUpdates.Length);
         AssertEx.Equal([0x02000002], result.ProjectUpdates[0].UpdatedTypes);
+        Assert.True(result.HasPendingUpdates);
 
         hotReload.CommitUpdate();
 
@@ -82,6 +87,7 @@ public sealed class HotReloadServiceTests : EditAndContinueWorkspaceTestBase
         Assert.Empty(result.TransientDiagnostics);
         Assert.Empty(result.ProjectUpdates);
         Assert.Equal(HotReloadService.Status.NoChangesToApply, result.Status);
+        Assert.False(result.HasPendingUpdates);
 
         updatedText = await GetCommittedDocumentTextAsync(hotReload, documentIdA);
         Assert.Equal(source3, updatedText.ToString());
@@ -100,6 +106,7 @@ public sealed class HotReloadServiceTests : EditAndContinueWorkspaceTestBase
         Assert.Empty(result.ProjectUpdates);
         AssertEx.SetEqual(["P"], result.ProjectsToRestart.Select(p => solution.GetRequiredProject(p.Key).Name));
         AssertEx.SetEqual(["P"], result.ProjectsToRebuild.Select(p => solution.GetRequiredProject(p).Name));
+        Assert.True(result.HasPendingUpdates);
 
         // Emulate the user making choice to not restart.
         // dotnet-watch then waits until Ctrl+R forces restart.
@@ -118,6 +125,7 @@ public sealed class HotReloadServiceTests : EditAndContinueWorkspaceTestBase
         Assert.Empty(result.ProjectUpdates);
         Assert.Empty(result.ProjectsToRestart);
         Assert.Empty(result.ProjectsToRebuild);
+        Assert.False(result.HasPendingUpdates);
 
         updatedText = await GetCommittedDocumentTextAsync(hotReload, documentIdA);
         Assert.Equal(source3, updatedText.ToString());
@@ -142,6 +150,7 @@ public sealed class HotReloadServiceTests : EditAndContinueWorkspaceTestBase
         Assert.Empty(result.ProjectUpdates);
         Assert.Empty(result.ProjectsToRestart);
         Assert.Empty(result.ProjectsToRebuild);
+        Assert.False(result.HasPendingUpdates);
 
         hotReload.EndSession();
     }
@@ -187,7 +196,7 @@ public sealed class HotReloadServiceTests : EditAndContinueWorkspaceTestBase
         var generatorDiagnostics = await solution.CompilationState.GetSourceGeneratorDiagnosticsAsync(project.State, CancellationToken.None);
         Assert.Empty(generatorDiagnostics);
 
-        var hotReload = new HotReloadService(workspace.Services, ["Baseline", "AddDefinitionToExistingType", "NewTypeDefinition"]);
+        var hotReload = CreateHotReloadService(workspace, ["Baseline", "AddDefinitionToExistingType", "NewTypeDefinition"]);
 
         await hotReload.StartSessionAsync(solution, CancellationToken.None);
 
@@ -200,6 +209,8 @@ public sealed class HotReloadServiceTests : EditAndContinueWorkspaceTestBase
         var diagnostic = result.PersistentDiagnostics.Single();
         Assert.Equal("CS8785", diagnostic.Id);
         Assert.Contains("Source generator failed", diagnostic.GetMessage());
+        Assert.False(result.HasPendingUpdates);
+
         hotReload.EndSession();
     }
 
@@ -231,7 +242,7 @@ public sealed class HotReloadServiceTests : EditAndContinueWorkspaceTestBase
 
         EmitLibrary(solution.GetRequiredProject(projectId));
 
-        var hotReload = new HotReloadService(workspace.Services, ["Baseline", "AddDefinitionToExistingType"]);
+        var hotReload = CreateHotReloadService(workspace, ["Baseline", "AddDefinitionToExistingType"]);
 
         await hotReload.StartSessionAsync(solution, CancellationToken.None);
 
@@ -245,6 +256,11 @@ public sealed class HotReloadServiceTests : EditAndContinueWorkspaceTestBase
         AssertEx.Equal(
             [$"A: {generatedDoc.FilePath}: (0,26)-(0,42): Error ENC0023: {string.Format(FeaturesResources.Adding_an_abstract_0_or_overriding_an_inherited_0_requires_restarting_the_application, FeaturesResources.method)}"],
             InspectDiagnostics(result.TransientDiagnostics));
+
+        Assert.True(result.HasPendingUpdates);
+        Assert.NotEmpty(result.ProjectsToRebuild);
+        hotReload.DiscardUpdate();
+        hotReload.EndSession();
     }
 
     [Fact]
@@ -277,7 +293,7 @@ public sealed class HotReloadServiceTests : EditAndContinueWorkspaceTestBase
 
         EmitLibrary(solution.GetRequiredProject(projectId));
 
-        var hotReload = new HotReloadService(workspace.Services, ["Baseline", "AddDefinitionToExistingType"]);
+        var hotReload = CreateHotReloadService(workspace, ["Baseline", "AddDefinitionToExistingType"]);
 
         await hotReload.StartSessionAsync(solution, CancellationToken.None);
 
@@ -291,11 +307,21 @@ public sealed class HotReloadServiceTests : EditAndContinueWorkspaceTestBase
         AssertEx.Equal(
             [$"A: {generatedDoc.FilePath}: (0,26)-(0,42): Error ENC0023: {string.Format(FeaturesResources.Adding_an_abstract_0_or_overriding_an_inherited_0_requires_restarting_the_application, FeaturesResources.method)}"],
             InspectDiagnostics(result.TransientDiagnostics));
+
+        Assert.True(result.HasPendingUpdates);
+        Assert.NotEmpty(result.ProjectsToRebuild);
+        hotReload.DiscardUpdate();
+        hotReload.EndSession();
     }
 
-    [Fact]
-    public async Task StaleSource()
+    [Theory]
+    [InlineData(LanguageNames.CSharp)]
+    [InlineData(NoCompilationConstants.LanguageName)]
+    public async Task StaleSource(string language)
     {
+        // When testing non-C# projects we compile the code using C# compiler but pretend it's not a C# assembly.
+        // The actual content of the assembly is irrelevant to the test as long as the PDB has correct document checksums.
+
         var source1 = "class C { void M() { System.Console.WriteLine(1); } }";
         var source2 = "class C { void M() { System.Console.WriteLine(2); } }";
         var source3 = "class C { void M() { System.Console.WriteLine(3); } }";
@@ -305,14 +331,14 @@ public sealed class HotReloadServiceTests : EditAndContinueWorkspaceTestBase
         using var workspace = CreateWorkspace(out var solution, out _);
 
         solution = solution.
-            AddTestProject("P", out var projectId).
+            AddTestProject("P", language: language, out var projectId).
             AddTestDocument(source: null, sourceFileA.Path, out var documentIdA).Project.Solution;
 
         EmitLibrary(projectId, source1, sourceFileA.Path, assemblyName: "Proj");
 
         sourceFileA.WriteAllText(source2, Encoding.UTF8);
 
-        var hotReload = new HotReloadService(workspace.Services, ["Baseline", "AddDefinitionToExistingType", "NewTypeDefinition"]);
+        var hotReload = CreateHotReloadService(workspace, ["Baseline", "AddDefinitionToExistingType", "NewTypeDefinition"]);
 
         // loads source text V2 from disk:
         await hotReload.StartSessionAsync(solution, CancellationToken.None);
@@ -325,10 +351,17 @@ public sealed class HotReloadServiceTests : EditAndContinueWorkspaceTestBase
         Assert.Empty(result.ProjectUpdates);
         Assert.Empty(result.ProjectsToRestart);
         Assert.Empty(result.ProjectsToRebuild);
+        Assert.False(result.HasPendingUpdates);
+
+        var message = string.Format(
+            FeaturesResources.Changing_source_file_0_in_a_stale_project_1_has_no_effect_until_the_project_is_rebuilt_2,
+            sourceFileA.Path,
+            "P",
+            FeaturesResources.the_content_of_the_document_is_stale);
 
         AssertEx.Equal(
         [
-            $"P: {sourceFileA.Path}: (0,0)-(0,0): Warning ENC1008: {string.Format(FeaturesResources.Changing_source_file_0_in_a_stale_project_has_no_effect_until_the_project_is_rebuit, sourceFileA.Path)}",
+            $"P: {sourceFileA.Path}: (0,0)-(0,0): Warning ENC1008: {message}",
         ], InspectDiagnostics(result.TransientDiagnostics));
     }
 
@@ -363,7 +396,7 @@ public sealed class HotReloadServiceTests : EditAndContinueWorkspaceTestBase
 
         additionalFileA.WriteAllText(source2);
 
-        var hotReload = new HotReloadService(workspace.Services, ["Baseline", "AddDefinitionToExistingType"]);
+        var hotReload = CreateHotReloadService(workspace, ["Baseline", "AddDefinitionToExistingType"]);
 
         // V2 of the text is loaded from disk:
         await hotReload.StartSessionAsync(solution, CancellationToken.None);
@@ -380,6 +413,39 @@ public sealed class HotReloadServiceTests : EditAndContinueWorkspaceTestBase
         AssertEx.Equal(
             [$"A: {generatedDoc.FilePath}: (0,26)-(0,42): Error ENC0023: {string.Format(FeaturesResources.Adding_an_abstract_0_or_overriding_an_inherited_0_requires_restarting_the_application, FeaturesResources.method)}"],
             InspectDiagnostics(result.TransientDiagnostics));
+
+        Assert.True(result.HasPendingUpdates);
+        Assert.NotEmpty(result.ProjectsToRebuild);
+        hotReload.DiscardUpdate();
+        hotReload.EndSession();
+    }
+
+    [Theory]
+    [InlineData(LanguageNames.VisualBasic)]
+    [InlineData(LanguageNames.CSharp)]
+    [InlineData(NoCompilationConstants.LanguageName)]
+    public async Task HydrateDocumentsAsync(string language)
+    {
+        var dir = Temp.CreateDirectory();
+        var sourceFileA = dir.CreateFile("A.nolang");
+
+        using var workspace = CreateWorkspace(out var solution, out _, [typeof(NoCompilationLanguageService)]);
+
+        solution = solution.
+            AddTestProject("P", language, out var projectId).
+            AddTestDocument(source: null, sourceFileA.Path, out var documentIdA).Project.Solution;
+
+        sourceFileA.WriteAllText("source", Encoding.UTF8);
+
+        var hotReload = CreateHotReloadService(workspace, ["Baseline"]);
+
+        await hotReload.StartSessionAsync(solution, CancellationToken.None);
+
+        // text should be loaded from disk:
+        var document = solution.GetRequiredDocument(documentIdA);
+        document.TryGetText(out var text);
+        Assert.NotNull(text);
+        Assert.Equal("source", text.ToString());
     }
 }
 #endif

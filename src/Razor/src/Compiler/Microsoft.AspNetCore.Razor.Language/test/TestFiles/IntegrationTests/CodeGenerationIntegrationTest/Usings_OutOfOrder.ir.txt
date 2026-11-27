@@ -1,0 +1,68 @@
+﻿Document - 
+    RazorCompiledItemAttribute - 
+    NamespaceDeclaration -  - AspNetCoreGeneratedDocument
+        UsingDirective - (24:1,1 [40] ) - global::System.Collections.Generic
+        UsingDirective - (67:2,1 [25] ) - global::System.Linq
+        UsingDirective - (95:3,1 [36] ) - global::System.Threading.Tasks
+        UsingDirective - (134:4,1 [38] ) - global::Microsoft.AspNetCore.Mvc
+        UsingDirective - (175:5,1 [48] ) - global::Microsoft.AspNetCore.Mvc.Rendering
+        UsingDirective - (226:6,1 [51] ) - global::Microsoft.AspNetCore.Mvc.ViewFeatures
+        UsingDirective - (1:0,1 [15] Usings_OutOfOrder.cshtml) - System.IO
+        UsingDirective - (60:6,1 [32] Usings_OutOfOrder.cshtml) - Foo = System.Text.Encoding
+        UsingDirective - (136:12,1 [12] Usings_OutOfOrder.cshtml) - System
+        UsingDirective - (153:14,1 [19] Usings_OutOfOrder.cshtml) - static System
+        UsingDirective - (175:15,1 [27] Usings_OutOfOrder.cshtml) - static System.Console
+        UsingDirective - (246:21,1 [41] Usings_OutOfOrder.cshtml) - static global::System.Text.Encoding
+        UsingDirective - (576:31,1 [17] Usings_OutOfOrder.cshtml) - System.Text
+        RazorSourceChecksumAttribute - 
+        RazorCompiledItemMetadataAttribute - 
+        CreateNewOnMetadataUpdateAttribute - 
+        ClassDeclaration -  - internal sealed - TestFiles_IntegrationTests_CodeGenerationIntegrationTest_Usings_OutOfOrder - global::Microsoft.AspNetCore.Mvc.Razor.RazorPage<dynamic> - 
+            MethodDeclaration -  - public async override - global::System.Threading.Tasks.Task - ExecuteAsync
+                HtmlContent - (18:1,0 [2] Usings_OutOfOrder.cshtml)
+                    LazyIntermediateToken - (18:1,0 [2] Usings_OutOfOrder.cshtml) - Html - \n
+                HtmlContent - (57:5,0 [2] Usings_OutOfOrder.cshtml)
+                    LazyIntermediateToken - (57:5,0 [2] Usings_OutOfOrder.cshtml) - Html - \n
+                HtmlContent - (94:7,0 [2] Usings_OutOfOrder.cshtml)
+                    LazyIntermediateToken - (94:7,0 [2] Usings_OutOfOrder.cshtml) - Html - \n
+                HtmlContent - (133:11,0 [2] Usings_OutOfOrder.cshtml)
+                    LazyIntermediateToken - (133:11,0 [2] Usings_OutOfOrder.cshtml) - Html - \n
+                HtmlContent - (150:13,0 [2] Usings_OutOfOrder.cshtml)
+                    LazyIntermediateToken - (150:13,0 [2] Usings_OutOfOrder.cshtml) - Html - \n
+                HtmlContent - (204:16,0 [2] Usings_OutOfOrder.cshtml)
+                    LazyIntermediateToken - (204:16,0 [2] Usings_OutOfOrder.cshtml) - Html - \n
+                HtmlContent - (243:20,0 [2] Usings_OutOfOrder.cshtml)
+                    LazyIntermediateToken - (243:20,0 [2] Usings_OutOfOrder.cshtml) - Html - \n
+                HtmlContent - (289:22,0 [2] Usings_OutOfOrder.cshtml)
+                    LazyIntermediateToken - (289:22,0 [2] Usings_OutOfOrder.cshtml) - Html - \n
+                CSharpCode - (293:23,2 [158] Usings_OutOfOrder.cshtml)
+                    LazyIntermediateToken - (293:23,2 [158] Usings_OutOfOrder.cshtml) - CSharp -  \n    using var disposable = (IDisposable)ViewData["disposable"];\n    using System.IDisposable otherDisposable = (IDisposable)ViewData["otherdisposable"];\n
+                HtmlContent - (454:27,0 [30] Usings_OutOfOrder.cshtml)
+                    LazyIntermediateToken - (454:27,0 [2] Usings_OutOfOrder.cshtml) - Html - \n
+                    LazyIntermediateToken - (456:28,0 [2] Usings_OutOfOrder.cshtml) - Html - <p
+                    LazyIntermediateToken - (458:28,2 [1] Usings_OutOfOrder.cshtml) - Html - >
+                    LazyIntermediateToken - (459:28,3 [25] Usings_OutOfOrder.cshtml) - Html - Path's full type name is 
+                CSharpExpression - (485:28,29 [21] Usings_OutOfOrder.cshtml)
+                    LazyIntermediateToken - (485:28,29 [21] Usings_OutOfOrder.cshtml) - CSharp - typeof(Path).FullName
+                HtmlContent - (506:28,50 [40] Usings_OutOfOrder.cshtml)
+                    LazyIntermediateToken - (506:28,50 [4] Usings_OutOfOrder.cshtml) - Html - </p>
+                    LazyIntermediateToken - (510:28,54 [2] Usings_OutOfOrder.cshtml) - Html - \n
+                    LazyIntermediateToken - (512:29,0 [2] Usings_OutOfOrder.cshtml) - Html - <p
+                    LazyIntermediateToken - (514:29,2 [1] Usings_OutOfOrder.cshtml) - Html - >
+                    LazyIntermediateToken - (515:29,3 [31] Usings_OutOfOrder.cshtml) - Html - Foo's actual full type name is 
+                CSharpExpression - (547:29,35 [20] Usings_OutOfOrder.cshtml)
+                    LazyIntermediateToken - (547:29,35 [20] Usings_OutOfOrder.cshtml) - CSharp - typeof(Foo).FullName
+                HtmlContent - (567:29,55 [8] Usings_OutOfOrder.cshtml)
+                    LazyIntermediateToken - (567:29,55 [4] Usings_OutOfOrder.cshtml) - Html - </p>
+                    LazyIntermediateToken - (571:29,59 [4] Usings_OutOfOrder.cshtml) - Html - \n\n
+            CSharpCode - (32:2,12 [22] Usings_OutOfOrder.cshtml)
+                LazyIntermediateToken - (32:2,12 [22] Usings_OutOfOrder.cshtml) - CSharp - \n    // functions 1\n
+            CSharpCode - (108:8,12 [22] Usings_OutOfOrder.cshtml)
+                LazyIntermediateToken - (108:8,12 [22] Usings_OutOfOrder.cshtml) - CSharp - \n    // functions 2\n
+            CSharpCode - (218:17,12 [22] Usings_OutOfOrder.cshtml)
+                LazyIntermediateToken - (218:17,12 [22] Usings_OutOfOrder.cshtml) - CSharp - \n    // functions 3\n
+            Inject - 
+            Inject - 
+            Inject - 
+            Inject - 
+            Inject - 

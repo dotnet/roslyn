@@ -69,15 +69,16 @@ public sealed class IDEDiagnosticIDConfigurationTests
 
     private static void ValidateHelpLinkForDiagnostic(string diagnosticId, string helpLinkUri)
     {
-        if (diagnosticId is "IDE0043" // Intentionally undocumented because it's being removed in favor of CA2241
-                or "IDE1007"
-                or "RemoveUnnecessaryImportsFixable" // this diagnostic is hidden and not configurable.
-                or "IDE0005_gen" // this diagnostic is hidden and not configurable.
-                or "RE0001"
-                or "JSON001"
-                or "JSON002") // Tracked by https://github.com/dotnet/roslyn/issues/48530
+        if (diagnosticId is "RemoveUnnecessaryImportsFixable" // this diagnostic is hidden and not configurable.
+                or "IDE0005_gen") // this diagnostic is hidden and not configurable.
         {
             Assert.True(helpLinkUri == string.Empty, $"Expected empty help link for {diagnosticId}");
+            return;
+        }
+
+        if (diagnosticId is "RE0001" or "JSON001" or "JSON002")
+        {
+            Assert.Equal($"https://learn.microsoft.com/visualstudio/ide/reference/{diagnosticId.ToLowerInvariant()}", helpLinkUri);
             return;
         }
 
@@ -95,7 +96,7 @@ public sealed class IDEDiagnosticIDConfigurationTests
 
         if (helpLinkUri != $"https://learn.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/{diagnosticId.ToLowerInvariant()}")
         {
-            Assert.True(false, $"Invalid help link for {diagnosticId}");
+            Assert.Fail($"Invalid help link for {diagnosticId}");
         }
     }
 
@@ -138,7 +139,7 @@ public sealed class IDEDiagnosticIDConfigurationTests
 
             if (!expectedMap.TryGetValue(diagnosticIdString, out var expectedValue))
             {
-                Assert.False(true, $"""
+                Assert.Fail($"""
                     Missing entry:
 
                     {diagnosticIdString}
@@ -149,7 +150,7 @@ public sealed class IDEDiagnosticIDConfigurationTests
             // Verify entries match for diagnosticId
             if (expectedValue != editorConfigString)
             {
-                Assert.False(true, $"""
+                Assert.Fail($"""
                     Mismatch for '{diagnosticId}'
                     Expected: {expectedValue}
                     Actual: {editorConfigString}
@@ -161,7 +162,7 @@ public sealed class IDEDiagnosticIDConfigurationTests
 
         if (expectedLines.Length == 0)
         {
-            Assert.False(true, $"Test Baseline:{baseline}");
+            Assert.Fail($"Test Baseline:{baseline}");
         }
 
         if (expectedMap.Count > 0)
@@ -174,7 +175,7 @@ public sealed class IDEDiagnosticIDConfigurationTests
                 extraEntitiesBuilder.AppendLine(kvp.Value);
             }
 
-            Assert.False(true, $@"Unexpected entries:{extraEntitiesBuilder.ToString()}");
+            Assert.Fail($@"Unexpected entries:{extraEntitiesBuilder.ToString()}");
         }
     }
 
@@ -444,6 +445,9 @@ public sealed class IDEDiagnosticIDConfigurationTests
 
             # IDE0220
             dotnet_diagnostic.IDE0220.severity = %value%
+            
+            # IDE0221
+            dotnet_diagnostic.IDE0221.severity = %value%
 
             # IDE0230
             dotnet_diagnostic.IDE0230.severity = %value%
@@ -513,6 +517,15 @@ public sealed class IDEDiagnosticIDConfigurationTests
             
             # IDE0380
             dotnet_diagnostic.IDE0380.severity = %value%
+            
+            # IDE0390
+            dotnet_diagnostic.IDE0390.severity = %value%
+            
+            # IDE0391
+            dotnet_diagnostic.IDE0391.severity = %value%
+
+            # IDE0410
+            dotnet_diagnostic.IDE0410.severity = %value%
 
             # IDE1005
             dotnet_diagnostic.IDE1005.severity = %value%
@@ -783,13 +796,13 @@ public sealed class IDEDiagnosticIDConfigurationTests
 
             if (!expectedMap.TryGetValue((diagnosticId, optionName), out var expectedValue))
             {
-                Assert.False(true, $@"Missing entry: {diagnosticId}, {optionName}, {optionValue}");
+                Assert.Fail($@"Missing entry: {diagnosticId}, {optionName}, {optionValue}");
             }
 
             // Verify entries match for diagnosticId
             if (expectedValue != optionValue)
             {
-                Assert.False(true, $@"Mismatch for: {diagnosticId}, {optionName}, {optionValue}");
+                Assert.Fail($@"Mismatch for: {diagnosticId}, {optionName}, {optionValue}");
             }
 
             expectedMap.Remove((diagnosticId, optionName));
@@ -841,7 +854,7 @@ public sealed class IDEDiagnosticIDConfigurationTests
             ("IDE0033", "dotnet_style_explicit_tuple_names", "true"),
             ("IDE0034", "csharp_prefer_simple_default_expression", "true"),
             ("IDE0035", null, null),
-            ("IDE0036", "csharp_preferred_modifier_order", "public,private,protected,internal,file,static,extern,new,virtual,abstract,sealed,override,readonly,unsafe,required,volatile,async"),
+            ("IDE0036", "csharp_preferred_modifier_order", "public,private,protected,internal,file,static,extern,new,virtual,abstract,closed,sealed,override,readonly,unsafe,required,volatile,async"),
             ("IDE0037", "dotnet_style_prefer_inferred_tuple_names", "true"),
             ("IDE0037", "dotnet_style_prefer_inferred_anonymous_type_member_names", "true"),
             ("IDE0038", "csharp_style_pattern_matching_over_is_with_cast_check", "true"),
@@ -907,6 +920,7 @@ public sealed class IDEDiagnosticIDConfigurationTests
             ("IDE0210", "csharp_style_prefer_top_level_statements", "true"),
             ("IDE0211", "csharp_style_prefer_top_level_statements", "true"),
             ("IDE0220", "dotnet_style_prefer_foreach_explicit_cast_in_source", "when_strongly_typed"),
+            ("IDE0221", "dotnet_style_prefer_non_hidden_explicit_cast_in_source", "true"),
             ("IDE0230", "csharp_style_prefer_utf8_string_literals", "true"),
             ("IDE0240", null, null),
             ("IDE0241", null, null),
@@ -930,6 +944,9 @@ public sealed class IDEDiagnosticIDConfigurationTests
             ("IDE0360", "csharp_style_prefer_simple_property_accessors", "true"),
             ("IDE0370", null, null),
             ("IDE0380", null, null),
+            ("IDE0390", null, null),
+            ("IDE0391", null, null),
+            ("IDE0410", "csharp_style_prefer_labeled_jump_statements", "true"),
             ("IDE1005", "csharp_style_conditional_delegate_call", "true"),
             ("IDE1006", null, null),
             ("IDE1007", null, null),

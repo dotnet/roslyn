@@ -23,7 +23,7 @@ namespace Test.Utilities
                 builder.Append(string.Concat(compileErrors.Select(x => "\n" + x.ToString())));
 
                 string message = builder.ToString();
-                Assert.True(false, message);
+                Assert.Fail(message);
             }
         }
     }

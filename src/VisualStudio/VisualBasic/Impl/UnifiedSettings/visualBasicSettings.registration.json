@@ -1,7 +1,3 @@
-// NOTE:
-// When this file is changed. Please also update the cache tag under settings entry in src/VisualStudio/VisualBasic/Impl/PackageRegistration.pkgdef
-// Otherwise your change might be ignored.
-// See https://devdiv.visualstudio.com/DevDiv/_wiki/wikis/DevDiv.wiki/39345/Manifest-Build-Deployment-and-Setup-Authoring-In-Depth?anchor=example-pkgdef-key for more details
 {
   "properties": {
     // CompletionOptionsStorage.TriggerOnTypingLetters
@@ -154,6 +150,38 @@
             "store": "SettingsManager",
             "path": "TextEditor.VisualBasic.Specific.ShowItemsFromUnimportedNamespaces"
           }
+        }
+      }
+    },
+    // CompletionOptionsStorage.ImportCompletionCommitBehavior
+    "languages.basic.intellisense.importCompletionCommitBehavior": {
+      "title": "@Completion_behavior_for_items_from_unimported_namespaces;..\\Microsoft.VisualStudio.LanguageServices.dll",
+      "type": "string",
+      "enum": [ "alwaysAddImport", "neverAddImport", "onlyAddImportIfExplicitlyCompleted" ],
+      "enumItemLabels": [ "@Always_add_import;..\\Microsoft.VisualStudio.LanguageServices.VisualBasic.dll", "@Never_add_import;..\\Microsoft.VisualStudio.LanguageServices.VisualBasic.dll", "@Only_add_import_if_explicitly_completed;..\\Microsoft.VisualStudio.LanguageServices.VisualBasic.dll" ],
+      "default": "alwaysAddImport",
+      "order": 51,
+      "enableWhen": "${config:languages.basic.intellisense.showCompletionItemsFromUnimportedNamespaces}=='true'",
+      "migration": {
+        "enumIntegerToString": {
+          "input": {
+            "store": "SettingsManager",
+            "path": "TextEditor.VisualBasic.Specific.ImportCompletionCommitBehavior"
+          },
+          "map": [
+            {
+              "result": "alwaysAddImport",
+              "match": 0
+            },
+            {
+              "result": "neverAddImport",
+              "match": 1
+            },
+            {
+              "result": "onlyAddImportIfExplicitlyCompleted",
+              "match": 2
+            }
+          ]
         }
       }
     },

@@ -44,7 +44,7 @@ internal sealed class CSharpMakeStatementAsynchronousCodeFixProvider() : SyntaxE
         RegisterCodeFix(context, CSharpCodeFixesResources.Add_await, nameof(CSharpCodeFixesResources.Add_await));
     }
 
-    protected override Task FixAllAsync(
+    protected override async Task FixAllAsync(
         Document document, ImmutableArray<Diagnostic> diagnostics,
         SyntaxEditor editor, CancellationToken cancellationToken)
     {
@@ -57,8 +57,6 @@ internal sealed class CSharpMakeStatementAsynchronousCodeFixProvider() : SyntaxE
                 MakeStatementAsynchronous(editor, statementToFix);
             }
         }
-
-        return Task.CompletedTask;
     }
 
     private static void MakeStatementAsynchronous(SyntaxEditor editor, SyntaxNode statementToFix)

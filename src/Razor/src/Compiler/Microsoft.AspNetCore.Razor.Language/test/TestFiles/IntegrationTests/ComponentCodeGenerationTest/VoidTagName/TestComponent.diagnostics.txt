@@ -1,0 +1,2 @@
+﻿x:\dir\subdir\Test\TestComponent.cshtml(5,6): Error RZ1042: Component or tag helper 'Col' must be self-closing because it's named like an HTML void element. To use child content, qualify such components with their namespace or use prefixes with such tag helpers.
+x:\dir\subdir\Test\TestComponent.cshtml(6,33): Error RZ1042: Component or tag helper 'Col' must be self-closing because it's named like an HTML void element. To use child content, qualify such components with their namespace or use prefixes with such tag helpers.

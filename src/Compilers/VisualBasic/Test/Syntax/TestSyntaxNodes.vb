@@ -3487,10 +3487,10 @@ End Module
             Assert.Equal(Obj1, obj3)
             Assert.NotEqual(Obj1, Obj2)
             If Obj1 = Obj2 Then
-                Assert.True(False, "GlobalImports equal Failure")
+                Assert.Fail("GlobalImports equal Failure")
             End If
             If Obj1 <> obj3 Then
-                Assert.True(False, "GlobalImports Not equal Failure")
+                Assert.Fail("GlobalImports Not equal Failure")
             End If
         End Sub
 

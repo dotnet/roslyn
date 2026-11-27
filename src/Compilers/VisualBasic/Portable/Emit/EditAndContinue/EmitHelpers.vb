@@ -133,6 +133,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
                     testData?.SymWriterFactory,
                     emitOpts.PdbFilePath,
                     cancellationToken)
+            Else
+                ' SerializeToDeltaStreams frees these on success; free on the failure path.
+                For Each pair In moduleBeingBuilt.GetDeletedMemberDefinitionsOrEmpty()
+                    pair.Value.Free()
+                Next
             End If
 
             Return New EmitDifferenceResult(

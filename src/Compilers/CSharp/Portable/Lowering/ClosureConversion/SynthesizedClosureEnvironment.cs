@@ -75,6 +75,25 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal void AddHoistedField(LambdaCapturedVariable captured) => _membersBuilder.Add(captured);
 
+        /// <summary>
+        /// Freezes the members builder so the pooled ArrayBuilder can be returned to the pool.
+        /// Must be called after all <see cref="AddHoistedField"/> calls are complete.
+        /// </summary>
+        internal void SealMembers()
+        {
+            if (_membersBuilder is { } builder)
+            {
+                if ((object)StaticConstructor != null)
+                {
+                    builder.Add(StaticConstructor);
+                    builder.Add(SingletonCache);
+                }
+                builder.AddRange(base.GetMembers());
+                _members = builder.ToImmutableAndFree();
+                _membersBuilder = null;
+            }
+        }
+
         private static string MakeName(SyntaxNode scopeSyntaxOpt, DebugId methodId, DebugId closureId)
         {
             if (scopeSyntaxOpt == null)
@@ -109,19 +128,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override ImmutableArray<Symbol> GetMembers()
         {
-            if (_members.IsDefault)
-            {
-                var builder = _membersBuilder;
-                if ((object)StaticConstructor != null)
-                {
-                    builder.Add(StaticConstructor);
-                    builder.Add(SingletonCache);
-                }
-                builder.AddRange(base.GetMembers());
-                _members = builder.ToImmutableAndFree();
-                _membersBuilder = null;
-            }
-
+            SealMembers();
             return _members;
         }
 

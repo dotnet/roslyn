@@ -7,18 +7,20 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
+using Basic.CompilerLog.Util;
+using Microsoft.Build.Logging.StructuredLogger;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.CodeAnalysis.VisualBasic;
 using Roslyn.Test.Utilities;
 using Xunit;
 using Xunit.Abstractions;
-using Basic.CompilerLog.Util;
 
 namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests;
 
 public sealed class SdkIntegrationTests : IDisposable
 {
-    public const string NetCoreTfm = "net9.0";
+    public const string NetCoreTfm = "net10.0";
 
     public ITestOutputHelper TestOutputHelper { get; }
     public TempRoot Temp { get; }
@@ -95,6 +97,88 @@ public sealed class SdkIntegrationTests : IDisposable
         }
 
         return list;
+    }
+
+    [ConditionalTheory(typeof(DotNetSdkAvailable)), CombinatorialData]
+    public void RoslynCompilerCache(
+        bool visualBasic,
+        bool? useCache,
+        [CombinatorialValues(null, "explicit-cache")] string? cachePath)
+    {
+        const string informationalVersion = "1.2.3+custom";
+        var extension = visualBasic ? "vb" : "cs";
+        var worktreeCount = useCache == true ? 2 : 1;
+        for (var i = 0; i < worktreeCount; i++)
+        {
+            var sourceRevisionId = $"revision{i}";
+            var worktree = ProjectDir.CreateDirectory($"worktree{i}=a, b");
+            var projectFile = worktree.CreateFile($"test.{extension}proj").WriteAllText($"""
+                <Project Sdk="Microsoft.NET.Sdk">
+                  <PropertyGroup>
+                    <TargetFramework>{NetCoreTfm}</TargetFramework>
+                    <UseRoslynCompilerCache>{useCache}</UseRoslynCompilerCache>
+                    <Deterministic>false</Deterministic>
+                    <InformationalVersion>{informationalVersion}</InformationalVersion>
+                    <SourceRevisionId>{sourceRevisionId}</SourceRevisionId>
+                    <EnableSourceControlManagerQueries>false</EnableSourceControlManagerQueries>
+                    <SkipCompilerExecution>true</SkipCompilerExecution>
+                    <ProvideCommandLineArgs>true</ProvideCommandLineArgs>
+                  </PropertyGroup>
+                  <ItemGroup>
+                    <SourceRoot Include="$(MSBuildProjectDirectory){Path.DirectorySeparatorChar}" SourceControl="git" SourceLinkUrl="https://example.invalid/sources/*" />
+                  </ItemGroup>
+                  <Target Name="TestCompilerCache" DependsOnTargets="CoreCompile">
+                    <WriteLinesToFile File="args.txt" Lines="@(CscCommandLineArgs);@(VbcCommandLineArgs)" Overwrite="true" />
+                  </Target>
+                </Project>
+                """);
+            worktree.CreateFile($"test.{extension}").WriteAllText(visualBasic ? "Public Class C\nEnd Class" : "public class C { }");
+
+            var features = cachePath is null ? "existing-feature" : $"existing-feature%3Buse-global-cache={cachePath}";
+            RunBuild(
+                projectFile.Path,
+                additionalArguments: $"/t:TestCompilerCache /p:Features={features}",
+                additionalEnvironmentVars: new Dictionary<string, string>
+                {
+                    ["ROSLYN_CACHE_PATH"] = "",
+                });
+
+            var args = File.ReadAllLines(Path.Combine(worktree.Path, "args.txt"));
+            Assert.Contains(useCache == true ? "/deterministic+" : "/deterministic-", args);
+            CommandLineArguments arguments = visualBasic
+                ? VisualBasicCommandLineParser.Default.Parse(args, worktree.Path, sdkDirectory: null, additionalReferenceDirectories: null)
+                : CSharpCommandLineParser.Default.Parse(args, worktree.Path, sdkDirectory: null, additionalReferenceDirectories: null);
+
+            var assemblyInfoPath = arguments.SourceFiles.Single(source => Path.GetFileName(source.Path) == $"test.AssemblyInfo.{extension}").Path;
+            var expectedInformationalVersion = useCache == true ? informationalVersion : $"{informationalVersion}.{sourceRevisionId}";
+            Assert.Contains(
+                $"AssemblyInformationalVersionAttribute(\"{expectedInformationalVersion}\")",
+                File.ReadAllText(assemblyInfoPath));
+
+            Assert.Equal("true", arguments.ParseOptions.Features["existing-feature"]);
+            if (useCache == true || cachePath is not null)
+            {
+                Assert.Equal(cachePath ?? "true", arguments.ParseOptions.Features["use-global-cache"]);
+            }
+            else
+            {
+                Assert.DoesNotContain("use-global-cache", arguments.ParseOptions.Features.Keys);
+            }
+
+            if (useCache == true)
+            {
+                Assert.Contains(arguments.PathMap, mapping => mapping.Key == worktree.Path + Path.DirectorySeparatorChar && mapping.Value == "/_/");
+                Assert.Null(arguments.SourceLink);
+            }
+            else
+            {
+                Assert.Empty(arguments.PathMap);
+                Assert.NotNull(arguments.SourceLink);
+                Assert.True(File.Exists(arguments.SourceLink));
+            }
+        }
+
+        ArtifactUploadUtil.SetSucceeded();
     }
 
     [ConditionalFact(typeof(DotNetSdkAvailable))]
@@ -198,6 +282,242 @@ public sealed class SdkIntegrationTests : IDisposable
             Assert.False(options.SpecificDiagnosticOptions.TryGetValue("BC41997", out _));
         }
 
+        ArtifactUploadUtil.SetSucceeded();
+    }
+
+    [ConditionalTheory(typeof(DotNetSdkAvailable))]
+    [InlineData("")]
+    [InlineData("<MemorySafetyRulesVersion></MemorySafetyRulesVersion>")]
+    [InlineData("<MemorySafetyRulesVersion>1</MemorySafetyRulesVersion>")]
+    public void MemorySafetyRules_Version1(string property)
+    {
+        var projectFile = ProjectDir.CreateFile("console.csproj");
+        projectFile.WriteAllText($"""
+            <Project Sdk="Microsoft.NET.Sdk">
+                <PropertyGroup>
+                    <TargetFramework>net11.0</TargetFramework>
+                    <LangVersion>preview</LangVersion>
+                    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+                    {property}
+                </PropertyGroup>
+            </Project>
+            """);
+
+        ProjectDir.CreateFile("C.cs").WriteAllText("""
+            class C
+            {
+                void M1()
+                {
+                    M2();
+                }
+                unsafe void M2() { }
+            }
+            """);
+
+        var binlogPath = RunBuild(projectFile.Path);
+        var compilation = ReadCompilations(binlogPath).Single();
+
+        compilation.VerifyDiagnostics();
+
+        var options = (CSharpCompilationOptions)compilation.Options;
+        Assert.Equal(MemorySafetyRulesVersion.Version1, options.MemorySafetyRulesVersion);
+
+        ArtifactUploadUtil.SetSucceeded();
+    }
+
+    [ConditionalFact(typeof(DotNetSdkAvailable))]
+    public void MemorySafetyRules_FeatureFlag()
+    {
+        var projectFile = ProjectDir.CreateFile("console.csproj");
+        projectFile.WriteAllText($"""
+            <Project Sdk="Microsoft.NET.Sdk">
+                <PropertyGroup>
+                    <TargetFramework>net11.0</TargetFramework>
+                    <LangVersion>preview</LangVersion>
+                    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+                    <Features>$(Features);updated-memory-safety-rules</Features>
+                </PropertyGroup>
+            </Project>
+            """);
+
+        ProjectDir.CreateFile("C.cs").WriteAllText("""
+            class C
+            {
+                void M1()
+                {
+                    M2();
+                }
+                unsafe void M2() { }
+            }
+            """);
+
+        var binlogPath = RunBuild(projectFile.Path, succeeds: false);
+        var compilation = ReadCompilations(binlogPath).Single();
+
+        compilation.VerifyDiagnostics(
+            // warning CS9402: Feature flag 'updated-memory-safety-rules' is deprecated and will be removed in a future version. Use MSBuild property 'MemorySafetyRulesVersion=2' or compiler option '/memorysafetyrulesversion:2' instead.
+            TestHelpers.Diagnostic(ErrorCode.WRN_DeprecatedFeatureFlag).WithArguments("updated-memory-safety-rules", "MemorySafetyRulesVersion=2", "/memorysafetyrulesversion:2").WithLocation(1, 1),
+            // C.cs(5,9): error CS9362: 'C.M2()' must be used in an unsafe context because it is marked as 'unsafe'
+            //         M2();
+            TestHelpers.Diagnostic(9362, "M2()").WithArguments("C.M2()").WithLocation(5, 9));
+
+        var options = (CSharpCompilationOptions)compilation.Options;
+        Assert.Equal(MemorySafetyRulesVersion.Version2, options.MemorySafetyRulesVersion);
+
+        ArtifactUploadUtil.SetSucceeded();
+    }
+
+    [ConditionalFact(typeof(DotNetSdkAvailable))]
+    public void MemorySafetyRules_Version2()
+    {
+        var projectFile = ProjectDir.CreateFile("console.csproj");
+        projectFile.WriteAllText($"""
+            <Project Sdk="Microsoft.NET.Sdk">
+                <PropertyGroup>
+                    <TargetFramework>net11.0</TargetFramework>
+                    <LangVersion>preview</LangVersion>
+                    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+                    <MemorySafetyRulesVersion>2</MemorySafetyRulesVersion>
+                </PropertyGroup>
+            </Project>
+            """);
+
+        ProjectDir.CreateFile("C.cs").WriteAllText("""
+            class C
+            {
+                void M1()
+                {
+                    M2();
+                }
+                unsafe void M2() { }
+            }
+            """);
+
+        var binlogPath = RunBuild(projectFile.Path, succeeds: false);
+        var compilation = ReadCompilations(binlogPath).Single();
+
+        compilation.VerifyDiagnostics(
+            // C.cs(5,9): error CS9362: 'C.M2()' must be used in an unsafe context because it is marked as 'unsafe'
+            //         M2();
+            TestHelpers.Diagnostic(9362, "M2()").WithArguments("C.M2()").WithLocation(5, 9));
+
+        var options = (CSharpCompilationOptions)compilation.Options;
+        Assert.Equal(MemorySafetyRulesVersion.Version2, options.MemorySafetyRulesVersion);
+
+        ArtifactUploadUtil.SetSucceeded();
+    }
+
+    [ConditionalFact(typeof(DotNetSdkAvailable))]
+    public void MemorySafetyRules_InvalidVersion()
+    {
+        var projectFile = ProjectDir.CreateFile("console.csproj");
+        projectFile.WriteAllText($"""
+            <Project Sdk="Microsoft.NET.Sdk">
+                <PropertyGroup>
+                    <TargetFramework>net11.0</TargetFramework>
+                    <LangVersion>preview</LangVersion>
+                    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+                    <MemorySafetyRulesVersion>999</MemorySafetyRulesVersion>
+                </PropertyGroup>
+            </Project>
+            """);
+
+        ProjectDir.CreateFile("C.cs").WriteAllText("""
+            class C
+            {
+                void M1()
+                {
+                    M2();
+                }
+                unsafe void M2() { }
+            }
+            """);
+
+        var binlogPath = RunBuild(projectFile.Path, succeeds: false);
+        var compilation = ReadCompilations(binlogPath).Single();
+
+        compilation.VerifyDiagnostics(
+            // error CS9400: Invalid 'MemorySafetyRulesVersion' value: '999'. Accepted values are: 1, 2
+            TestHelpers.Diagnostic(9400).WithArguments("MemorySafetyRulesVersion", "999", "1, 2").WithLocation(1, 1));
+
+        var options = (CSharpCompilationOptions)compilation.Options;
+        Assert.Equal((MemorySafetyRulesVersion)999, options.MemorySafetyRulesVersion);
+
+        ArtifactUploadUtil.SetSucceeded();
+    }
+
+    [ConditionalFact(typeof(DotNetSdkAvailable))]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/82721")]
+    public void EditorConfig_EmbeddedInBinlog_Generated()
+    {
+        var projectFile = ProjectDir.CreateFile("console.csproj");
+        projectFile.WriteAllText($"""
+            <Project Sdk="Microsoft.NET.Sdk">
+              <PropertyGroup>
+                <TargetFramework>{NetCoreTfm}</TargetFramework>
+              </PropertyGroup>
+
+              <ItemGroup>
+                <CompilerVisibleProperty Include="RootNamespace" />
+              </ItemGroup>
+            </Project>
+            """);
+
+        ProjectDir.CreateFile("c.cs").WriteAllText("""
+            class C { }
+            """);
+
+        var binlogPath = RunBuild(projectFile.Path);
+
+        var build = BinaryLog.ReadBuild(binlogPath);
+
+        string embeddedText = build.SourceFiles
+            .Single(static f => f.FullPath.EndsWith("GeneratedMSBuildEditorConfig.editorconfig", StringComparison.OrdinalIgnoreCase))
+            .Text;
+
+        Assert.Contains("is_global = true", embeddedText);
+        Assert.Contains("build_property.RootNamespace", embeddedText);
+        ArtifactUploadUtil.SetSucceeded();
+    }
+
+    [ConditionalFact(typeof(DotNetSdkAvailable))]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/82721")]
+    public void EditorConfig_EmbeddedInBinlog_FromTarget()
+    {
+        string analyzerGlobalConfigText = """
+            is_global = true
+            some_prop = some_val
+            """;
+        var analyzerGlobalConfig = ProjectDir.CreateFile("analyzer.globalconfig").WriteAllText(analyzerGlobalConfigText);
+
+        var projectFile = ProjectDir.CreateFile("console.csproj");
+        projectFile.WriteAllText($"""
+            <Project Sdk="Microsoft.NET.Sdk">
+              <PropertyGroup>
+                <TargetFramework>{NetCoreTfm}</TargetFramework>
+              </PropertyGroup>
+
+              <Target Name="AddAnalyzerPackageEditorConfigFile" BeforeTargets="CoreCompile">
+                <ItemGroup>
+                  <EditorConfigFiles Include="{analyzerGlobalConfig.Path}" />
+                </ItemGroup>
+              </Target>
+            </Project>
+            """);
+
+        ProjectDir.CreateFile("c.cs").WriteAllText("""
+            class C { }
+            """);
+
+        var binlogPath = RunBuild(projectFile.Path);
+
+        var build = BinaryLog.ReadBuild(binlogPath);
+
+        string embeddedText = build.SourceFiles
+            .Single(f => f.FullPath.Equals(analyzerGlobalConfig.Path, StringComparison.OrdinalIgnoreCase))
+            .Text;
+
+        Assert.Equal(analyzerGlobalConfigText, embeddedText);
         ArtifactUploadUtil.SetSucceeded();
     }
 }

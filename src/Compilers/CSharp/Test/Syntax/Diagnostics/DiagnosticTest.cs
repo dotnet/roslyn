@@ -260,6 +260,7 @@ class X
                         case ErrorCode.WRN_DelaySignButNoKey:
                         case ErrorCode.WRN_AttributeIgnoredWhenPublicSigning:
                         case ErrorCode.WRN_UnimplementedCommandLineSwitch:
+                        case ErrorCode.WRN_DeprecatedFeatureFlag:
                         case ErrorCode.WRN_CallerFilePathPreferredOverCallerMemberName:
                         case ErrorCode.WRN_CallerLineNumberPreferredOverCallerMemberName:
                         case ErrorCode.WRN_CallerLineNumberPreferredOverCallerFilePath:
@@ -484,7 +485,7 @@ class X
                         default:
                             // If a new warning is added, this test will fail
                             // and whoever is adding the new warning will have to update it with the expected error level.
-                            Assert.True(false, $"Please update this test case with a proper warning level ({ErrorFacts.GetWarningLevel(errorCode)}) for '{errorCodeName}'");
+                            Assert.Fail($"Please update this test case with a proper warning level ({ErrorFacts.GetWarningLevel(errorCode)}) for '{errorCodeName}'");
                             break;
                     }
                 }
@@ -2578,24 +2579,12 @@ class Program
             var compilation = CreateCompilation(source);
             compilation.VerifyDiagnostics(new[]
             {
-                // (6,18): error CS0119: 'ConsoleColor' is a type, which is not valid in the given context
-                //         var y = (ConsoleColor) - 1;
-                Diagnostic(ErrorCode.ERR_BadSKunknown, "ConsoleColor").WithArguments("System.ConsoleColor", "type").WithLocation(6, 18),
                 // (6,17): error CS0075: To cast a negative value, you must enclose the value in parentheses.
                 //         var y = (ConsoleColor) - 1;
                 Diagnostic(ErrorCode.ERR_PossibleBadNegCast, "(ConsoleColor) - 1").WithLocation(6, 17),
-                // (6,18): error CS0119: 'ConsoleColor' is a type, which is not valid in the given context
-                //         var y = (ConsoleColor) - 1;
-                Diagnostic(ErrorCode.ERR_BadSKunknown, "ConsoleColor").WithArguments("System.ConsoleColor", "type").WithLocation(6, 18),
-                // (7,18): error CS0119: 'ConsoleColor' is a type, which is not valid in the given context
-                //         var z = (System.ConsoleColor) - 1;
-                Diagnostic(ErrorCode.ERR_BadSKunknown, "System.ConsoleColor").WithArguments("System.ConsoleColor", "type").WithLocation(7, 18),
                 // (7,17): error CS0075: To cast a negative value, you must enclose the value in parentheses.
                 //         var z = (System.ConsoleColor) - 1;
-                Diagnostic(ErrorCode.ERR_PossibleBadNegCast, "(System.ConsoleColor) - 1").WithLocation(7, 17),
-                // (7,18): error CS0119: 'ConsoleColor' is a type, which is not valid in the given context
-                //         var z = (System.ConsoleColor) - 1;
-                Diagnostic(ErrorCode.ERR_BadSKunknown, "System.ConsoleColor").WithArguments("System.ConsoleColor", "type").WithLocation(7, 18)
+                Diagnostic(ErrorCode.ERR_PossibleBadNegCast, "(System.ConsoleColor) - 1").WithLocation(7, 17)
             });
         }
 
@@ -2756,6 +2745,37 @@ class Program
                 //         var z = (@dynamic) - 1;
                 Diagnostic(ErrorCode.ERR_BadBinaryOps, "(@dynamic) - 1").WithArguments("-", "method group", "int").WithLocation(6, 17)
             });
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/32057")]
+        public void PossibleBadNegCastNestedParentheses()
+        {
+            var source = """
+                using System;
+                class Program
+                {
+                    static void Main()
+                    {
+                        var y = ((ConsoleColor)) - 1;
+                        var z = ((dynamic)) - 1;
+                    }
+                }
+                """;
+
+            var compilation = CreateCompilation(source);
+            compilation.VerifyDiagnostics(
+                // (6,19): error CS0119: 'ConsoleColor' is a type, which is not valid in the given context
+                //         var y = ((ConsoleColor)) - 1;
+                Diagnostic(ErrorCode.ERR_BadSKunknown, "ConsoleColor").WithArguments("System.ConsoleColor", "type").WithLocation(6, 19),
+                // (6,19): error CS0119: 'ConsoleColor' is a type, which is not valid in the given context
+                //         var y = ((ConsoleColor)) - 1;
+                Diagnostic(ErrorCode.ERR_BadSKunknown, "ConsoleColor").WithArguments("System.ConsoleColor", "type").WithLocation(6, 19),
+                // (6,19): error CS0119: 'ConsoleColor' is a type, which is not valid in the given context
+                //         var y = ((ConsoleColor)) - 1;
+                Diagnostic(ErrorCode.ERR_BadSKunknown, "ConsoleColor").WithArguments("System.ConsoleColor", "type").WithLocation(6, 19),
+                // (7,19): error CS0103: The name 'dynamic' does not exist in the current context
+                //         var z = ((dynamic)) - 1;
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "dynamic").WithArguments("dynamic").WithLocation(7, 19));
         }
 
         #region Mocks
@@ -2991,8 +3011,15 @@ class Program
                     case ErrorCode.ERR_PossibleAsyncIteratorWithoutYieldOrAwait:
                     case ErrorCode.ERR_RefLocalAcrossAwait:
                     case ErrorCode.ERR_DataSectionStringLiteralHashCollision:
-                    case ErrorCode.ERR_UnsupportedFeatureInRuntimeAsync:
                     case ErrorCode.ERR_NonTaskMainCantBeAsync:
+                    case ErrorCode.ERR_FunctionPointerTypesInAttributeNotSupported:
+                    case ErrorCode.ERR_EncUpdateFailedMissingSymbol:
+                    case ErrorCode.ERR_EncNoPIAReference:
+                    case ErrorCode.ERR_EncReferenceToAddedMember:
+                    case ErrorCode.ERR_EncUpdateRequiresEmittingExplicitInterfaceImplementationNotSupportedByTheRuntime:
+                    case ErrorCode.ERR_AbstractBaseRecordImplementation:
+                    case ErrorCode.ERR_WrongArityAsyncReturn:
+                    case ErrorCode.ERR_BadAsyncMethodBuilderTaskProperty:
                         Assert.True(isBuildOnly, $"Check failed for ErrorCode.{errorCode}");
                         break;
 

@@ -17,6 +17,11 @@
         <target state="translated">括弧を追加します</target>
         <note />
       </trans-unit>
+      <trans-unit id="Add_safety_documentation">
+        <source>Add '&lt;safety&gt;' documentation</source>
+        <target state="translated">'&lt;safety&gt;' ドキュメントを追加する</target>
+        <note>{Locked="&lt;safety&gt;"} "safety" is an XML documentation element name and should not be localized.</note>
+      </trans-unit>
       <trans-unit id="Add_this">
         <source>Add 'this.'</source>
         <target state="translated">this' を追加します。</target>
@@ -45,6 +50,11 @@
       <trans-unit id="Change_return_type_from_0_to_1">
         <source>Change return type from {0} to {1}</source>
         <target state="translated">戻り値の型を {0} から {1} に変更する</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="This_method_is_used_as_a_delegate_changing_the_return_type_may_result_in_build_errors">
+        <source>This method is used as a delegate; changing the return type may result in build errors</source>
+        <target state="translated">このメソッドはデリゲートとして使用されます。戻り値の型を変更すると、ビルド エラーが発生する可能性があります</target>
         <note />
       </trans-unit>
       <trans-unit id="Compare_to_0">

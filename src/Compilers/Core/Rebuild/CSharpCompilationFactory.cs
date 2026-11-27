@@ -9,6 +9,7 @@ using System.IO;
 using Microsoft.Cci;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.Debugging;
 using Microsoft.CodeAnalysis.Text;
 using CS = Microsoft.CodeAnalysis.CSharp;
 
@@ -67,6 +68,8 @@ namespace Microsoft.CodeAnalysis.Rebuild
             pdbOptions.TryGetUniqueOption(CompilationOptionNames.Checked, out var checkedString);
             pdbOptions.TryGetUniqueOption(CompilationOptionNames.Nullable, out var nullable);
             pdbOptions.TryGetUniqueOption(CompilationOptionNames.Unsafe, out var unsafeString);
+
+            // https://github.com/dotnet/roslyn/issues/82546: deserialize MemorySafetyRulesVersion here when it's no longer experimental
 
             CS.LanguageVersionFacts.TryParse(langVersionString, out var langVersion);
 

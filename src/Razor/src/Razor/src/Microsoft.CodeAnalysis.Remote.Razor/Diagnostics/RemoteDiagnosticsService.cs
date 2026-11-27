@@ -1,0 +1,197 @@
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
+using System.Collections.Immutable;
+using System.Threading;
+using System.Threading.Tasks;
+using Microsoft.AspNetCore.Razor.Language;
+using Microsoft.AspNetCore.Razor.Language.Syntax;
+using Microsoft.AspNetCore.Razor.PooledObjects;
+using Microsoft.CodeAnalysis.Razor.Protocol;
+using Microsoft.CodeAnalysis.Razor.Remote;
+using Microsoft.CodeAnalysis.Razor.Workspaces.Settings;
+using Microsoft.CodeAnalysis.Remote.Razor.Diagnostics;
+using Microsoft.CodeAnalysis.Remote.Razor.ProjectSystem;
+using Microsoft.CodeAnalysis.RemoveUnnecessaryImports;
+using Microsoft.CodeAnalysis.Text;
+
+namespace Microsoft.CodeAnalysis.Remote.Razor;
+
+internal sealed class RemoteDiagnosticsService(in ServiceArgs args) : RazorDocumentServiceBase(in args), IRemoteDiagnosticsService
+{
+    private const string UnusedDirectiveDiagnosticId = "RZ0005";
+    private const string DuplicateUsingAliasDiagnosticId = "CS1537";
+    private static readonly DiagnosticTag[] s_unnecessaryDiagnosticTags = [VSDiagnosticTags.HiddenInEditor, DiagnosticTag.Unnecessary];
+
+    internal sealed class Factory : FactoryBase<IRemoteDiagnosticsService>
+    {
+        protected override IRemoteDiagnosticsService CreateService(in ServiceArgs args)
+            => new RemoteDiagnosticsService(in args);
+    }
+
+    private readonly IClientCapabilitiesService _clientCapabilitiesService = args.ExportProvider.GetExportedValue<IClientCapabilitiesService>();
+    private readonly RazorTranslateDiagnosticsService _translateDiagnosticsService = args.ExportProvider.GetExportedValue<RazorTranslateDiagnosticsService>();
+    private readonly IClientSettingsManager _clientSettingsManager = args.ExportProvider.GetExportedValue<IClientSettingsManager>();
+
+    public ValueTask<ImmutableArray<LspDiagnostic>> GetDiagnosticsAsync(
+        JsonSerializableRazorSolutionWrapper solutionInfo,
+        JsonSerializableDocumentId documentId,
+        LspDiagnostic[] csharpImplDiagnostics,
+        LspDiagnostic[] csharpDeclDiagnostics,
+        LspDiagnostic[] htmlDiagnostics,
+        CancellationToken cancellationToken)
+        => RunServiceAsync(
+            solutionInfo,
+            documentId,
+            snapshot => GetDiagnosticsAsync(snapshot, csharpImplDiagnostics, csharpDeclDiagnostics, htmlDiagnostics, cancellationToken),
+            cancellationToken);
+
+    private async ValueTask<ImmutableArray<LspDiagnostic>> GetDiagnosticsAsync(
+        RemoteDocumentSnapshot snapshot,
+        LspDiagnostic[] csharpImplDiagnostics,
+        LspDiagnostic[] csharpDeclDiagnostics,
+        LspDiagnostic[] htmlDiagnostics,
+        CancellationToken cancellationToken)
+    {
+        // We've got C# and Html, lets get Razor diagnostics
+        var codeDocument = await snapshot.GetGeneratedOutputAsync(cancellationToken).ConfigureAwait(false);
+
+        ImmutableArray<LspDiagnostic> allDiagnostics = [
+            .. GetRazorDiagnostics(snapshot, codeDocument),
+            .. await _translateDiagnosticsService.TranslateCSharpAsync(csharpImplDiagnostics, csharpDeclDiagnostics, snapshot, cancellationToken).ConfigureAwait(false),
+            .. await _translateDiagnosticsService.TranslateHtmlAsync(htmlDiagnostics, snapshot, cancellationToken).ConfigureAwait(false)
+        ];
+
+        // Our final pass is to update all unused directive errors to ensure they display how we want in the IDE. Doing it here
+        // means we don't have to duplicate between where we raise our own diagnostics, and filter Roslyns. We also capture the
+        // spans of the unused directives here so we can use that information for code fixes, without having to compute
+        // it on demand every time.
+        var sourceText = codeDocument.Source.Text;
+        var tree = codeDocument.GetRequiredTagHelperRewrittenSyntaxTree();
+        using var unusedDirectiveSpans = new PooledArrayBuilder<TextSpan>();
+        var hasDuplicateUsingAlias = false;
+
+        // In VS, we use Warning so we get an error list entry, and the tags mean we won't get squiggles in the editor.
+        // In VS Code we can't do that, so just report as Hint to avoid squiggles. This matches Roslyn's behaviour with
+        // unused using directives too.
+        var unusedDiagnosticSeverity = _clientCapabilitiesService.ClientCapabilities.SupportsVisualStudioExtensions
+            ? LspDiagnosticSeverity.Warning
+            : LspDiagnosticSeverity.Hint;
+
+        foreach (var diagnostic in allDiagnostics)
+        {
+            if (diagnostic.Code is { Value: RemoveUnnecessaryImportsConstants.IDE0005_gen })
+            {
+                var absoluteIndex = sourceText.GetRequiredAbsoluteIndex(diagnostic.Range.Start.Line, diagnostic.Range.Start.Character);
+                var token = tree.Root.FindToken(absoluteIndex);
+                var directive = token.Parent?.FirstAncestorOrSelf<BaseRazorDirectiveSyntax>();
+                if (directive is not null)
+                {
+                    unusedDirectiveSpans.Add(directive.Span);
+                }
+
+                diagnostic.Severity = unusedDiagnosticSeverity;
+                diagnostic.Tags = s_unnecessaryDiagnosticTags;
+                diagnostic.Code = UnusedDirectiveDiagnosticId;
+
+                // If Roslyn reports the diagnostic, we'll map the C# to Razor, and it will be just the
+                // "using <namespace>" part, and not the "@". Again, its simplest to just adjust that here
+                if (diagnostic.Range.Start.Character > 0)
+                {
+                    diagnostic.Range.Start.Character = 0;
+                }
+            }
+            else if (diagnostic.Code is { Value: DuplicateUsingAliasDiagnosticId })
+            {
+                hasDuplicateUsingAlias = true;
+            }
+        }
+
+        // If there are two usings with the same alias name, C# can't tell which one the code actually uses, so it's
+        // anyone's guess which one gets reported as unused. Rather than have cleanup remove the one the user wanted, we
+        // pretend nothing is unused until they fix the error. Duplicate namespace usings (CS0105) are fine though, since
+        // either copy can go.
+        UnusedDirectiveCache.Set(codeDocument, hasDuplicateUsingAlias ? [] : unusedDirectiveSpans.ToArrayAndClear());
+
+        return allDiagnostics;
+    }
+
+    private static ImmutableArray<LspDiagnostic> GetRazorDiagnostics(RemoteDocumentSnapshot snapshot, RazorCodeDocument codeDocument)
+    {
+        using var diagnostics = new PooledArrayBuilder<LspDiagnostic>();
+
+        // First, RZ diagnostics. Yes, CSharpDocument.Documents are the Razor diagnostics. Don't ask.
+        // Right now Razor diagnostics are duplicated on both decl and impl documents, so it doesn't matter which
+        // one we use.
+        var razorDiagnostics = codeDocument.GetRequiredCSharpDocument(declarationDocument: false).Diagnostics;
+        var convertedDiagnostics = RazorDiagnosticHelper.Convert(razorDiagnostics, codeDocument.Source.Text, snapshot);
+        diagnostics.AddRange(convertedDiagnostics);
+
+        // For legacy files, that aren't imports, we also want to raise unused directive diagnostics. We only do this for
+        // legacy (ie, @addTagHelper directives) because for .razor files we get the diagnostics from Roslyn, and filter
+        // them out in the RazorTranslateDiagnosticsService.
+        if (codeDocument.FileKind.IsLegacy() && !codeDocument.IsImportsFile())
+        {
+            var syntaxTree = codeDocument.GetRequiredTagHelperRewrittenSyntaxTree();
+            var sourceText = codeDocument.Source.Text;
+
+            foreach (var directive in syntaxTree.EnumerateAddTagHelperDirectives())
+            {
+                if (codeDocument.IsDirectiveUsed(directive))
+                {
+                    continue;
+                }
+
+                diagnostics.Add(new LspDiagnostic
+                {
+                    // We log the same as Roslyn does, so we can have only one post-report cleanup pass, above.
+                    Code = RemoveUnnecessaryImportsConstants.IDE0005_gen,
+                    Message = SR.AddTagHelper_directive_is_unnecessary,
+                    Source = LanguageServerConstants.RazorDiagnosticSource,
+                    Range = sourceText.GetRange(directive.SpanWithoutTrailingNewLines(sourceText)),
+                });
+            }
+        }
+
+        if (diagnostics.Count == convertedDiagnostics.Length)
+        {
+            // No need to create a new array if we didn't add any additional diagnostics
+            return convertedDiagnostics.ToImmutableArray();
+        }
+
+        return diagnostics.ToImmutableAndClear();
+    }
+
+    public ValueTask<ImmutableArray<LspDiagnostic>> GetTaskListDiagnosticsAsync(
+        JsonSerializableRazorSolutionWrapper solutionInfo,
+        JsonSerializableDocumentId documentId,
+        LspDiagnostic[] csharpImplTaskItems,
+        LspDiagnostic[] csharpDeclTaskItems,
+        CancellationToken cancellationToken)
+        => RunServiceAsync(
+            solutionInfo,
+            documentId,
+            snapshot => GetTaskListDiagnosticsAsync(snapshot, csharpImplTaskItems, csharpDeclTaskItems, cancellationToken),
+            cancellationToken);
+
+    private async ValueTask<ImmutableArray<LspDiagnostic>> GetTaskListDiagnosticsAsync(
+        RemoteDocumentSnapshot snapshot,
+        LspDiagnostic[] csharpImplTaskItems,
+        LspDiagnostic[] csharpDeclTaskItems,
+        CancellationToken cancellationToken)
+    {
+        var codeDocument = await snapshot.GetGeneratedOutputAsync(cancellationToken).ConfigureAwait(false);
+
+        using var diagnostics = new PooledArrayBuilder<LspDiagnostic>();
+        diagnostics.AddRange(TaskListDiagnosticProvider.GetTaskListDiagnostics(codeDocument, _clientSettingsManager.GetClientSettings().AdvancedSettings.TaskListDescriptors));
+
+        diagnostics.AddRange(_translateDiagnosticsService.MapCSharpDiagnostics(csharpImplTaskItems, codeDocument.GetRequiredCSharpDocument(declarationDocument: false)));
+
+        if (csharpDeclTaskItems.Length > 0)
+        {
+            diagnostics.AddRange(_translateDiagnosticsService.MapCSharpDiagnostics(csharpDeclTaskItems, codeDocument.GetRequiredCSharpDocument(declarationDocument: true)));
+        }
+
+        return diagnostics.ToImmutableAndClear();
+    }
+}

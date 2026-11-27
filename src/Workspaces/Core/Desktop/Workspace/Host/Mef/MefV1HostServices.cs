@@ -122,8 +122,8 @@ public class MefV1HostServices : HostServices, IMefHostExportProvider
 
         public bool Equals(ExportKey other)
         {
-            return string.Compare(this.ExtensionTypeName, other.ExtensionTypeName, StringComparison.OrdinalIgnoreCase) == 0
-                && string.Compare(this.MetadataTypeName, other.MetadataTypeName, StringComparison.OrdinalIgnoreCase) == 0;
+            return string.Equals(this.ExtensionTypeName, other.ExtensionTypeName, StringComparison.OrdinalIgnoreCase)
+                && string.Equals(this.MetadataTypeName, other.MetadataTypeName, StringComparison.OrdinalIgnoreCase);
         }
 
         public override bool Equals(object? obj)

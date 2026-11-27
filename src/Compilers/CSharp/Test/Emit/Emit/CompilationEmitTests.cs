@@ -986,6 +986,7 @@ public class C
         [InlineData("public struct S { private int i; }", "public struct S { }", Match.Different)]
         [InlineData("private int i;", "", Match.RefOut)]
         [InlineData("public C() { }", "", Match.BothMetadataAndRefOut)]
+        [InlineData("private class C2 { internal void M() { } }", "private class C2 { }", Match.RefOut)]
         public void RefAssembly_InvariantToSomeChanges(string left, string right, Match expectedMatch)
         {
             string sourceTemplate = @"
@@ -1169,6 +1170,7 @@ public class D
         [Theory]
         [InlineData("internal void M() { }", "", Match.Different)]
         [InlineData("private protected void M() { }", "", Match.Different)]
+        [InlineData("private class C2 { internal void M() { } }", "private class C2 { }", Match.Different)]
         public void RefAssembly_InvariantToSomeChangesWithInternalsVisibleTo(string left, string right, Match expectedMatch)
         {
             string sourceTemplate = @"
@@ -1949,7 +1951,7 @@ comp => comp.VerifyDiagnostics(
             using (var reader = new PEReader(image))
             {
                 var flags = reader.PEHeaders.CorHeader.Flags;
-                Assert.Equal(expectSigned, flags.HasFlag(CorFlags.StrongNameSigned));
+                Assert.Equal(expectSigned, (flags & CorFlags.StrongNameSigned) == CorFlags.StrongNameSigned);
             }
         }
 
@@ -2377,6 +2379,85 @@ public class C : I
         }
 
         [Fact]
+        public void RefAssembly_VerifyInternalMembersOnPrivateNestedTypesWithIVT()
+        {
+            string source = """
+using System.Runtime.CompilerServices;
+
+[assembly: InternalsVisibleTo("FriendAssembly")]
+
+public class Outer
+{
+    private class Hidden
+    {
+        internal int Property
+        {
+            get { throw null; }
+        }
+
+        internal void Method()
+        {
+            throw null;
+        }
+    }
+}
+""";
+
+            var parseOptions = TestOptions.Regular.WithNoRefSafetyRulesAttribute();
+            CSharpCompilation comp = CreateEmptyCompilation(source, parseOptions: parseOptions, references: [MscorlibRef],
+                options: TestOptions.DebugDll.WithDeterministic(true));
+
+            // verify regular assembly
+            CompileAndVerify(comp, emitOptions: EmitOptions.Default, verify: Verification.Passes);
+
+            var realImage = comp.EmitToImageReference(EmitOptions.Default);
+            var compWithReal = CreateEmptyCompilation("", parseOptions: parseOptions, references: [MscorlibRef, realImage],
+                options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
+
+            verifyInternalMembersWereEmitted(compWithReal);
+
+            // verify metadata-only assembly
+            var emitMetadataOnly = EmitOptions.Default.WithEmitMetadataOnly(true);
+            CompileAndVerify(comp, emitOptions: emitMetadataOnly, verify: Verification.Passes);
+
+            var metadataImage = comp.EmitToImageReference(emitMetadataOnly);
+            var compWithMetadata = CreateEmptyCompilation("", parseOptions: parseOptions, references: [MscorlibRef, metadataImage],
+                options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
+
+            verifyInternalMembersWereEmitted(compWithMetadata);
+
+            // verify ref assembly
+            var emitRefOnly = EmitOptions.Default.WithEmitMetadataOnly(true).WithIncludePrivateMembers(false);
+            CompileAndVerify(comp, emitOptions: emitRefOnly, verify: Verification.Passes);
+
+            var refImage = comp.EmitToImageReference(emitRefOnly);
+            var compWithRef = CreateEmptyCompilation("", parseOptions: parseOptions, references: [MscorlibRef, refImage],
+                options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
+
+            verifyInternalMembersWereEmitted(compWithRef);
+
+            void verifyInternalMembersWereEmitted(CSharpCompilation input)
+            {
+                AssertEx.Equal(
+                    ["<Module>", "Outer"],
+                    input.SourceModule.GetReferencedAssemblySymbols().Last().GlobalNamespace.GetMembers().Select(m => m.ToDisplayString()));
+
+                var outer = input.GetMember<NamedTypeSymbol>("Outer");
+                var hidden = outer.GetTypeMembers("Hidden").Single();
+                var hiddenProperty = hidden.GetMembers("Property").OfType<PropertySymbol>().Single();
+                var hiddenMethod = hidden.GetMembers("Method").OfType<MethodSymbol>().Single();
+
+                Assert.Equal(Accessibility.Private, hidden.DeclaredAccessibility);
+
+                Assert.Equal(Accessibility.Internal, hiddenProperty.DeclaredAccessibility);
+                Assert.Equal(Accessibility.Internal, hiddenProperty.GetMethod.DeclaredAccessibility);
+                Assert.Null(hiddenProperty.SetMethod);
+
+                Assert.Equal(Accessibility.Internal, hiddenMethod.DeclaredAccessibility);
+            }
+        }
+
+        [Fact]
         public void RefAssembly_VerifyTypesAndMembersOnExplicitlyImplementedIndexer()
         {
             string source = @"
@@ -2628,17 +2709,38 @@ struct S
         }
 
         [Fact]
-        public void EmitMetadataOnly_DisallowEmbeddingPdb()
+        public void EmitMetadataOnly_IgnoreEmbeddedPdb()
         {
             CSharpCompilation comp = CreateEmptyCompilation("", references: new[] { MscorlibRef },
-                options: TestOptions.DebugDll);
+                options: TestOptions.DebugDll.WithDeterministic(true));
 
             using (var output = new MemoryStream())
             {
-                Assert.Throws<ArgumentException>(() => comp.Emit(output,
+                var result = comp.Emit(output,
                     options: EmitOptions.Default.WithEmitMetadataOnly(true)
-                        .WithDebugInformationFormat(DebugInformationFormat.Embedded)));
+                        .WithDebugInformationFormat(DebugInformationFormat.Embedded));
+
+                Assert.True(result.Success);
+                using var peReader = new PEReader(output.ToImmutable());
+                AssertEx.Equal(
+                    new[] { DebugDirectoryEntryType.Reproducible },
+                    peReader.ReadDebugDirectory().Select(entry => entry.Type));
             }
+        }
+
+        [Fact]
+        public void EmitMetadataOnly_IgnorePdb()
+        {
+            CSharpCompilation comp = CreateEmptyCompilation("", references: new[] { MscorlibRef },
+                options: TestOptions.DebugDll.WithDeterministic(true));
+
+            var output = comp.EmitToArray(
+                EmitOptions.Default.WithEmitMetadataOnly(true).WithDebugInformationFormat(DebugInformationFormat.Pdb));
+
+            using var peReader = new PEReader(output);
+            AssertEx.Equal(
+                new[] { DebugDirectoryEntryType.Reproducible },
+                peReader.ReadDebugDirectory().Select(entry => entry.Type));
         }
 
         [Fact]
@@ -3529,7 +3631,7 @@ class C
             Assert.False(peHeaders.Requires64Bits());
             Assert.True(peHeaders.IsDll);
             Assert.False(peHeaders.IsExe);
-            Assert.False(peHeaders.CoffHeader.Characteristics.HasFlag(Characteristics.LargeAddressAware));
+            Assert.False((peHeaders.CoffHeader.Characteristics & Characteristics.LargeAddressAware) == Characteristics.LargeAddressAware);
             //interesting Optional PE header bits
             //We will use a range beginning with 0x30 to identify the Roslyn compiler family.
             Assert.Equal(0x30, peHeaders.PEHeader.MajorLinkerVersion);
@@ -3563,7 +3665,7 @@ class C
             Assert.True(peHeaders.Requires64Bits());
             Assert.True(peHeaders.IsDll);
             Assert.False(peHeaders.IsExe);
-            Assert.True(peHeaders.CoffHeader.Characteristics.HasFlag(Characteristics.LargeAddressAware));
+            Assert.True((peHeaders.CoffHeader.Characteristics & Characteristics.LargeAddressAware) == Characteristics.LargeAddressAware);
             //interesting Optional PE header bits
             //We will use a range beginning with 0x30 to identify the Roslyn compiler family.
             Assert.Equal(0x30, peHeaders.PEHeader.MajorLinkerVersion);
@@ -3613,7 +3715,7 @@ class C
             Assert.False(peHeaders.Requires64Bits());
             Assert.True(peHeaders.IsDll);
             Assert.False(peHeaders.IsExe);
-            Assert.True(peHeaders.CoffHeader.Characteristics.HasFlag(Characteristics.LargeAddressAware));
+            Assert.True((peHeaders.CoffHeader.Characteristics & Characteristics.LargeAddressAware) == Characteristics.LargeAddressAware);
             //interesting Optional PE header bits
             //We will use a range beginning with 0x30 to identify the Roslyn compiler family.
             Assert.Equal(0x30, peHeaders.PEHeader.MajorLinkerVersion);
@@ -3653,7 +3755,7 @@ class C
             Assert.False(peHeaders.Requires64Bits());
             Assert.True(peHeaders.IsExe);
             Assert.False(peHeaders.IsDll);
-            Assert.True(peHeaders.CoffHeader.Characteristics.HasFlag(Characteristics.LargeAddressAware));
+            Assert.True((peHeaders.CoffHeader.Characteristics & Characteristics.LargeAddressAware) == Characteristics.LargeAddressAware);
             //interesting Optional PE header bits
             //We will use a range beginning with 0x30 to identify the Roslyn compiler family.
             Assert.Equal(0x30, peHeaders.PEHeader.MajorLinkerVersion);
@@ -3693,7 +3795,7 @@ class C
             Assert.True(peHeaders.Requires64Bits());
             Assert.True(peHeaders.IsExe);
             Assert.False(peHeaders.IsDll);
-            Assert.True(peHeaders.CoffHeader.Characteristics.HasFlag(Characteristics.LargeAddressAware));
+            Assert.True((peHeaders.CoffHeader.Characteristics & Characteristics.LargeAddressAware) == Characteristics.LargeAddressAware);
             //interesting Optional PE header bits
             //We will use a range beginning with 0x30 to identify the Roslyn compiler family.
             Assert.Equal(0x30, peHeaders.PEHeader.MajorLinkerVersion);

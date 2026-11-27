@@ -36,6 +36,8 @@ internal sealed class SwitchStatementHighlighter() : AbstractKeywordHighlighter<
     protected override void AddHighlights(
         SwitchStatementSyntax switchStatement, List<TextSpan> spans, CancellationToken cancellationToken)
     {
+        var labelName = (switchStatement.Parent as LabeledStatementSyntax)?.Identifier.ValueText;
+
         spans.Add(switchStatement.SwitchKeyword.Span);
 
         foreach (var switchSection in switchStatement.Sections)
@@ -46,7 +48,7 @@ internal sealed class SwitchStatementHighlighter() : AbstractKeywordHighlighter<
                 spans.Add(EmptySpan(label.ColonToken.Span.End));
             }
 
-            HighlightRelatedKeywords(switchSection, spans, highlightBreaks: true, highlightGotos: true);
+            HighlightRelatedKeywords(switchSection, spans, highlightBreaks: true, highlightGotos: true, labelName);
         }
     }
 
@@ -55,14 +57,17 @@ internal sealed class SwitchStatementHighlighter() : AbstractKeywordHighlighter<
     /// list.
     /// </summary>
     private static void HighlightRelatedKeywords(SyntaxNode node, List<TextSpan> spans,
-        bool highlightBreaks, bool highlightGotos)
+        bool highlightBreaks, bool highlightGotos, string? labelName)
     {
-        Debug.Assert(highlightBreaks || highlightGotos);
+        Debug.Assert(highlightBreaks || highlightGotos || labelName != null);
 
-        if (highlightBreaks && node is BreakStatementSyntax breakStatement)
+        if (node is BreakStatementSyntax breakStatement)
         {
-            spans.Add(breakStatement.BreakKeyword.Span);
-            spans.Add(EmptySpan(breakStatement.SemicolonToken.Span.End));
+            if (breakStatement.Name is { Identifier.ValueText: var breakName } ? breakName == labelName : highlightBreaks)
+            {
+                spans.Add(breakStatement.BreakKeyword.Span);
+                spans.Add(EmptySpan(breakStatement.SemicolonToken.Span.End));
+            }
         }
         else if (highlightGotos && node is GotoStatementSyntax gotoStatement)
         {
@@ -91,10 +96,9 @@ internal sealed class SwitchStatementHighlighter() : AbstractKeywordHighlighter<
                 var highlightBreaksForChild = highlightBreaks && !child.IsBreakableConstruct();
                 var highlightGotosForChild = highlightGotos && !child.IsKind(SyntaxKind.SwitchStatement);
 
-                // Only recurse if we have anything to do
-                if (highlightBreaksForChild || highlightGotosForChild)
+                if (highlightBreaksForChild || highlightGotosForChild || labelName != null)
                 {
-                    HighlightRelatedKeywords(child, spans, highlightBreaksForChild, highlightGotosForChild);
+                    HighlightRelatedKeywords(child, spans, highlightBreaksForChild, highlightGotosForChild, labelName);
                 }
             }
         }

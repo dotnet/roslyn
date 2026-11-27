@@ -827,28 +827,26 @@ new partial partial Goo();
             }
 
             tree = UsingTree(src,
-                // (1,13): error CS1525: Invalid expression term 'partial'
+                // (1,21): error CS1520: Method must have a return type
                 // new partial partial Goo();
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "partial").WithArguments("partial").WithLocation(1, 13),
-                // (1,13): error CS1003: Syntax error, ',' expected
-                // new partial partial Goo();
-                Diagnostic(ErrorCode.ERR_SyntaxError, "partial").WithArguments(",").WithLocation(1, 13));
+                Diagnostic(ErrorCode.ERR_MemberNeedsType, "Goo").WithLocation(1, 21));
 
             N(SyntaxKind.CompilationUnit);
             {
-                N(SyntaxKind.FieldDeclaration);
+                N(SyntaxKind.MethodDeclaration);
                 {
                     N(SyntaxKind.NewKeyword);
-                    N(SyntaxKind.VariableDeclaration);
+                    N(SyntaxKind.PartialKeyword);
+                    N(SyntaxKind.PartialKeyword);
+                    M(SyntaxKind.PredefinedType);
                     {
-                        N(SyntaxKind.IdentifierName);
-                        {
-                            N(SyntaxKind.IdentifierToken, "partial");
-                        }
-                        M(SyntaxKind.VariableDeclarator);
-                        {
-                            M(SyntaxKind.IdentifierToken);
-                        }
+                        M(SyntaxKind.VoidKeyword);
+                    }
+                    N(SyntaxKind.IdentifierToken, "Goo");
+                    N(SyntaxKind.ParameterList);
+                    {
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.CloseParenToken);
                     }
                     N(SyntaxKind.SemicolonToken);
                 }
@@ -2185,9 +2183,9 @@ partial void Goo(){};
 partial enum @en {};
 ";
             CreateCompilation(test).VerifyDiagnostics(
-                // (2,14): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or a method return type.
+                // (2,1): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', 'event', an instance constructor name, or a method or property return type.
                 // partial enum @en {};
-                Diagnostic(ErrorCode.ERR_PartialMisplaced, "@en").WithLocation(2, 14));
+                Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(2, 1));
         }
 
         [Fact]
@@ -2479,18 +2477,9 @@ partial partial<int> Goo() { }
                 // (11,9): error CS1520: Method must have a return type
                 // partial Goo() { } 
                 Diagnostic(ErrorCode.ERR_MemberNeedsType, "Goo").WithLocation(11, 9),
-                // (12,9): error CS1525: Invalid expression term 'partial'
+                // (12,17): error CS1520: Method must have a return type
                 // partial partial Goo() { } 
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "partial").WithArguments("partial").WithLocation(12, 9),
-                // (12,9): error CS1003: Syntax error, ',' expected
-                // partial partial Goo() { } 
-                Diagnostic(ErrorCode.ERR_SyntaxError, "partial").WithArguments(",").WithLocation(12, 9),
-                // (12,17): error CS1002: ; expected
-                // partial partial Goo() { } 
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "Goo").WithLocation(12, 17),
-                // (12,23): error CS1002: ; expected
-                // partial partial Goo() { } 
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "{").WithLocation(12, 23));
+                Diagnostic(ErrorCode.ERR_MemberNeedsType, "Goo").WithLocation(12, 17));
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -2666,42 +2655,20 @@ partial partial<int> Goo() { }
                         N(SyntaxKind.CloseBraceToken);
                     }
                 }
-                N(SyntaxKind.FieldDeclaration);
+                N(SyntaxKind.MethodDeclaration);
                 {
-                    N(SyntaxKind.VariableDeclaration);
+                    N(SyntaxKind.PartialKeyword);
+                    N(SyntaxKind.PartialKeyword);
+                    M(SyntaxKind.PredefinedType);
                     {
-                        N(SyntaxKind.IdentifierName);
-                        {
-                            N(SyntaxKind.IdentifierToken, "partial");
-                        }
-                        M(SyntaxKind.VariableDeclarator);
-                        {
-                            M(SyntaxKind.IdentifierToken);
-                        }
+                        M(SyntaxKind.VoidKeyword);
                     }
-                    M(SyntaxKind.SemicolonToken);
-                }
-                N(SyntaxKind.GlobalStatement);
-                {
-                    N(SyntaxKind.ExpressionStatement);
+                    N(SyntaxKind.IdentifierToken, "Goo");
+                    N(SyntaxKind.ParameterList);
                     {
-                        N(SyntaxKind.InvocationExpression);
-                        {
-                            N(SyntaxKind.IdentifierName);
-                            {
-                                N(SyntaxKind.IdentifierToken, "Goo");
-                            }
-                            N(SyntaxKind.ArgumentList);
-                            {
-                                N(SyntaxKind.OpenParenToken);
-                                N(SyntaxKind.CloseParenToken);
-                            }
-                        }
-                        M(SyntaxKind.SemicolonToken);
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.CloseParenToken);
                     }
-                }
-                N(SyntaxKind.GlobalStatement);
-                {
                     N(SyntaxKind.Block);
                     {
                         N(SyntaxKind.OpenBraceToken);
@@ -9997,8 +9964,68 @@ using System;
 int a
 Console.Goo()
 ";
-            ParseAndValidate(test,
-                new ErrorDescription { Code = (int)ErrorCode.ERR_SemicolonExpected, Line = 3, Column = 6 });
+
+            UsingTree(test,
+                // (3,6): error CS1003: Syntax error, '=' expected
+                // int a
+                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments("=").WithLocation(3, 6),
+                // (4,14): error CS1002: ; expected
+                // Console.Goo()
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(4, 14));
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.UsingDirective);
+                {
+                    N(SyntaxKind.UsingKeyword);
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "System");
+                    }
+                    N(SyntaxKind.SemicolonToken);
+                }
+                N(SyntaxKind.FieldDeclaration);
+                {
+                    N(SyntaxKind.VariableDeclaration);
+                    {
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.IntKeyword);
+                        }
+                        N(SyntaxKind.VariableDeclarator);
+                        {
+                            N(SyntaxKind.IdentifierToken, "a");
+                            N(SyntaxKind.EqualsValueClause);
+                            {
+                                M(SyntaxKind.EqualsToken);
+                                N(SyntaxKind.InvocationExpression);
+                                {
+                                    N(SyntaxKind.SimpleMemberAccessExpression);
+                                    {
+                                        N(SyntaxKind.IdentifierName);
+                                        {
+                                            N(SyntaxKind.IdentifierToken, "Console");
+                                        }
+                                        N(SyntaxKind.DotToken);
+                                        N(SyntaxKind.IdentifierName);
+                                        {
+                                            N(SyntaxKind.IdentifierToken, "Goo");
+                                        }
+                                    }
+                                    N(SyntaxKind.ArgumentList);
+                                    {
+                                        N(SyntaxKind.OpenParenToken);
+                                        N(SyntaxKind.CloseParenToken);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    M(SyntaxKind.SemicolonToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
         }
 
         #endregion
@@ -10186,16 +10213,16 @@ Console.WriteLine(""Hi!"");", TestOptions.Script);
         public void ShebangNotFirstCharacter()
         {
             ParseAndValidate(" #!/usr/bin/env csi", TestOptions.Script,
-                new ErrorDescription { Code = (int)ErrorCode.ERR_BadDirectivePlacement, Line = 1, Column = 2 });
+                new ErrorDescription { Code = (int)ErrorCode.ERR_PPShebangNotOnFirstLine, Line = 1, Column = 2 });
 
             ParseAndValidate("\n#!/usr/bin/env csi", TestOptions.Script,
-                new ErrorDescription { Code = (int)ErrorCode.ERR_BadDirectivePlacement, Line = 2, Column = 1 });
+                new ErrorDescription { Code = (int)ErrorCode.ERR_PPShebangNotOnFirstLine, Line = 2, Column = 1 });
 
             ParseAndValidate("\r\n#!/usr/bin/env csi", TestOptions.Script,
-                new ErrorDescription { Code = (int)ErrorCode.ERR_BadDirectivePlacement, Line = 2, Column = 1 });
+                new ErrorDescription { Code = (int)ErrorCode.ERR_PPShebangNotOnFirstLine, Line = 2, Column = 1 });
 
             ParseAndValidate("#!/bin/sh\r\n#!/usr/bin/env csi", TestOptions.Script,
-                new ErrorDescription { Code = (int)ErrorCode.ERR_BadDirectivePlacement, Line = 2, Column = 1 });
+                new ErrorDescription { Code = (int)ErrorCode.ERR_PPShebangNotOnFirstLine, Line = 2, Column = 1 });
 
             ParseAndValidate("a #!/usr/bin/env csi", TestOptions.Script,
                 new ErrorDescription { Code = (int)ErrorCode.ERR_BadDirectivePlacement, Line = 1, Column = 3 });
@@ -10212,7 +10239,7 @@ Console.WriteLine(""Hi!"");", TestOptions.Script);
         public void ShebangSpaceBang()
         {
             ParseAndValidate("# !/usr/bin/env csi", TestOptions.Script,
-                new ErrorDescription { Code = (int)ErrorCode.ERR_BadDirectivePlacement, Line = 1, Column = 1 });
+                new ErrorDescription { Code = (int)ErrorCode.ERR_PPShebangNotOnFirstLine, Line = 1, Column = 1 });
         }
 
         [Fact]

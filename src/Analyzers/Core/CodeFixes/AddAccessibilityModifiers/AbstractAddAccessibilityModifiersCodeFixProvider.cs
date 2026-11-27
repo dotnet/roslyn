@@ -21,7 +21,7 @@ internal abstract class AbstractAddOrRemoveAccessibilityModifiersCodeFixProvider
     public sealed override ImmutableArray<string> FixableDiagnosticIds
         => [IDEDiagnosticIds.AddOrRemoveAccessibilityModifiersDiagnosticId];
 
-    public sealed override Task RegisterCodeFixesAsync(CodeFixContext context)
+    public sealed override async Task RegisterCodeFixesAsync(CodeFixContext context)
     {
         var diagnostic = context.Diagnostics.First();
 
@@ -34,8 +34,6 @@ internal abstract class AbstractAddOrRemoveAccessibilityModifiersCodeFixProvider
             : (AnalyzersResources.Remove_accessibility_modifiers, nameof(AnalyzersResources.Remove_accessibility_modifiers));
 
         RegisterCodeFix(context, title, key, priority);
-
-        return Task.CompletedTask;
     }
 
     protected sealed override async Task FixAllAsync(

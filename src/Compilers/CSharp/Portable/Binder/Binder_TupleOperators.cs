@@ -136,7 +136,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (conversion.IsImplicit)
             {
                 conversionForBoolPlaceholder = new BoundValuePlaceholder(node, type).MakeCompilerGenerated();
-                conversionForBool = CreateConversion(node, conversionForBoolPlaceholder, conversion, isCast: false, conversionGroupOpt: null, boolean, diagnostics);
+                conversionForBool = CreateConversion(node, conversionForBoolPlaceholder, conversion, isCast: false, conversionGroupOpt: null, InConversionGroupFlags.Unspecified, boolean, diagnostics);
                 boolOperator = default;
                 return;
             }
@@ -166,7 +166,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (best.HasValue)
             {
                 conversionForBoolPlaceholder = new BoundValuePlaceholder(node, type).MakeCompilerGenerated();
-                conversionForBool = CreateConversion(node, conversionForBoolPlaceholder, best.Conversion, isCast: false, conversionGroupOpt: null, best.Signature.OperandType, diagnostics);
+                conversionForBool = CreateConversion(node, conversionForBoolPlaceholder, best.Conversion, isCast: false, conversionGroupOpt: null, InConversionGroupFlags.Unspecified, best.Signature.OperandType, diagnostics);
                 boolOperator = best.Signature;
                 return;
             }
@@ -302,8 +302,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 string leftName = leftNoNames ? null : leftNames[i];
                 string rightName = rightNoNames ? null : rightNames[i];
 
-                bool different = string.CompareOrdinal(rightName, leftName) != 0;
-                if (!different)
+                if (string.Equals(leftName, rightName, StringComparison.Ordinal))
                 {
                     continue;
                 }

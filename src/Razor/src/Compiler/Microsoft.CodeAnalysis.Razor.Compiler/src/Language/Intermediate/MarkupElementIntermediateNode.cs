@@ -1,0 +1,67 @@
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
+#nullable disable
+
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Linq;
+
+namespace Microsoft.AspNetCore.Razor.Language.Intermediate;
+
+public sealed class MarkupElementIntermediateNode : IntermediateNode
+{
+    public IntermediateNodeCollection.TypedEnumerable<HtmlAttributeIntermediateNode> Attributes => new(Children);
+
+    public IntermediateNodeCollection.TypedEnumerable<ReferenceCaptureIntermediateNode> Captures => new(Children);
+
+    public IntermediateNodeCollection.TypedEnumerable<SetKeyIntermediateNode> SetKeys => new(Children);
+
+    public IEnumerable<IntermediateNode> Body => Children.Where(c =>
+    {
+        return c is not (ComponentAttributeIntermediateNode or
+            HtmlAttributeIntermediateNode or
+            SplatIntermediateNode or
+            SetKeyIntermediateNode or
+            ReferenceCaptureIntermediateNode or
+            FormNameIntermediateNode);
+    });
+
+    public override IntermediateNodeCollection Children { get => field ??= []; }
+
+    public string TagName { get; set; }
+
+    public override void Accept(IntermediateNodeVisitor visitor)
+    {
+        if (visitor == null)
+        {
+            throw new ArgumentNullException(nameof(visitor));
+        }
+
+        visitor.VisitMarkupElement(this);
+    }
+
+    protected override IntermediateNode CloneNode()
+    {
+        var clone = new MarkupElementIntermediateNode
+        {
+            TagName = TagName,
+            IsSynthesizedHelper = IsSynthesizedHelper,
+        };
+
+        return clone;
+    }
+
+    public override void FormatNode(IntermediateNodeFormatter formatter)
+    {
+        if (formatter == null)
+        {
+            throw new ArgumentNullException(nameof(formatter));
+        }
+
+        formatter.WriteContent(TagName);
+
+        formatter.WriteProperty(nameof(TagName), TagName);
+    }
+}

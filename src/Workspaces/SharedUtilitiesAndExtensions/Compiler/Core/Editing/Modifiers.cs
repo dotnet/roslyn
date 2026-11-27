@@ -32,5 +32,6 @@ internal enum Modifiers
     Required    = 1 << 16,
     File        = 1 << 17,
     Fixed       = 1 << 18,
+    Closed      = 1 << 19,
 #pragma warning restore format
 }

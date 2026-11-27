@@ -1,0 +1,25 @@
+﻿Document - 
+    RazorCompiledItemAttribute - 
+    NamespaceDeclaration -  - Razor
+        RazorSourceChecksumAttribute - 
+        ClassDeclaration -  - public - Template - global::LegacyTemplateBase - 
+            MethodDeclaration -  - public async override - global::System.Threading.Tasks.Task - ExecuteAsync
+                HtmlContent - (38:1,0 [2] TestFiles\IntegrationTests\CSharp11LanguageFeaturesIntegrationTest_Legacy\TestView.cshtml)
+                    LazyIntermediateToken - (38:1,0 [2] TestFiles\IntegrationTests\CSharp11LanguageFeaturesIntegrationTest_Legacy\TestView.cshtml) - Html - \n
+                CSharpCode - (42:2,2 [75] TestFiles\IntegrationTests\CSharp11LanguageFeaturesIntegrationTest_Legacy\TestView.cshtml)
+                    LazyIntermediateToken - (42:2,2 [75] TestFiles\IntegrationTests\CSharp11LanguageFeaturesIntegrationTest_Legacy\TestView.cshtml) - CSharp - \n    System.ReadOnlySpan<byte> bytes = "Razor"u8;\n    _ = bytes.Length;\n
+                HtmlContent - (120:6,0 [7] TestFiles\IntegrationTests\CSharp11LanguageFeaturesIntegrationTest_Legacy\TestView.cshtml)
+                    LazyIntermediateToken - (120:6,0 [2] TestFiles\IntegrationTests\CSharp11LanguageFeaturesIntegrationTest_Legacy\TestView.cshtml) - Html - \n
+                    LazyIntermediateToken - (122:7,0 [4] TestFiles\IntegrationTests\CSharp11LanguageFeaturesIntegrationTest_Legacy\TestView.cshtml) - Html - <div
+                    LazyIntermediateToken - (126:7,4 [1] TestFiles\IntegrationTests\CSharp11LanguageFeaturesIntegrationTest_Legacy\TestView.cshtml) - Html - >
+                CSharpExpression - (129:7,7 [16] TestFiles\IntegrationTests\CSharp11LanguageFeaturesIntegrationTest_Legacy\TestView.cshtml)
+                    LazyIntermediateToken - (129:7,7 [16] TestFiles\IntegrationTests\CSharp11LanguageFeaturesIntegrationTest_Legacy\TestView.cshtml) - CSharp - "Razor"u8.Length
+                HtmlContent - (146:7,24 [13] TestFiles\IntegrationTests\CSharp11LanguageFeaturesIntegrationTest_Legacy\TestView.cshtml)
+                    LazyIntermediateToken - (146:7,24 [6] TestFiles\IntegrationTests\CSharp11LanguageFeaturesIntegrationTest_Legacy\TestView.cshtml) - Html - </div>
+                    LazyIntermediateToken - (152:7,30 [2] TestFiles\IntegrationTests\CSharp11LanguageFeaturesIntegrationTest_Legacy\TestView.cshtml) - Html - \n
+                    LazyIntermediateToken - (154:8,0 [4] TestFiles\IntegrationTests\CSharp11LanguageFeaturesIntegrationTest_Legacy\TestView.cshtml) - Html - <div
+                    LazyIntermediateToken - (158:8,4 [1] TestFiles\IntegrationTests\CSharp11LanguageFeaturesIntegrationTest_Legacy\TestView.cshtml) - Html - >
+                CSharpExpression - (161:8,7 [20] TestFiles\IntegrationTests\CSharp11LanguageFeaturesIntegrationTest_Legacy\TestView.cshtml)
+                    LazyIntermediateToken - (161:8,7 [20] TestFiles\IntegrationTests\CSharp11LanguageFeaturesIntegrationTest_Legacy\TestView.cshtml) - CSharp - """Razor"""u8.Length
+                HtmlContent - (182:8,28 [6] TestFiles\IntegrationTests\CSharp11LanguageFeaturesIntegrationTest_Legacy\TestView.cshtml)
+                    LazyIntermediateToken - (182:8,28 [6] TestFiles\IntegrationTests\CSharp11LanguageFeaturesIntegrationTest_Legacy\TestView.cshtml) - Html - </div>

@@ -1,0 +1,11 @@
+<Project>
+
+  <PropertyGroup>
+    <EnableSourceLink>false</EnableSourceLink>
+    <Features Condition="'$(ROSLYN_CACHE_PATH)' == ''">$(Features);use-global-cache</Features>
+    <Features Condition="'$(ROSLYN_CACHE_PATH)' != ''">$(Features);use-global-cache=$(ROSLYN_CACHE_PATH)</Features>
+    <PathMap Condition="'$(PathMap)' == ''">$(RepoRoot)=/_/</PathMap>
+    <PathMap Condition="'$(PathMap)' != ''">$(RepoRoot)=/_/,$(PathMap)</PathMap>
+  </PropertyGroup>
+
+</Project>

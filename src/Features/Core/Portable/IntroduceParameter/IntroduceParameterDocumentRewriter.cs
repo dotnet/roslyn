@@ -580,6 +580,14 @@ internal abstract partial class AbstractIntroduceParameterCodeRefactoringProvide
             SeparatedSyntaxList<TArgumentSyntax> invocationArguments, SyntaxNode newArgumentExpression,
             string parameterName, int insertionIndex, bool named)
         {
+            if (insertionIndex > invocationArguments.Count)
+            {
+                // In broken code, required arguments may be missing. Append by name so the new argument
+                // still binds to the introduced parameter.
+                insertionIndex = invocationArguments.Count;
+                named = true;
+            }
+
             var argument = named
                 ? (TArgumentSyntax)_generator.Argument(parameterName, RefKind.None, newArgumentExpression)
                 : (TArgumentSyntax)_generator.Argument(newArgumentExpression);
