@@ -6,9 +6,11 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.CodeAnalysis;
@@ -716,6 +718,544 @@ namespace MyApp.Pages
             result.VerifyIncrementalStepsMultiple("CSharpDocuments",
                 IncrementalStepRunReason.Cached,    // Index unchanged
                 IncrementalStepRunReason.Modified); // Counter changed
+        }
+
+        [Fact]
+        public async Task IncrementalCompilation_WhenMethodBodyChanges_FastDiscoveryStaysCached()
+        {
+            var project = CreateTestProject(new()
+            {
+                ["Pages/Counter.razor"] = "@code {\n    private int GetCount() => 1;\n}",
+            });
+            var compilation = await project.GetCompilationAsync();
+            var (driver, additionalTexts, _) = await GetDriverWithAdditionalTextAndProviderAsync(project, trackSteps: true);
+
+            var result = RunGenerator(compilation!, ref driver);
+            Assert.Empty(result.Diagnostics);
+            Assert.Contains("GetCount() => 1", result.DeclGeneratedSources().Single().SourceText.ToString());
+
+            // Changing the body must update the emitted C#, but it doesn't change component descriptors.
+            var updated = new TestAdditionalText("Pages/Counter.razor",
+                SourceText.From("@code {\n    private int GetCount() => 2;\n}", Encoding.UTF8));
+            driver = driver.ReplaceAdditionalText(additionalTexts.Single(f => f.Path == updated.Path), updated);
+
+            result = RunGenerator(compilation!, ref driver);
+            Assert.Empty(result.Diagnostics);
+            Assert.Contains("GetCount() => 2", result.DeclGeneratedSources().Single().SourceText.ToString());
+            result.VerifyIncrementalSteps("DeclSources", IncrementalStepRunReason.Modified);
+            result.VerifyIncrementalSteps("FastTagHelpers", IncrementalStepRunReason.Cached);
+
+            // The cached compilation can be older than the immediately preceding edit.
+            var updatedAgain = new TestAdditionalText("Pages/Counter.razor",
+                SourceText.From("@code {\n    private int GetCount() => 3;\n}", Encoding.UTF8));
+            driver = driver.ReplaceAdditionalText(updated, updatedAgain);
+
+            result = RunGenerator(compilation!, ref driver);
+            Assert.Empty(result.Diagnostics);
+            Assert.Contains("GetCount() => 3", result.DeclGeneratedSources().Single().SourceText.ToString());
+            result.VerifyIncrementalSteps("FastTagHelpers", IncrementalStepRunReason.Cached);
+        }
+
+        [Fact]
+        public async Task IncrementalCompilation_WhenCSharpMethodBodyChanges_FastDiscoveryStaysCached()
+        {
+            var project = CreateTestProject(new()
+            {
+                ["Pages/Index.razor"] = "<h1>Hello</h1>",
+            });
+            var parseOptions = (CSharpParseOptions)project.ParseOptions!;
+            var source = CSharpSyntaxTree.ParseText("public class Counter : Microsoft.AspNetCore.Components.ComponentBase { public int GetCount() => 1; }", parseOptions);
+            var compilation = (await project.GetCompilationAsync())!.AddSyntaxTrees(source);
+            var (driver, _, _) = await GetDriverWithAdditionalTextAndProviderAsync(project, trackSteps: true);
+
+            var result = RunGenerator(compilation, ref driver);
+            Assert.Empty(result.Diagnostics);
+
+            // C# components are discovered from the same compilation as Razor components.
+            var updatedSource = CSharpSyntaxTree.ParseText("public class Counter : Microsoft.AspNetCore.Components.ComponentBase { public int GetCount() => 2; }", parseOptions);
+            compilation = compilation.ReplaceSyntaxTree(source, updatedSource);
+
+            result = RunGenerator(compilation, ref driver, out var outputCompilation);
+            Assert.Empty(result.Diagnostics);
+            Assert.Contains(updatedSource, outputCompilation.SyntaxTrees);
+            result.VerifyIncrementalSteps("FastTagHelpers", IncrementalStepRunReason.Cached);
+        }
+
+        [Fact]
+        public async Task IncrementalCompilation_WhenDifferentCSharpBodiesChange_OnlyChangedTreeIsCompared()
+        {
+            var project = CreateTestProject(new()
+            {
+                ["Pages/Index.razor"] = "<h1>Hello</h1>",
+            });
+            var parseOptions = (CSharpParseOptions)project.ParseOptions!;
+            var first = CSharpSyntaxTree.ParseText("public class First { public int GetCount() => 1; }", parseOptions, path: "First.cs");
+            var second = CSharpSyntaxTree.ParseText("public class Second : Microsoft.AspNetCore.Components.ComponentBase { public int GetCount() => 1; }", parseOptions, path: "Second.cs");
+            var compilation = (await project.GetCompilationAsync())!.AddSyntaxTrees(first, second);
+            var (driver, _, _) = await GetDriverWithAdditionalTextAndProviderAsync(project, trackSteps: true);
+
+            var result = RunGenerator(compilation, ref driver);
+            Assert.Empty(result.Diagnostics);
+
+            var updatedFirst = CSharpSyntaxTree.ParseText("public class First { public int GetCount() => 2; }", parseOptions, path: "First.cs");
+            compilation = compilation.ReplaceSyntaxTree(first, updatedFirst);
+            result = RunGenerator(compilation, ref driver);
+            result.VerifyIncrementalStepsMultiple("DiscoverySyntaxTrees",
+                IncrementalStepRunReason.Unchanged,
+                IncrementalStepRunReason.Cached,
+                IncrementalStepRunReason.Cached);
+            result.VerifyIncrementalSteps("FastTagHelpers", IncrementalStepRunReason.Cached);
+
+            // Editing a different file must not cause the first file to be compared again.
+            var updatedSecond = CSharpSyntaxTree.ParseText("public class Second : Microsoft.AspNetCore.Components.ComponentBase { public int GetCount() => 2; }", parseOptions, path: "Second.cs");
+            compilation = compilation.ReplaceSyntaxTree(second, updatedSecond);
+            result = RunGenerator(compilation, ref driver);
+            result.VerifyIncrementalStepsMultiple("DiscoverySyntaxTrees",
+                IncrementalStepRunReason.Cached,
+                IncrementalStepRunReason.Unchanged,
+                IncrementalStepRunReason.Cached);
+            result.VerifyIncrementalSteps("FastTagHelpers", IncrementalStepRunReason.Cached);
+
+            // A declaration change still needs to update the component descriptors.
+            var withParameter = CSharpSyntaxTree.ParseText("public class Second : Microsoft.AspNetCore.Components.ComponentBase { public int GetCount() => 2; [Microsoft.AspNetCore.Components.Parameter] public int Value { get; set; } }", parseOptions, path: "Second.cs");
+            compilation = compilation.ReplaceSyntaxTree(updatedSecond, withParameter);
+            result = RunGenerator(compilation, ref driver);
+            result.VerifyIncrementalSteps("FastTagHelpers", IncrementalStepRunReason.Modified);
+        }
+
+        [Fact]
+        public async Task IncrementalCompilation_WhenCSharpSyntaxTreeIsRemoved_DiscoveryUpdates()
+        {
+            var project = CreateTestProject(new()
+            {
+                ["Views/Home/Index.cshtml"] = "@addTagHelper *, TestProject\n<email></email><phone></phone>",
+            });
+            var parseOptions = (CSharpParseOptions)project.ParseOptions!;
+            var email = CSharpSyntaxTree.ParseText("using Microsoft.AspNetCore.Razor.TagHelpers; public class EmailTagHelper : TagHelper { }", parseOptions, path: "Email.cs");
+            var phone = CSharpSyntaxTree.ParseText("using Microsoft.AspNetCore.Razor.TagHelpers; public class PhoneTagHelper : TagHelper { }", parseOptions, path: "Phone.cs");
+            var compilation = (await project.GetCompilationAsync())!.AddSyntaxTrees(email, phone);
+            var (driver, _, _) = await GetDriverWithAdditionalTextAndProviderAsync(project, trackSteps: true);
+
+            var result = RunGenerator(compilation, ref driver);
+            var generated = result.ImplGeneratedSources().Single().SourceText.ToString();
+            Assert.Contains("EmailTagHelper", generated);
+            Assert.Contains("PhoneTagHelper", generated);
+
+            // Removing the first tree shifts the others, but only its tag helper should disappear.
+            compilation = compilation.RemoveSyntaxTrees(email);
+            result = RunGenerator(compilation, ref driver);
+            generated = result.ImplGeneratedSources().Single().SourceText.ToString();
+            Assert.DoesNotContain("EmailTagHelper", generated);
+            Assert.Contains("PhoneTagHelper", generated);
+            result.VerifyIncrementalSteps("FastTagHelpers", IncrementalStepRunReason.Modified);
+        }
+
+        [Fact]
+        public async Task IncrementalCompilation_WhenAccessorBodyChanges_FastDiscoveryStaysCached()
+        {
+            var project = CreateTestProject(new()
+            {
+                ["Pages/Counter.razor"] = "@code {\n    private int Count { get { return 1; } }\n}",
+            });
+            var compilation = await project.GetCompilationAsync();
+            var (driver, additionalTexts, _) = await GetDriverWithAdditionalTextAndProviderAsync(project, trackSteps: true);
+
+            var result = RunGenerator(compilation!, ref driver);
+            Assert.Empty(result.Diagnostics);
+
+            // Accessor bodies change generated code but not the declarations used for component discovery.
+            var updated = new TestAdditionalText("Pages/Counter.razor",
+                SourceText.From("@code {\n    private int Count { get { return 2; } }\n}", Encoding.UTF8));
+            driver = driver.ReplaceAdditionalText(additionalTexts.Single(f => f.Path == updated.Path), updated);
+
+            result = RunGenerator(compilation!, ref driver);
+            Assert.Empty(result.Diagnostics);
+            Assert.Contains("return 2;", result.DeclGeneratedSources().Single().SourceText.ToString());
+            result.VerifyIncrementalSteps("FastTagHelpers", IncrementalStepRunReason.Cached);
+        }
+
+        [Fact]
+        public async Task IncrementalCompilation_WhenExpressionBodiedPropertyChanges_FastDiscoveryStaysCached()
+        {
+            var project = CreateTestProject(new()
+            {
+                ["Pages/Counter.razor"] = "@code {\n    private int Count => 1;\n}",
+            });
+            var compilation = await project.GetCompilationAsync();
+            var (driver, additionalTexts, _) = await GetDriverWithAdditionalTextAndProviderAsync(project, trackSteps: true);
+
+            var result = RunGenerator(compilation!, ref driver);
+            Assert.Empty(result.Diagnostics);
+
+            var updated = new TestAdditionalText("Pages/Counter.razor",
+                SourceText.From("@code {\n    private int Count => 2;\n}", Encoding.UTF8));
+            driver = driver.ReplaceAdditionalText(additionalTexts.Single(f => f.Path == updated.Path), updated);
+
+            result = RunGenerator(compilation!, ref driver);
+            Assert.Empty(result.Diagnostics);
+            Assert.Contains("Count => 2", result.DeclGeneratedSources().Single().SourceText.ToString());
+            result.VerifyIncrementalSteps("FastTagHelpers", IncrementalStepRunReason.Cached);
+        }
+
+        [Fact]
+        public async Task IncrementalCompilation_WhenTopLevelLocalFunctionBodyChanges_FastDiscoveryStaysCached()
+        {
+            var project = CreateTestProject(new()
+            {
+                ["Pages/Counter.razor"] = "<h1>Counter</h1>",
+            });
+            var parseOptions = (CSharpParseOptions)project.ParseOptions!;
+            var source = CSharpSyntaxTree.ParseText("System.Console.WriteLine(GetCount());\nint GetCount() { return 1; }", parseOptions, path: "Program.cs");
+            var compilation = await project.GetCompilationAsync();
+            compilation = compilation!.WithOptions(compilation.Options.WithOutputKind(OutputKind.ConsoleApplication)).AddSyntaxTrees(source);
+            var (driver, _, _) = await GetDriverWithAdditionalTextAndProviderAsync(project, trackSteps: true);
+
+            var result = RunGenerator(compilation, ref driver);
+            Assert.Empty(result.Diagnostics);
+
+            // A top-level local function isn't nested in a regular method declaration, but its body is still irrelevant to discovery.
+            var updatedSource = CSharpSyntaxTree.ParseText("System.Console.WriteLine(GetCount());\nint GetCount() { return 2; }", parseOptions, path: "Program.cs");
+            compilation = compilation.ReplaceSyntaxTree(source, updatedSource);
+
+            result = RunGenerator(compilation, ref driver, out var outputCompilation);
+            Assert.Empty(result.Diagnostics);
+            Assert.Contains(updatedSource, outputCompilation.SyntaxTrees);
+            result.VerifyIncrementalSteps("FastTagHelpers", IncrementalStepRunReason.Cached);
+        }
+
+        [Fact]
+        public async Task IncrementalCompilation_WhenReferenceDocumentationChanges_TagHelperDiscoveryUpdates()
+        {
+            var componentProject = CreateTestProject(new(), new()
+            {
+                ["ReferencedComponent.cs"] = """
+                    using Microsoft.AspNetCore.Components;
+
+                    namespace Referenced;
+
+                    public class ExternalComponent : ComponentBase
+                    {
+                    }
+                    """,
+            });
+            var componentCompilation = await componentProject.GetCompilationAsync();
+            using var componentImageStream = new MemoryStream();
+            var emitResult = componentCompilation!.Emit(componentImageStream);
+            Assert.True(emitResult.Success, string.Join(Environment.NewLine, emitResult.Diagnostics));
+            var componentImage = ImmutableArray.CreateRange(componentImageStream.ToArray());
+            var firstReference = MetadataReference.CreateFromImage(componentImage, documentation: new TestDocumentationProvider("First"));
+
+            var project = CreateTestProject(new()
+            {
+                ["Pages/Index.razor"] = "<Referenced.ExternalComponent />",
+            }).AddMetadataReference(firstReference);
+            var compilation = await project.GetCompilationAsync();
+            var (driver, _, _) = await GetDriverWithAdditionalTextAndProviderAsync(project, hostOutputs: true, trackSteps: true);
+
+            var result = RunGenerator(compilation!, ref driver);
+            Assert.Empty(result.Diagnostics);
+#pragma warning disable RSEXPERIMENTAL004 // Host outputs let this test verify generated tag-helper documentation.
+            var generatorResult = Assert.IsType<RazorGeneratorResult>(result.HostOutputs[nameof(RazorGeneratorResult)]);
+            var externalComponentDescriptors = generatorResult.TagHelpers
+                .Where(static tagHelper => tagHelper.Name == "Referenced.ExternalComponent")
+                .ToArray();
+            Assert.NotEmpty(externalComponentDescriptors);
+            Assert.All(externalComponentDescriptors, static tagHelper =>
+                Assert.Contains("First", tagHelper.Documentation ?? string.Empty, StringComparison.Ordinal));
+
+            // Documentation providers can change descriptor contents without changing the referenced PE image.
+            var secondReference = MetadataReference.CreateFromImage(componentImage, documentation: new TestDocumentationProvider("Second"));
+            var updatedCompilation = compilation!.RemoveReferences(firstReference).AddReferences(secondReference);
+
+            result = RunGenerator(updatedCompilation, ref driver);
+            Assert.Empty(result.Diagnostics);
+            generatorResult = Assert.IsType<RazorGeneratorResult>(result.HostOutputs[nameof(RazorGeneratorResult)]);
+            externalComponentDescriptors = generatorResult.TagHelpers
+                .Where(static tagHelper => tagHelper.Name == "Referenced.ExternalComponent")
+                .ToArray();
+            Assert.NotEmpty(externalComponentDescriptors);
+            Assert.All(externalComponentDescriptors, static tagHelper =>
+                Assert.Contains("Second", tagHelper.Documentation ?? string.Empty, StringComparison.Ordinal));
+#pragma warning restore RSEXPERIMENTAL004
+            result.VerifyIncrementalSteps("TagHelpersFromReferences", IncrementalStepRunReason.Modified);
+        }
+
+        [Fact]
+        public async Task IncrementalCompilation_WhenWhitespaceInMethodBodyChanges_FastDiscoveryStaysCached()
+        {
+            var project = CreateTestProject(new()
+            {
+                ["Pages/Counter.razor"] = "@code {\n    private int GetCount() { return 1; }\n}",
+            });
+            var compilation = await project.GetCompilationAsync();
+            var (driver, additionalTexts, _) = await GetDriverWithAdditionalTextAndProviderAsync(project, trackSteps: true);
+
+            var result = RunGenerator(compilation!, ref driver);
+            Assert.Empty(result.Diagnostics);
+
+            // Whitespace in the method body still needs to reach the generated declaration.
+            var updated = new TestAdditionalText("Pages/Counter.razor",
+                SourceText.From("@code {\n    private int GetCount() { return  1; }\n}", Encoding.UTF8));
+            driver = driver.ReplaceAdditionalText(additionalTexts.Single(f => f.Path == updated.Path), updated);
+
+            result = RunGenerator(compilation!, ref driver);
+            Assert.Empty(result.Diagnostics);
+            Assert.Contains("return  1;", result.DeclGeneratedSources().Single().SourceText.ToString());
+            result.VerifyIncrementalSteps("DeclSources", IncrementalStepRunReason.Modified);
+            result.VerifyIncrementalSteps("FastTagHelpers", IncrementalStepRunReason.Cached);
+        }
+
+        [Fact]
+        public async Task IncrementalCompilation_WhenLineIsAddedToMethodBody_FastDiscoveryStaysCached()
+        {
+            var project = CreateTestProject(new()
+            {
+                ["Pages/Counter.razor"] = "@code {\n    private int GetCount()\n    {\n        return 1;\n    }\n}",
+            });
+            var compilation = await project.GetCompilationAsync();
+            var (driver, additionalTexts, _) = await GetDriverWithAdditionalTextAndProviderAsync(project, trackSteps: true);
+
+            var result = RunGenerator(compilation!, ref driver);
+            Assert.Empty(result.Diagnostics);
+
+            // A new line also changes the #line mapping that comes before the method in the generated declaration.
+            var updated = new TestAdditionalText("Pages/Counter.razor",
+                SourceText.From("@code {\n    private int GetCount()\n    {\n        var count = 1;\n        return count;\n    }\n}", Encoding.UTF8));
+            driver = driver.ReplaceAdditionalText(additionalTexts.Single(f => f.Path == updated.Path), updated);
+
+            result = RunGenerator(compilation!, ref driver);
+            Assert.Empty(result.Diagnostics);
+            Assert.Contains("return count;", result.DeclGeneratedSources().Single().SourceText.ToString());
+            result.VerifyIncrementalSteps("DeclSources", IncrementalStepRunReason.Modified);
+            result.VerifyIncrementalSteps("FastTagHelpers", IncrementalStepRunReason.Cached);
+        }
+
+        [Fact]
+        public async Task IncrementalCompilation_WhenLineIsAddedAboveCode_FastDiscoveryStaysCached()
+        {
+            var project = CreateTestProject(new()
+            {
+                ["Pages/Counter.razor"] = "<h1>Counter</h1>\n@code {\n    private int GetCount() => 1;\n}",
+            });
+            var compilation = await project.GetCompilationAsync();
+            var (driver, additionalTexts, _) = await GetDriverWithAdditionalTextAndProviderAsync(project, trackSteps: true);
+
+            var result = RunGenerator(compilation!, ref driver);
+            Assert.Empty(result.Diagnostics);
+
+            // Markup above @code only moves the #line mappings in the generated declaration.
+            var updated = new TestAdditionalText("Pages/Counter.razor",
+                SourceText.From("<h1>Counter</h1>\n<p>More</p>\n@code {\n    private int GetCount() => 1;\n}", Encoding.UTF8));
+            driver = driver.ReplaceAdditionalText(additionalTexts.Single(f => f.Path == updated.Path), updated);
+
+            result = RunGenerator(compilation!, ref driver);
+            Assert.Empty(result.Diagnostics);
+            result.VerifyIncrementalSteps("FastTagHelpers", IncrementalStepRunReason.Cached);
+        }
+
+        [Fact]
+        public async Task IncrementalCompilation_WhenFallbackMethodBodyChanges_SlowDiscoveryStaysCached()
+        {
+            var project = CreateTestProject(new()
+            {
+                ["Shared/MyBase.razor"] = "@code {\n    public Microsoft.AspNetCore.Components.RenderFragment Frag => @<span>frag</span>;\n    private int GetCount() => 1;\n}",
+            });
+            var compilation = await project.GetCompilationAsync();
+            var (driver, additionalTexts, _) = await GetDriverWithAdditionalTextAndProviderAsync(project, trackSteps: true);
+
+            var result = RunGenerator(compilation!, ref driver);
+            Assert.Empty(result.Diagnostics);
+
+            // A fallback declaration is only used for discovery; the implementation must still change.
+            var updated = new TestAdditionalText("Shared/MyBase.razor",
+                SourceText.From("@code {\n    public Microsoft.AspNetCore.Components.RenderFragment Frag => @<span>frag</span>;\n    private int GetCount() => 2;\n}", Encoding.UTF8));
+            driver = driver.ReplaceAdditionalText(additionalTexts.Single(f => f.Path == updated.Path), updated);
+
+            result = RunGenerator(compilation!, ref driver);
+            Assert.Empty(result.Diagnostics);
+            Assert.Contains("GetCount() => 2", result.ImplGeneratedSources().Single().SourceText.ToString());
+            result.VerifyIncrementalSteps("FallbackDeclTrees", IncrementalStepRunReason.Cached);
+            result.VerifyIncrementalSteps("SlowTagHelpers", IncrementalStepRunReason.Cached);
+        }
+
+        [Fact]
+        public async Task IncrementalCompilation_WhenFallbackParameterIsAdded_SlowDiscoveryRuns()
+        {
+            var project = CreateTestProject(new()
+            {
+                ["Shared/MyBase.razor"] = "@code {\n    public Microsoft.AspNetCore.Components.RenderFragment Frag => @<span>frag</span>;\n}",
+            });
+            var compilation = await project.GetCompilationAsync();
+            var (driver, additionalTexts, _) = await GetDriverWithAdditionalTextAndProviderAsync(project, trackSteps: true);
+
+            var result = RunGenerator(compilation!, ref driver);
+            Assert.Empty(result.Diagnostics);
+
+            // A new parameter changes the fallback component's descriptor, so the cached discovery can't be reused.
+            var updated = new TestAdditionalText("Shared/MyBase.razor",
+                SourceText.From("@code {\n    public Microsoft.AspNetCore.Components.RenderFragment Frag => @<span>frag</span>;\n    [Parameter] public int Value { get; set; }\n}", Encoding.UTF8));
+            driver = driver.ReplaceAdditionalText(additionalTexts.Single(f => f.Path == updated.Path), updated);
+
+            result = RunGenerator(compilation!, ref driver);
+            Assert.Empty(result.Diagnostics);
+            result.VerifyIncrementalSteps("FallbackDeclTrees", IncrementalStepRunReason.Modified);
+            result.VerifyIncrementalSteps("SlowTagHelpers", IncrementalStepRunReason.Modified);
+        }
+
+        [Fact]
+        public async Task IncrementalCompilation_WhenSplitComponentMethodBodyChangesWithFallback_SlowDiscoveryStaysCached()
+        {
+            var project = CreateTestProject(new()
+            {
+                ["Shared/MyBase.razor"] = "@code {\n    public Microsoft.AspNetCore.Components.RenderFragment Frag => @<span>frag</span>;\n}",
+                ["Pages/Counter.razor"] = "@code {\n    private int GetCount() => 1;\n}",
+            });
+            var compilation = await project.GetCompilationAsync();
+            var (driver, additionalTexts, _) = await GetDriverWithAdditionalTextAndProviderAsync(project, trackSteps: true);
+
+            var result = RunGenerator(compilation!, ref driver);
+            Assert.Empty(result.Diagnostics);
+
+            // With a fallback in the project, slow discovery owns the whole assembly. A body edit in a
+            // split component still changes the compilation, but shouldn't cause a rediscovery.
+            var updated = new TestAdditionalText("Pages/Counter.razor",
+                SourceText.From("@code {\n    private int GetCount() => 2;\n}", Encoding.UTF8));
+            driver = driver.ReplaceAdditionalText(additionalTexts.Single(f => f.Path == updated.Path), updated);
+
+            result = RunGenerator(compilation!, ref driver);
+            Assert.Empty(result.Diagnostics);
+            Assert.Contains(result.DeclGeneratedSources(), s => s.SourceText.ToString().Contains("GetCount() => 2"));
+            result.VerifyIncrementalSteps("FallbackDeclTrees", IncrementalStepRunReason.Cached);
+            result.VerifyIncrementalSteps("SlowTagHelpers", IncrementalStepRunReason.Cached);
+        }
+
+        [Fact]
+        public async Task IncrementalCompilation_WhenSplitPlanMethodBodyChanges_FastDiscoveryStaysCached()
+        {
+            var project = CreateTestProject(new()
+            {
+                ["Pages/Counter.razor"] = "@code {\n    private Microsoft.AspNetCore.Components.RenderFragment GetFragment() => @<span>frag</span>;\n    private int GetCount() => 1;\n}",
+            });
+            var compilation = await project.GetCompilationAsync();
+            var (driver, additionalTexts, _) = await GetDriverWithAdditionalTextAndProviderAsync(project, trackSteps: true);
+
+            var result = RunGenerator(compilation!, ref driver);
+            Assert.Empty(result.Diagnostics);
+
+            // The markup moves to the impl half, but the rest of the @code still lands in the decl.
+            var updated = new TestAdditionalText("Pages/Counter.razor",
+                SourceText.From("@code {\n    private Microsoft.AspNetCore.Components.RenderFragment GetFragment() => @<span>frag</span>;\n    private int GetCount() => 2;\n}", Encoding.UTF8));
+            driver = driver.ReplaceAdditionalText(additionalTexts.Single(f => f.Path == updated.Path), updated);
+
+            result = RunGenerator(compilation!, ref driver);
+            Assert.Empty(result.Diagnostics);
+            var decl = result.DeclGeneratedSources().Single().SourceText.ToString();
+            Assert.Contains("GetCount() => 2", decl);
+            Assert.DoesNotContain("frag", decl);
+            result.VerifyIncrementalSteps("DeclSources", IncrementalStepRunReason.Modified);
+            result.VerifyIncrementalSteps("FastTagHelpers", IncrementalStepRunReason.Cached);
+        }
+
+        [Fact]
+        public async Task IncrementalCompilation_WhenParameterDocumentationChanges_DiscoveryRuns()
+        {
+            var project = CreateTestProject(new()
+            {
+                ["Pages/Counter.razor"] = "@code {\n    /// <summary>Original</summary>\n    [Parameter] public int Value { get; set; }\n}",
+            });
+            var compilation = await project.GetCompilationAsync();
+            var (driver, additionalTexts, _) = await GetDriverWithAdditionalTextAndProviderAsync(project, trackSteps: true);
+
+            var result = RunGenerator(compilation!, ref driver);
+            Assert.Empty(result.Diagnostics);
+
+            // Documentation is part of the component descriptor, even though it is C# trivia.
+            var updated = new TestAdditionalText("Pages/Counter.razor",
+                SourceText.From("@code {\n    /// <summary>Updated</summary>\n    [Parameter] public int Value { get; set; }\n}", Encoding.UTF8));
+            driver = driver.ReplaceAdditionalText(additionalTexts.Single(f => f.Path == updated.Path), updated);
+
+            result = RunGenerator(compilation!, ref driver);
+            Assert.Empty(result.Diagnostics);
+            result.VerifyIncrementalSteps("FastTagHelpers", IncrementalStepRunReason.Modified);
+        }
+
+        [Fact]
+        public async Task IncrementalCompilation_WhenDirectiveInMethodBodyChanges_DiscoveryRuns()
+        {
+            var project = CreateTestProject(new()
+            {
+                ["Pages/Counter.razor"] = "@code {\n    private int GetCount()\n    {\n#nullable disable\n        return 1;\n    }\n    [Parameter] public string Value { get; set; } = \"\";\n}",
+            });
+            var compilation = await project.GetCompilationAsync();
+            var (driver, additionalTexts, _) = await GetDriverWithAdditionalTextAndProviderAsync(project, trackSteps: true);
+
+            var result = RunGenerator(compilation!, ref driver);
+            Assert.Empty(result.Diagnostics);
+
+            // A directive inside a method can affect declarations that follow it.
+            var updated = new TestAdditionalText("Pages/Counter.razor",
+                SourceText.From("@code {\n    private int GetCount()\n    {\n#nullable enable\n        return 1;\n    }\n    [Parameter] public string Value { get; set; } = \"\";\n}", Encoding.UTF8));
+            driver = driver.ReplaceAdditionalText(additionalTexts.Single(f => f.Path == updated.Path), updated);
+
+            result = RunGenerator(compilation!, ref driver);
+            Assert.Empty(result.Diagnostics);
+            result.VerifyIncrementalSteps("FastTagHelpers", IncrementalStepRunReason.Unchanged);
+        }
+
+        [Fact]
+        public async Task IncrementalCompilation_WhenTagHelperMethodBodyChanges_FastDiscoveryStaysCached()
+        {
+            var project = CreateTestProject(new()
+            {
+                ["Views/Home/Index.cshtml"] = "@addTagHelper *, TestProject\n<email>hello</email>",
+            }, new()
+            {
+                ["EmailTagHelper.cs"] = "using Microsoft.AspNetCore.Razor.TagHelpers;\npublic class EmailTagHelper : TagHelper\n{\n    public override void Process(TagHelperContext context, TagHelperOutput output)\n    {\n        output.TagName = \"a\";\n    }\n}",
+            });
+            var compilation = await project.GetCompilationAsync();
+            var (driver, _, _) = await GetDriverWithAdditionalTextAndProviderAsync(project, trackSteps: true);
+
+            var result = RunGenerator(compilation!, ref driver);
+            Assert.Empty(result.Diagnostics);
+
+            // Legacy tag helpers are discovered from the same compilation as components, so a body edit
+            // shouldn't cause a rediscovery either.
+            project = project.Documents.Single(d => d.Name == "EmailTagHelper.cs").WithText(SourceText.From(
+                "using Microsoft.AspNetCore.Razor.TagHelpers;\npublic class EmailTagHelper : TagHelper\n{\n    public override void Process(TagHelperContext context, TagHelperOutput output)\n    {\n        output.TagName = \"b\";\n    }\n}")).Project;
+            compilation = await project.GetCompilationAsync();
+
+            result = RunGenerator(compilation!, ref driver);
+            Assert.Empty(result.Diagnostics);
+            Assert.Contains("EmailTagHelper", result.ImplGeneratedSources().Single().SourceText.ToString());
+            result.VerifyIncrementalSteps("FastTagHelpers", IncrementalStepRunReason.Cached);
+        }
+
+        [Fact]
+        public async Task IncrementalCompilation_WhenTagHelperPropertyIsAdded_DiscoveryRuns()
+        {
+            var project = CreateTestProject(new()
+            {
+                ["Views/Home/Index.cshtml"] = "@addTagHelper *, TestProject\n<email mail=\"me\">hello</email>",
+            }, new()
+            {
+                ["EmailTagHelper.cs"] = "using Microsoft.AspNetCore.Razor.TagHelpers;\npublic class EmailTagHelper : TagHelper\n{\n}",
+            });
+            var compilation = await project.GetCompilationAsync();
+            var (driver, _, _) = await GetDriverWithAdditionalTextAndProviderAsync(project, trackSteps: true);
+
+            var result = RunGenerator(compilation!, ref driver);
+            Assert.Empty(result.Diagnostics);
+            Assert.DoesNotContain(".Mail = ", result.ImplGeneratedSources().Single().SourceText.ToString());
+
+            // A new property is a new bound attribute, so the legacy view has to be generated against it.
+            project = project.Documents.Single(d => d.Name == "EmailTagHelper.cs").WithText(SourceText.From(
+                "using Microsoft.AspNetCore.Razor.TagHelpers;\npublic class EmailTagHelper : TagHelper\n{\n    public string Mail { get; set; } = \"\";\n}")).Project;
+            compilation = await project.GetCompilationAsync();
+
+            result = RunGenerator(compilation!, ref driver);
+            Assert.Empty(result.Diagnostics);
+            Assert.Contains(".Mail = ", result.ImplGeneratedSources().Single().SourceText.ToString());
+            result.VerifyIncrementalSteps("FastTagHelpers", IncrementalStepRunReason.Modified);
         }
 
         [ConditionalFact(typeof(IsEnglishLocal))]
@@ -3674,10 +4214,9 @@ namespace MyApp
             Assert.Empty(result.Diagnostics);
             Assert.Equal(4, result.GeneratedSources.Length);
 
-            // reference causes the compilation to change so we re-run tag helper discovery there
-            // but we didn't re-check the actual reference itself
+            // Recreated references may carry different documentation providers, so discovery reruns conservatively.
             result.VerifyIncrementalSteps("RazorSourceGeneratorOptions", IncrementalStepRunReason.Unchanged); // Re-ran but unchanged
-            result.VerifyIncrementalSteps("FastTagHelpers", IncrementalStepRunReason.Unchanged); // Re-ran but unchanged
+            result.VerifyIncrementalSteps("FastTagHelpers", IncrementalStepRunReason.Unchanged);
         }
 
         [Theory]
@@ -4062,6 +4601,18 @@ __builder.AddContent(1, """"""
             Assert.NotEqual(Location.None, diagnostic.Location);
             Assert.Equal("Pages/Index.razor", diagnostic.Location.GetLineSpan().Path);
             Assert.Equal(2, result.GeneratedSources.Length);
+        }
+
+        private sealed class TestDocumentationProvider(string summary) : DocumentationProvider
+        {
+            protected override string? GetDocumentationForSymbol(string documentationMemberID, CultureInfo preferredCulture, CancellationToken cancellationToken = default)
+                => $"<summary>{summary}</summary>";
+
+            public override bool Equals(object? obj)
+                => ReferenceEquals(this, obj);
+
+            public override int GetHashCode()
+                => System.Runtime.CompilerServices.RuntimeHelpers.GetHashCode(this);
         }
     }
 }

@@ -155,20 +155,44 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
                 .Combine(parseOptions)
                 .Select(static (pair, ct) =>
                     CSharpSyntaxTree.ParseText(pair.Left!.Text, (CSharpParseOptions)pair.Right, cancellationToken: ct))
+                .WithLambdaComparer(AreSyntaxTreesEquivalentForTagHelperDiscovery)
                 .Collect()
                 .WithTrackingName("FallbackDeclTrees");
+
+            // SelectMany tracks the latest tree by identity. The separate Select keeps a discovery-equivalent
+            // tree for each file, so an edit doesn't recompare previously edited files.
+            var discoverySyntaxTrees = compilation
+                .SelectMany(static (compilation, _) => compilation.SyntaxTrees)
+                .Select(static (tree, _) => tree)
+                .WithLambdaComparer(AreSyntaxTreesEquivalentForTagHelperDiscovery)
+                .WithTrackingName("DiscoverySyntaxTrees")
+                .Collect();
+
+            var compilationForDiscovery = compilation.Combine(discoverySyntaxTrees);
 
             // fastDiscovery: tag helpers in the standard compilation, which -- once the split decls are
             // added via pre-compilation output -- already contains every splittable component. It only runs
             // when nothing fell back: a fallback type's pre-compilation shell has no base type or members,
             // so components that inherit from it (or use its nested types) would be discovered wrongly
             // here. slowDiscovery owns the whole assembly in that case.
-            var fastTagHelpers = compilation
+            // Compare before discovery so body-only edits can reuse the existing descriptors.
+            var fastTagHelpers = compilationForDiscovery
                 .Combine(razorSourceGeneratorOptions)
                 .Combine(fallbackDeclTrees)
+                .WithLambdaComparer(static (a, b) =>
+                {
+                    var (((oldCompilation, oldSyntaxTrees), oldOptions), oldFallbackTrees) = a;
+                    var (((newCompilation, newSyntaxTrees), newOptions), newFallbackTrees) = b;
+
+                    return oldOptions == newOptions &&
+                        oldFallbackTrees.SequenceEqual(newFallbackTrees) &&
+                        (!oldFallbackTrees.IsDefaultOrEmpty ||
+                            AreCompilationsEquivalentForTagHelperDiscovery(oldCompilation, newCompilation, oldSyntaxTrees, newSyntaxTrees));
+                })
                 .Select(static (pair, cancellationToken) =>
                 {
-                    var ((compilation, razorSourceGeneratorOptions), fallbackTrees) = pair;
+                    var (((compilation, _), _), fallbackTrees) = pair;
+
                     if (!fallbackTrees.IsDefaultOrEmpty)
                     {
                         return TagHelperCollection.Empty;
@@ -191,10 +215,20 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
             // the incomplete shells. The cost is re-walking every splittable component whenever anything
             // falls back, rather than mixing descriptors from the two compilations.
             var slowTagHelpers = fallbackDeclTrees
-                .Combine(compilation)
+                .Combine(compilationForDiscovery)
+                .WithLambdaComparer(static (a, b) =>
+                {
+                    var (oldFallbackTrees, (oldCompilation, oldSyntaxTrees)) = a;
+                    var (newFallbackTrees, (newCompilation, newSyntaxTrees)) = b;
+
+                    return oldFallbackTrees.SequenceEqual(newFallbackTrees) &&
+                        (oldFallbackTrees.IsDefaultOrEmpty ||
+                            AreCompilationsEquivalentForTagHelperDiscovery(oldCompilation, newCompilation, oldSyntaxTrees, newSyntaxTrees));
+                })
                 .Select(static (pair, cancellationToken) =>
                 {
-                    var (fallbackTrees, compilation) = pair;
+                    var (fallbackTrees, (compilation, _)) = pair;
+
                     if (fallbackTrees.IsDefaultOrEmpty)
                     {
                         return TagHelperCollection.Empty;
@@ -224,77 +258,17 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
                 .Combine(hasRazorFiles)
                 .WithLambdaComparer(static (a, b) =>
                 {
-                    var ((compilationA, razorSourceGeneratorOptionsA), hasRazorFilesA) = a;
-                    var ((compilationB, razorSourceGeneratorOptionsB), hasRazorFilesB) = b;
+                    var ((oldCompilation, oldOptions), oldHasRazorFiles) = a;
+                    var ((newCompilation, newOptions), newHasRazorFiles) = b;
 
-                    // When using the generator cache in the compiler it's possible to encounter metadata references that are different instances
-                    // but ultimately represent the same underlying assembly. We compare the module version ids to determine if the references are the same
-                    if (!compilationA.References.SequenceEqual(compilationB.References, new LambdaComparer<MetadataReference>((old, @new) =>
-                    {
-                        if (ReferenceEquals(old, @new))
-                        {
-                            return true;
-                        }
-
-                        if (old is null || @new is null)
-                        {
-                            return false;
-                        }
-
-                        var oldSymbol = compilationA.GetAssemblyOrModuleSymbol(old);
-                        var newSymbol = compilationB.GetAssemblyOrModuleSymbol(@new);
-
-                        if (SymbolEqualityComparer.Default.Equals(oldSymbol, newSymbol))
-                        {
-                            return true;
-                        }
-
-                        if (oldSymbol is not IAssemblySymbol oldAssembly || newSymbol is not IAssemblySymbol newAssembly)
-                        {
-                            return false;
-                        }
-
-                        // Compare the MVIDs of the modules in each assembly. If they aren't present or don't match we don't consider them equal
-                        var oldModules = oldAssembly.Modules.ToArray();
-                        var newModules = newAssembly.Modules.ToArray();
-                        if (oldModules.Length != newModules.Length)
-                        {
-                            return false;
-                        }
-
-                        for (int i = 0; i < oldModules.Length; i++)
-                        {
-                            var oldMetadata = oldModules[i].GetMetadata();
-                            var newMetadata = newModules[i].GetMetadata();
-
-                            if (oldMetadata is null || newMetadata is null)
-                            {
-                                return false;
-                            }
-
-                            if (oldMetadata.GetModuleVersionId() != newMetadata.GetModuleVersionId())
-                            {
-                                return false;
-                            }
-                        }
-
-                        // All module MVIDs matched.
-                        return true;
-                    })))
-                    {
-                        return false;
-                    }
-
-                    if (razorSourceGeneratorOptionsA != razorSourceGeneratorOptionsB)
-                    {
-                        return false;
-                    }
-
-                    return hasRazorFilesA == hasRazorFilesB;
+                    return AreMetadataReferencesEquivalentForTagHelperDiscovery(oldCompilation, newCompilation) &&
+                        oldOptions == newOptions &&
+                        oldHasRazorFiles == newHasRazorFiles;
                 })
                 .Select(static (pair, cancellationToken) =>
                 {
-                    var ((compilation, razorSourceGeneratorOptions), hasRazorFiles) = pair;
+                    var ((compilation, _), hasRazorFiles) = pair;
+
                     if (!hasRazorFiles)
                     {
                         // If there's no razor code in this app, don't do anything.

@@ -3,18 +3,227 @@
 
 using System;
 using System.Collections.Immutable;
+using System.Linq;
 using System.Text;
 using System.Threading;
 using Microsoft.AspNetCore.Mvc.Razor.Extensions;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Razor;
+using Microsoft.CodeAnalysis.Text;
+using CSharpSyntaxKind = Microsoft.CodeAnalysis.CSharp.SyntaxKind;
 
 namespace Microsoft.NET.Sdk.Razor.SourceGenerators
 {
     public partial class RazorSourceGenerator
     {
+        private const int MaxSyntaxTreeDepthForTagHelperDiscovery = 256;
+
+        private static bool AreCompilationsEquivalentForTagHelperDiscovery(
+            Compilation oldCompilation,
+            Compilation newCompilation,
+            ImmutableArray<SyntaxTree> oldSyntaxTrees,
+            ImmutableArray<SyntaxTree> newSyntaxTrees)
+        {
+            if (ReferenceEquals(oldCompilation, newCompilation))
+            {
+                return true;
+            }
+
+            // A body-only edit is safe to skip only if the rest of the compilation still binds the same way.
+            if (oldCompilation.ScriptCompilationInfo is not null || newCompilation.ScriptCompilationInfo is not null ||
+                oldCompilation.AssemblyName != newCompilation.AssemblyName ||
+                !oldCompilation.Options.Equals(newCompilation.Options) ||
+                !AreMetadataReferencesEquivalentForTagHelperDiscovery(oldCompilation, newCompilation))
+            {
+                return false;
+            }
+
+            // The tree stage keeps the previous instance when an edit doesn't affect discovery.
+            return oldSyntaxTrees.SequenceEqual(newSyntaxTrees);
+        }
+
+        private static bool AreSyntaxTreesEquivalentForTagHelperDiscovery(SyntaxTree? oldTree, SyntaxTree? newTree)
+        {
+            if (ReferenceEquals(oldTree, newTree))
+            {
+                return true;
+            }
+
+            if (oldTree is null || newTree is null ||
+                oldTree.FilePath != newTree.FilePath ||
+                !oldTree.Options.Equals(newTree.Options))
+            {
+                return false;
+            }
+
+            return AreNodesEquivalentForTagHelperDiscovery(oldTree.GetRoot(), newTree.GetRoot(), oldTree.GetText(), newTree.GetText(), depth: 0);
+        }
+
+        private static bool AreNodesEquivalentForTagHelperDiscovery(
+            SyntaxNode oldNode,
+            SyntaxNode newNode,
+            SourceText oldText,
+            SourceText newText,
+            int depth)
+        {
+            // Treat unusually deep syntax as a cache miss instead of risking a stack overflow.
+            if (depth >= MaxSyntaxTreeDepthForTagHelperDiscovery)
+            {
+                return false;
+            }
+
+            if (oldNode.RawKind != newNode.RawKind)
+            {
+                return false;
+            }
+
+            // Method bodies are the one place edits are allowed, since discovery never looks inside them.
+            // Directives are the exception because things like #nullable leak out past the end of the body,
+            // and errors are too because a broken body could be swallowing things that come after it.
+            if (IsMethodBody(oldNode))
+            {
+                if (oldNode.ContainsDirectives || newNode.ContainsDirectives)
+                {
+                    return oldText.GetSubText(oldNode.FullSpan).ContentEquals(newText.GetSubText(newNode.FullSpan));
+                }
+
+                return !oldNode.ContainsDiagnostics && !newNode.ContainsDiagnostics;
+            }
+
+            // Everywhere else has to match exactly, so walk the children in lock step.
+            var oldChildren = oldNode.ChildNodesAndTokens();
+            var newChildren = newNode.ChildNodesAndTokens();
+            if (oldChildren.Count != newChildren.Count)
+            {
+                return false;
+            }
+
+            for (var i = 0; i < oldChildren.Count; i++)
+            {
+                var oldChild = oldChildren[i];
+                var newChild = newChildren[i];
+
+                if (oldChild.AsNode() is { } oldChildNode && newChild.AsNode() is { } newChildNode)
+                {
+                    if (!AreNodesEquivalentForTagHelperDiscovery(oldChildNode, newChildNode, oldText, newText, depth + 1))
+                    {
+                        return false;
+                    }
+                }
+                else if (oldChild.IsToken && newChild.IsToken)
+                {
+                    if (!AreTokensEquivalentForTagHelperDiscovery(oldChild.AsToken(), newChild.AsToken(), oldText, newText))
+                    {
+                        return false;
+                    }
+                }
+                else
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        private static bool IsMethodBody(SyntaxNode node)
+            => node.Parent switch
+            {
+                BaseMethodDeclarationSyntax method => node == method.Body || node == method.ExpressionBody,
+                AccessorDeclarationSyntax accessor => node == accessor.Body || node == accessor.ExpressionBody,
+                LocalFunctionStatementSyntax localFunction => node == localFunction.Body || node == localFunction.ExpressionBody,
+                PropertyDeclarationSyntax property => node == property.ExpressionBody,
+                IndexerDeclarationSyntax indexer => node == indexer.ExpressionBody,
+                _ => false,
+            };
+
+        private static bool AreTokensEquivalentForTagHelperDiscovery(SyntaxToken oldToken, SyntaxToken newToken, SourceText oldText, SourceText newText)
+            => oldToken.RawKind == newToken.RawKind &&
+                oldToken.Text == newToken.Text &&
+                AreTriviaListsEquivalentForTagHelperDiscovery(oldToken.LeadingTrivia, newToken.LeadingTrivia, oldText, newText) &&
+                AreTriviaListsEquivalentForTagHelperDiscovery(oldToken.TrailingTrivia, newToken.TrailingTrivia, oldText, newText);
+
+        private static bool AreTriviaListsEquivalentForTagHelperDiscovery(SyntaxTriviaList oldTrivia, SyntaxTriviaList newTrivia, SourceText oldText, SourceText newText)
+        {
+            // Trivia matters because doc comments and directives like #nullable change what discovery sees.
+            // The generated #line directives don't though, and they shift around whenever a line is added
+            // or removed anywhere in the Razor file, so we skip over them on both sides.
+            var oldIndex = 0;
+            var newIndex = 0;
+            while (true)
+            {
+                while (oldIndex < oldTrivia.Count && IsLineMappingTrivia(oldTrivia[oldIndex]))
+                {
+                    oldIndex++;
+                }
+
+                while (newIndex < newTrivia.Count && IsLineMappingTrivia(newTrivia[newIndex]))
+                {
+                    newIndex++;
+                }
+
+                if (oldIndex == oldTrivia.Count || newIndex == newTrivia.Count)
+                {
+                    return oldIndex == oldTrivia.Count && newIndex == newTrivia.Count;
+                }
+
+                var oldItem = oldTrivia[oldIndex];
+                var newItem = newTrivia[newIndex];
+                if (oldItem.RawKind != newItem.RawKind ||
+                    !oldText.GetSubText(oldItem.FullSpan).ContentEquals(newText.GetSubText(newItem.FullSpan)))
+                {
+                    return false;
+                }
+
+                oldIndex++;
+                newIndex++;
+            }
+        }
+
+        private static bool AreMetadataReferencesEquivalentForTagHelperDiscovery(Compilation oldCompilation, Compilation newCompilation)
+            => oldCompilation.References.SequenceEqual(
+                newCompilation.References,
+                new LambdaComparer<MetadataReference>((oldReference, newReference) =>
+                    AreMetadataReferencesEquivalentForTagHelperDiscovery(oldCompilation, oldReference, newCompilation, newReference)));
+
+        private static bool AreMetadataReferencesEquivalentForTagHelperDiscovery(
+            Compilation oldCompilation,
+            MetadataReference? oldReference,
+            Compilation newCompilation,
+            MetadataReference? newReference)
+        {
+            if (ReferenceEquals(oldReference, newReference))
+            {
+                return true;
+            }
+
+            if (oldReference is null || newReference is null ||
+                !oldReference.Properties.Equals(newReference.Properties))
+            {
+                return false;
+            }
+
+            var oldSymbol = oldCompilation.GetAssemblyOrModuleSymbol(oldReference);
+            var newSymbol = newCompilation.GetAssemblyOrModuleSymbol(newReference);
+            if (oldSymbol is null || newSymbol is null)
+            {
+                // References skipped by the reference manager don't contribute symbols to discovery.
+                return oldSymbol is null && newSymbol is null;
+            }
+
+            // Discovery reads XML docs too, so matching PE identity alone isn't enough.
+            return SymbolEqualityComparer.Default.Equals(oldSymbol, newSymbol);
+        }
+
+        private static bool IsLineMappingTrivia(SyntaxTrivia trivia)
+            => trivia.IsKind(CSharpSyntaxKind.LineDirectiveTrivia) ||
+                trivia.IsKind(CSharpSyntaxKind.LineSpanDirectiveTrivia) ||
+                trivia.IsKind(CSharpSyntaxKind.PragmaChecksumDirectiveTrivia);
+
         internal static string GetIdentifierFromPath(ReadOnlySpan<char> filePath)
         {
             using var _ = StringBuilderPool.GetPooledObject(out var builder);
