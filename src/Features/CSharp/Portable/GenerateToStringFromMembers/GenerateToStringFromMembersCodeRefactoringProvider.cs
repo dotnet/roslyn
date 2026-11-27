@@ -93,7 +93,11 @@ internal sealed partial class GenerateToStringFromMembersCodeRefactoringProvider
                 IsReadableInstanceFieldOrProperty(m) &&
                 SymbolEqualityComparer.Default.Equals(m.ContainingType, containingType));
 
-        if (members.IsEmpty)
+        // A record with no printable members still gets the offer: the generated
+        // PrintMembers just returns false, so the user can materialize the
+        // synthesized members and customize them. A class or struct with nothing
+        // to print has no useful ToString to generate, so offer nothing there.
+        if (members.IsEmpty && !containingType.IsRecord)
             return;
 
         var actions = CreateActions(document, typeDeclaration, containingType, members);
