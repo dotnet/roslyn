@@ -182,9 +182,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                 mods |= DeclarationModifiers.Extern;
             }
 
-            if (originalMethod is LocalFunctionOrSourceMemberMethodSymbol { HasUnsafeModifier: true })
+            if (originalMethod is LocalFunctionOrSourceMemberMethodSymbol method)
             {
-                mods |= DeclarationModifiers.Unsafe;
+                if (method.HasUnsafeModifier)
+                {
+                    mods |= DeclarationModifiers.Unsafe;
+                }
+                else if (method.HasSafeModifier)
+                {
+                    mods |= DeclarationModifiers.Safe;
+                }
             }
 
             return mods;
