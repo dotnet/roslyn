@@ -7,8 +7,10 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.IO;
 using System.Linq;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
@@ -2384,6 +2386,161 @@ is_global = true
             Assert.Empty(globalOptions.AnalyzerOptions);
             Assert.Empty(globalOptions.TreeOptions);
             Assert.Empty(globalOptions.Diagnostics);
+        }
+
+        [Theory, CombinatorialData]
+        public void ConfigRelativeBuildProperties(bool overrideValues)
+        {
+            using var temp = new TempRoot();
+            var configDirectory = temp.CreateDirectory().Path;
+            var explicitOptions = overrideValues
+                ? """
+
+                    build_property.ProjectDir = explicit project dir
+                    build_property.MSBuildProjectDirectory = explicit msbuild project directory
+                    build_property.IntermediateOutputPath = explicit intermediate output path
+                    build_property.OutDir = explicit out dir
+                    build_property.ApplicationManifest = explicit application manifest
+                    """
+                : "";
+            var relativePathConfig = Parse($$"""
+                is_global = true
+                config_relative_build_property.ProjectDir = ./
+                config_relative_build_property.MSBuildProjectDirectory = .
+                config_relative_build_property.IntermediateOutputPath = obj/Debug/
+                config_relative_build_property.OutDir = bin/Debug/
+                config_relative_build_property.ApplicationManifest = obj/app.manifest
+                {{explicitOptions}}
+                """, Path.Combine(configDirectory, ".globalconfig"));
+            var relativePathOptions = AnalyzerConfigSet.Create(
+                ImmutableArray.Create(relativePathConfig)).GlobalConfigOptions.AnalyzerOptions;
+
+            Assert.DoesNotContain(relativePathOptions.Keys, key => key.StartsWith(ConfigRelativeBuildPropertyKeyPrefix, StringComparison.Ordinal));
+            Assert.Equal(
+                overrideValues ? "explicit project dir" : PathUtilities.EnsureTrailingSeparator(configDirectory),
+                relativePathOptions["build_property.ProjectDir"]);
+            Assert.Equal(
+                overrideValues ? "explicit msbuild project directory" : PathUtilities.TrimTrailingSeparators(configDirectory),
+                relativePathOptions["build_property.MSBuildProjectDirectory"]);
+            Assert.Equal(
+                overrideValues ? "explicit intermediate output path" : PathUtilities.EnsureTrailingSeparator(Path.Combine(configDirectory, "obj", "Debug")),
+                relativePathOptions["build_property.IntermediateOutputPath"]);
+            Assert.Equal(
+                overrideValues ? "explicit out dir" : PathUtilities.EnsureTrailingSeparator(Path.Combine(configDirectory, "bin", "Debug")),
+                relativePathOptions["build_property.OutDir"]);
+            Assert.Equal(
+                overrideValues ? "explicit application manifest" : Path.Combine(configDirectory, "obj", "app.manifest"),
+                relativePathOptions["build_property.ApplicationManifest"]);
+
+            var emptyPathConfig = Parse("""
+                is_global = true
+                config_relative_build_property.ApplicationManifest =
+                """, Path.Combine(configDirectory, ".globalconfig"));
+            var emptyPathOptions = AnalyzerConfigSet.Create(
+                ImmutableArray.Create(emptyPathConfig)).GlobalConfigOptions.AnalyzerOptions;
+
+            Assert.DoesNotContain(emptyPathOptions.Keys, key => key.StartsWith(ConfigRelativeBuildPropertyKeyPrefix, StringComparison.Ordinal));
+            Assert.True(emptyPathOptions.TryGetValue("build_property.ApplicationManifest", out var applicationManifest));
+            Assert.Empty(applicationManifest);
+        }
+
+        [Fact]
+        public void ConfigRelativeBuildPropertiesUseOriginWhenMerging()
+        {
+            using var temp = new TempRoot();
+            var firstConfigDirectory = temp.CreateDirectory().Path;
+            var secondConfigDirectory = temp.CreateDirectory().Path;
+            var firstConfig = Parse("""
+                is_global = true
+                global_level = 1
+                config_relative_build_property.ProjectDir = lower/
+                """, Path.Combine(firstConfigDirectory, ".globalconfig"));
+            var secondConfig = Parse("""
+                is_global = true
+                global_level = 2
+                config_relative_build_property.ProjectDir = higher/
+                """, Path.Combine(secondConfigDirectory, ".globalconfig"));
+
+            var set = AnalyzerConfigSet.Create(
+                ImmutableArray.Create(firstConfig, secondConfig),
+                out var diagnostics);
+
+            diagnostics.Verify();
+            Assert.Equal(
+                PathUtilities.EnsureTrailingSeparator(Path.Combine(secondConfigDirectory, "higher")),
+                set.GlobalConfigOptions.AnalyzerOptions["build_property.ProjectDir"]);
+        }
+
+        [Fact]
+        public void DuplicateConfigRelativeBuildPropertiesAtSameLevelAreUnset()
+        {
+            using var temp = new TempRoot();
+            var firstConfigPath = Path.Combine(temp.CreateDirectory().Path, ".globalconfig");
+            var secondConfigPath = Path.Combine(temp.CreateDirectory().Path, ".globalconfig");
+            var firstConfig = Parse("""
+                is_global = true
+                config_relative_build_property.ProjectDir = first/
+                """, firstConfigPath);
+            var secondConfig = Parse("""
+                is_global = true
+                config_relative_build_property.ProjectDir = second/
+                """, secondConfigPath);
+
+            var set = AnalyzerConfigSet.Create(
+                ImmutableArray.Create(firstConfig, secondConfig),
+                out var diagnostics);
+
+            diagnostics.Verify(
+                Diagnostic("MultipleGlobalAnalyzerKeys")
+                    .WithArguments("build_property.projectdir", "Global Section", $"{firstConfigPath}, {secondConfigPath}")
+                    .WithLocation(1, 1));
+            Assert.Empty(set.GlobalConfigOptions.AnalyzerOptions);
+        }
+
+        [Fact]
+        public void ConfigRelativeBuildPropertyWithoutPropertyNameIsIgnored()
+        {
+            using var temp = new TempRoot();
+            var config = Parse("""
+                is_global = true
+                config_relative_build_property. = obj/
+                """, Path.Combine(temp.CreateDirectory().Path, ".globalconfig"));
+
+            var options = AnalyzerConfigSet.Create(
+                ImmutableArray.Create(config)).GlobalConfigOptions.AnalyzerOptions;
+
+            Assert.Empty(options);
+        }
+
+        [Fact]
+        public void ConfigRelativeBuildPropertyPreservesRootSeparator()
+        {
+            using var temp = new TempRoot();
+            var root = PathUtilities.GetPathRoot(temp.CreateDirectory().Path);
+            var config = Parse("""
+                is_global = true
+                config_relative_build_property.ProjectDir = .
+                """, Path.Combine(root, ".globalconfig"));
+
+            var options = AnalyzerConfigSet.Create(
+                ImmutableArray.Create(config)).GlobalConfigOptions.AnalyzerOptions;
+
+            Assert.Equal(root, options["build_property.ProjectDir"]);
+        }
+
+        [ConditionalFact(typeof(WindowsOnly))]
+        public void ConfigRelativeBuildPropertyInvalidPathIsIgnored()
+        {
+            using var temp = new TempRoot();
+            var config = Parse("""
+                is_global = true
+                config_relative_build_property.ProjectDir = C:relative
+                """, Path.Combine(temp.CreateDirectory().Path, ".globalconfig"));
+
+            var options = AnalyzerConfigSet.Create(
+                ImmutableArray.Create(config)).GlobalConfigOptions.AnalyzerOptions;
+
+            Assert.Empty(options);
         }
 
         [Fact]

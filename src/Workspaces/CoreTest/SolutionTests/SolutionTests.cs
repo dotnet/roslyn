@@ -5852,6 +5852,78 @@ public sealed class SolutionTests : TestBase
     }
 
     [Fact]
+    public void ConfigRelativeBuildPropertiesUseAnalyzerConfigFilePath()
+    {
+        using var workspace = CreateWorkspace();
+        var projectId = ProjectId.CreateNewId();
+        var firstProjectFilePath = Path.Combine(TempRoot.Root, "first", "TestProject.csproj");
+        var secondProjectFilePath = Path.Combine(TempRoot.Root, "second", "TestProject.csproj");
+        var configFilePath = Path.Combine(TempRoot.Root, "config", ".globalconfig");
+        var movedConfigFilePath = Path.Combine(TempRoot.Root, "moved-config", ".globalconfig");
+        var configDocumentId = DocumentId.CreateNewId(projectId);
+        var analyzerConfigText = """
+            is_global = true
+            config_relative_build_property.ProjectDir = ./
+            config_relative_build_property.MSBuildProjectDirectory = .
+            config_relative_build_property.IntermediateOutputPath = obj/Debug/
+            config_relative_build_property.OutDir = bin/Debug/
+            config_relative_build_property.ApplicationManifest = obj/app.manifest
+            """;
+        var solution = workspace.CurrentSolution
+            .AddProject(ProjectInfo.Create(
+                projectId,
+                VersionStamp.Default,
+                "TestProject",
+                "TestProject",
+                LanguageNames.CSharp,
+                filePath: firstProjectFilePath))
+            .AddAnalyzerConfigDocument(
+                configDocumentId,
+                ".globalconfig",
+                SourceText.From(analyzerConfigText),
+                filePath: configFilePath);
+
+        AssertConfigRelativeOptions(
+            solution.GetRequiredProject(projectId),
+            configFilePath);
+
+        var updatedSolution = solution.WithProjectFilePath(projectId, secondProjectFilePath);
+        AssertConfigRelativeOptions(
+            updatedSolution.GetRequiredProject(projectId),
+            configFilePath);
+
+        var movedConfigSolution = solution
+            .RemoveAnalyzerConfigDocuments([configDocumentId])
+            .AddAnalyzerConfigDocument(
+                configDocumentId,
+                ".globalconfig",
+                SourceText.From(analyzerConfigText),
+                filePath: movedConfigFilePath);
+        AssertConfigRelativeOptions(
+            movedConfigSolution.GetRequiredProject(projectId),
+            movedConfigFilePath);
+
+        static void AssertConfigRelativeOptions(Project project, string configFilePath)
+        {
+            var configDirectory = PathUtilities.GetDirectoryName(configFilePath);
+            Assert.NotNull(configDirectory);
+            var options = project.GetAnalyzerConfigOptions()!.Value.ConfigOptionsWithoutFallback;
+
+            Assert.Empty(options.Keys.Where(key => key.StartsWith("config_relative_build_property", StringComparison.Ordinal)));
+            Assert.True(options.TryGetValue("build_property.ProjectDir", out var projectDir));
+            Assert.Equal(PathUtilities.EnsureTrailingSeparator(configDirectory), projectDir);
+            Assert.True(options.TryGetValue("build_property.MSBuildProjectDirectory", out var msbuildProjectDirectory));
+            Assert.Equal(PathUtilities.TrimTrailingSeparators(configDirectory), msbuildProjectDirectory);
+            Assert.True(options.TryGetValue("build_property.IntermediateOutputPath", out var intermediateOutputPath));
+            Assert.Equal(PathUtilities.EnsureTrailingSeparator(Path.Combine(configDirectory, "obj", "Debug")), intermediateOutputPath);
+            Assert.True(options.TryGetValue("build_property.OutDir", out var outDir));
+            Assert.Equal(PathUtilities.EnsureTrailingSeparator(Path.Combine(configDirectory, "bin", "Debug")), outDir);
+            Assert.True(options.TryGetValue("build_property.ApplicationManifest", out var applicationManifest));
+            Assert.Equal(Path.Combine(configDirectory, "obj", "app.manifest"), applicationManifest);
+        }
+    }
+
+    [Fact]
     public void GetRelatedDocumentsDoesNotReturnOtherTypesOfDocuments()
     {
         using var workspace = CreateWorkspace();
