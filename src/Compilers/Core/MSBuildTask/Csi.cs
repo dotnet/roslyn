@@ -8,6 +8,7 @@ using Microsoft.Build.Framework;
 
 namespace Microsoft.CodeAnalysis.BuildTasks
 {
+    [MSBuildMultiThreadableTask]
     public class Csi : InteractiveCompiler
     {
         #region Properties - Please keep these alphabetized.
