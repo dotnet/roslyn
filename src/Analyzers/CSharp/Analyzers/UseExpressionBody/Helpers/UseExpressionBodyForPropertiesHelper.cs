@@ -65,7 +65,24 @@ internal sealed class UseExpressionBodyForPropertiesHelper :
 
     protected override PropertyDeclarationSyntax WithGenerateBody(
         SemanticModel semanticModel, PropertyDeclarationSyntax declaration, CancellationToken cancellation)
-        => WithAccessorList(semanticModel, declaration, cancellation);
+    {
+        var updatedDeclaration = WithAccessorList(semanticModel, declaration, cancellation);
+        if (declaration.ExpressionBody.Expression is not AnonymousFunctionExpressionSyntax { Block: not null } expression ||
+            GetBody(updatedDeclaration) is not { } body)
+        {
+            return updatedDeclaration;
+        }
+
+        var line = expression.SyntaxTree.GetText(cancellation).Lines.GetLineFromPosition(expression.SpanStart);
+        if (expression.Span.End <= line.End)
+            return updatedDeclaration;
+
+        // Anchor the generated return line at the original indentation of the anonymous function.
+        // The formatter can then move its body along with the return statement.
+        var openBrace = body.OpenBraceToken;
+        return updatedDeclaration.ReplaceToken(openBrace, openBrace.WithTrailingTrivia(
+            SyntaxFactory.ElasticCarriageReturnLineFeed, SyntaxFactory.ElasticWhitespace(line.GetLeadingWhitespace())));
+    }
 
     protected override bool CreateReturnStatementForExpression(SemanticModel semanticModel, PropertyDeclarationSyntax declaration, CancellationToken cancellationToken)
         => true;
