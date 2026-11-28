@@ -254,5 +254,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal bool IsPartialImplementation => _event.IsPartialImplementation;
 
         public sealed override bool IsExtern => PartialImplementationPart is { } implementation ? implementation.IsExtern : base.IsExtern;
+
+        protected sealed override Location ReturnTypeLocation => Location;
     }
 }

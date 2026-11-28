@@ -1440,5 +1440,55 @@ class Attr: System.Attribute
 ";
             return noCS1980String.Replace("%TYPENAME%", typeName);
         }
+
+        [Fact]
+        public void EmitAttribute_Union_ConstructorParameters_01()
+        {
+            var source =
+@"
+public union U(dynamic, C<dynamic>[]);
+public class C<T>;
+";
+            var comp = CreateCompilation(new[] { source, IUnionSource, UnionAttributeSource });
+            CompileAndVerify(comp, symbolValidator: validate, sourceSymbolValidator: validate).VerifyDiagnostics();
+
+            void validate(ModuleSymbol module)
+            {
+                var ctors = module.GlobalNamespace.GetTypeMember("U").InstanceConstructors.Where(ctor => !ctor.IsDefaultValueTypeConstructor()).ToArray();
+                AssertEx.Equal("U..ctor(dynamic value)", ctors[0].ToTestDisplayString());
+                AssertEx.Equal("U..ctor(C<dynamic>[] value)", ctors[1].ToTestDisplayString());
+            }
+        }
+
+        [Fact]
+        public void EmitAttribute_Union_ConstructorParameters_02()
+        {
+            var source =
+@"
+public union U(dynamic, C<dynamic>[]);
+public class C<T>;
+";
+            var comp = CreateCompilation(new[] { source, IUnionSource, UnionAttributeSource });
+            comp.MakeMemberMissing(WellKnownMember.System_Runtime_CompilerServices_DynamicAttribute__ctor);
+            comp.VerifyDiagnostics(
+                // 0.cs(2,16): error CS1980: Cannot define a class or member that utilizes 'dynamic' because the compiler required type 'System.Runtime.CompilerServices.DynamicAttribute' cannot be found. Are you missing a reference?
+                // public union U(dynamic, C<dynamic>[]);
+                Diagnostic(ErrorCode.ERR_DynamicAttributeMissing, "dynamic").WithArguments("System.Runtime.CompilerServices.DynamicAttribute").WithLocation(2, 16),
+                // 0.cs(2,27): error CS1980: Cannot define a class or member that utilizes 'dynamic' because the compiler required type 'System.Runtime.CompilerServices.DynamicAttribute' cannot be found. Are you missing a reference?
+                // public union U(dynamic, C<dynamic>[]);
+                Diagnostic(ErrorCode.ERR_DynamicAttributeMissing, "dynamic").WithArguments("System.Runtime.CompilerServices.DynamicAttribute").WithLocation(2, 27)
+                );
+
+            comp = CreateCompilation(new[] { source, IUnionSource, UnionAttributeSource });
+            comp.MakeMemberMissing(WellKnownMember.System_Runtime_CompilerServices_DynamicAttribute__ctorTransformFlags);
+            comp.VerifyDiagnostics(
+                // 0.cs(2,16): error CS1980: Cannot define a class or member that utilizes 'dynamic' because the compiler required type 'System.Runtime.CompilerServices.DynamicAttribute' cannot be found. Are you missing a reference?
+                // public union U(dynamic, C<dynamic>[]);
+                Diagnostic(ErrorCode.ERR_DynamicAttributeMissing, "dynamic").WithArguments("System.Runtime.CompilerServices.DynamicAttribute").WithLocation(2, 16),
+                // 0.cs(2,27): error CS1980: Cannot define a class or member that utilizes 'dynamic' because the compiler required type 'System.Runtime.CompilerServices.DynamicAttribute' cannot be found. Are you missing a reference?
+                // public union U(dynamic, C<dynamic>[]);
+                Diagnostic(ErrorCode.ERR_DynamicAttributeMissing, "dynamic").WithArguments("System.Runtime.CompilerServices.DynamicAttribute").WithLocation(2, 27)
+                );
+        }
     }
 }

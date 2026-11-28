@@ -7,6 +7,8 @@
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Threading;
+using Microsoft.CodeAnalysis.CSharp.Emit;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
@@ -14,7 +16,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     /// <summary>
     /// A base class for synthesized methods that might want a this parameter.
     /// </summary>
-    internal abstract class SynthesizedMethodSymbol : MethodSymbol
+    internal abstract class SynthesizedMethodSymbol : SourceOrSynthesizedMethodSymbol
     {
         private ParameterSymbol _lazyThisParameter;
 
@@ -110,6 +112,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal sealed override int TryGetOverloadResolutionPriority()
         {
             return 0;
+        }
+
+        internal override void AddSynthesizedAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<CSharpAttributeData> attributes)
+        {
+            base.AddSynthesizedAttributes(moduleBuilder, ref attributes);
+
+            Debug.Assert(GetLocalNullableContextValue() is null || this is SynthesizedUnionCtor); // It is not wrong to get here with other symbols, as long as presence of the NullableContextAttribute is properly checked.
+
+            if (DeclaringCompilation?.ShouldEmitNullableAttributes(this) == true &&
+                ShouldEmitNullableContextValue(out byte nullableContextValue))
+            {
+                Debug.Assert(this is SynthesizedUnionCtor); // It is not wrong to get here with other symbols, as long as presence of the attribute is properly checked.
+                AddSynthesizedAttribute(ref attributes, moduleBuilder.SynthesizeNullableContextAttribute(this, nullableContextValue));
+            }
         }
     }
 }

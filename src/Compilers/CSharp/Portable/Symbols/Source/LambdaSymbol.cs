@@ -444,5 +444,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         protected override void NoteAttributesComplete(bool forReturnType)
         {
         }
+
+        protected sealed override Location ReturnTypeLocation => DiagnosticLocation;
     }
 }

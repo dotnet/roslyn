@@ -26,8 +26,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
         }
 
-        protected abstract Location ReturnTypeLocation { get; }
-
         public sealed override bool ReturnsVoid
         {
             get
@@ -44,9 +42,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             // set ReturnsVoid flag
             this.SetReturnsVoid(_lazyReturnType.IsVoidType());
-
-            this.CheckEffectiveAccessibility(_lazyReturnType, _lazyParameters, diagnostics);
-            this.CheckFileTypeUsage(_lazyReturnType, _lazyParameters, diagnostics);
 
             // Checks taken from MemberDefiner::defineMethod
             if (this.Name == WellKnownMemberNames.DestructorName && this.ParameterCount == 0 && this.Arity == 0 && this.ReturnsVoid)
@@ -225,47 +220,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             base.AfterAddingTypeMembersChecks(conversions, diagnostics);
 
-            // Defer computing location to avoid unnecessary allocations in most cases.
-            Location? returnTypeLocation = null;
-            var compilation = DeclaringCompilation;
-
-            // Check constraints on return type and parameters. Note: Dev10 uses the
-            // method name location for any such errors. We'll do the same for return
-            // type errors but for parameter errors, we'll use the parameter location.
             CheckConstraintsForExplicitInterfaceType(conversions, diagnostics);
-
-            this.ReturnType.CheckAllConstraints(compilation, conversions, this.GetFirstLocation(), diagnostics);
-
-            foreach (var parameter in this.Parameters)
-            {
-                parameter.Type.CheckAllConstraints(compilation, conversions, parameter.GetFirstLocation(), diagnostics);
-            }
-
             PartialMethodChecks(diagnostics);
-
-            if (RefKind == RefKind.RefReadOnly)
-            {
-                compilation.EnsureIsReadOnlyAttributeExists(diagnostics, getReturnTypeLocation(), modifyCompilation: true);
-            }
-
-            ParameterHelpers.EnsureRefKindAttributesExist(compilation, Parameters, diagnostics, modifyCompilation: true);
-            ParameterHelpers.EnsureParamCollectionAttributeExists(compilation, Parameters, diagnostics, modifyCompilation: true);
-
-            if (compilation.ShouldEmitNativeIntegerAttributes(ReturnType))
-            {
-                compilation.EnsureNativeIntegerAttributeExists(diagnostics, getReturnTypeLocation(), modifyCompilation: true);
-            }
-
-            ParameterHelpers.EnsureNativeIntegerAttributeExists(compilation, Parameters, diagnostics, modifyCompilation: true);
-
-            ParameterHelpers.EnsureScopedRefAttributeExists(compilation, Parameters, diagnostics, modifyCompilation: true);
-
-            if (compilation.ShouldEmitNullableAttributes(this) && ReturnTypeWithAnnotations.NeedsNullableAttribute())
-            {
-                compilation.EnsureNullableAttributeExists(diagnostics, getReturnTypeLocation(), modifyCompilation: true);
-            }
-
-            ParameterHelpers.EnsureNullableAttributeExists(compilation, this, Parameters, diagnostics, modifyCompilation: true);
 
             if (this.IsExtensionBlockMember())
             {
@@ -274,13 +230,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     ParameterHelpers.CheckUnderspecifiedGenericExtension(this, Parameters, diagnostics);
                 }
 
-                compilation.EnsureExtensionMarkerAttributeExists(diagnostics, GetFirstLocation(), modifyCompilation: true);
-            }
-
-            Location getReturnTypeLocation()
-            {
-                returnTypeLocation ??= this.ReturnTypeLocation;
-                return returnTypeLocation;
+                DeclaringCompilation.EnsureExtensionMarkerAttributeExists(diagnostics, GetFirstLocation(), modifyCompilation: true);
             }
         }
 

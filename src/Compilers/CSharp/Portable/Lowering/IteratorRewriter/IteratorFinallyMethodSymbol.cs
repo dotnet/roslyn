@@ -257,5 +257,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         protected sealed override bool HasSetsRequiredMembersImpl => throw ExceptionUtilities.Unreachable();
+
+        protected sealed override Location ReturnTypeLocation => Location.None;
     }
 }

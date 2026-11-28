@@ -312,5 +312,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             return 0;
         }
+
+        protected sealed override Location ReturnTypeLocation => GetFirstLocationOrNone();
     }
 }

@@ -222,5 +222,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             InheritsBaseMethodAttributes
                 ? BaseMethod.RuntimeAsyncMethodGenerationAttributeSetting
                 : ThreeState.Unknown;
+
+        protected sealed override Location ReturnTypeLocation => Location.None;
     }
 }

@@ -620,7 +620,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal static Location GetParameterLocation(ParameterSymbol parameter) => parameter.GetNonNullSyntaxNode().Location;
+        internal static Location GetParameterLocation(ParameterSymbol parameter)
+        {
+            CSharpSyntaxNode syntaxNode = parameter.GetNonNullSyntaxNode();
+
+            if (syntaxNode.SyntaxTree == CSharpSyntaxTree.Dummy && parameter.TryGetFirstLocation() is { } location)
+            {
+                return location;
+            }
+
+            return syntaxNode.Location;
+        }
 
         internal static void CheckParameterModifiers(
             BaseParameterSyntax parameter,

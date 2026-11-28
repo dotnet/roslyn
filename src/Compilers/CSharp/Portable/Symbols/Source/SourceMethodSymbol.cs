@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     /// things like ordinary methods and constructors, and functions
     /// like lambdas and local functions.
     /// </summary>
-    internal abstract partial class SourceMethodSymbol : MethodSymbol
+    internal abstract partial class SourceMethodSymbol : SourceOrSynthesizedMethodSymbol
     {
         /// <summary>
         /// If there are no constraints, returns an empty immutable array. Otherwise, returns an immutable

@@ -900,5 +900,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 diagnostics.Add(ErrorCode.ERR_PartialPropertyInitMismatch, implementationAccessor.GetFirstLocation(), implementationAccessor, accessorName);
             }
         }
+
+        protected sealed override Location ReturnTypeLocation => GetFirstLocationOrNone();
     }
 }

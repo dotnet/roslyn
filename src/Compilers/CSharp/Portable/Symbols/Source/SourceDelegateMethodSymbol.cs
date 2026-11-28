@@ -212,6 +212,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return 0;
         }
 
+        protected override Location ReturnTypeLocation
+        {
+            get
+            {
+                var syntax = (DelegateDeclarationSyntax)SyntaxRef.GetSyntax();
+                var location = syntax.ReturnType.GetLocation();
+
+                Debug.Assert(location != null);
+                return location;
+            }
+        }
+
         private sealed class Constructor : SourceDelegateMethodSymbol
         {
             internal Constructor(
@@ -256,7 +268,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         // Note that `in`/`ref readonly` parameters currently don't have `modreq(In)`
         // even though the `Invoke` method is virtual. https://github.com/dotnet/roslyn/issues/69079
-        private sealed class InvokeMethod : SourceDelegateMethodSymbol
+        internal sealed class InvokeMethod : SourceDelegateMethodSymbol
         {
             private readonly ImmutableArray<CustomModifier> _refCustomModifiers;
 
@@ -312,41 +324,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // there are no real reasons for emitting the members in one order or another, 
                 // so we will keep them the same.
                 return new LexicalSortKey(this.syntaxReferenceOpt.GetLocation(), this.DeclaringCompilation);
-            }
-
-            internal override void AfterAddingTypeMembersChecks(ConversionsBase conversions, BindingDiagnosticBag diagnostics)
-            {
-                var syntax = (DelegateDeclarationSyntax)SyntaxRef.GetSyntax();
-                var location = syntax.ReturnType.GetLocation();
-                var compilation = DeclaringCompilation;
-
-                Debug.Assert(location != null);
-
-                base.AfterAddingTypeMembersChecks(conversions, diagnostics);
-
-                if (this.RefKind == RefKind.RefReadOnly)
-                {
-                    compilation.EnsureIsReadOnlyAttributeExists(diagnostics, location, modifyCompilation: true);
-                }
-
-                ParameterHelpers.EnsureRefKindAttributesExist(compilation, Parameters, diagnostics, modifyCompilation: true);
-                ParameterHelpers.EnsureParamCollectionAttributeExists(compilation, Parameters, diagnostics, modifyCompilation: true);
-
-                if (compilation.ShouldEmitNativeIntegerAttributes(ReturnType))
-                {
-                    compilation.EnsureNativeIntegerAttributeExists(diagnostics, location, modifyCompilation: true);
-                }
-
-                ParameterHelpers.EnsureNativeIntegerAttributeExists(compilation, Parameters, diagnostics, modifyCompilation: true);
-                ParameterHelpers.EnsureScopedRefAttributeExists(compilation, Parameters, diagnostics, modifyCompilation: true);
-
-                if (compilation.ShouldEmitNullableAttributes(this) &&
-                    ReturnTypeWithAnnotations.NeedsNullableAttribute())
-                {
-                    compilation.EnsureNullableAttributeExists(diagnostics, location, modifyCompilation: true);
-                }
-
-                ParameterHelpers.EnsureNullableAttributeExists(compilation, this, Parameters, diagnostics, modifyCompilation: true);
             }
 
             public override ImmutableArray<CustomModifier> RefCustomModifiers => _refCustomModifiers;

@@ -40,6 +40,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
         protected static readonly string IUnionSource = @"
 namespace System.Runtime.CompilerServices
 {
+#line 99900
     public interface IUnion
     {
 #nullable enable

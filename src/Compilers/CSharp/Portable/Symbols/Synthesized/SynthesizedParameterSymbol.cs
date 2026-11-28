@@ -233,6 +233,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 Symbol symbol => symbol.ContainingModule.UseUpdatedEscapeRules,
                 _ => false,
             };
+
+        public override Location? TryGetFirstLocation()
+        {
+            Location? result = base.TryGetFirstLocation();
+
+            if (result is null && ContainingSymbol is SynthesizedUnionCtor container)
+            {
+                result = container.TryGetFirstLocation();
+            }
+
+            return result;
+        }
     }
 
     internal sealed class SynthesizedParameterSymbol : SynthesizedParameterSymbolBase

@@ -1596,6 +1596,59 @@ C
             }
         }
 
+        [Fact]
+        public void EmitAttribute_Union_ConstructorParameters_01()
+        {
+            var source =
+@"
+public union U(nint, nuint[]);
+";
+            var comp = CreateCompilation(new[] { NativeIntegerAttributeDefinition, source, IUnionSource, UnionAttributeSource });
+            var expected =
+@"
+U
+    U(System.IntPtr value)
+        [NativeInteger] System.IntPtr value
+    U(System.UIntPtr[] value)
+        [NativeInteger] System.UIntPtr[] value
+";
+            CompileAndVerify(comp, symbolValidator: module =>
+            {
+                AssertNativeIntegerAttributes(module, expected);
+            }).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void EmitAttribute_Union_ConstructorParameters_02()
+        {
+            var source =
+@"
+public union U(nint, nuint[]);
+
+namespace System.Runtime.CompilerServices
+{
+    internal class NullableContextAttribute : System.Attribute
+    {
+        internal NullableContextAttribute(byte b) { }
+    }
+
+    internal sealed class NullableAttribute : Attribute
+    {
+        public NullableAttribute(byte b) { }
+        public NullableAttribute(byte[] b) { }
+    }
+}
+";
+            var comp = CreateCompilation(new[] { source, IUnionSource, UnionAttributeSource }, options: TestOptions.DebugModule).VerifyDiagnostics(
+                // (2,16): error CS0518: Predefined type 'System.Runtime.CompilerServices.NativeIntegerAttribute' is not defined or imported
+                // public union U(nint, nuint[]);
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "nint").WithArguments("System.Runtime.CompilerServices.NativeIntegerAttribute").WithLocation(2, 16),
+                // (2,22): error CS0518: Predefined type 'System.Runtime.CompilerServices.NativeIntegerAttribute' is not defined or imported
+                // public union U(nint, nuint[]);
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "nuint[]").WithArguments("System.Runtime.CompilerServices.NativeIntegerAttribute").WithLocation(2, 22)
+                );
+        }
+
         private static TypeDefinition GetTypeDefinitionByName(MetadataReader reader, string name)
         {
             return reader.GetTypeDefinition(reader.TypeDefinitions.Single(h => reader.StringComparer.Equals(reader.GetTypeDefinition(h).Name, name)));
