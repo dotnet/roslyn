@@ -92,7 +92,7 @@ namespace Microsoft.CodeAnalysis
                         var nodes = getFilteredNodes(root.Value, _owner._filterFunc, cancellationToken);
                         if (state != EntryState.Modified || !_filterTable.TryModifyEntries(nodes, stopwatch.Elapsed, noInputStepsStepInfo, state, out entry))
                         {
-                            entry = _filterTable.AddEntries(nodes, state, stopwatch.Elapsed, noInputStepsStepInfo, state);
+                            entry = _filterTable.AddEntries(nodes, EntryState.Added, stopwatch.Elapsed, noInputStepsStepInfo, EntryState.Added);
                         }
                     }
 
