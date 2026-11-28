@@ -34,21 +34,21 @@ internal sealed class CSharpSuppressionCodeFixProvider : AbstractSuppressionCode
     {
     }
 
-    protected override SyntaxTriviaList CreatePragmaRestoreDirectiveTrivia(Diagnostic diagnostic, Func<SyntaxNode, CancellationToken, SyntaxNode> formatNode, bool needsLeadingEndOfLine, bool needsTrailingEndOfLine, CancellationToken cancellationToken)
+    protected override SyntaxTriviaList CreatePragmaRestoreDirectiveTrivia(Diagnostic diagnostic, Func<SyntaxNode, CancellationToken, SyntaxNode> formatNode, string newLine, bool needsLeadingEndOfLine, bool needsTrailingEndOfLine, CancellationToken cancellationToken)
     {
         var restoreKeyword = RestoreKeyword;
-        return CreatePragmaDirectiveTrivia(restoreKeyword, diagnostic, formatNode, needsLeadingEndOfLine, needsTrailingEndOfLine, cancellationToken);
+        return CreatePragmaDirectiveTrivia(restoreKeyword, diagnostic, formatNode, newLine, needsLeadingEndOfLine, needsTrailingEndOfLine, cancellationToken);
     }
 
     protected override SyntaxTriviaList CreatePragmaDisableDirectiveTrivia(
-        Diagnostic diagnostic, Func<SyntaxNode, CancellationToken, SyntaxNode> formatNode, bool needsLeadingEndOfLine, bool needsTrailingEndOfLine, CancellationToken cancellationToken)
+        Diagnostic diagnostic, Func<SyntaxNode, CancellationToken, SyntaxNode> formatNode, string newLine, bool needsLeadingEndOfLine, bool needsTrailingEndOfLine, CancellationToken cancellationToken)
     {
         var disableKeyword = DisableKeyword;
-        return CreatePragmaDirectiveTrivia(disableKeyword, diagnostic, formatNode, needsLeadingEndOfLine, needsTrailingEndOfLine, cancellationToken);
+        return CreatePragmaDirectiveTrivia(disableKeyword, diagnostic, formatNode, newLine, needsLeadingEndOfLine, needsTrailingEndOfLine, cancellationToken);
     }
 
     private static SyntaxTriviaList CreatePragmaDirectiveTrivia(
-        SyntaxToken disableOrRestoreKeyword, Diagnostic diagnostic, Func<SyntaxNode, CancellationToken, SyntaxNode> formatNode, bool needsLeadingEndOfLine, bool needsTrailingEndOfLine, CancellationToken cancellationToken)
+        SyntaxToken disableOrRestoreKeyword, Diagnostic diagnostic, Func<SyntaxNode, CancellationToken, SyntaxNode> formatNode, string newLine, bool needsLeadingEndOfLine, bool needsTrailingEndOfLine, CancellationToken cancellationToken)
     {
         var diagnosticId = GetOrMapDiagnosticId(diagnostic, out var includeTitle);
         var id = IdentifierName(diagnosticId);
@@ -56,7 +56,7 @@ internal sealed class CSharpSuppressionCodeFixProvider : AbstractSuppressionCode
         var pragmaDirective = PragmaWarningDirectiveTrivia(disableOrRestoreKeyword, ids, true);
         pragmaDirective = (PragmaWarningDirectiveTriviaSyntax)formatNode(pragmaDirective, cancellationToken);
         var pragmaDirectiveTrivia = Trivia(pragmaDirective);
-        var endOfLineTrivia = CarriageReturnLineFeed;
+        var endOfLineTrivia = EndOfLine(newLine);
         var triviaList = TriviaList(pragmaDirectiveTrivia);
 
         var title = includeTitle ? diagnostic.Descriptor.Title.ToString(CultureInfo.CurrentUICulture) : null;

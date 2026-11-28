@@ -8,6 +8,7 @@ using System;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Text;
@@ -38,6 +39,7 @@ internal abstract partial class AbstractSuppressionCodeFixProvider : IConfigurat
                 // We need to normalize the leading trivia on start token to account for
                 // the trailing trivia on its previous token (and similarly normalize trailing trivia for end token).
                 PragmaHelpers.NormalizeTriviaOnTokens(fixer, ref document, ref suppressionTargetInfo);
+                options = PragmaHelpers.WithDocumentNewLine(options, suppressionTargetInfo.StartToken, fixer);
 
                 return new PragmaRemoveAction(suppressionTargetInfo, document, options, diagnostic, fixer);
             }
@@ -61,8 +63,14 @@ internal abstract partial class AbstractSuppressionCodeFixProvider : IConfigurat
 
             public override SyntaxTree SyntaxTreeToModify => _suppressionTargetInfo.StartToken.SyntaxTree;
 
+            // The added directives are formatted by GetChangedDocumentAsync, with the document's line ending.
+            internal override CodeActionCleanup Cleanup => CodeActionCleanup.None;
+
             protected override async Task<Document> GetChangedDocumentAsync(CancellationToken cancellationToken)
-                => await GetChangedDocumentAsync(includeStartTokenChange: true, includeEndTokenChange: true, cancellationToken: cancellationToken).ConfigureAwait(false);
+            {
+                var document = await GetChangedDocumentAsync(includeStartTokenChange: true, includeEndTokenChange: true, cancellationToken: cancellationToken).ConfigureAwait(false);
+                return await PragmaHelpers.FormatAddedPragmasAsync(document, _options, cancellationToken).ConfigureAwait(false);
+            }
 
             public async Task<Document> GetChangedDocumentAsync(bool includeStartTokenChange, bool includeEndTokenChange, CancellationToken cancellationToken)
             {
@@ -166,11 +174,11 @@ internal abstract partial class AbstractSuppressionCodeFixProvider : IConfigurat
             {
                 if (isStartToken)
                 {
-                    return PragmaHelpers.GetNewStartTokenWithAddedPragma(token, currentDiagnosticSpan, _diagnostic, Fixer, FormatNode, isRemoveSuppression: true, cancellationToken);
+                    return PragmaHelpers.GetNewStartTokenWithAddedPragma(token, currentDiagnosticSpan, _diagnostic, Fixer, FormatNode, _options.NewLine, isRemoveSuppression: true, cancellationToken);
                 }
                 else
                 {
-                    return PragmaHelpers.GetNewEndTokenWithAddedPragma(token, currentDiagnosticSpan, _diagnostic, Fixer, FormatNode, isRemoveSuppression: true, cancellationToken);
+                    return PragmaHelpers.GetNewEndTokenWithAddedPragma(token, currentDiagnosticSpan, _diagnostic, Fixer, FormatNode, _options.NewLine, isRemoveSuppression: true, cancellationToken);
                 }
             }
 

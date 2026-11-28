@@ -757,8 +757,11 @@ public abstract partial class CSharpSuppressionTests : AbstractSuppressionDiagno
                     new UserDiagnosticAnalyzer(), new CSharpSuppressionCodeFixProvider());
             }
 
-            [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
-            public Task TestInfoDiagnosticSuppressed()
+            [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
+            [WorkItem("https://github.com/dotnet/roslyn/issues/69358")]
+            [InlineData("\n")]
+            [InlineData("\r\n")]
+            public Task TestInfoDiagnosticSuppressed(string endOfLine)
                 => TestAsync(
         """
 
@@ -771,7 +774,7 @@ public abstract partial class CSharpSuppressionTests : AbstractSuppressionDiagno
                 int x = 0;
             }
         }
-        """,
+        """.ReplaceLineEndings(endOfLine),
         """
 
         using System;
@@ -785,7 +788,7 @@ public abstract partial class CSharpSuppressionTests : AbstractSuppressionDiagno
                 int x = 0;
             }
         }
-        """);
+        """.ReplaceLineEndings(endOfLine));
         }
 
         public sealed partial class FormattingDiagnosticSuppressionTests : CSharpPragmaWarningDisableSuppressionTests

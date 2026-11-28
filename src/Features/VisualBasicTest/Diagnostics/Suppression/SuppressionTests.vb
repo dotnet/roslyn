@@ -717,7 +717,7 @@ End Class]]>
 
                 <Theory, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)>
                 <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/730770")>
-                <InlineData(vbLf, Skip:="https://github.com/dotnet/roslyn/issues/69358")>
+                <InlineData(vbLf)>
                 <InlineData(vbCrLf)>
                 Public Async Function TestInfoDiagnosticSuppressed(endOfLine As String) As Task
 
@@ -836,7 +836,7 @@ End Class]]>
 
                 <Theory, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)>
                 <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/730770")>
-                <InlineData(vbLf, Skip:="https://github.com/dotnet/roslyn/issues/69358")>
+                <InlineData(vbLf)>
                 <InlineData(vbCrLf)>
                 Public Async Function TestWarningDiagnosticWithNameMatchingKeywordSuppressed(endOfLine As String) As Task
                     Dim source = <![CDATA[
@@ -901,7 +901,7 @@ End Class]]>
                 End Function
 
                 <Theory, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)>
-                <InlineData(vbLf, Skip:="https://github.com/dotnet/roslyn/issues/69358")>
+                <InlineData(vbLf)>
                 <InlineData(vbCrLf)>
                 Public Async Function TestErrorDiagnosticCanBeSuppressed(endOfLine As String) As Task
                     Dim source = <![CDATA[
