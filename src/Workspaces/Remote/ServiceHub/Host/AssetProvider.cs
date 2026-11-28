@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Buffers;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
@@ -26,8 +27,7 @@ internal sealed partial class AssetProvider(
     SolutionServices solutionServices)
     : AbstractAssetProvider
 {
-    private const int PooledChecksumArraySize = 1024;
-    private static readonly ObjectPool<Checksum[]> s_checksumPool = new(() => new Checksum[PooledChecksumArraySize], 16);
+    private const int MaxPooledChecksumCount = 1024;
 
     private readonly Checksum _solutionChecksum = solutionChecksum;
     private readonly SolutionAssetCache _assetCache = assetCache;
@@ -259,8 +259,11 @@ internal sealed partial class AssetProvider(
                     missingChecksumsCount++;
             }
 
-            var usePool = missingChecksumsCount <= PooledChecksumArraySize;
-            var missingChecksums = usePool ? s_checksumPool.Allocate() : new Checksum[missingChecksumsCount];
+            var usePool = missingChecksumsCount <= MaxPooledChecksumCount;
+            // Keep a nonempty buffer if assets are evicted between the two cache passes.
+            var missingChecksums = usePool
+                ? ArrayPool<Checksum>.Shared.Rent(Math.Max(1, missingChecksumsCount))
+                : new Checksum[missingChecksumsCount];
 
             try
             {
@@ -281,7 +284,7 @@ internal sealed partial class AssetProvider(
 
                             if (usePool)
                             {
-                                s_checksumPool.Free(missingChecksums);
+                                ArrayPool<Checksum>.Shared.Return(missingChecksums);
                                 usePool = false;
                             }
 
@@ -325,7 +328,7 @@ internal sealed partial class AssetProvider(
             finally
             {
                 if (usePool)
-                    s_checksumPool.Free(missingChecksums);
+                    ArrayPool<Checksum>.Shared.Return(missingChecksums);
             }
         }
     }
