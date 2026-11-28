@@ -2541,53 +2541,71 @@ Closed Open -> Opened
             var compVerifier = CompileAndVerify(compilation);
             compVerifier.VerifyIL("Program.M1",
 @"{
-  // Code size       50 (0x32)
+  // Code size       55 (0x37)
   .maxstack  2
-  .locals init (string V_0)
+  .locals init (string V_0,
+                int V_1,
+                char V_2)
   IL_0000:  ldarg.1
   IL_0001:  stloc.0
   IL_0002:  ldloc.0
-  IL_0003:  ldstr      ""a""
-  IL_0008:  call       ""bool string.op_Equality(string, string)""
-  IL_000d:  brtrue.s   IL_0031
-  IL_000f:  ldloc.0
-  IL_0010:  ldstr      ""b""
-  IL_0015:  call       ""bool string.op_Equality(string, string)""
-  IL_001a:  brtrue.s   IL_0029
-  IL_001c:  ldloc.0
-  IL_001d:  ldstr      ""c""
-  IL_0022:  call       ""bool string.op_Equality(string, string)""
-  IL_0027:  pop
-  IL_0028:  ret
-  IL_0029:  ldarga.s   V_1
-  IL_002b:  call       ""bool Program.Mutate(ref string)""
-  IL_0030:  pop
-  IL_0031:  ret
+  IL_0003:  brfalse.s  IL_0036
+  IL_0005:  ldloc.0
+  IL_0006:  call       ""int string.Length.get""
+  IL_000b:  stloc.1
+  IL_000c:  ldloc.1
+  IL_000d:  ldc.i4.1
+  IL_000e:  bne.un.s   IL_0036
+  IL_0010:  ldloc.0
+  IL_0011:  ldc.i4.0
+  IL_0012:  call       ""char string.this[int].get""
+  IL_0017:  stloc.2
+  IL_0018:  ldloc.2
+  IL_0019:  ldc.i4.s   97
+  IL_001b:  sub
+  IL_001c:  switch    (
+        IL_0036,
+        IL_002e,
+        IL_0036)
+  IL_002d:  ret
+  IL_002e:  ldarga.s   V_1
+  IL_0030:  call       ""bool Program.Mutate(ref string)""
+  IL_0035:  pop
+  IL_0036:  ret
 }");
             compVerifier.VerifyIL("Program.M2",
 @"{
-  // Code size       49 (0x31)
+  // Code size       54 (0x36)
   .maxstack  2
-  .locals init (string V_0)
+  .locals init (string V_0,
+                int V_1,
+                char V_2)
   IL_0000:  ldarg.1
   IL_0001:  stloc.0
   IL_0002:  ldloc.0
-  IL_0003:  ldstr      ""a""
-  IL_0008:  call       ""bool string.op_Equality(string, string)""
-  IL_000d:  brtrue.s   IL_0030
-  IL_000f:  ldloc.0
-  IL_0010:  ldstr      ""b""
-  IL_0015:  call       ""bool string.op_Equality(string, string)""
-  IL_001a:  brtrue.s   IL_0029
-  IL_001c:  ldloc.0
-  IL_001d:  ldstr      ""c""
-  IL_0022:  call       ""bool string.op_Equality(string, string)""
-  IL_0027:  pop
-  IL_0028:  ret
-  IL_0029:  ldarg.1
-  IL_002a:  call       ""bool Program.Pure(string)""
-  IL_002f:  pop
-  IL_0030:  ret
+  IL_0003:  brfalse.s  IL_0035
+  IL_0005:  ldloc.0
+  IL_0006:  call       ""int string.Length.get""
+  IL_000b:  stloc.1
+  IL_000c:  ldloc.1
+  IL_000d:  ldc.i4.1
+  IL_000e:  bne.un.s   IL_0035
+  IL_0010:  ldloc.0
+  IL_0011:  ldc.i4.0
+  IL_0012:  call       ""char string.this[int].get""
+  IL_0017:  stloc.2
+  IL_0018:  ldloc.2
+  IL_0019:  ldc.i4.s   97
+  IL_001b:  sub
+  IL_001c:  switch    (
+        IL_0035,
+        IL_002e,
+        IL_0035)
+  IL_002d:  ret
+  IL_002e:  ldarg.1
+  IL_002f:  call       ""bool Program.Pure(string)""
+  IL_0034:  pop
+  IL_0035:  ret
 }");
         }
 
