@@ -1,6 +1,7 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
+using System;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
@@ -62,6 +63,16 @@ internal sealed class RemoteDiagnosticsService(in ServiceArgs args) : RazorDocum
             .. await _translateDiagnosticsService.TranslateHtmlAsync(htmlDiagnostics, snapshot, cancellationToken).ConfigureAwait(false)
         ];
 
+        UnusedDirectiveCache.Set(codeDocument, UpdateUnusedDirectiveDiagnostics(
+            codeDocument,
+            allDiagnostics.AsSpan(),
+            _clientCapabilitiesService.ClientCapabilities.SupportsVisualStudioExtensions));
+
+        return allDiagnostics;
+    }
+
+    internal static TextSpan[] UpdateUnusedDirectiveDiagnostics(RazorCodeDocument codeDocument, ReadOnlySpan<LspDiagnostic> diagnostics, bool supportsVisualStudioExtensions)
+    {
         // Our final pass is to update all unused directive errors to ensure they display how we want in the IDE. Doing it here
         // means we don't have to duplicate between where we raise our own diagnostics, and filter Roslyns. We also capture the
         // spans of the unused directives here so we can use that information for code fixes, without having to compute
@@ -71,14 +82,11 @@ internal sealed class RemoteDiagnosticsService(in ServiceArgs args) : RazorDocum
         using var unusedDirectiveSpans = new PooledArrayBuilder<TextSpan>();
         var hasDuplicateUsingAlias = false;
 
-        // In VS, we use Warning so we get an error list entry, and the tags mean we won't get squiggles in the editor.
-        // In VS Code we can't do that, so just report as Hint to avoid squiggles. This matches Roslyn's behaviour with
-        // unused using directives too.
-        var unusedDiagnosticSeverity = _clientCapabilitiesService.ClientCapabilities.SupportsVisualStudioExtensions
-            ? LspDiagnosticSeverity.Warning
-            : LspDiagnosticSeverity.Hint;
+        // In VS, use Warning to get an error list entry without editor squiggles. VS Code uses Hint
+        // to avoid squiggles, matching Roslyn's behavior for unused using directives.
+        var severity = supportsVisualStudioExtensions ? LspDiagnosticSeverity.Warning : LspDiagnosticSeverity.Hint;
 
-        foreach (var diagnostic in allDiagnostics)
+        foreach (var diagnostic in diagnostics)
         {
             if (diagnostic.Code is { Value: RemoveUnnecessaryImportsConstants.IDE0005_gen })
             {
@@ -90,7 +98,7 @@ internal sealed class RemoteDiagnosticsService(in ServiceArgs args) : RazorDocum
                     unusedDirectiveSpans.Add(directive.Span);
                 }
 
-                diagnostic.Severity = unusedDiagnosticSeverity;
+                diagnostic.Severity = severity;
                 diagnostic.Tags = s_unnecessaryDiagnosticTags;
                 diagnostic.Code = UnusedDirectiveDiagnosticId;
 
@@ -111,9 +119,7 @@ internal sealed class RemoteDiagnosticsService(in ServiceArgs args) : RazorDocum
         // anyone's guess which one gets reported as unused. Rather than have cleanup remove the one the user wanted, we
         // pretend nothing is unused until they fix the error. Duplicate namespace usings (CS0105) are fine though, since
         // either copy can go.
-        UnusedDirectiveCache.Set(codeDocument, hasDuplicateUsingAlias ? [] : unusedDirectiveSpans.ToArrayAndClear());
-
-        return allDiagnostics;
+        return hasDuplicateUsingAlias ? [] : unusedDirectiveSpans.ToArrayAndClear();
     }
 
     private static ImmutableArray<LspDiagnostic> GetRazorDiagnostics(RemoteDocumentSnapshot snapshot, RazorCodeDocument codeDocument)

@@ -1,6 +1,9 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
+using System;
+using System.IO;
+using System.Text;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Test.Common;
@@ -931,13 +934,13 @@ public class ExtractToComponentTests(ITestOutputHelper testOutputHelper) : Cohos
             codeActionName: LanguageServerConstants.CodeActions.ExtractToNewComponent);
     }
 
-    [Fact]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/85565")]
     public async Task ExtractToComponent_WithUsings()
     {
         await VerifyCodeActionAsync(
             input: """
-                @using MyApp.Data
-                @using MyApp.Models
+                @using System.Text
+                @using System.Diagnostics
                 
                 <[|div id="parent">
                     <div>
@@ -950,17 +953,14 @@ public class ExtractToComponentTests(ITestOutputHelper testOutputHelper) : Cohos
                 </div>
                 """,
             expected: """
-                @using MyApp.Data
-                @using MyApp.Models
+                @using System.Text
+                @using System.Diagnostics
                 
                 <Component />
                 """,
             codeActionName: LanguageServerConstants.CodeActions.ExtractToNewComponent,
             additionalExpectedFiles: [
                 (FileUri("Component.razor"), """
-                    @using MyApp.Data
-                    @using MyApp.Models
-                    
                     <div id="parent">
                         <div>
                             <div>
@@ -971,6 +971,257 @@ public class ExtractToComponentTests(ITestOutputHelper testOutputHelper) : Cohos
                         </div>
                     </div>
                     """)]);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/85565")]
+    public async Task ExtractToComponent_KeepsUsingsUsedByExtractedCode()
+    {
+        await VerifyCodeActionAsync(
+            input: """
+                @using System.Text
+                @using System.Diagnostics
+
+                <p>@(new Stopwatch())</p>
+                [|<p>@(new StringBuilder())</p>|]
+                """,
+            expected: """
+                @using System.Text
+                @using System.Diagnostics
+
+                <p>@(new Stopwatch())</p>
+                <Component />
+                """,
+            codeActionName: LanguageServerConstants.CodeActions.ExtractToNewComponent,
+            additionalExpectedFiles: [
+                (FileUri("Component.razor"), """
+                    @using System.Text
+
+                    <p>@(new StringBuilder())</p>
+                    """)]);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/85565")]
+    public async Task ExtractToComponent_KeepsUsingForComponentTag()
+    {
+        await VerifyCodeActionAsync(
+            input: """
+                @using System.Text
+                @using Microsoft.AspNetCore.Components.Sections
+                @using Microsoft.AspNetCore.Components.Sections
+
+                [|<SectionOutlet SectionName="test" />|]
+                """,
+            expected: """
+                @using System.Text
+                @using Microsoft.AspNetCore.Components.Sections
+                @using Microsoft.AspNetCore.Components.Sections
+
+                <Component />
+                """,
+            codeActionName: LanguageServerConstants.CodeActions.ExtractToNewComponent,
+            additionalExpectedFiles: [
+                (FileUri("Component.razor"), """
+                    @using Microsoft.AspNetCore.Components.Sections
+
+                    <SectionOutlet SectionName="test" />
+                    """)]);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/85565")]
+    public async Task ExtractToComponent_KeepsUsedAliasAndStaticUsings()
+    {
+        await VerifyCodeActionAsync(
+            input: """
+                @using TextBuilder = System.Text.StringBuilder
+                @using static System.Math
+                @using UnusedBuilder = System.Text.StringBuilder
+                @using static System.Console
+                @using System.Buffers
+
+                [|<p>@(new TextBuilder().Append(Sqrt(4)))</p>|]
+                """,
+            expected: """
+                @using TextBuilder = System.Text.StringBuilder
+                @using static System.Math
+                @using UnusedBuilder = System.Text.StringBuilder
+                @using static System.Console
+                @using System.Buffers
+
+                <Component />
+                """,
+            codeActionName: LanguageServerConstants.CodeActions.ExtractToNewComponent,
+            additionalExpectedFiles: [
+                (FileUri("Component.razor"), """
+                    @using TextBuilder = System.Text.StringBuilder
+                    @using static System.Math
+
+                    <p>@(new TextBuilder().Append(Sqrt(4)))</p>
+                    """)]);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/85565")]
+    public async Task ExtractToComponent_RemovesUsingsAfterNamespace()
+    {
+        await VerifyCodeActionAsync(
+            input: """
+                @namespace MyApp
+                @using System.Text
+
+                [|<p>Hello</p>|]
+                """,
+            expected: """
+                @namespace MyApp
+                @using System.Text
+
+                <Component />
+                """,
+            codeActionName: LanguageServerConstants.CodeActions.ExtractToNewComponent,
+            additionalExpectedFiles: [
+                (FileUri("Component.razor"), """
+                    @namespace MyApp
+
+                    <p>Hello</p>
+                    """)]);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/85565")]
+    public async Task ExtractToComponent_KeepsUsingInCodeBlock()
+    {
+        await VerifyCodeActionAsync(
+            input: """
+                @using System.Text
+                @using System.Diagnostics
+
+                [|<p>Hello</p>
+
+                @code {
+                    public StringBuilder Value { get; set; }
+                }|]
+                """,
+            expected: """
+                @using System.Text
+                @using System.Diagnostics
+
+                <Component />
+                """,
+            codeActionName: LanguageServerConstants.CodeActions.ExtractToNewComponent,
+            additionalExpectedFiles: [
+                (FileUri("Component.razor"), """
+                    @using System.Text
+
+                    <p>Hello</p>
+
+                    @code {
+                        public StringBuilder Value { get; set; }
+                    }
+                    """)]);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/85565")]
+    public async Task ExtractToComponent_DoesNotRemoveDuplicateAliases()
+    {
+        await VerifyCodeActionAsync(
+            input: """
+                @using Alias = System.Text.StringBuilder
+                @using Alias = System.Diagnostics.Stopwatch
+                @using System.Buffers
+
+                [|<p>@(new Alias())</p>|]
+                """,
+            expected: """
+                @using Alias = System.Text.StringBuilder
+                @using Alias = System.Diagnostics.Stopwatch
+                @using System.Buffers
+
+                <Component />
+                """,
+            codeActionName: LanguageServerConstants.CodeActions.ExtractToNewComponent,
+            additionalExpectedFiles: [
+                (FileUri("Component.razor"), """
+                    @using Alias = System.Text.StringBuilder
+                    @using Alias = System.Diagnostics.Stopwatch
+                    @using System.Buffers
+
+                    <p>@(new Alias())</p>
+                    """)]);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/85565")]
+    public async Task ExtractToComponent_KeepsAllUsingsForLinkedFile()
+    {
+        await VerifyCodeActionAsync(
+            input: """
+                @using System.Text
+                @using System.Text
+                @using System.Diagnostics
+
+                [|<p>Hello</p>|]
+                """,
+            expected: """
+                @using System.Text
+                @using System.Text
+                @using System.Diagnostics
+
+                <Component />
+                """,
+            codeActionName: LanguageServerConstants.CodeActions.ExtractToNewComponent,
+            additionalExpectedFiles: [
+                (FileUri("Component.razor"), """
+                    @using System.Text
+                    @using System.Text
+                    @using System.Diagnostics
+
+                    <p>Hello</p>
+                    """)],
+            additionalFiles: [
+                (FilePath(".editorconfig"), $"""
+                    root = true
+
+                    [File1.razor]
+                    build_metadata.AdditionalFiles.TargetPath = {Convert.ToBase64String(Encoding.UTF8.GetBytes(Path.Combine("Linked", "File1.razor")))}
+                    """),
+                (FilePath(Path.Combine("Linked", "_Imports.razor")), "@using System.Diagnostics")],
+            addDefaultImports: false,
+            projectConfigure: builder => builder.GenerateAdditionalDocumentMetadata = false);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/85565")]
+    public async Task ExtractToComponent_UsesImportsWithoutProjectDirectory()
+    {
+        await VerifyCodeActionAsync(
+            input: """
+                @using System.Text
+                @using Microsoft.AspNetCore.Components.Sections
+                @using System.Diagnostics
+
+                [|<div>
+                    <SectionOutlet SectionName="test" />
+                    @(new StringBuilder())
+                </div>|]
+                """,
+            expected: """
+                @using System.Text
+                @using Microsoft.AspNetCore.Components.Sections
+                @using System.Diagnostics
+
+                <Component />
+                """,
+            codeActionName: LanguageServerConstants.CodeActions.ExtractToNewComponent,
+            documentFilePath: FilePath(Path.Combine("Pages", "File1.razor")),
+            additionalExpectedFiles: [
+                (FileUri(Path.Combine("Pages", "Component.razor")), """
+                    <div>
+                        <SectionOutlet SectionName="test" />
+                        @(new StringBuilder())
+                    </div>
+                    """)],
+            additionalFiles: [
+                (FilePath(Path.Combine("Pages", "_Imports.razor")), """
+                    @using System.Text
+                    @using Microsoft.AspNetCore.Components.Sections
+                    """)],
+            addDefaultImports: false,
+            projectConfigure: builder => builder.GenerateMSBuildProjectDirectory = false);
     }
 
     [Fact]

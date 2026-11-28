@@ -1,8 +1,10 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
-using System.IO;
+using System;
+using System.Collections.Immutable;
 using System.Composition;
+using System.IO;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
@@ -10,20 +12,26 @@ using Microsoft.AspNetCore.Razor;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.AspNetCore.Razor.Utilities;
+using Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryImports;
+using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.CodeActions;
 using Microsoft.CodeAnalysis.Razor.CodeActions.Models;
 using Microsoft.CodeAnalysis.Razor.Formatting;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.Utilities;
-using Microsoft.CodeAnalysis.Remote.Razor.ProjectSystem;
-using Microsoft.CodeAnalysis.Text;
-using Microsoft.CodeAnalysis.Razor;
+using Microsoft.CodeAnalysis.Remote.Razor.Diagnostics;
 using Microsoft.CodeAnalysis.Remote.Razor.Formatting;
+using Microsoft.CodeAnalysis.Remote.Razor.ProjectSystem;
+using Microsoft.CodeAnalysis.RemoveUnnecessaryImports;
+using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Remote.Razor.CodeActions;
 
 [Export(typeof(IRazorCodeActionResolver)), Shared]
-internal sealed class ExtractToComponentCodeActionResolver : IRazorCodeActionResolver
+[method: ImportingConstructor]
+internal sealed class ExtractToComponentCodeActionResolver(RazorTranslateDiagnosticsService translateDiagnosticsService) : IRazorCodeActionResolver
 {
     public string Action => LanguageServerConstants.CodeActions.ExtractToNewComponent;
 
@@ -60,22 +68,60 @@ internal sealed class ExtractToComponentCodeActionResolver : IRazorCodeActionRes
 
         var syntaxTree = componentDocument.GetRequiredTagHelperRewrittenSyntaxTree();
 
-        // Right now this includes all the usings in the original document.
-        // https://github.com/dotnet/razor/issues/11025 tracks reducing to only the required set.
+        // Linked files can have a different logical path, so we don't know which imports the
+        // new file will inherit. Other project contexts can also need different usings, so
+        // leave all of the copied usings alone in either case.
+        var relativePath = componentDocument.Source.RelativePath;
+        var projectDirectory = Path.GetDirectoryName(documentSnapshot.ProjectSnapshot.FilePath) ?? string.Empty;
+        var canRemoveUsings = relativePath is not null &&
+            FilePathNormalizer.AreFilePathsEquivalent(Path.Combine(projectDirectory, relativePath), documentSnapshot.FilePath) &&
+            documentSnapshot.ProjectSnapshot.SolutionSnapshot.GetProjectsContainingDocument(documentSnapshot.FilePath).Length == 1;
+
+        // Razor prefers local usings over identical imports, so diagnostics can't identify those
+        // copies as redundant. The new component will inherit the same imports as the original.
+        using var _1 = HashSetPool<string>.GetPooledObject(out var availableUsings);
+        if (canRemoveUsings)
+        {
+            foreach (var import in componentDocument.GetImportSyntaxTrees())
+            {
+                foreach (var directive in import.GetUsingDirectives())
+                {
+                    if (RazorSyntaxFacts.TryGetNamespaceFromDirective(directive, out var content))
+                    {
+                        availableUsings.Add(content);
+                    }
+                }
+            }
+        }
+
         var usingDirectives = syntaxTree.GetUsingDirectives();
+        var usingCount = 0;
         foreach (var usingDirective in usingDirectives)
         {
+            if (canRemoveUsings && RazorSyntaxFacts.TryGetNamespaceFromDirective(usingDirective, out var content) && !availableUsings.Add(content))
+            {
+                continue;
+            }
+
             builder.AppendLine(usingDirective.ToString());
+            usingCount++;
         }
 
         // If any using directives were added, add a newline before the extracted content.
-        if (usingDirectives.Length > 0)
+        if (usingCount > 0)
         {
             builder.AppendLine();
         }
 
+        var contentStart = builder.Length;
         var span = TextSpan.FromBounds(actionParams.Start, actionParams.End);
         FormattingUtilities.NaivelyUnindentSubstring(text, span, builder);
+
+        var componentContent = builder.ToString();
+        if (canRemoveUsings && usingCount > 0)
+        {
+            componentContent = await RemoveUnusedUsingsAsync(documentSnapshot, componentDocument, componentPath, componentContent, contentStart, usingCount, cancellationToken).ConfigureAwait(false);
+        }
 
         var removeRange = text.GetRange(actionParams.Start, actionParams.End);
 
@@ -101,7 +147,7 @@ internal sealed class ExtractToComponentCodeActionResolver : IRazorCodeActionRes
                 [
                     new TextEdit
                     {
-                        NewText = builder.ToString(),
+                        NewText = componentContent,
                         Range = LspFactory.DefaultRange,
                     }
                 ],
@@ -112,5 +158,100 @@ internal sealed class ExtractToComponentCodeActionResolver : IRazorCodeActionRes
         {
             DocumentChanges = documentChanges,
         };
+    }
+
+    private async Task<string> RemoveUnusedUsingsAsync(RemoteDocumentSnapshot documentSnapshot, RazorCodeDocument originalCodeDocument, string componentPath, string componentContent, int contentStart, int usingCount, CancellationToken cancellationToken)
+    {
+        // Generate the new component in a temporary project so usage is checked against the extracted
+        // content, rather than the original component.
+        var project = documentSnapshot.ProjectSnapshot.Project;
+        // The new file doesn't have build metadata yet. Use the original's project-relative path so
+        // the temporary component sees the same _Imports files.
+        var sourcePath = originalCodeDocument.Source.RelativePath ?? documentSnapshot.FilePath;
+        var componentName = Path.GetFileName(componentPath);
+        var temporaryPath = Path.Combine(Path.GetDirectoryName(sourcePath) ?? string.Empty, componentName);
+        var componentDocument = project.AddAdditionalDocument(componentName, componentContent, filePath: temporaryPath);
+        var snapshot = documentSnapshot.ProjectSnapshot.SolutionSnapshot.SnapshotManager.GetSnapshot(componentDocument);
+        var codeDocument = await snapshot.GetGeneratedOutputAsync(cancellationToken).ConfigureAwait(false);
+        var sourceText = codeDocument.Source.Text;
+
+        var implDocument = await snapshot.GetGeneratedDocumentAsync(declarationDocument: false, cancellationToken).ConfigureAwait(false);
+        var implDiagnostics = await GetUsingDiagnosticsAsync(implDocument, cancellationToken).ConfigureAwait(false);
+        LspDiagnostic[] declDiagnostics = [];
+        if (codeDocument.GetCSharpDocument(declarationDocument: true) is { IsStubDocument: false })
+        {
+            var declDocument = await snapshot.GetGeneratedDocumentAsync(declarationDocument: true, cancellationToken).ConfigureAwait(false);
+            declDiagnostics = await GetUsingDiagnosticsAsync(declDocument, cancellationToken).ConfigureAwait(false);
+        }
+
+        // Use the same filtering as Remove Unnecessary Directives, which accounts for component tags
+        // and checks usage in both generated documents.
+        var diagnostics = await translateDiagnosticsService.TranslateCSharpAsync(implDiagnostics, declDiagnostics, snapshot, cancellationToken).ConfigureAwait(false);
+        var unusedDirectives = RemoteDiagnosticsService.UpdateUnusedDirectiveDiagnostics(codeDocument, diagnostics, supportsVisualStudioExtensions: false);
+
+        using var changes = new PooledArrayBuilder<TextChange>();
+        foreach (var directive in unusedDirectives)
+        {
+            if (directive.Start >= contentStart)
+            {
+                continue;
+            }
+
+            changes.Add(sourceText.GetTextChange(UsingDirectiveHelper.GetRemoveDirectiveEdit(sourceText, directive)));
+        }
+
+        if (changes.Count == usingCount)
+        {
+            // The blank line after the copied usings is no longer needed if none remain.
+            changes.Add(new TextChange(new TextSpan(contentStart - Environment.NewLine.Length, Environment.NewLine.Length), string.Empty));
+        }
+
+        return sourceText.WithChanges(changes.ToImmutableAndClear()).ToString();
+    }
+
+    private static async Task<LspDiagnostic[]> GetUsingDiagnosticsAsync(Document document, CancellationToken cancellationToken)
+    {
+        // The temporary component isn't open in the host, so run the unused-import analyzer on its
+        // generated C# directly. Don't hide failures as the host can't report diagnostics for this file.
+        var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+        var analyzerOptions = new CompilationWithAnalyzersOptions(
+            document.Project.HostAnalyzerOptions,
+            onAnalyzerException: null,
+            concurrentAnalysis: false,
+            logAnalyzerExecutionTime: false,
+            reportSuppressedDiagnostics: false,
+            analyzerExceptionFilter: static _ => false);
+        var compilation = semanticModel.Compilation.WithAnalyzers(
+            ImmutableArray.Create<DiagnosticAnalyzer>(new CSharpRemoveUnnecessaryImportsDiagnosticAnalyzer()), analyzerOptions);
+        var analyzerDiagnostics = await compilation.GetAnalyzerSemanticDiagnosticsAsync(semanticModel, filterSpan: null, cancellationToken).ConfigureAwait(false);
+        var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+
+        using var diagnostics = new PooledArrayBuilder<LspDiagnostic>();
+        foreach (var diagnostic in analyzerDiagnostics)
+        {
+            if (diagnostic.Id == RemoveUnnecessaryImportsConstants.IDE0005_gen)
+            {
+                diagnostics.Add(ToLspDiagnostic(diagnostic, sourceText));
+            }
+        }
+
+        // Pass CS1537 through so the diagnostic service can avoid removing usings when IDE0005 is ambiguous.
+        foreach (var diagnostic in semanticModel.GetDiagnostics(cancellationToken: cancellationToken))
+        {
+            if (diagnostic.Id == "CS1537")
+            {
+                diagnostics.Add(ToLspDiagnostic(diagnostic, sourceText));
+            }
+        }
+
+        return diagnostics.ToArrayAndClear();
+
+        static LspDiagnostic ToLspDiagnostic(Diagnostic diagnostic, SourceText sourceText)
+            => new()
+            {
+                Code = diagnostic.Id,
+                Message = diagnostic.GetMessage(),
+                Range = sourceText.GetRange(diagnostic.Location.SourceSpan),
+            };
     }
 }
