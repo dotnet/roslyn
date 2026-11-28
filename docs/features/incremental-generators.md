@@ -1151,6 +1151,7 @@ public void Initialize(IncrementalGeneratorInitializationContext context)
     var assemblyName = context.CompilationProvider.Select(static (c, _) => c.AssemblyName);
     var texts = context.AdditionalTextsProvider;
 
+    // At least do this! -- Notice the input change.
     var combined = texts.Combine(assemblyName);
 
     context.RegisterSourceOutput(combined, (spc, pair) =>
