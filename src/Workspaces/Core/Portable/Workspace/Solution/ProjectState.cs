@@ -75,6 +75,7 @@ internal sealed partial class ProjectState : IComparable<ProjectState>
         // holding on. otherwise, these information will be held onto unnecessarily by projectInfo even after
         // the info has changed by DocumentState.
         ProjectInfo = ClearAllDocumentsFromProjectInfo(projectInfo);
+        TraceSnapshotHistory("fork");
     }
 
     public ProjectState(LanguageServices languageServices, ProjectInfo projectInfo, StructuredAnalyzerConfigOptions fallbackAnalyzerOptions)
@@ -106,13 +107,26 @@ internal sealed partial class ProjectState : IComparable<ProjectState>
         AdditionalDocumentStates = new TextDocumentStates<AdditionalDocumentState>(projectInfoFixed.AdditionalDocuments, info => new AdditionalDocumentState(languageServices.SolutionServices, info, loadTextOptions));
 
         _lazyLatestDocumentVersion = AsyncLazy.Create(static async (self, c) => await ComputeLatestDocumentVersionAsync(self.DocumentStates, self.AdditionalDocumentStates, c).ConfigureAwait(false), arg: this);
-        _lazyLatestDocumentTopLevelChangeVersion = AsyncLazy.Create(static (self, c) => ComputeLatestDocumentTopLevelChangeVersionAsync(self.DocumentStates, self.AdditionalDocumentStates, c), arg: this);
+        _lazyLatestDocumentTopLevelChangeVersion = AsyncLazy.Create(static (self, c) =>
+        {
+            self.TraceSnapshotHistory("version-factory");
+            return ComputeLatestDocumentTopLevelChangeVersionAsync(self.DocumentStates, self.AdditionalDocumentStates, c);
+        }, arg: this);
 
         // ownership of information on document has moved to project state. clear out documentInfo the state is
         // holding on. otherwise, these information will be held onto unnecessarily by projectInfo even after
         // the info has changed by DocumentState.
         // we hold onto the info so that we don't need to duplicate all information info already has in the state
         ProjectInfo = ClearAllDocumentsFromProjectInfo(projectInfoFixed);
+        TraceSnapshotHistory("create");
+    }
+
+    [Conditional("ROSLYN_SNAPSHOT_DIAGNOSTICS")]
+    internal void TraceSnapshotHistory(string phase)
+    {
+        SnapshotHistoryDiagnostics.Record(
+            phase, this, _lazyLatestDocumentTopLevelChangeVersion,
+            _lazyLatestDocumentTopLevelChangeVersion.TryGetValue(out _));
     }
 
     public TextDocumentStates<TDocumentState> GetDocumentStates<TDocumentState>()
@@ -602,7 +616,9 @@ internal sealed partial class ProjectState : IComparable<ProjectState>
 
     public async Task<VersionStamp> GetSemanticVersionAsync(CancellationToken cancellationToken = default)
     {
+        TraceSnapshotHistory("version-query");
         var docVersion = await _lazyLatestDocumentTopLevelChangeVersion.GetValueAsync(cancellationToken).ConfigureAwait(false);
+        TraceSnapshotHistory("version-complete");
 
         // This is unfortunate, however the impact of this is that *any* change to our project-state version will
         // cause us to think the semantic version of the project has changed.  Thus, any change to a project property
