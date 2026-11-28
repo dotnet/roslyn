@@ -53,6 +53,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                                             importsStatements As IList(Of ImportsStatementSyntax),
                                             placeSystemNamespaceFirst As Boolean,
                                             ParamArray annotations As SyntaxAnnotation()) As CompilationUnitSyntax
+            Return root.AddImportsStatements(importsStatements, placeSystemNamespaceFirst, SyntaxFactory.ElasticCarriageReturnLineFeed, annotations)
+        End Function
+
+        <Extension()>
+        Friend Function AddImportsStatements(root As CompilationUnitSyntax,
+                                            importsStatements As IList(Of ImportsStatementSyntax),
+                                            placeSystemNamespaceFirst As Boolean,
+                                            fallbackEndOfLine As SyntaxTrivia,
+                                            ParamArray annotations As SyntaxAnnotation()) As CompilationUnitSyntax
             If importsStatements.Count = 0 Then
                 Return root
             End If
@@ -79,7 +88,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
             End If
 
             Dim rootAndAddBlankLine = AddImportHelpers.MoveTrivia(
-                VisualBasicSyntaxFacts.Instance, root, root.Imports, [imports])
+                VisualBasicSyntaxFacts.Instance, root, root.Imports, [imports], fallbackEndOfLine)
             root = rootAndAddBlankLine.root
             Dim addBlankLine = rootAndAddBlankLine.addBlankLine
 
