@@ -611,6 +611,7 @@ public abstract partial class AbstractLanguageServerProtocolTests
         private readonly ICodeAnalysisDiagnosticAnalyzerService _codeAnalysisService;
         private readonly InitializationOptions _initializationOptions;
         private readonly Lazy<RoslynLanguageServer> _languageServer;
+        private readonly List<TestJsonRpcSynchronizationContext> _jsonRpcSynchronizationContexts = [];
 
         private LSP.InitializeResult? _initializeResult;
 
@@ -634,10 +635,7 @@ public abstract partial class AbstractLanguageServerProtocolTests
 
             var (clientStream, serverStream) = FullDuplexStream.CreatePair();
 
-            _clientRpc = new JsonRpc(new HeaderDelimitedMessageHandler(clientStream, clientStream, clientMessageFormatter), initializationOptions.ClientTarget)
-            {
-                ExceptionStrategy = ExceptionProcessing.ISerializable,
-            };
+            _clientRpc = CreateTestJsonRpc(new HeaderDelimitedMessageHandler(clientStream, clientStream, clientMessageFormatter), initializationOptions.ClientTarget);
 
             _languageServer = new(() =>
             {
@@ -651,8 +649,7 @@ public abstract partial class AbstractLanguageServerProtocolTests
 
         private void InitializeClientRpc()
         {
-            _clientRpc.AddLocalRpcMethod(Methods.WindowLogMessageName,
-                (int type, string message) => _testOutputHelper.WriteLine($"[{DateTime.UtcNow:hh:mm:ss.fff}][{(MessageType)type}]{message}"));
+            _clientRpc.AddLocalRpcMethod(Methods.WindowLogMessageName, WriteLogMessage);
 
             _clientRpc.StartListening();
 
@@ -698,15 +695,35 @@ public abstract partial class AbstractLanguageServerProtocolTests
             var factory = TestWorkspace.ExportProvider.GetExportedValue<CSharpVisualBasicLanguageServerFactory>();
 
             var jsonMessageFormatter = RoslynLanguageServer.CreateJsonMessageFormatter();
-            var jsonRpc = new JsonRpc(new HeaderDelimitedMessageHandler(outputStream, inputStream, jsonMessageFormatter))
-            {
-                ExceptionStrategy = ExceptionProcessing.ISerializable,
-            };
+            var jsonRpc = CreateTestJsonRpc(new HeaderDelimitedMessageHandler(outputStream, inputStream, jsonMessageFormatter));
 
             var languageServer = (RoslynLanguageServer)factory.Create(jsonRpc, jsonMessageFormatter.JsonSerializerOptions, serverKind, TestWorkspace.Services.HostServices);
 
             jsonRpc.StartListening();
             return languageServer;
+        }
+
+        protected JsonRpc CreateTestJsonRpc(IJsonRpcMessageHandler messageHandler, object? target = null)
+        {
+            var synchronizationContext = new TestJsonRpcSynchronizationContext();
+            _jsonRpcSynchronizationContexts.Add(synchronizationContext);
+            return new JsonRpc(messageHandler, target)
+            {
+                ExceptionStrategy = ExceptionProcessing.ISerializable,
+                SynchronizationContext = synchronizationContext,
+            };
+        }
+
+        private void WriteLogMessage(int type, string message)
+        {
+            try
+            {
+                _testOutputHelper.WriteLine($"[{DateTime.UtcNow:hh:mm:ss.fff}][{(MessageType)type}]{message}");
+            }
+            catch (InvalidOperationException ex)
+            {
+                // xUnit throws once the test is no longer active. A late window/logMessage must not escape onto the scheduler.
+            }
         }
 
         public async Task<Document> GetDocumentAsync(DocumentUri uri)
@@ -956,6 +973,8 @@ public abstract partial class AbstractLanguageServerProtocolTests
 
         internal AbstractLanguageServer<RequestContext>.TestAccessor GetServerAccessor() => _languageServer.Value.GetTestAccessor();
 
+        internal SynchronizationContext? ClientJsonRpcSynchronizationContext => _clientRpc.SynchronizationContext;
+
         internal ILspServices GetLspServices() => _languageServer.Value.GetLspServices();
 
         internal T GetRequiredLspService<T>() where T : class => _languageServer.Value.GetTestAccessor().GetRequiredLspService<T>();
@@ -980,25 +999,35 @@ public abstract partial class AbstractLanguageServerProtocolTests
 
         public async ValueTask DisposeAsync()
         {
-            var languageServer = _languageServer.Value;
-            var serverRpc = languageServer.GetTestAccessor().GetServerRpc();
-
-            // Some tests will manually call shutdown and exit, so attempting to call this during dispose
-            // will fail as the server's jsonrpc instance will be disposed of.
-            if (!languageServer.GetTestAccessor().HasShutdownStarted())
+            try
             {
-                await ShutdownTestServerAsync();
-                await ExitTestServerAsync();
+                var languageServer = _languageServer.Value;
+                var serverRpc = languageServer.GetTestAccessor().GetServerRpc();
+
+                // Some tests will manually call shutdown and exit, so attempting to call this during dispose
+                // will fail as the server's jsonrpc instance will be disposed of.
+                if (!languageServer.GetTestAccessor().HasShutdownStarted())
+                {
+                    await ShutdownTestServerAsync();
+                    await ExitTestServerAsync();
+                }
+
+                // Wait for all the exit notifications to run to completion.
+                await languageServer.WaitForExitAsync();
+                await AssertServerShuttingDownAsync().ConfigureAwait(false);
+
+                await JsonRpcTestDisposalHelper.DisposeAndWaitForCompletionAsync(serverRpc).ConfigureAwait(false);
+                await JsonRpcTestDisposalHelper.DisposeAndWaitForCompletionAsync(_clientRpc).ConfigureAwait(false);
+
+                TestWorkspace.Dispose();
             }
-
-            // Wait for all the exit notifications to run to completion.
-            await languageServer.WaitForExitAsync();
-            await AssertServerShuttingDownAsync().ConfigureAwait(false);
-
-            await JsonRpcTestDisposalHelper.DisposeAndWaitForCompletionAsync(serverRpc).ConfigureAwait(false);
-            await JsonRpcTestDisposalHelper.DisposeAndWaitForCompletionAsync(_clientRpc).ConfigureAwait(false);
-
-            TestWorkspace.Dispose();
+            finally
+            {
+                // Stop schedulers before the test method returns. Otherwise net472 AppDomain unload can abort a
+                // thread still inside the JsonRpc scheduler, which FailFasts the test host.
+                for (var i = _jsonRpcSynchronizationContexts.Count - 1; i >= 0; i--)
+                    await _jsonRpcSynchronizationContexts[i].DrainAndStopAsync().ConfigureAwait(false);
+            }
         }
     }
 }

@@ -76,6 +76,19 @@ public sealed class LanguageServerTargetTests : AbstractLanguageServerProtocolTe
         Assert.True(server.GetServerAccessor().GetServerRpc().IsDisposed);
     }
 
+    /// <summary>
+    /// Test JsonRpc instances must not use StreamJsonRpc's default scheduler. That scheduler FailFasts when it
+    /// throws, and .NET Framework AppDomain unload aborts any thread still inside it.
+    /// </summary>
+    [Theory, CombinatorialData]
+    public async Task JsonRpcDoesNotUseFailFastSynchronizationContext(bool mutatingLspWorkspace)
+    {
+        await using var server = await CreateTestLspServerAsync("", mutatingLspWorkspace);
+
+        Assert.IsType<TestJsonRpcSynchronizationContext>(server.GetServerAccessor().GetServerRpc().SynchronizationContext);
+        Assert.IsType<TestJsonRpcSynchronizationContext>(server.ClientJsonRpcSynchronizationContext);
+    }
+
     [Theory, CombinatorialData]
     public async Task LanguageServerDisposeAwaitsJsonRpcCompletion(bool mutatingLspWorkspace)
     {
