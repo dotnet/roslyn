@@ -51,7 +51,6 @@ if (validate)
             !summary.HasCriticalValidationErrors &&
             summary.Reports.Any() &&
             summary.Reports.All(report =>
-                report.BuildResult.IsGenerateSuccess &&
                 report.BuildResult.IsBuildSuccess &&
                 report.AllMeasurements.Any()))
         ? 0

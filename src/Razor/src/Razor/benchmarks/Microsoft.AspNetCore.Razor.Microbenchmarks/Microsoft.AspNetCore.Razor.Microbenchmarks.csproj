@@ -42,4 +42,9 @@
     <PackageReference Include="Microsoft.DiaSymReader" />
   </ItemGroup>
 
+  <ItemGroup Condition="'$(TargetFramework)' == '$(NetFxVS)'">
+    <!-- The benchmark uses Index and Range on .NET Framework. -->
+    <PackageReference Include="Microsoft.Bcl.Memory" />
+  </ItemGroup>
+
 </Project>
