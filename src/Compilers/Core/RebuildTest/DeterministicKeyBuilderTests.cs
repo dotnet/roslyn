@@ -8,6 +8,7 @@ using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
+using System.Text;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -763,6 +764,504 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
 ";
 
             AssertJsonCore(expected, array.ToString(Formatting.Indented));
+        }
+
+        private static AnalyzerConfig ParseAnalyzerConfig(string path, string content)
+            => AnalyzerConfig.Parse(content, Path.GetFullPath(path));
+
+        [Theory, CombinatorialData]
+        public void AnalyzerConfigUnusedSections(bool globalConfig, bool withGenerator)
+        {
+            var directory = Path.GetFullPath("config-root");
+            var sourcePath = Path.Combine(directory, "test.cs");
+            var header = globalConfig ? Path.Combine(directory, "other.cs").Replace('\\', '/') : "*.vb";
+            var configPath = Path.Combine(directory, globalConfig ? ".globalconfig" : ".editorconfig");
+            ImmutableArray<AnalyzerConfig> firstConfigs = [ParseAnalyzerConfig(configPath, $"[{header}]\ncache_value = 1")];
+            ImmutableArray<AnalyzerConfig> secondConfigs = [ParseAnalyzerConfig(configPath, $"[{header}]\ncache_value = 2")];
+            ImmutableArray<ISourceGenerator> generators = withGenerator ? [new Generator()] : [];
+            var compilation = CreateCompilation([ParseSyntaxTree("", sourcePath, HashAlgorithm)]);
+            var key = compilation.GetDeterministicKey(
+                generators: generators, analyzerConfigFiles: firstConfigs, analyzerConfigSet: AnalyzerConfigSet.Create(firstConfigs),
+                generatedSourceBaseDirectory: Path.Combine(directory, "generated"));
+            var otherKey = compilation.GetDeterministicKey(
+                generators: generators, analyzerConfigFiles: secondConfigs, analyzerConfigSet: AnalyzerConfigSet.Create(secondConfigs),
+                generatedSourceBaseDirectory: Path.Combine(directory, "generated"));
+
+            if (withGenerator && !globalConfig)
+            {
+                Assert.NotEqual(key, otherKey);
+            }
+            else
+            {
+                Assert.Equal(key, otherKey);
+                var config = Assert.Single((JArray)GetJsonProperty(key, "analyzerConfigs").Value);
+                Assert.Empty(Assert.IsType<JArray>(config["sections"]));
+            }
+        }
+
+        [Theory, CombinatorialData]
+        public void AnalyzerConfigSectionBindingsRespectRoot(bool root)
+        {
+            var directory = Path.GetFullPath("config-root");
+            var childDirectory = Path.Combine(directory, "child");
+            var compilation = CreateCompilation([ParseSyntaxTree("", Path.Combine(childDirectory, "test.cs"), HashAlgorithm)]);
+            var parent = ParseAnalyzerConfig(Path.Combine(directory, ".editorconfig"), "[*.cs]\ncache_value = parent");
+            var changedParent = ParseAnalyzerConfig(Path.Combine(directory, ".editorconfig"), "[*.cs]\ncache_value = changed");
+            var child = ParseAnalyzerConfig(Path.Combine(childDirectory, ".editorconfig"), $"root = {root.ToString().ToLowerInvariant()}\n[*.cs]\nchild_value = child");
+            ImmutableArray<AnalyzerConfig> configs = [parent, child];
+            ImmutableArray<AnalyzerConfig> changedConfigs = [changedParent, child];
+            var key = compilation.GetDeterministicKey(analyzerConfigFiles: configs, analyzerConfigSet: AnalyzerConfigSet.Create(configs));
+            var otherKey = compilation.GetDeterministicKey(analyzerConfigFiles: changedConfigs, analyzerConfigSet: AnalyzerConfigSet.Create(changedConfigs));
+
+            if (root)
+            {
+                Assert.Equal(key, otherKey);
+            }
+            else
+            {
+                Assert.NotEqual(key, otherKey);
+            }
+
+            var configEntries = (JArray)GetJsonProperty(key, "analyzerConfigs").Value;
+            var parentSections = Assert.IsType<JArray>(configEntries[0]["sections"]);
+            if (root)
+            {
+                Assert.Empty(parentSections);
+            }
+            else
+            {
+                var parentSection = Assert.Single(parentSections);
+                var parentBinding = Assert.Single(Assert.IsType<JArray>(parentSection["sourceFiles"]));
+                Assert.Equal(0, parentBinding.Value<int>("index"));
+                Assert.Equal(0, parentBinding.Value<int>("order"));
+            }
+            var childSection = Assert.Single(Assert.IsType<JArray>(configEntries[1]["sections"]));
+            var childBinding = Assert.Single(Assert.IsType<JArray>(childSection["sourceFiles"]));
+            Assert.Equal(0, childBinding.Value<int>("index"));
+            Assert.Equal(root ? 0 : 1, childBinding.Value<int>("order"));
+        }
+
+        [Fact]
+        public void AnalyzerConfigSectionBindingsPreserveApplicationOrder()
+        {
+            var firstDirectory = Path.GetFullPath("config-root1") + Path.DirectorySeparatorChar;
+            var secondDirectory = Path.GetFullPath("config-root2") + Path.DirectorySeparatorChar;
+            var firstChild = Path.Combine(firstDirectory, "child") + Path.DirectorySeparatorChar;
+            var secondChild = Path.Combine(secondDirectory, "child") + Path.DirectorySeparatorChar;
+            ImmutableArray<AnalyzerConfig> firstConfigs =
+            [
+                ParseAnalyzerConfig(firstDirectory + ".editorconfig", "[*.cs]\ncache_value = first"),
+                ParseAnalyzerConfig(firstChild + ".editorconfig", "[*.cs]\ncache_value = second"),
+            ];
+            ImmutableArray<AnalyzerConfig> secondConfigs =
+            [
+                ParseAnalyzerConfig(secondChild + ".editorconfig", "[*.cs]\ncache_value = first"),
+                ParseAnalyzerConfig(secondDirectory + ".editorconfig", "[*.cs]\ncache_value = second"),
+            ];
+            ImmutableArray<KeyValuePair<string, string>> pathMap =
+            [
+                KeyValuePair.Create(firstChild, "/_/"),
+                KeyValuePair.Create(secondChild, "/_/"),
+                KeyValuePair.Create(firstDirectory, "/_/"),
+                KeyValuePair.Create(secondDirectory, "/_/"),
+            ];
+            var key = CreateCompilation([ParseSyntaxTree("", firstChild + "test.cs", HashAlgorithm)]).GetDeterministicKey(
+                pathMap: pathMap, analyzerConfigFiles: firstConfigs, analyzerConfigSet: AnalyzerConfigSet.Create(firstConfigs));
+            var otherKey = CreateCompilation([ParseSyntaxTree("", secondChild + "test.cs", HashAlgorithm)]).GetDeterministicKey(
+                pathMap: pathMap, analyzerConfigFiles: secondConfigs, analyzerConfigSet: AnalyzerConfigSet.Create(secondConfigs));
+
+            Assert.NotEqual(key, otherKey);
+            var first = (JArray)GetJsonProperty(key, "analyzerConfigs").Value;
+            var second = (JArray)GetJsonProperty(otherKey, "analyzerConfigs").Value;
+            Assert.Equal(0, first[0]["sections"]![0]!["sourceFiles"]![0]!.Value<int>("order"));
+            Assert.Equal(1, first[1]["sections"]![0]!["sourceFiles"]![0]!.Value<int>("order"));
+            Assert.Equal(1, second[0]["sections"]![0]!["sourceFiles"]![0]!.Value<int>("order"));
+            Assert.Equal(0, second[1]["sections"]![0]!["sourceFiles"]![0]!.Value<int>("order"));
+        }
+
+        [Fact]
+        public void AnalyzerConfigGlobalSectionBindings()
+        {
+            var directory = Path.GetFullPath("config-root");
+            var sourcePath = Path.Combine(directory, "test.cs");
+            var header = sourcePath.Replace('\\', '/');
+            ImmutableArray<AnalyzerConfig> configs =
+            [
+                ParseAnalyzerConfig(Path.Combine(directory, "first.globalconfig"), $"is_global = true\nglobal_level = 1\n[{header}]\ncache_value = first"),
+                ParseAnalyzerConfig(Path.Combine(directory, "second.globalconfig"), $"is_global = true\nglobal_level = 2\n[{header}]\ncache_value = second"),
+            ];
+            var key = CreateCompilation([ParseSyntaxTree("", sourcePath, HashAlgorithm)]).GetDeterministicKey(
+                analyzerConfigFiles: configs, analyzerConfigSet: AnalyzerConfigSet.Create(configs));
+            var configEntries = (JArray)GetJsonProperty(key, "analyzerConfigs").Value;
+
+            for (int i = 0; i < configs.Length; i++)
+            {
+                var section = Assert.Single(Assert.IsType<JArray>(configEntries[i]["sections"]));
+                var binding = Assert.Single(Assert.IsType<JArray>(section["sourceFiles"]));
+                Assert.Equal(0, binding.Value<int>("index"));
+                Assert.Equal(0, binding.Value<int>("order"));
+                Assert.Equal(i + 1, configEntries[i].Value<int>("globalLevel"));
+            }
+        }
+
+        [Fact]
+        public void AnalyzerConfigDefaultAndEmpty()
+        {
+            var compilation = CreateCompilation([]);
+            var key = compilation.GetDeterministicKey();
+
+            Assert.Equal(key, compilation.GetDeterministicKey(analyzerConfigFiles: []));
+            AssertJsonSection("""
+                "analyzerConfigs": []
+                """, key, "analyzerConfigs");
+            ImmutableArray<AnalyzerConfig> configs = [ParseAnalyzerConfig(".editorconfig", "")];
+            Assert.NotEqual(key, compilation.GetDeterministicKey(
+                analyzerConfigFiles: configs, analyzerConfigSet: AnalyzerConfigSet.Create(configs)));
+        }
+
+        [Theory, CombinatorialData]
+        public void AnalyzerConfigContent(bool globalConfig)
+        {
+            var content = globalConfig ? "is_global = true\ncache_value = 1" : "";
+            var changedContent = globalConfig ? "is_global = true\ncache_value = 2" : "root = true";
+            var compilation = CreateCompilation([]);
+            ImmutableArray<AnalyzerConfig> configs = [ParseAnalyzerConfig(".globalconfig", content)];
+            ImmutableArray<AnalyzerConfig> changedConfigs = [ParseAnalyzerConfig(".globalconfig", changedContent)];
+            var configSet = AnalyzerConfigSet.Create(configs);
+            var key = compilation.GetDeterministicKey(analyzerConfigFiles: configs, analyzerConfigSet: configSet);
+
+            Assert.NotEqual(key, compilation.GetDeterministicKey(
+                analyzerConfigFiles: changedConfigs, analyzerConfigSet: AnalyzerConfigSet.Create(changedConfigs)));
+            Assert.Equal(key, compilation.GetDeterministicKey(analyzerConfigFiles: configs, analyzerConfigSet: configSet));
+            Assert.Equal(key, Compilation.GetDeterministicKey(
+                compilation.Options, [], compilation.References.ToImmutableArray(), ImmutableArray<byte>.Empty,
+                analyzerConfigFiles: configs, analyzerConfigSet: configSet));
+            Assert.Equal(key, DeterministicKey.GetDeterministicKey(
+                compilation.Options, [], compilation.References.ToImmutableArray(), ImmutableArray<byte>.Empty,
+                analyzerConfigFiles: configs, analyzerConfigSet: configSet));
+        }
+
+        [Theory, CombinatorialData]
+        public void AnalyzerConfigPaths(bool pathMapped, bool ignorePaths)
+        {
+            var compilation = CreateCompilation([]);
+            var firstDirectory = Path.GetFullPath("config-root1") + Path.DirectorySeparatorChar;
+            var secondDirectory = Path.GetFullPath("config-root2") + Path.DirectorySeparatorChar;
+            ImmutableArray<KeyValuePair<string, string>> pathMap = pathMapped
+                ? [KeyValuePair.Create(firstDirectory, "/_/"), KeyValuePair.Create(secondDirectory, "/_/")]
+                : [];
+            var options = ignorePaths ? DeterministicKeyOptions.IgnorePaths : DeterministicKeyOptions.Default;
+            ImmutableArray<AnalyzerConfig> firstConfigs = [ParseAnalyzerConfig(firstDirectory + ".editorconfig", "root = true")];
+            ImmutableArray<AnalyzerConfig> secondConfigs = [ParseAnalyzerConfig(secondDirectory + ".editorconfig", "root = true")];
+            var key = compilation.GetDeterministicKey(
+                analyzerConfigFiles: firstConfigs, analyzerConfigSet: AnalyzerConfigSet.Create(firstConfigs), pathMap: pathMap, options: options);
+            var otherKey = compilation.GetDeterministicKey(
+                analyzerConfigFiles: secondConfigs, analyzerConfigSet: AnalyzerConfigSet.Create(secondConfigs), pathMap: pathMap, options: options);
+
+            if (pathMapped || ignorePaths)
+            {
+                Assert.Equal(key, otherKey);
+            }
+            else
+            {
+                Assert.NotEqual(key, otherKey);
+            }
+
+            var config = Assert.Single((JArray)GetJsonProperty(key, "analyzerConfigs").Value);
+            Assert.Equal(ignorePaths ? ".editorconfig" : pathMapped ? "/_/.editorconfig" : firstDirectory + ".editorconfig", config.Value<string>("fileName"));
+        }
+
+        [ConditionalTheory(typeof(WindowsOnly)), CombinatorialData]
+        public void AnalyzerConfigPathMapDriveLetter(bool lowerCaseInputDrive, bool lowerCaseMapDrive, bool differentDirectoryCase)
+        {
+            var directory = $@"{(lowerCaseInputDrive ? "q" : "Q")}:\ConfigRoot\";
+            var mappedDirectory = $@"{(lowerCaseMapDrive ? "q" : "Q")}:\{(differentDirectoryCase ? "configroot" : "ConfigRoot")}\";
+            ImmutableArray<AnalyzerConfig> configs =
+            [
+                ParseAnalyzerConfig(directory + ".globalconfig", $"""
+                    is_global = true
+                    build_property.ProjectDir = {directory}
+                    build_property.MSBuildProjectDirectory = {directory.TrimEnd('\\')}
+                    [{directory.Replace('\\', '/')}generated/Output.g.cs]
+                    cache_value = 1
+                    """),
+            ];
+            var key = CreateCompilation([]).GetDeterministicKey(
+                pathMap: [KeyValuePair.Create(mappedDirectory, "/_/")],
+                generators: [new Generator()],
+                analyzerConfigFiles: configs,
+                analyzerConfigSet: AnalyzerConfigSet.Create(configs),
+                generatedSourceBaseDirectory: directory + "generated");
+            var config = Assert.Single((JArray)GetJsonProperty(key, "analyzerConfigs").Value);
+            var properties = Assert.IsType<JObject>(config["properties"]);
+            var section = Assert.Single(Assert.IsType<JArray>(config["sections"]));
+
+            Assert.Equal(differentDirectoryCase ? @"Q:\ConfigRoot\.globalconfig" : "/_/.globalconfig", config.Value<string>("fileName"));
+            Assert.Equal(differentDirectoryCase ? "Q:/ConfigRoot/" : "/_/", properties.Value<string>("build_property.projectdir"));
+            Assert.Equal(differentDirectoryCase ? "Q:/ConfigRoot" : "/_", properties.Value<string>("build_property.msbuildprojectdirectory"));
+            Assert.Equal(differentDirectoryCase ? "Q:/ConfigRoot/generated/Output.g.cs" : "/_/generated/Output.g.cs", section.Value<string>("name"));
+        }
+
+        [Theory, CombinatorialData]
+        public void AnalyzerConfigSectionBindings(bool additionalFile, bool differentOptions)
+        {
+            var firstDirectory = Path.GetFullPath("config-root1") + Path.DirectorySeparatorChar;
+            var secondDirectory = Path.GetFullPath("config-root2") + Path.DirectorySeparatorChar;
+            var firstPath = firstDirectory + "test.cs";
+            var secondPath = secondDirectory + "test.cs";
+            var configPath = Path.GetFullPath(".globalconfig");
+            var content = $"""
+                is_global = true
+                [{firstPath.Replace('\\', '/')}]
+                dotnet_diagnostic.TEST0001.severity = none
+                cache_value = 1
+                [{secondPath.Replace('\\', '/')}]
+                dotnet_diagnostic.TEST0001.severity = {(differentOptions ? "warning" : "none")}
+                cache_value = {(differentOptions ? "2" : "1")}
+                """;
+            ImmutableArray<AnalyzerConfig> configs = [ParseAnalyzerConfig(configPath, content)];
+            var configSet = AnalyzerConfigSet.Create(configs);
+            ImmutableArray<KeyValuePair<string, string>> pathMap =
+                [KeyValuePair.Create(firstDirectory, "/_/"), KeyValuePair.Create(secondDirectory, "/_/")];
+            var firstCompilation = CreateCompilation(additionalFile ? [] : [ParseSyntaxTree("", firstPath, HashAlgorithm)]);
+            var secondCompilation = CreateCompilation(additionalFile ? [] : [ParseSyntaxTree("", secondPath, HashAlgorithm)]);
+            ImmutableArray<AdditionalText> firstAdditional = additionalFile ? [new TestAdditionalText(firstPath, SourceText.From(""))] : [];
+            ImmutableArray<AdditionalText> secondAdditional = additionalFile ? [new TestAdditionalText(secondPath, SourceText.From(""))] : [];
+            var key = firstCompilation.GetDeterministicKey(
+                additionalTexts: firstAdditional, pathMap: pathMap, analyzerConfigFiles: configs, analyzerConfigSet: configSet);
+            var otherKey = secondCompilation.GetDeterministicKey(
+                additionalTexts: secondAdditional, pathMap: pathMap, analyzerConfigFiles: configs, analyzerConfigSet: configSet);
+
+            var section = additionalFile ? "additionalFiles" : "sourceFiles";
+            var firstConfig = Assert.Single((JArray)GetJsonProperty(key, "analyzerConfigs").Value);
+            var secondConfig = Assert.Single((JArray)GetJsonProperty(otherKey, "analyzerConfigs").Value);
+            var firstSection = Assert.Single(Assert.IsType<JArray>(firstConfig["sections"]));
+            var secondSection = Assert.Single(Assert.IsType<JArray>(secondConfig["sections"]));
+            var firstBinding = Assert.Single(Assert.IsType<JArray>(firstSection[section]));
+            var secondBinding = Assert.Single(Assert.IsType<JArray>(secondSection[section]));
+            Assert.Equal(0, firstBinding.Value<int>("index"));
+            Assert.Equal(0, secondBinding.Value<int>("index"));
+            Assert.Equal("none", firstSection["properties"]!["dotnet_diagnostic.test0001.severity"]!.Value<string>());
+            Assert.Equal("1", firstSection["properties"]!["cache_value"]!.Value<string>());
+            Assert.Equal(differentOptions ? "warning" : "none", secondSection["properties"]!["dotnet_diagnostic.test0001.severity"]!.Value<string>());
+            Assert.Equal(differentOptions ? "2" : "1", secondSection["properties"]!["cache_value"]!.Value<string>());
+            Assert.Null(JObject.Parse(key)["analyzerConfigOptions"]);
+            if (differentOptions)
+            {
+                Assert.NotEqual(key, otherKey);
+            }
+            else
+            {
+                Assert.Equal(key, otherKey);
+            }
+        }
+
+        [Theory, CombinatorialData]
+        public void AnalyzerConfigMappedProperties(
+            [CombinatorialValues("build_property.ProjectDir", "build_property.MSBuildProjectDirectory", "custom_path")] string property,
+            bool pathMapped,
+            bool trailingSeparator)
+        {
+            var firstDirectory = Path.GetFullPath("config-root1") + Path.DirectorySeparatorChar;
+            var secondDirectory = Path.GetFullPath("config-root2") + Path.DirectorySeparatorChar;
+            var firstValue = trailingSeparator ? firstDirectory : PathUtilities.TrimTrailingSeparators(firstDirectory);
+            var secondValue = trailingSeparator ? secondDirectory : PathUtilities.TrimTrailingSeparators(secondDirectory);
+            ImmutableArray<AnalyzerConfig> firstConfigs =
+                [ParseAnalyzerConfig(firstDirectory + ".globalconfig", $"is_global = true\n{property} = {firstValue}")];
+            ImmutableArray<AnalyzerConfig> secondConfigs =
+                [ParseAnalyzerConfig(secondDirectory + ".globalconfig", $"is_global = true\n{property} = {secondValue}")];
+            ImmutableArray<KeyValuePair<string, string>> pathMap = pathMapped
+                ? [KeyValuePair.Create(firstDirectory, "/_/"), KeyValuePair.Create(secondDirectory, "/_/")]
+                : [];
+            var compilation = CreateCompilation([]);
+            var key = compilation.GetDeterministicKey(
+                pathMap: pathMap, analyzerConfigFiles: firstConfigs, analyzerConfigSet: AnalyzerConfigSet.Create(firstConfigs));
+            var otherKey = compilation.GetDeterministicKey(
+                pathMap: pathMap, analyzerConfigFiles: secondConfigs, analyzerConfigSet: AnalyzerConfigSet.Create(secondConfigs));
+
+            if (pathMapped && property != "custom_path")
+            {
+                Assert.Equal(key, otherKey);
+                var config = Assert.Single((JArray)GetJsonProperty(key, "analyzerConfigs").Value);
+                var options = Assert.IsType<JObject>(config["properties"]);
+                Assert.Equal(trailingSeparator ? "/_/" : "/_", options.Value<string>(property.ToLowerInvariant()));
+            }
+            else
+            {
+                Assert.NotEqual(key, otherKey);
+            }
+        }
+
+        [Theory, CombinatorialData]
+        public void AnalyzerConfigSectionRelocation(
+            [CombinatorialValues(null, "*.cs", "src/**/*.cs", "*.{cs,vb}")] string? pattern,
+            bool withGenerator,
+            bool additionalFile)
+        {
+            var firstDirectory = Path.GetFullPath("config-root1") + Path.DirectorySeparatorChar;
+            var secondDirectory = Path.GetFullPath("config-root2") + Path.DirectorySeparatorChar;
+            var firstPath = Path.Combine(firstDirectory, "src", "nested", "test.cs");
+            var secondPath = Path.Combine(secondDirectory, "src", "nested", "test.cs");
+            var firstHeader = pattern ?? firstPath.Replace('\\', '/');
+            var secondHeader = pattern ?? secondPath.Replace('\\', '/');
+            var configFileName = pattern is null ? ".globalconfig" : ".editorconfig";
+            ImmutableArray<AnalyzerConfig> firstConfigs =
+                [ParseAnalyzerConfig(firstDirectory + configFileName, $"[{firstHeader}]\ncache_value = 1")];
+            ImmutableArray<AnalyzerConfig> secondConfigs =
+                [ParseAnalyzerConfig(secondDirectory + configFileName, $"[{secondHeader}]\ncache_value = 1")];
+            ImmutableArray<KeyValuePair<string, string>> pathMap =
+                [KeyValuePair.Create(firstDirectory, "/_/"), KeyValuePair.Create(secondDirectory, "/_/")];
+            ImmutableArray<ISourceGenerator> generators = withGenerator ? [new Generator()] : [];
+            ImmutableArray<AdditionalText> firstAdditional = additionalFile ? [new TestAdditionalText(firstPath, SourceText.From(""))] : [];
+            ImmutableArray<AdditionalText> secondAdditional = additionalFile ? [new TestAdditionalText(secondPath, SourceText.From(""))] : [];
+            var key = CreateCompilation(additionalFile ? [] : [ParseSyntaxTree("", firstPath, HashAlgorithm)]).GetDeterministicKey(
+                pathMap: pathMap, generators: generators, additionalTexts: firstAdditional,
+                analyzerConfigFiles: firstConfigs, analyzerConfigSet: AnalyzerConfigSet.Create(firstConfigs),
+                generatedSourceBaseDirectory: Path.Combine(firstDirectory, "generated"));
+            var otherKey = CreateCompilation(additionalFile ? [] : [ParseSyntaxTree("", secondPath, HashAlgorithm)]).GetDeterministicKey(
+                pathMap: pathMap, generators: generators, additionalTexts: secondAdditional,
+                analyzerConfigFiles: secondConfigs, analyzerConfigSet: AnalyzerConfigSet.Create(secondConfigs),
+                generatedSourceBaseDirectory: Path.Combine(secondDirectory, "generated"));
+
+            Assert.Equal(key, otherKey);
+            var section = additionalFile ? "additionalFiles" : "sourceFiles";
+            var config = Assert.Single((JArray)GetJsonProperty(key, "analyzerConfigs").Value);
+            var configSection = Assert.Single(Assert.IsType<JArray>(config["sections"]));
+            var binding = Assert.Single(Assert.IsType<JArray>(configSection[section]));
+            Assert.Equal(0, binding.Value<int>("index"));
+            Assert.Equal("1", configSection["properties"]!["cache_value"]!.Value<string>());
+        }
+
+        [Fact]
+        public void AnalyzerConfigMappedDirectoryRoot()
+        {
+            var directory = Path.GetFullPath("config-root");
+            ImmutableArray<AnalyzerConfig> configs =
+                [ParseAnalyzerConfig(Path.Combine(directory, ".globalconfig"), $"build_property.ProjectDir = {directory}")];
+            var key = CreateCompilation([]).GetDeterministicKey(
+                pathMap: [KeyValuePair.Create(directory + Path.DirectorySeparatorChar, "/")],
+                analyzerConfigFiles: configs, analyzerConfigSet: AnalyzerConfigSet.Create(configs));
+
+            var config = Assert.Single((JArray)GetJsonProperty(key, "analyzerConfigs").Value);
+            var options = Assert.IsType<JObject>(config["properties"]);
+            Assert.Equal("/", options.Value<string>("build_property.projectdir"));
+        }
+
+        [Theory, CombinatorialData]
+        public void AnalyzerConfigGeneratedSectionMatching(bool relocateSection)
+        {
+            var firstDirectory = Path.GetFullPath("config-root1") + Path.DirectorySeparatorChar;
+            var secondDirectory = Path.GetFullPath("config-root2") + Path.DirectorySeparatorChar;
+            var firstGeneratedDirectory = Path.Combine(firstDirectory, "generated");
+            var secondGeneratedDirectory = Path.Combine(secondDirectory, "generated");
+            var firstPath = Path.Combine(firstGeneratedDirectory, "Generator[1].g.cs").Replace('\\', '/');
+            var secondPath = relocateSection
+                ? Path.Combine(secondGeneratedDirectory, "Generator[1].g.cs").Replace('\\', '/')
+                : firstPath;
+            var firstHeader = firstPath.Replace("[", "\\[").Replace("]", "\\]");
+            var secondHeader = secondPath.Replace("[", "\\[").Replace("]", "\\]");
+            ImmutableArray<AnalyzerConfig> firstConfigs =
+                [ParseAnalyzerConfig(firstDirectory + ".globalconfig", $"[{firstHeader}]\ncache_value = 1")];
+            ImmutableArray<AnalyzerConfig> secondConfigs =
+                [ParseAnalyzerConfig(secondDirectory + ".globalconfig", $"[{secondHeader}]\ncache_value = 1")];
+            ImmutableArray<KeyValuePair<string, string>> pathMap =
+                [KeyValuePair.Create(firstDirectory, "/_/"), KeyValuePair.Create(secondDirectory, "/_/")];
+            ImmutableArray<ISourceGenerator> generators = [new Generator()];
+            var compilation = CreateCompilation([]);
+            var key = compilation.GetDeterministicKey(
+                pathMap: pathMap, generators: generators,
+                analyzerConfigFiles: firstConfigs, analyzerConfigSet: AnalyzerConfigSet.Create(firstConfigs),
+                generatedSourceBaseDirectory: firstGeneratedDirectory);
+            var otherKey = compilation.GetDeterministicKey(
+                pathMap: pathMap, generators: generators,
+                analyzerConfigFiles: secondConfigs, analyzerConfigSet: AnalyzerConfigSet.Create(secondConfigs),
+                generatedSourceBaseDirectory: secondGeneratedDirectory);
+
+            var firstConfig = Assert.Single((JArray)GetJsonProperty(key, "analyzerConfigs").Value);
+            var secondConfig = Assert.Single((JArray)GetJsonProperty(otherKey, "analyzerConfigs").Value);
+            var firstSection = Assert.Single(Assert.IsType<JArray>(firstConfig["sections"]));
+            Assert.Equal("/_/generated/Generator[1].g.cs", firstSection.Value<string>("name"));
+            Assert.Equal("Generator[1].g.cs", firstSection.Value<string>("generatedFileName"));
+            if (relocateSection)
+            {
+                var secondSection = Assert.Single(Assert.IsType<JArray>(secondConfig["sections"]));
+                Assert.Equal(firstSection.Value<string>("name"), secondSection.Value<string>("name"));
+                Assert.Equal("Generator[1].g.cs", secondSection.Value<string>("generatedFileName"));
+                Assert.Equal(key, otherKey);
+            }
+            else
+            {
+                Assert.Empty(Assert.IsType<JArray>(secondConfig["sections"]));
+                Assert.NotEqual(key, otherKey);
+            }
+        }
+
+        [Theory, CombinatorialData]
+        public void AnalyzerConfigGeneratedDirectoryRelationships(bool moveConfig)
+        {
+            var directory = Path.GetFullPath("config-root") + Path.DirectorySeparatorChar;
+            var firstConfigDirectory = moveConfig ? Path.Combine(directory, "config1") + Path.DirectorySeparatorChar : directory;
+            var secondConfigDirectory = moveConfig ? Path.Combine(directory, "config2") + Path.DirectorySeparatorChar : directory;
+            var firstGeneratedDirectory = moveConfig ? directory : Path.Combine(directory, "generated1");
+            var secondGeneratedDirectory = moveConfig ? directory : Path.Combine(directory, "generated2");
+            var compilation = CreateCompilation([]);
+            ImmutableArray<ISourceGenerator> generators = [new Generator()];
+            ImmutableArray<AnalyzerConfig> firstConfigs = [ParseAnalyzerConfig(firstConfigDirectory + ".editorconfig", "[generated1/**/*.cs]\ncache_value = 1")];
+            ImmutableArray<AnalyzerConfig> secondConfigs = [ParseAnalyzerConfig(secondConfigDirectory + ".editorconfig", "[generated1/**/*.cs]\ncache_value = 1")];
+            ImmutableArray<KeyValuePair<string, string>> pathMap =
+                [KeyValuePair.Create(firstConfigDirectory, "/_/"), KeyValuePair.Create(secondConfigDirectory, "/_/")];
+            var key = compilation.GetDeterministicKey(
+                pathMap: pathMap, generators: generators, analyzerConfigFiles: firstConfigs, analyzerConfigSet: AnalyzerConfigSet.Create(firstConfigs),
+                generatedSourceBaseDirectory: firstGeneratedDirectory);
+            var otherKey = compilation.GetDeterministicKey(
+                pathMap: pathMap, generators: generators, analyzerConfigFiles: secondConfigs, analyzerConfigSet: AnalyzerConfigSet.Create(secondConfigs),
+                generatedSourceBaseDirectory: secondGeneratedDirectory);
+
+            Assert.NotEqual(key, otherKey);
+            var config = Assert.Single((JArray)GetJsonProperty(key, "analyzerConfigs").Value);
+            Assert.Equal(moveConfig ? ".." : "generated1", config["generatedSourceDirectory"]!["relativeToConfig"]!.Value<string>());
+            Assert.Equal(moveConfig ? "config1" : "..", config["generatedSourceDirectory"]!["configRelativeToGenerated"]!.Value<string>());
+        }
+
+        [Fact]
+        public void AnalyzerConfigMultipleFiles()
+        {
+            var compilation = CreateCompilation([]);
+            ImmutableArray<AnalyzerConfig> configs =
+            [
+                ParseAnalyzerConfig(".globalconfig", "is_global = true"),
+                ParseAnalyzerConfig(".editorconfig", "root = true"),
+            ];
+            var key = compilation.GetDeterministicKey(analyzerConfigFiles: configs, analyzerConfigSet: AnalyzerConfigSet.Create(configs));
+            var array = (JArray)GetJsonProperty(key, "analyzerConfigs").Value;
+
+            Assert.Equal(configs.Select(config => config.PathToFile), array.Select(config => config.Value<string>("fileName")));
+            ImmutableArray<AnalyzerConfig> fewerConfigs = [configs[0]];
+            ImmutableArray<AnalyzerConfig> reversedConfigs = [configs[1], configs[0]];
+            ImmutableArray<AnalyzerConfig> changedConfigs = [configs[0], ParseAnalyzerConfig(configs[1].PathToFile, "root = false")];
+            Assert.NotEqual(key, compilation.GetDeterministicKey(
+                analyzerConfigFiles: fewerConfigs, analyzerConfigSet: AnalyzerConfigSet.Create(fewerConfigs)));
+            Assert.NotEqual(key, compilation.GetDeterministicKey(
+                analyzerConfigFiles: reversedConfigs, analyzerConfigSet: AnalyzerConfigSet.Create(reversedConfigs)));
+            Assert.NotEqual(key, compilation.GetDeterministicKey(
+                analyzerConfigFiles: changedConfigs, analyzerConfigSet: AnalyzerConfigSet.Create(changedConfigs)));
+        }
+
+        [Fact]
+        public void AnalyzerConfigProperties()
+        {
+            var compilation = CreateCompilation([]);
+            ImmutableArray<AnalyzerConfig> configs = [ParseAnalyzerConfig(".editorconfig", "root = true\ncache_value = 1")];
+            ImmutableArray<AnalyzerConfig> reorderedConfigs = [ParseAnalyzerConfig(".editorconfig", "# comment\ncache_value = 1\nroot = true")];
+            var key = compilation.GetDeterministicKey(analyzerConfigFiles: configs, analyzerConfigSet: AnalyzerConfigSet.Create(configs));
+            var otherKey = compilation.GetDeterministicKey(analyzerConfigFiles: reorderedConfigs, analyzerConfigSet: AnalyzerConfigSet.Create(reorderedConfigs));
+
+            Assert.Equal(key, otherKey);
+            var config = Assert.Single((JArray)GetJsonProperty(key, "analyzerConfigs").Value);
+            var properties = Assert.IsType<JObject>(config["properties"]);
+            Assert.Equal(new[] { "cache_value", "root" }, properties.Properties().Select(property => property.Name));
+            Assert.Equal("1", properties.Value<string>("cache_value"));
+            Assert.Equal("true", properties.Value<string>("root"));
         }
 
         [Fact]

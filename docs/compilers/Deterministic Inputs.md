@@ -18,6 +18,7 @@ The following are considered inputs to the compiler for the purpose of determini
   - Analyzers
   - Generators
   - Rulesets
+  - Analyzer-configuration files
   - "additional files" that may be used by analyzers and generators
 - The current culture if `/preferreduilang` is not specified (for the language in which diagnostics and exception messages are produced).
 - The current OS code page if `/codepage` is not specified and any of the input source files do not have BOM and are not UTF-8 encoded.
@@ -51,6 +52,8 @@ This creates an additional output file (e.g., `MyAssembly.dll.key`) in the outpu
 - Parse options
 - Emit options
 - Analyzer and generator information
+- Analyzer-configuration file paths, parsed sections, and properties; absolute global-section filenames and well-known path-valued build properties are path-mapped
+- Ordered section bindings to source and additional files, and relative generated-file matching context; unused sections are omitted unless they could apply to generated files
 
 Compare the `.key` files from two supposedly identical builds to identify which inputs differ:
 

@@ -130,6 +130,9 @@ namespace Microsoft.CodeAnalysis
             EmitOptions? emitOptions,
             Stream? sourceLinkStream,
             ImmutableArray<ResourceDescription> resources,
+            ImmutableArray<AnalyzerConfig> analyzerConfigFiles,
+            AnalyzerConfigSet? analyzerConfigSet,
+            string? generatedSourceBaseDirectory,
             DeterministicKeyOptions options,
             CancellationToken cancellationToken)
         {
@@ -141,6 +144,28 @@ namespace Microsoft.CodeAnalysis
             analyzers = analyzers.NullToEmpty();
             generators = generators.NullToEmpty();
             resources = resources.NullToEmpty();
+            analyzerConfigFiles = analyzerConfigFiles.NullToEmpty();
+
+            Debug.Assert(analyzerConfigFiles.IsEmpty || analyzerConfigSet is not null);
+            var configFilePathMap = analyzerConfigSet is null || pathMap.IsDefaultOrEmpty
+                ? ImmutableArray<KeyValuePair<string, string>>.Empty
+                : pathMap.SelectAsArray(static pair => KeyValuePair.Create(
+                    PathUtilities.NormalizeDriveLetter(pair.Key),
+                    pair.Value));
+            var configPathMap = configFilePathMap.SelectAsArray(static pair => KeyValuePair.Create(
+                PathUtilities.NormalizeWithForwardSlash(pair.Key),
+                PathUtilities.NormalizeWithForwardSlash(pair.Value)));
+            string? generatedDirectory = null;
+            string? generatedPrefix = null;
+            if (!generators.IsEmpty && !analyzerConfigFiles.IsEmpty)
+            {
+                Debug.Assert(generatedSourceBaseDirectory is not null);
+                generatedDirectory = PathUtilities.NormalizeDriveLetter(
+                    PathUtilities.ExpandAbsolutePathWithRelativeParts(PathUtilities.CollapseWithForwardSlash(generatedSourceBaseDirectory)));
+                generatedPrefix = generatedDirectory.EndsWith("/", StringComparison.Ordinal)
+                    ? generatedDirectory
+                    : generatedDirectory + "/";
+            }
 
             var (writer, builder) = CreateWriter();
 
@@ -150,6 +175,8 @@ namespace Microsoft.CodeAnalysis
             WriteCompilation(writer, compilationOptions, syntaxTrees, references, publicKey, pathMap, options, cancellationToken);
             writer.WriteKey("additionalTexts");
             writeAdditionalTexts();
+            writer.WriteKey("analyzerConfigs");
+            writeAnalyzerConfigs();
             writer.WriteKey("analyzers");
             writeAnalyzers();
             writer.WriteKey("generators");
@@ -188,6 +215,95 @@ namespace Microsoft.CodeAnalysis
                     writer.WriteObjectEnd();
                 }
                 writer.WriteArrayEnd();
+            }
+
+            void writeAnalyzerConfigs()
+            {
+                using var _ = PooledDictionary<AnalyzerConfig.Section, ArrayBuilder<(int InputIndex, int Order)>>.GetInstance(out var bindings);
+                try
+                {
+                    if (analyzerConfigSet is not null)
+                    {
+                        AddAnalyzerConfigSectionBindings(analyzerConfigFiles, analyzerConfigSet, syntaxTrees, additionalTexts, bindings, cancellationToken);
+                    }
+
+                    writer.WriteArrayStart();
+                    foreach (var config in analyzerConfigFiles)
+                    {
+                        cancellationToken.ThrowIfCancellationRequested();
+                        var mayMatchGenerated = generatedDirectory is not null && !config.IsGlobal &&
+                            (PathUtilities.IsSameDirectoryOrChildOf(generatedDirectory, config.NormalizedDirectory, StringComparison.Ordinal) ||
+                             PathUtilities.IsSameDirectoryOrChildOf(config.NormalizedDirectory, generatedDirectory, StringComparison.Ordinal));
+
+                        writer.WriteObjectStart();
+                        WriteFilePath(writer, "fileName", config.PathToFile, configFilePathMap, options);
+                        writer.Write("isGlobal", config.IsGlobal);
+                        writer.Write("globalLevel", config.GlobalLevel);
+                        writer.WriteKey("properties");
+                        WriteAnalyzerConfigProperties(writer, config.GlobalSection.Properties, configPathMap, options, cancellationToken);
+                        writer.WriteArrayStart("sections");
+                        foreach (var section in config.NamedSections)
+                        {
+                            cancellationToken.ThrowIfCancellationRequested();
+                            var absolutePath = config.IsGlobal && AnalyzerConfig.IsAbsoluteEditorConfigPath(section.Name)
+                                ? AnalyzerConfig.UnescapeSectionName(section.Name)
+                                : null;
+                            var generatedFileName = absolutePath is not null && generatedPrefix is not null &&
+                                absolutePath.StartsWith(generatedPrefix, StringComparison.Ordinal)
+                                ? absolutePath.Substring(generatedPrefix.Length)
+                                : null;
+                            var mayMatchGeneratedSection = mayMatchGenerated || generatedFileName is not null;
+                            bindings.TryGetValue(section, out var sectionBindings);
+                            if (sectionBindings is null && !mayMatchGeneratedSection)
+                            {
+                                continue;
+                            }
+
+                            writer.WriteObjectStart();
+                            writer.Write("name", absolutePath is null
+                                ? section.Name
+                                : NormalizeAnalyzerConfigPath(absolutePath, configPathMap, options));
+                            writer.WriteKey("properties");
+                            WriteAnalyzerConfigProperties(writer, section.Properties, configPathMap, options, cancellationToken);
+                            WriteAnalyzerConfigSectionBindings(writer, "sourceFiles", sectionBindings, 0, syntaxTrees.Length, cancellationToken);
+                            WriteAnalyzerConfigSectionBindings(writer, "additionalFiles", sectionBindings, syntaxTrees.Length, additionalTexts.Length, cancellationToken);
+
+                            // This is the global section's target relative to the generated-source base, before PathMap.
+                            // At cache lookup, generated filenames are unknown, so we cannot bind the section to them yet.
+                            // The mapped section name alone cannot capture changes in matching when the generated-source base moves.
+                            writer.Write("generatedFileName", generatedFileName);
+                            writer.WriteObjectEnd();
+                        }
+                        writer.WriteArrayEnd();
+
+                        // Ordinary editorconfig patterns are relative to the config directory.
+                        // Record where generated files will be placed relative to that directory, since their names are unknown at cache lookup.
+                        // Keep both directions: if the config moves from generated/a to generated/b, the path to the generated base is ".." in both cases;
+                        // only the reverse path distinguishes "a" from "b".
+                        writer.WriteKey("generatedSourceDirectory");
+                        if (mayMatchGenerated && analyzerConfigSet?.HasNamedSections == true)
+                        {
+                            Debug.Assert(generatedDirectory is not null);
+                            writer.WriteObjectStart();
+                            writer.Write("relativeToConfig", GetAnalyzerConfigRelativeDirectory(config.NormalizedDirectory, generatedDirectory));
+                            writer.Write("configRelativeToGenerated", GetAnalyzerConfigRelativeDirectory(generatedDirectory, config.NormalizedDirectory));
+                            writer.WriteObjectEnd();
+                        }
+                        else
+                        {
+                            writer.WriteNull();
+                        }
+                        writer.WriteObjectEnd();
+                    }
+                    writer.WriteArrayEnd();
+                }
+                finally
+                {
+                    foreach (var binding in bindings.Values)
+                    {
+                        binding.Free();
+                    }
+                }
             }
 
             void writeAnalyzers()
@@ -336,6 +452,188 @@ namespace Microsoft.CodeAnalysis
             WriteSourceText(writer, syntaxTree.GetText(cancellationToken));
             writer.Write("parseOptionsIndex", parseOptionsIndex);
             writer.WriteObjectEnd();
+        }
+
+        private static string GetAnalyzerConfigRelativeDirectory(string generatedDirectory, string configDirectory)
+        {
+            var relativePath = PathUtilities.NormalizeWithForwardSlash(PathUtilities.GetRelativePath(generatedDirectory, configDirectory));
+            var combinedPath = PathUtilities.ExpandAbsolutePathWithRelativeParts(
+                PathUtilities.CollapseWithForwardSlash(PathUtilities.CombinePathsUnchecked(generatedDirectory, relativePath)));
+
+            // Matching is case-sensitive, even on Windows. Do not lose a case difference when calculating a relative path.
+            return string.Equals(
+                PathUtilities.TrimTrailingSeparators(combinedPath),
+                PathUtilities.TrimTrailingSeparators(configDirectory),
+                StringComparison.Ordinal) ? relativePath : configDirectory;
+        }
+
+        private static string NormalizeAnalyzerConfigPath(
+            string path, ImmutableArray<KeyValuePair<string, string>> pathMap, DeterministicKeyOptions options, bool directory = false)
+        {
+            path = PathUtilities.NormalizeWithForwardSlash(PathUtilities.NormalizeDriveLetter(path));
+            if ((options & DeterministicKeyOptions.IgnorePaths) != 0)
+            {
+                return Path.GetFileName(PathUtilities.TrimTrailingSeparators(path));
+            }
+
+            // Prefix mappings include a trailing separator; directory-valued properties need not.
+            var addSeparator = directory && path.Length > 0 && !path.EndsWith("/", StringComparison.Ordinal);
+            var normalized = PathUtilities.NormalizePathPrefix(addSeparator ? path + "/" : path, pathMap);
+            if (!addSeparator)
+            {
+                return normalized;
+            }
+
+            var trimmed = PathUtilities.TrimTrailingSeparators(normalized);
+            var root = PathUtilities.GetPathRoot(normalized);
+            return root is not null && trimmed.Length < root.Length ? root : trimmed;
+        }
+
+        private static void WriteAnalyzerConfigProperties(
+            JsonWriter writer,
+            ImmutableDictionary<string, string> properties,
+            ImmutableArray<KeyValuePair<string, string>> pathMap,
+            DeterministicKeyOptions options,
+            CancellationToken cancellationToken)
+        {
+            writer.WriteObjectStart();
+            foreach (var key in properties.Keys.OrderBy(StringComparer.Ordinal))
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                var value = properties[key];
+                if (key is "build_property.projectdir" or "build_property.msbuildprojectdirectory" or
+                    "build_property.intermediateoutputpath" or "build_property.outdir")
+                {
+                    value = NormalizeAnalyzerConfigPath(value, pathMap, options, directory: true);
+                }
+                else if (key == "build_property.applicationmanifest")
+                {
+                    value = NormalizeAnalyzerConfigPath(value, pathMap, options);
+                }
+
+                writer.Write(key, value);
+            }
+            writer.WriteObjectEnd();
+        }
+
+        /// <summary>
+        /// Populates <paramref name="bindings"/> with the inputs each original named analyzer-config section applies to, using the inputs' unmapped paths.
+        /// </summary>
+        /// <param name="bindings">
+        /// <c>InputIndex</c> indexes <paramref name="syntaxTrees"/> followed by <paramref name="additionalTexts"/>,
+        /// so additional-text indices are offset by the number of syntax trees.
+        /// <c>Order</c> indexes that input's final list of matching named sections, across applicable config files.
+        /// The list can contain multiple sections per config and excludes parent sections discarded by <c>root = true</c>.
+        /// Higher indices apply later.
+        /// Keys are the original section instances from <paramref name="configs"/>.
+        /// Original sections contributing to the same merged global section receive the same order.
+        /// </param>
+        private static void AddAnalyzerConfigSectionBindings(
+            ImmutableArray<AnalyzerConfig> configs,
+            AnalyzerConfigSet configSet,
+            ImmutableArray<SyntaxTreeKey> syntaxTrees,
+            ImmutableArray<AdditionalText> additionalTexts,
+            PooledDictionary<AnalyzerConfig.Section, ArrayBuilder<(int InputIndex, int Order)>> bindings,
+            CancellationToken cancellationToken)
+        {
+            using var _ = PooledDictionary<string, ArrayBuilder<AnalyzerConfig.Section>>.GetInstance(out var globalSections);
+            try
+            {
+                foreach (var config in configs)
+                {
+                    if (!config.IsGlobal)
+                    {
+                        continue;
+                    }
+
+                    foreach (var section in config.NamedSections)
+                    {
+                        cancellationToken.ThrowIfCancellationRequested();
+                        if (!AnalyzerConfig.IsAbsoluteEditorConfigPath(section.Name))
+                        {
+                            continue;
+                        }
+
+                        var path = AnalyzerConfig.UnescapeSectionName(section.Name);
+                        if (!globalSections.TryGetValue(path, out var sections))
+                        {
+                            sections = ArrayBuilder<AnalyzerConfig.Section>.GetInstance();
+                            globalSections.Add(path, sections);
+                        }
+                        sections.Add(section);
+                    }
+                }
+
+                var matchingSections = new List<AnalyzerConfig.Section>();
+                for (int inputIndex = 0; inputIndex < syntaxTrees.Length + additionalTexts.Length; inputIndex++)
+                {
+                    cancellationToken.ThrowIfCancellationRequested();
+                    var path = inputIndex < syntaxTrees.Length
+                        ? syntaxTrees[inputIndex].FilePath
+                        : additionalTexts[inputIndex - syntaxTrees.Length].Path;
+                    var globalSection = configSet.GetMatchingSections(path, matchingSections);
+                    for (int order = 0; order < matchingSections.Count; order++)
+                    {
+                        var section = matchingSections[order];
+                        if (section == globalSection)
+                        {
+                            // The evaluator merges global sections; bind all contributing definitions at the same precedence position.
+                            foreach (var originalSection in globalSections[section.Name])
+                            {
+                                addBinding(originalSection, inputIndex, order);
+                            }
+                        }
+                        else
+                        {
+                            addBinding(section, inputIndex, order);
+                        }
+                    }
+                    matchingSections.Clear();
+                }
+            }
+            finally
+            {
+                foreach (var sections in globalSections.Values)
+                {
+                    sections.Free();
+                }
+            }
+
+            void addBinding(AnalyzerConfig.Section section, int inputIndex, int order)
+            {
+                if (!bindings.TryGetValue(section, out var entries))
+                {
+                    entries = ArrayBuilder<(int InputIndex, int Order)>.GetInstance();
+                    bindings.Add(section, entries);
+                }
+                entries.Add((inputIndex, order));
+            }
+        }
+
+        private static void WriteAnalyzerConfigSectionBindings(
+            JsonWriter writer,
+            string propertyName,
+            ArrayBuilder<(int InputIndex, int Order)>? bindings,
+            int offset,
+            int count,
+            CancellationToken cancellationToken)
+        {
+            writer.WriteArrayStart(propertyName);
+            if (bindings is not null)
+            {
+                foreach (var (inputIndex, order) in bindings)
+                {
+                    cancellationToken.ThrowIfCancellationRequested();
+                    if (inputIndex >= offset && inputIndex - offset < count)
+                    {
+                        writer.WriteObjectStart();
+                        writer.Write("index", inputIndex - offset);
+                        writer.Write("order", order);
+                        writer.WriteObjectEnd();
+                    }
+                }
+            }
+            writer.WriteArrayEnd();
         }
 
         private static void WriteSourceText(JsonWriter writer, SourceText? sourceText)
