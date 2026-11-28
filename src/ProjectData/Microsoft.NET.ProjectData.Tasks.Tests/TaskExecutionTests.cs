@@ -249,7 +249,7 @@ public class TaskExecutionTests
 					ProjectDataBuildReceipt.GetReceiptFilePath(receiptDirectory, differentlyCasedProject),
 					StringComparison.Ordinal));
 
-			File.WriteAllText(receipt.ReceiptFilePath, "version=2\nattempt=attempt-1\nproject=wrong\nextra=value\n");
+			File.WriteAllText(receipt.ReceiptFilePath, "version=3\nattempt=attempt-1\nproject=wrong\nextra=value\n");
 			Assert.False(ProjectDataBuildReceipt.TryRead(receiptDirectory, attemptId, projectPath, out _));
 		}
 		finally
@@ -904,7 +904,7 @@ public class TaskExecutionTests
 			Directory.CreateDirectory(Path.GetDirectoryName(projectFile)!);
 			Directory.CreateDirectory(Path.GetDirectoryName(cacheFile)!);
 			File.WriteAllText(projectFile, "<Project Sdk=\"Microsoft.NET.Sdk\" />");
-			File.WriteAllText(cacheFile, "version=2\n");
+			File.WriteAllText(cacheFile, "version=3\n");
 
 			Assert.Null(ProjectDataDonorIndex.TryResolveDefaultIndexPath(projectFile));
 			Assert.False(ProjectDataDonorIndex.TryRecordWrite(projectFile, cacheFile, options: null, out string? message));
@@ -928,7 +928,7 @@ public class TaskExecutionTests
 			string cacheFile = projectFile + ".lscache";
 			string indexPath = Path.Combine(tempRoot, "index", "lscache-donor-index.json");
 			Directory.CreateDirectory(Path.GetDirectoryName(cacheFile)!);
-			File.WriteAllText(cacheFile, "version=2\n");
+			File.WriteAllText(cacheFile, "version=3\n");
 
 			Assert.False(ProjectDataDonorIndex.TryRecordWrite(
 				projectFile,
@@ -984,7 +984,7 @@ public class TaskExecutionTests
 			Directory.CreateDirectory(Path.Combine(workspaceRoot, ".git"));
 			Directory.CreateDirectory(Path.GetDirectoryName(projectFile)!);
 			File.WriteAllText(projectFile, "<Project Sdk=\"Microsoft.NET.Sdk\" />");
-			File.WriteAllText(cacheFile, "version=2\n");
+			File.WriteAllText(cacheFile, "version=3\n");
 			string indexPath = Assert.IsType<string>(ProjectDataDonorIndex.TryResolveDefaultIndexPath(projectFile));
 
 			Assert.True(ProjectDataDonorIndex.TryRecordWrite(projectFile, cacheFile, options: null, out string? message));
@@ -1036,7 +1036,7 @@ public class TaskExecutionTests
 			string indexPath = Path.Combine(tempRoot, "index", "lscache-donor-index.json");
 			Directory.CreateDirectory(Path.GetDirectoryName(cacheFile)!);
 			Directory.CreateDirectory(Path.GetDirectoryName(indexPath)!);
-			File.WriteAllText(cacheFile, "version=2\n");
+			File.WriteAllText(cacheFile, "version=3\n");
 			const string FutureIndex = """{"version":3,"entries":{"futureData":"preserve"}}""";
 			File.WriteAllText(indexPath, FutureIndex);
 
@@ -1073,7 +1073,7 @@ public class TaskExecutionTests
 			string indexPath = Path.Combine(tempRoot, "index", "lscache-donor-index.json");
 			Directory.CreateDirectory(Path.GetDirectoryName(cacheFile)!);
 			Directory.CreateDirectory(Path.GetDirectoryName(indexPath)!);
-			File.WriteAllText(cacheFile, "version=2\n");
+			File.WriteAllText(cacheFile, "version=3\n");
 			File.WriteAllText(indexPath, corruptIndex);
 
 			bool result = ProjectDataDonorIndex.TryRecordWrite(
@@ -1106,7 +1106,7 @@ public class TaskExecutionTests
 			string indexPath = Path.Combine(tempRoot, "index");
 			Directory.CreateDirectory(Path.GetDirectoryName(cacheFile)!);
 			Directory.CreateDirectory(indexPath);
-			File.WriteAllText(cacheFile, "version=2\n");
+			File.WriteAllText(cacheFile, "version=3\n");
 
 			Assert.False(ProjectDataDonorIndex.TryRecordWrite(
 				projectFile,
@@ -1189,7 +1189,7 @@ public class TaskExecutionTests
 			string cacheFile = projectFile + ".lscache";
 			string indexPath = Path.Combine(tempRoot, "index", "lscache-donor-index.json");
 			Directory.CreateDirectory(Path.GetDirectoryName(cacheFile)!);
-			File.WriteAllText(cacheFile, "version=2\n");
+			File.WriteAllText(cacheFile, "version=3\n");
 			File.SetLastWriteTimeUtc(cacheFile, DateTime.UtcNow.AddMinutes(-1));
 			ProjectDataDonorWriteOptions options = new()
 			{

@@ -19,7 +19,7 @@ internal static class ProjectDataMerger
 	// gate slice preservation: an existing merged cache of a different major is incompatible and its
 	// slices must not be re-emitted under this header.
 	private static readonly int CurrentMajorVersion =
-		ForwardCompat.TryReadVersionHeader(CacheFormat.VersionHeader, out int major, out _) ? major : 2;
+		ForwardCompat.TryReadVersionHeader(CacheFormat.VersionHeader, out int major, out _) ? major : 3;
 
 	// Section names in output order.
 	private static readonly string[] ListSectionNames =
@@ -28,7 +28,8 @@ internal static class ProjectDataMerger
 		"sourceFiles",
 		"frameworkPacks",
 		"metadataReferences",
-		"sdkAnalyzerPacks",
+		"frameworkAnalyzerReferences",
+		"sdkAnalyzerPackageReferences",
 		"analyzerReferences",
 		"sdkAnalyzerConfigPolicy",
 		"analyzerConfigFiles",
@@ -48,6 +49,8 @@ internal static class ProjectDataMerger
 	{
 		"sourceFiles",
 		"metadataReferences",
+		"frameworkAnalyzerReferences",
+		"sdkAnalyzerPackageReferences",
 		"analyzerReferences",
 		"analyzerConfigFiles",
 		"additionalFiles",
@@ -261,6 +264,13 @@ internal static class ProjectDataMerger
 		var sharedSections = new Dictionary<string, List<string>>();
 		foreach (string section in ListSectionNames)
 		{
+			// Pack-relative analyzers must resolve with each slice's TFM, not the shared slice's absent TFM.
+			if (section is "frameworkAnalyzerReferences" or "sdkAnalyzerPackageReferences")
+			{
+				sharedSections[section] = [];
+				continue;
+			}
+
 			var allLists = slices.Select(s => s.ListSections.TryGetValue(section, out List<string>? v) ? v : []).ToList();
 			sharedSections[section] = IndentedSections.Contains(section)
 				? FlattenGroups(IntersectAllOrderedGroups(allLists.Select(GroupByIndentation).ToList()))

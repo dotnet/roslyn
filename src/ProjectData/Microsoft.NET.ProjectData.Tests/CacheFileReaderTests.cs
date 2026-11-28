@@ -48,7 +48,7 @@ public class CacheFileReaderTests : IDisposable
 	public async Task Minimal_Valid_File_Parses_One_Slice()
 	{
 		string content = """
-			version=2
+			version=3
 
 			[project]
 			language=C#
@@ -90,7 +90,7 @@ public class CacheFileReaderTests : IDisposable
 		using CancellationTokenSource cancellationSource = new();
 		using BlockingTextReader reader = new(
 			[
-				"version=2",
+				"version=3",
 				"[project]",
 				"language=C#",
 				"---",
@@ -121,7 +121,7 @@ public class CacheFileReaderTests : IDisposable
 		using CancellationTokenSource cancellationSource = new();
 		using CancelAfterReturningLineTextReader reader = new(
 			[
-				"version=2",
+				"version=3",
 				"[project]",
 				"language=C#",
 				"[sourceFiles]",
@@ -170,7 +170,7 @@ public class CacheFileReaderTests : IDisposable
 		using CancellationTokenSource cancellationSource = new();
 		using CancelAfterReturningLineTextReader reader = new(
 			[
-				"version=2",
+				"version=3",
 				"[project]",
 				"language=C#",
 			],
@@ -194,7 +194,7 @@ public class CacheFileReaderTests : IDisposable
 	public async Task ReadFromAsync_CanceledDuringFinalMaterialization_ThrowsBeforeMismatchWarningOrEmptyResult()
 	{
 		const string content = """
-			version=2
+			version=3
 			project=App.csproj
 
 			[project]
@@ -250,7 +250,7 @@ public class CacheFileReaderTests : IDisposable
 	[Fact]
 	public async Task Hash_Header_Is_Ignored_When_Parsing()
 	{
-		string content = $"hash={new string('a', 64)}\nversion=2\n\n[project]\nlanguage=C#\n";
+		string content = $"hash={new string('a', 64)}\nversion=3\n\n[project]\nlanguage=C#\n";
 
 		ImmutableArray<CachedSliceData> slices = await ParseAsync(content);
 		Assert.Single(slices);
@@ -261,7 +261,7 @@ public class CacheFileReaderTests : IDisposable
 	public async Task Comments_And_Blank_Lines_Are_Skipped()
 	{
 		string content = """
-			version=2
+			version=3
 
 			# This is a comment
 
@@ -279,7 +279,7 @@ public class CacheFileReaderTests : IDisposable
 	public async Task Multiple_Slices_Separated_By_Dashes()
 	{
 		string content = """
-			version=2
+			version=3
 
 			[project]
 			language=C#
@@ -318,7 +318,7 @@ public class CacheFileReaderTests : IDisposable
 	public async Task Properties_Are_Parsed()
 	{
 		string content = """
-			version=2
+			version=3
 
 			[project]
 			language=C#
@@ -338,7 +338,7 @@ public class CacheFileReaderTests : IDisposable
 	public async Task Property_Value_May_Contain_Equals_Sign()
 	{
 		string content = """
-			version=2
+			version=3
 
 			[project]
 			language=C#
@@ -359,7 +359,7 @@ public class CacheFileReaderTests : IDisposable
 	public async Task CommandLineArguments_Are_Parsed()
 	{
 		string content = """
-			version=2
+			version=3
 
 			[project]
 			language=C#
@@ -379,7 +379,7 @@ public class CacheFileReaderTests : IDisposable
 	public async Task ReadFromAsync_With_Shared_StringPool_Deduplicates_Shared_Strings_Across_Reads_And_Ignores_Legacy_DynamicFiles_Section()
 	{
 		const string content = """
-			version=2
+			version=3
 
 			[project]
 			language=C#
@@ -565,7 +565,7 @@ public class CacheFileReaderTests : IDisposable
 	public async Task SourceFiles_Link_Parsed_From_Metadata()
 	{
 		string content = """
-			version=2
+			version=3
 
 			[project]
 			language=C#
@@ -584,7 +584,7 @@ public class CacheFileReaderTests : IDisposable
 	public async Task SourceFiles_Link_Null_When_Metadata_Missing()
 	{
 		string content = """
-			version=2
+			version=3
 
 			[project]
 			language=C#
@@ -606,7 +606,7 @@ public class CacheFileReaderTests : IDisposable
 	public async Task MetadataReferences_Parsed_With_Aliases_And_EmbedInteropTypes()
 	{
 		string content = """
-			version=2
+			version=3
 
 			[project]
 			language=C#
@@ -669,7 +669,7 @@ public class CacheFileReaderTests : IDisposable
 	{
 		// This matches the complete example from the cache file specification.
 		string content = """
-			version=2
+			version=3
 
 			# This file caches language service data.
 
@@ -752,16 +752,16 @@ public class CacheFileReaderTests : IDisposable
 	// are ignored, not rejected. Only the MAJOR (the token before the first '.') is parsed and
 	// gated; everything after the first '.' is deliberately opaque/informational, so an exotic
 	// future minor format (extra components, suffixes, non-numeric text) must NOT cause a miss.
-	// Note this differs from "version=2x" (no dot), where the whole suffix is the major and must
+	// Note this differs from "version=3x" (no dot), where the whole suffix is the major and must
 	// be numeric — that case is a miss (see Rejects_Different_Major_Or_Malformed_Version).
 	[Theory]
-	[InlineData("version=2")]
-	[InlineData("version=2.0")]
-	[InlineData("version=2.1")]
-	[InlineData("version=2.99")]
-	[InlineData("version=2.0.5")]
-	[InlineData("version=2.not-a-number")]
-	[InlineData("version=2.3-preview")]
+	[InlineData("version=3")]
+	[InlineData("version=3.0")]
+	[InlineData("version=3.1")]
+	[InlineData("version=3.99")]
+	[InlineData("version=3.0.5")]
+	[InlineData("version=3.not-a-number")]
+	[InlineData("version=3.3-preview")]
 	public async Task Accepts_Same_Major_Version(string versionLine)
 	{
 		string content = $"{versionLine}\n\n[project]\nlanguage=C#\n";
@@ -772,13 +772,15 @@ public class CacheFileReaderTests : IDisposable
 
 	// A different MAJOR version, or a malformed/missing version header, is a clean cache miss.
 	[Theory]
-	[InlineData("version=3")]
-	[InlineData("version=3.0")]
+	[InlineData("version=4")]
+	[InlineData("version=4.0")]
+	[InlineData("version=2")]
+	[InlineData("version=2.2")]
 	[InlineData("version=1")]
 	[InlineData("version=1.9")]
 	[InlineData("version=")]
 	[InlineData("version=abc")]
-	[InlineData("version=2x")]
+	[InlineData("version=3x")]
 	[InlineData("version=.2")]
 	[InlineData("ver=2")]
 	[InlineData("")]
@@ -795,10 +797,10 @@ public class CacheFileReaderTests : IDisposable
 	[Fact]
 	public async Task Reading_A_Different_Minor_Version_Logs_Information_Not_Warning()
 	{
-		ImmutableArray<CachedSliceData> slices = await ParseAsync("version=2.7\n\n[project]\nlanguage=C#\n");
+		ImmutableArray<CachedSliceData> slices = await ParseAsync("version=3.7\n\n[project]\nlanguage=C#\n");
 		Assert.Single(slices);
 		Assert.Contains("different minor version", this.listener.Information);
-		Assert.Contains("version=2.7", this.listener.Information);
+		Assert.Contains("version=3.7", this.listener.Information);
 		Assert.Empty(this.listener.Warnings);
 
 		this.listener.Clear();
@@ -812,7 +814,7 @@ public class CacheFileReaderTests : IDisposable
 	[Fact]
 	public async Task Reading_A_Valid_Cache_Logs_No_Warnings()
 	{
-		ImmutableArray<CachedSliceData> slices = await ParseAsync("version=2\n\n[project]\nlanguage=C#\n");
+		ImmutableArray<CachedSliceData> slices = await ParseAsync("version=3\n\n[project]\nlanguage=C#\n");
 		Assert.Single(slices);
 		Assert.Empty(this.listener.Warnings);
 		Assert.Contains("Read 1 slice(s)", this.listener.Information);
@@ -826,7 +828,7 @@ public class CacheFileReaderTests : IDisposable
 	public async Task Unknown_Sections_Markers_And_Metadata_Are_Invisible()
 	{
 		string known = """
-			version=2
+			version=3
 
 			[project]
 			language=C#
@@ -859,7 +861,7 @@ public class CacheFileReaderTests : IDisposable
 		// The same project as authored by a hypothetical newer minor version that sprinkles
 		// forward-compatible additions the current reader does not understand.
 		string withUnknown = """
-			version=2.7
+			version=3.7
 
 			[project]
 			language=C#
@@ -912,7 +914,7 @@ public class CacheFileReaderTests : IDisposable
 	public async Task Unknown_Property_Key_Does_Not_Corrupt_Other_Fields()
 	{
 		string content = """
-			version=2.4
+			version=3.4
 
 			[project]
 			language=C#
@@ -943,7 +945,7 @@ public class CacheFileReaderTests : IDisposable
 	public async Task Unknown_Section_Between_Known_Sections_Does_Not_Drop_Following_Data()
 	{
 		string content = """
-			version=2.1
+			version=3.1
 
 			[project]
 			language=C#
@@ -1011,7 +1013,7 @@ public class CacheFileReaderTests : IDisposable
 	public async Task ProjectReferences_ParseReferenceOutputAssemblyMetadata()
 	{
 		string content = """
-			version=2.1
+			version=3.1
 
 			[project]
 			language=C#
@@ -1037,7 +1039,7 @@ public class CacheFileReaderTests : IDisposable
 	public async Task ProjectReferences_NewerKnownMinor_DefaultsMissingReferenceOutputAssemblyToTrue()
 	{
 		string content = """
-			version=2.10
+			version=3.10
 
 			[project]
 			language=C#
@@ -1051,10 +1053,10 @@ public class CacheFileReaderTests : IDisposable
 	}
 
 	[Fact]
-	public async Task ProjectReferences_MalformedMinor_LeavesMissingReferenceOutputAssemblyUnclassified()
+	public async Task ProjectReferences_MalformedMinor_DefaultsMissingReferenceOutputAssemblyToTrue()
 	{
 		string content = """
-			version=2.not-a-number
+			version=3.not-a-number
 
 			[project]
 			language=C#
@@ -1064,14 +1066,14 @@ public class CacheFileReaderTests : IDisposable
 			""";
 
 		CachedProjectReference reference = Assert.Single((await ParseAsync(content))[0].ProjectReferences);
-		Assert.Null(reference.ReferenceOutputAssembly);
+		Assert.True(reference.ReferenceOutputAssembly!.Value);
 	}
 
 	[Fact]
-	public async Task ProjectReferences_Pre21Cache_LeavesReferenceOutputAssemblyUnclassified()
+	public async Task ProjectReferences_CurrentMajor_DefaultsMissingReferenceOutputAssemblyToTrue()
 	{
 		string content = """
-			version=2
+			version=3
 
 			[project]
 			language=C#
@@ -1081,7 +1083,7 @@ public class CacheFileReaderTests : IDisposable
 			""";
 
 		CachedProjectReference reference = Assert.Single((await ParseAsync(content))[0].ProjectReferences);
-		Assert.Null(reference.ReferenceOutputAssembly);
+		Assert.True(reference.ReferenceOutputAssembly!.Value);
 	}
 
 	#endregion
@@ -1093,7 +1095,7 @@ public class CacheFileReaderTests : IDisposable
 	{
 		string projectDirectory = Path.Combine(Path.GetTempPath(), "projectdata-cache-tests", "dev");
 		string projectFilePath = Path.Combine(projectDirectory, "MyProject.csproj");
-		string content = $"version=2\nproject={projectFilePath.Replace('\\', '/')}\n\n[project]\nlanguage=C#\n";
+		string content = $"version=3\nproject={projectFilePath.Replace('\\', '/')}\n\n[project]\nlanguage=C#\n";
 
 		using StringReader reader = new(content);
 		ImmutableArray<CachedSliceData> slices = await CacheFileReader.ReadFromAsync(
@@ -1109,7 +1111,7 @@ public class CacheFileReaderTests : IDisposable
 		string fallbackProjectFilePath = Path.Combine(projectDirectory, "Fallback.csproj");
 		string expectedProjectFilePath = Path.Combine(projectDirectory, "Subdir", "MyProject.csproj");
 		string content = """
-			version=2
+			version=3
 			project=<PATH>Subdir/MyProject.csproj
 
 			[project]
@@ -1128,7 +1130,7 @@ public class CacheFileReaderTests : IDisposable
 	[Fact]
 	public async Task UserFolder_Mismatched_Project_Header_Returns_Empty()
 	{
-		string content = "version=2\nproject=C:\\dev\\OtherProject.csproj\n\n[project]\nlanguage=C#\n";
+		string content = "version=3\nproject=C:\\dev\\OtherProject.csproj\n\n[project]\nlanguage=C#\n";
 
 		using StringReader reader = new(content);
 		ImmutableArray<CachedSliceData> slices = await CacheFileReader.ReadFromAsync(
@@ -1140,7 +1142,7 @@ public class CacheFileReaderTests : IDisposable
 	[Fact]
 	public async Task UserFolder_Missing_Project_Header_Returns_Empty()
 	{
-		string content = "version=2\n\n[project]\nlanguage=C#\n";
+		string content = "version=3\n\n[project]\nlanguage=C#\n";
 
 		using StringReader reader = new(content);
 		ImmutableArray<CachedSliceData> slices = await CacheFileReader.ReadFromAsync(
@@ -1155,7 +1157,7 @@ public class CacheFileReaderTests : IDisposable
 		string projectDirectory = Path.Combine(Path.GetTempPath(), "projectdata-cache-tests", "dev");
 		string fallbackProjectFilePath = Path.Combine(projectDirectory, "Fallback.csproj");
 		string expectedProjectFilePath = Path.Combine(projectDirectory, "Subdir", "MyProject.csproj");
-		string content = "version=2\n\n[project]\nproject=Subdir/MyProject.csproj\nlanguage=C#\n";
+		string content = "version=3\n\n[project]\nproject=Subdir/MyProject.csproj\nlanguage=C#\n";
 
 		using StringReader reader = new(content);
 		ImmutableArray<CachedSliceData> slices = await CacheFileReader.ReadFromAsync(
@@ -2686,7 +2688,7 @@ public class CacheFileReaderTests : IDisposable
 	public async Task Version2_Header_Accepted()
 	{
 		string content = """
-			version=2
+			version=3
 
 			[project]
 			language=C#
@@ -2702,7 +2704,7 @@ public class CacheFileReaderTests : IDisposable
 	{
 		// When the named pack isn't installed on the test machine, expansion is a no-op.
 		string content = """
-			version=2
+			version=3
 
 			[project]
 			language=C#
@@ -2726,7 +2728,7 @@ public class CacheFileReaderTests : IDisposable
 		using TempPack pack = TempPack.Create("Test.Fake.Ref", "10.0.7", managed: ["System.Sample.dll"], analyzers: ["Sample.Analyzer.dll"]);
 
 		string content = $$"""
-			version=2
+			version=3
 
 			[project]
 			language=C#
@@ -2736,6 +2738,9 @@ public class CacheFileReaderTests : IDisposable
 
 			[frameworkPacks]
 			Test.Fake.Ref
+
+			[frameworkAnalyzerReferences]
+			Test.Fake.Ref/analyzers/dotnet/cs/Sample.Analyzer.dll
 			""";
 
 		ImmutableArray<CachedSliceData> slices = await ParseWithDotNetRoot(content, pack.DotNetRoot);
@@ -2755,7 +2760,7 @@ public class CacheFileReaderTests : IDisposable
 		Directory.CreateDirectory(sdkPath);
 
 		string content = """
-			version=2
+			version=3
 
 			[project]
 			language=C#
@@ -2783,7 +2788,7 @@ public class CacheFileReaderTests : IDisposable
 		using TempPack pack = TempPack.Create("Test.Fake.Ref", "10.0.7", managed: ["System.Text.Json.dll", "System.Sample.dll"], analyzers: []);
 
 		string content = $$"""
-			version=2
+			version=3
 
 			[project]
 			language=C#
@@ -2822,7 +2827,7 @@ public class CacheFileReaderTests : IDisposable
 		File.WriteAllText(Path.Combine(higherVerDir, "ref", "net10.0", "New.dll"), string.Empty);
 
 		string content = """
-			version=2
+			version=3
 
 			[project]
 			language=C#
@@ -2852,7 +2857,7 @@ public class CacheFileReaderTests : IDisposable
 			targetFramework: "net11.0");
 
 		string content = """
-			version=2
+			version=3
 
 			[project]
 			language=C#
@@ -2881,7 +2886,7 @@ public class CacheFileReaderTests : IDisposable
 			targetFramework: "net8.0");
 
 		string content = """
-			version=2
+			version=3
 
 			[project]
 			language=C#
@@ -2910,7 +2915,7 @@ public class CacheFileReaderTests : IDisposable
 			targetFramework: "net8.0");
 
 		string content = """
-			version=2
+			version=3
 
 			[project]
 			language=C#
@@ -2939,7 +2944,7 @@ public class CacheFileReaderTests : IDisposable
 			targetFramework: "net8.0");
 
 		string content = """
-			version=2
+			version=3
 
 			[project]
 			language=C#
@@ -2979,7 +2984,7 @@ public class CacheFileReaderTests : IDisposable
 		using TempPack pack = TempPack.Create("Test.Unrelated.Ref", "10.0.7", managed: ["X.dll"], analyzers: []);
 
 		string content = """
-			version=2
+			version=3
 
 			[project]
 			language=C#
@@ -3006,7 +3011,7 @@ public class CacheFileReaderTests : IDisposable
 			assemblies: ["mscorlib.dll", "System.dll", Path.Combine("Facades", "System.Runtime.dll")]);
 
 		string content = """
-			version=2
+			version=3
 
 			[project]
 			language=C#
@@ -3034,7 +3039,7 @@ public class CacheFileReaderTests : IDisposable
 		using TempNetFrameworkReferenceAssemblies pack = TempNetFrameworkReferenceAssemblies.Create(version: missingVersion, assemblies: []);
 
 		string content = """
-			version=2
+			version=3
 
 			[project]
 			language=C#
@@ -3053,16 +3058,16 @@ public class CacheFileReaderTests : IDisposable
 	}
 
 	[Fact]
-	public async Task SdkAnalyzerPacks_Expand_ExactSdkKnownPackageVersion()
+	public async Task SdkAnalyzerPackageReferences_Resolve_ExactSdkKnownPackageVersion()
 	{
 		using TempSdkAnalyzerPack pack = TempSdkAnalyzerPack.Create(
 			packageId: "Microsoft.NET.ILLink.Tasks",
 			sdkKnownVersion: "10.0.7",
-			installedVersions: [("10.0.7", "Exact.dll"), ("10.0.8", "Wrong.dll")],
+			installedVersions: [("10.0.7", "Exact.dll"), ("10.0.7", "Removed.dll"), ("10.0.8", "Wrong.dll")],
 			targetFramework: "net10.0");
 
 		string content = """
-			version=2
+			version=3
 
 			[project]
 			language=C#
@@ -3070,8 +3075,8 @@ public class CacheFileReaderTests : IDisposable
 			[sliceDimensions]
 			TargetFramework=net10.0
 
-			[sdkAnalyzerPacks]
-			Microsoft.NET.ILLink.Tasks
+			[sdkAnalyzerPackageReferences]
+			Microsoft.NET.ILLink.Tasks/analyzers/dotnet/cs/Exact.dll
 			""";
 
 		ImmutableArray<CachedSliceData> slices = await ParseWithNuGetRoot(content, pack.NuGetRoot, pack.SdkPath);
@@ -3081,8 +3086,61 @@ public class CacheFileReaderTests : IDisposable
 		Assert.EndsWith("Exact.dll", slices[0].AnalyzerReferences[0]);
 	}
 
+	[Theory]
+	[InlineData("Test.Fake.Ref/analyzers/../../Outside.dll")]
+	[InlineData("Test.Fake.Ref")]
+	[InlineData("Test.Fake.Ref/ref/net10.0/System.Sample.dll")]
+	[InlineData("Test.Fake.Ref/analyzers/C:/Outside.dll")]
+	public async Task FrameworkAnalyzerReferences_InvalidSelection_IsReported(string selection)
+	{
+		string content = $"version=3\n[project]\nlanguage=C#\n[frameworkAnalyzerReferences]\n{selection}\n";
+		var slice = Assert.Single(await ParseAsync(content));
+		Assert.Empty(slice.AnalyzerReferences);
+		Assert.Contains("Invalid pack analyzer selection", this.listener.Warnings);
+	}
+
 	[Fact]
-	public async Task SdkAnalyzerPacks_FallsBackToHighestInstalledMatchingTfmMajor()
+	public async Task FrameworkAnalyzerReferences_BindToLocalPackWithoutAddingNewAnalyzers()
+	{
+		using TempPack pack = TempPack.Create(
+			"Test.Fake.Ref", "10.0.8", managed: [],
+			analyzers: ["Selected.dll", "AddedByNewSdk.dll"]);
+		string content = """
+			version=3
+			[project]
+			language=C#
+			[sliceDimensions]
+			TargetFramework=net10.0
+			[frameworkAnalyzerReferences]
+			Test.Fake.Ref/analyzers/dotnet/cs/Selected.dll
+			""";
+		var slice = Assert.Single(await ParseWithDotNetRoot(content, pack.DotNetRoot));
+		string selected = Assert.Single(slice.AnalyzerReferences);
+		Assert.Contains("10.0.8", selected);
+		Assert.EndsWith("Selected.dll", selected);
+	}
+
+	[Fact]
+	public async Task FrameworkAnalyzerReferences_MissingSelection_IsReportedWithoutSubstitution()
+	{
+		using TempPack pack = TempPack.Create(
+			"Test.Fake.Ref", "10.0.7", managed: [], analyzers: ["Other.dll"]);
+		string content = """
+			version=3
+			[project]
+			language=C#
+			[sliceDimensions]
+			TargetFramework=net10.0
+			[frameworkAnalyzerReferences]
+			Test.Fake.Ref/analyzers/dotnet/cs/Missing.dll
+			""";
+		var slice = Assert.Single(await ParseWithDotNetRoot(content, pack.DotNetRoot));
+		Assert.Empty(slice.AnalyzerReferences);
+		Assert.Contains("Selected pack analyzer is missing", this.listener.Warnings);
+	}
+
+	[Fact]
+	public async Task SdkAnalyzerPackageReferences_FallBackToHighestInstalledMatchingTfmMajor()
 	{
 		using TempSdkAnalyzerPack pack = TempSdkAnalyzerPack.Create(
 			packageId: "Microsoft.NET.ILLink.Tasks",
@@ -3091,7 +3149,7 @@ public class CacheFileReaderTests : IDisposable
 			targetFramework: "net10.0");
 
 		string content = """
-			version=2
+			version=3
 
 			[project]
 			language=C#
@@ -3099,8 +3157,8 @@ public class CacheFileReaderTests : IDisposable
 			[sliceDimensions]
 			TargetFramework=net10.0
 
-			[sdkAnalyzerPacks]
-			Microsoft.NET.ILLink.Tasks
+			[sdkAnalyzerPackageReferences]
+			Microsoft.NET.ILLink.Tasks/analyzers/dotnet/cs/Fallback.dll
 			""";
 
 		ImmutableArray<CachedSliceData> slices = await ParseWithNuGetRoot(content, pack.NuGetRoot, pack.SdkPath);
@@ -3111,7 +3169,7 @@ public class CacheFileReaderTests : IDisposable
 	}
 
 	[Fact]
-	public async Task SdkAnalyzerPacks_MissingPackage_IsTolerated()
+	public async Task SdkAnalyzerPackageReferences_MissingPackage_IsTolerated()
 	{
 		using TempSdkAnalyzerPack pack = TempSdkAnalyzerPack.Create(
 			packageId: "Microsoft.NET.ILLink.Tasks",
@@ -3120,7 +3178,7 @@ public class CacheFileReaderTests : IDisposable
 			targetFramework: "net10.0");
 
 		string content = """
-			version=2
+			version=3
 
 			[project]
 			language=C#
@@ -3128,8 +3186,8 @@ public class CacheFileReaderTests : IDisposable
 			[sliceDimensions]
 			TargetFramework=net10.0
 
-			[sdkAnalyzerPacks]
-			Microsoft.NET.ILLink.Tasks
+			[sdkAnalyzerPackageReferences]
+			Microsoft.NET.ILLink.Tasks/analyzers/dotnet/cs/Missing.dll
 			""";
 
 		ImmutableArray<CachedSliceData> slices = await ParseWithNuGetRoot(content, pack.NuGetRoot, pack.SdkPath);
@@ -3142,7 +3200,7 @@ public class CacheFileReaderTests : IDisposable
 	public async Task SdkAnalyzerConfigPolicy_DefaultAnalysisLevel_ResolvesFromTargetFramework()
 	{
 		const string content = """
-			version=2
+			version=3
 
 			[project]
 			language=C#
@@ -3176,7 +3234,7 @@ public class CacheFileReaderTests : IDisposable
 	public async Task SdkAnalyzerConfigPolicy_ExplicitLatest_ResolvesUsingSelectedSdkLatest()
 	{
 		const string content = """
-			version=2
+			version=3
 
 			[project]
 			language=C#
@@ -3202,7 +3260,7 @@ public class CacheFileReaderTests : IDisposable
 	public async Task SdkAnalyzerConfigPolicy_NoSdkBinding_IsTolerated()
 	{
 		string content = """
-			version=2
+			version=3
 
 			[project]
 			language=C#
@@ -3268,7 +3326,7 @@ public class CacheFileReaderTests : IDisposable
 		File.WriteAllText(
 			cachePath,
 			$$"""
-			version=2
+			version=3
 
 			[project]
 			project=App.csproj
