@@ -806,11 +806,15 @@ internal sealed class CSharpSyntaxGenerator() : SyntaxGenerator
             if (member is BaseTypeDeclarationSyntax or DelegateDeclarationSyntax)
                 return member;
 
+            // Interface normalization must not change the safety contract of the supplied declaration.
+            var safetyModifiers = GetModifiers(member) & (DeclarationModifiers.Unsafe | DeclarationModifiers.Safe);
+            var safetyModifierTokens = AsModifierList(Accessibility.NotApplicable, safetyModifiers);
+
             switch (member.Kind())
             {
                 case SyntaxKind.MethodDeclaration:
                     return ((MethodDeclarationSyntax)member)
-                             .WithModifiers(default)
+                             .WithModifiers(safetyModifierTokens)
                              .WithSemicolonToken(SemicolonToken)
                              .WithBody(null)
                              .WithExpressionBody(null);
@@ -820,7 +824,9 @@ internal sealed class CSharpSyntaxGenerator() : SyntaxGenerator
                     var abstractVirtualModifiers = operatorDeclaration.Modifiers.Where(x =>
                         x.Kind() == SyntaxKind.AbstractKeyword
                         || x.Kind() == SyntaxKind.VirtualKeyword
-                        || x.Kind() == SyntaxKind.PublicKeyword);
+                        || x.Kind() == SyntaxKind.PublicKeyword
+                        || x.Kind() == SyntaxKind.UnsafeKeyword
+                        || x.Kind() == SyntaxKind.SafeKeyword);
                     var modifiersToken = SyntaxFactory.TokenList(abstractVirtualModifiers);
                     modifiersToken = modifiersToken.Insert(0, StaticKeyword);
                     return operatorDeclaration
@@ -831,13 +837,13 @@ internal sealed class CSharpSyntaxGenerator() : SyntaxGenerator
                 case SyntaxKind.PropertyDeclaration:
                     var property = (PropertyDeclarationSyntax)member;
                     return property
-                        .WithModifiers(default)
+                        .WithModifiers(safetyModifierTokens)
                         .WithAccessorList(WithoutBodies(property.AccessorList));
 
                 case SyntaxKind.IndexerDeclaration:
                     var indexer = (IndexerDeclarationSyntax)member;
                     return indexer
-                        .WithModifiers(default)
+                        .WithModifiers(safetyModifierTokens)
                         .WithAccessorList(WithoutBodies(indexer.AccessorList));
 
                 // convert event into field event
@@ -847,11 +853,11 @@ internal sealed class CSharpSyntaxGenerator() : SyntaxGenerator
                         ev.Identifier.ValueText,
                         ev.Type,
                         Accessibility.NotApplicable,
-                        DeclarationModifiers.None);
+                        safetyModifiers);
 
                 case SyntaxKind.EventFieldDeclaration:
                     var ef = (EventFieldDeclarationSyntax)member;
-                    return ef.WithModifiers(default);
+                    return ef.WithModifiers(safetyModifierTokens);
 
                 // convert field into property
                 case SyntaxKind.FieldDeclaration:
@@ -1436,12 +1442,14 @@ internal sealed class CSharpSyntaxGenerator() : SyntaxGenerator
         DeclarationModifiers.ReadOnly |
         DeclarationModifiers.Ref |
         DeclarationModifiers.Required |
+        DeclarationModifiers.Safe |
         DeclarationModifiers.Static |
         DeclarationModifiers.Unsafe |
         DeclarationModifiers.Volatile;
 
     private static readonly DeclarationModifiers s_methodModifiers =
         DeclarationModifiers.Abstract |
+        DeclarationModifiers.Safe |
         DeclarationModifiers.Async |
         DeclarationModifiers.Extern |
         DeclarationModifiers.New |
@@ -1455,6 +1463,7 @@ internal sealed class CSharpSyntaxGenerator() : SyntaxGenerator
 
     private static readonly DeclarationModifiers s_constructorModifiers =
         DeclarationModifiers.Extern |
+        DeclarationModifiers.Safe |
         DeclarationModifiers.Partial |
         DeclarationModifiers.Static |
         DeclarationModifiers.Unsafe;
@@ -1462,6 +1471,7 @@ internal sealed class CSharpSyntaxGenerator() : SyntaxGenerator
     private static readonly DeclarationModifiers s_destructorModifiers = DeclarationModifiers.Unsafe;
     private static readonly DeclarationModifiers s_propertyModifiers =
         DeclarationModifiers.Abstract |
+        DeclarationModifiers.Safe |
         DeclarationModifiers.Extern |
         DeclarationModifiers.New |
         DeclarationModifiers.Override |
@@ -1475,6 +1485,7 @@ internal sealed class CSharpSyntaxGenerator() : SyntaxGenerator
 
     private static readonly DeclarationModifiers s_eventModifiers =
         DeclarationModifiers.Abstract |
+        DeclarationModifiers.Safe |
         DeclarationModifiers.Extern |
         DeclarationModifiers.New |
         DeclarationModifiers.Override |
@@ -1487,6 +1498,7 @@ internal sealed class CSharpSyntaxGenerator() : SyntaxGenerator
 
     private static readonly DeclarationModifiers s_indexerModifiers =
         DeclarationModifiers.Abstract |
+        DeclarationModifiers.Safe |
         DeclarationModifiers.Extern |
         DeclarationModifiers.New |
         DeclarationModifiers.Override |
@@ -1524,10 +1536,11 @@ internal sealed class CSharpSyntaxGenerator() : SyntaxGenerator
 
     private static readonly DeclarationModifiers s_interfaceModifiers = DeclarationModifiers.New | DeclarationModifiers.Partial | DeclarationModifiers.Unsafe | DeclarationModifiers.File;
     private static readonly DeclarationModifiers s_eventAccessorModifiers = DeclarationModifiers.Abstract | DeclarationModifiers.New | DeclarationModifiers.Override | DeclarationModifiers.Virtual;
-    private static readonly DeclarationModifiers s_propertyAccessorModifiers = s_eventAccessorModifiers | DeclarationModifiers.ReadOnly;
+    private static readonly DeclarationModifiers s_propertyAccessorModifiers = s_eventAccessorModifiers | DeclarationModifiers.ReadOnly | DeclarationModifiers.Unsafe | DeclarationModifiers.Safe;
 
     private static readonly DeclarationModifiers s_localFunctionModifiers =
         DeclarationModifiers.Async |
+        DeclarationModifiers.Safe |
         DeclarationModifiers.Static |
         DeclarationModifiers.Unsafe |
         DeclarationModifiers.Extern;
@@ -1584,6 +1597,7 @@ internal sealed class CSharpSyntaxGenerator() : SyntaxGenerator
 
             case SyntaxKind.GetAccessorDeclaration:
             case SyntaxKind.SetAccessorDeclaration:
+            case SyntaxKind.InitAccessorDeclaration:
                 return s_propertyAccessorModifiers;
 
             case SyntaxKind.AddAccessorDeclaration:
@@ -1707,6 +1721,7 @@ internal sealed class CSharpSyntaxGenerator() : SyntaxGenerator
         AddIf(modifiers.IsConst, ConstKeyword);
         AddIf(modifiers.IsReadOnly, ReadOnlyKeyword);
         AddIf(modifiers.IsUnsafe, UnsafeKeyword);
+        AddIf(modifiers.IsSafe, SafeKeyword);
         AddIf(modifiers.IsVolatile, VolatileKeyword);
         AddIf(modifiers.IsExtern, ExternKeyword);
         AddIf(modifiers.IsRequired, RequiredKeyword);

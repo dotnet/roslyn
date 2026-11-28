@@ -140,7 +140,7 @@ internal sealed class ImplementAbstractClassData(
 
         // Check if we need to add 'unsafe' to the signature we're generating.
         var syntaxFacts = _document.GetRequiredLanguageService<ISyntaxFactsService>();
-        var addUnsafe = member.RequiresUnsafeModifier() && !syntaxFacts.IsUnsafeContext(_classNode);
+        var addUnsafe = ImplementHelpers.RequiresUnsafeModifierForImplementationSignature(member, _classNode, syntaxFacts);
 
         return GenerateMember(compilation, member, throughMember, addUnsafe, propertyGenerationBehavior);
     }
@@ -211,7 +211,10 @@ internal sealed class ImplementAbstractClassData(
                 attributes: default,
                 accessibility: property.GetMethod.ComputeResultantAccessibility(ClassType),
                 statements: generator.GetGetAccessorStatements(
-                    compilation, property, conflictingProperty: null, throughMember, preferAutoProperties))
+                    compilation, property, conflictingProperty: null, throughMember, preferAutoProperties),
+                modifiers: property.GetMethod.UsesMemorySafetyRulesVersion2()
+                    ? property.GetMethod.GetSymbolModifiers().WithIsUnsafe(false).WithIsSafe(false)
+                    : null)
             : null;
 
         var setMethod = ShouldGenerateAccessor(property.SetMethod)
@@ -220,7 +223,10 @@ internal sealed class ImplementAbstractClassData(
                 attributes: default,
                 accessibility: property.SetMethod.ComputeResultantAccessibility(ClassType),
                 statements: generator.GetSetAccessorStatements(
-                    compilation, property, conflictingProperty: null, throughMember, preferAutoProperties))
+                    compilation, property, conflictingProperty: null, throughMember, preferAutoProperties),
+                modifiers: property.SetMethod.UsesMemorySafetyRulesVersion2()
+                    ? property.SetMethod.GetSymbolModifiers().WithIsUnsafe(false).WithIsSafe(false)
+                    : null)
             : null;
 
         return CodeGenerationSymbolFactory.CreatePropertySymbol(

@@ -9,6 +9,7 @@ using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
+using Microsoft.CodeAnalysis.CSharp.Shared.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -24,6 +25,34 @@ using static SyntaxFactory;
 
 internal static class CSharpCodeGenerationHelpers
 {
+    public static void AddSafetyModifierTokens(
+        ISymbol symbol,
+        ArrayBuilder<SyntaxToken> tokens,
+        CSharpCodeGenerationContextInfo info,
+        bool emitUnsafeForVersion1Rules,
+        bool? hasBackingField = null)
+    {
+#if !OLDER_ROSLYN
+        if (symbol.UsesMemorySafetyRulesVersion2())
+        {
+            var modifiers = symbol.InferSafetyModifiersFromSymbol(hasBackingField);
+            // Add 'unsafe' if the symbol is unsafe or if we're generating for a version that requires it under version 1 rules.
+            if (modifiers.IsUnsafe || (!info.LanguageVersion.IsCSharp16OrAbove() && symbol.RequiresUnsafeModifierUnderVersion1Rules()))
+                tokens.Add(UnsafeKeyword);
+
+            // Symbols from newer assemblies may be generated into documents that do not support 'safe'.
+            if (modifiers.IsSafe && info.LanguageVersion.IsCSharp16OrAbove())
+                tokens.Add(SafeKeyword);
+
+            return;
+        }
+#endif
+        // Keep version 1 document generation unchanged: write 'unsafe' only when requested.
+        // Inferring it from pointer types here would change that behavior.
+        if (emitUnsafeForVersion1Rules)
+            tokens.Add(UnsafeKeyword);
+    }
+
     public static TDeclarationSyntax ConditionallyAddFormattingAnnotationTo<TDeclarationSyntax>(
         TDeclarationSyntax result,
         SyntaxList<MemberDeclarationSyntax> members) where TDeclarationSyntax : MemberDeclarationSyntax

@@ -385,7 +385,7 @@ internal abstract class AbstractExtractInterfaceService : ILanguageService
                     interfaceMembers.Add(CodeGenerationSymbolFactory.CreateMethodSymbol(
                         attributes: [],
                         accessibility: Accessibility.Public,
-                        modifiers: new DeclarationModifiers(isAbstract: true, isStatic: member.IsStatic, isUnsafe: method.RequiresUnsafeModifier()),
+                        modifiers: new DeclarationModifiers(isAbstract: true, isStatic: member.IsStatic, isUnsafe: method.RequiresUnsafeModifierUnderVersion1Rules()),
                         returnType: method.ReturnType,
                         refKind: method.RefKind,
                         explicitInterfaceImplementations: default,
@@ -405,7 +405,7 @@ internal abstract class AbstractExtractInterfaceService : ILanguageService
                     interfaceMembers.Add(CodeGenerationSymbolFactory.CreatePropertySymbol(
                         attributes: [],
                         accessibility: Accessibility.Public,
-                        modifiers: new DeclarationModifiers(isAbstract: true, isStatic: member.IsStatic, isUnsafe: property.RequiresUnsafeModifier()),
+                        modifiers: new DeclarationModifiers(isAbstract: true, isStatic: member.IsStatic, isUnsafe: property.RequiresUnsafeModifierUnderVersion1Rules()),
                         type: property.Type,
                         refKind: property.RefKind,
                         explicitInterfaceImplementations: default,

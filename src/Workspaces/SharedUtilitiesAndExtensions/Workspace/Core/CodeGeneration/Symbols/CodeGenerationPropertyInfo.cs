@@ -14,25 +14,29 @@ internal sealed class CodeGenerationPropertyInfo
 
     private readonly bool _isNew;
     private readonly bool _isUnsafe;
+    private readonly bool _requiresSafeForBackingField;
     private readonly SyntaxNode _initializer;
 
     private CodeGenerationPropertyInfo(
         bool isNew,
         bool isUnsafe,
-        SyntaxNode initializer)
+        SyntaxNode initializer,
+        bool requiresSafeForBackingField)
     {
         _isNew = isNew;
         _isUnsafe = isUnsafe;
         _initializer = initializer;
+        _requiresSafeForBackingField = requiresSafeForBackingField;
     }
 
     public static void Attach(
         IPropertySymbol property,
         bool isNew,
         bool isUnsafe,
-        SyntaxNode initializer)
+        SyntaxNode initializer,
+        bool requiresSafeForBackingField = false)
     {
-        var info = new CodeGenerationPropertyInfo(isNew, isUnsafe, initializer);
+        var info = new CodeGenerationPropertyInfo(isNew, isUnsafe, initializer, requiresSafeForBackingField);
         s_propertyToInfoMap.Add(property, info);
     }
 
@@ -53,6 +57,9 @@ internal sealed class CodeGenerationPropertyInfo
 
     public static bool GetIsUnsafe(IPropertySymbol property)
         => GetIsUnsafe(GetInfo(property));
+
+    public static bool GetRequiresSafeForBackingField(IPropertySymbol property)
+        => GetInfo(property)?._requiresSafeForBackingField == true;
 
     private static bool GetIsNew(CodeGenerationPropertyInfo info)
         => info != null && info._isNew;

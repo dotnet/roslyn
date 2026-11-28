@@ -19,8 +19,9 @@ internal abstract class CodeGenerationTypeSymbol(
     DeclarationModifiers modifiers,
     string name,
     SpecialType specialType,
-    NullableAnnotation nullableAnnotation)
-    : CodeGenerationNamespaceOrTypeSymbol(containingAssembly, containingType, attributes, declaredAccessibility, modifiers, name), ITypeSymbol
+    NullableAnnotation nullableAnnotation,
+    bool usesMemorySafetyRulesVersion2 = false)
+    : CodeGenerationNamespaceOrTypeSymbol(containingAssembly, containingType, attributes, declaredAccessibility, modifiers, name, usesMemorySafetyRulesVersion2), ITypeSymbol
 {
     public SpecialType SpecialType { get; protected set; } = specialType;
 
