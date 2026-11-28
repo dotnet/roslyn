@@ -488,8 +488,8 @@ Microsoft.CodeAnalysis.ExternalAccess.Unified.VisualDiagnostics.Internal.HotRelo
 Microsoft.CodeAnalysis.ExternalAccess.Unified.VisualDiagnostics.Internal.HotReloadDiagnosticSource
 Microsoft.CodeAnalysis.ExternalAccess.Unified.VisualDiagnostics.Internal.HotReloadDiagnosticSource.GetDiagnosticsAsync(Microsoft.CodeAnalysis.LanguageServer.Handler.RequestContext context, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Diagnostics.DiagnosticData!>>!
 Microsoft.CodeAnalysis.ExternalAccess.Unified.VisualDiagnostics.Internal.HotReloadDiagnosticSource.GetDocumentIdentifier() -> Roslyn.LanguageServer.Protocol.TextDocumentIdentifier?
-Microsoft.CodeAnalysis.ExternalAccess.Unified.VisualDiagnostics.Internal.HotReloadDiagnosticSource.GetId() -> Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics.ProjectOrDocumentId
 Microsoft.CodeAnalysis.ExternalAccess.Unified.VisualDiagnostics.Internal.HotReloadDiagnosticSource.GetProject() -> Microsoft.CodeAnalysis.Project!
+Microsoft.CodeAnalysis.ExternalAccess.Unified.VisualDiagnostics.Internal.HotReloadDiagnosticSource.GetScope() -> Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics.DiagnosticScope
 Microsoft.CodeAnalysis.ExternalAccess.Unified.VisualDiagnostics.Internal.HotReloadDiagnosticSource.HotReloadDiagnosticSource(Microsoft.CodeAnalysis.ExternalAccess.Unified.VisualDiagnostics.Contracts.IHotReloadDiagnosticSource! source, Microsoft.CodeAnalysis.TextDocument! textDocument) -> void
 Microsoft.CodeAnalysis.ExternalAccess.Unified.VisualDiagnostics.Internal.HotReloadDiagnosticSource.ToDisplayString() -> string!
 Microsoft.CodeAnalysis.ExternalAccess.Unified.VisualDiagnostics.Internal.HotReloadDiagnosticSourceProvider
@@ -610,8 +610,8 @@ Microsoft.CodeAnalysis.ExternalAccess.VisualDiagnostics.Internal.HotReloadDiagno
 Microsoft.CodeAnalysis.ExternalAccess.VisualDiagnostics.Internal.HotReloadDiagnosticSource
 Microsoft.CodeAnalysis.ExternalAccess.VisualDiagnostics.Internal.HotReloadDiagnosticSource.GetDiagnosticsAsync(Microsoft.CodeAnalysis.LanguageServer.Handler.RequestContext context, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Diagnostics.DiagnosticData!>>!
 Microsoft.CodeAnalysis.ExternalAccess.VisualDiagnostics.Internal.HotReloadDiagnosticSource.GetDocumentIdentifier() -> Roslyn.LanguageServer.Protocol.TextDocumentIdentifier?
-Microsoft.CodeAnalysis.ExternalAccess.VisualDiagnostics.Internal.HotReloadDiagnosticSource.GetId() -> Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics.ProjectOrDocumentId
 Microsoft.CodeAnalysis.ExternalAccess.VisualDiagnostics.Internal.HotReloadDiagnosticSource.GetProject() -> Microsoft.CodeAnalysis.Project!
+Microsoft.CodeAnalysis.ExternalAccess.VisualDiagnostics.Internal.HotReloadDiagnosticSource.GetScope() -> Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics.DiagnosticScope
 Microsoft.CodeAnalysis.ExternalAccess.VisualDiagnostics.Internal.HotReloadDiagnosticSource.HotReloadDiagnosticSource(Microsoft.CodeAnalysis.ExternalAccess.VisualDiagnostics.Contracts.IHotReloadDiagnosticSource! source, Microsoft.CodeAnalysis.TextDocument! textDocument) -> void
 Microsoft.CodeAnalysis.ExternalAccess.VisualDiagnostics.Internal.HotReloadDiagnosticSource.ToDisplayString() -> string!
 Microsoft.CodeAnalysis.ExternalAccess.VisualDiagnostics.Internal.HotReloadDiagnosticSourceProvider

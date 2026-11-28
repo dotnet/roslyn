@@ -15,6 +15,7 @@ namespace Microsoft.CodeAnalysis.MSBuild;
 
 internal sealed class ProjectFile(
     string language,
+    string projectFilePath,
     MSB.Evaluation.Project? project,
     ProjectBuildManager buildManager,
     RpcServer server,
@@ -34,7 +35,7 @@ internal sealed class ProjectFile(
     /// </summary>
     public string? PhysicalFilePath { get; init; }
 
-    public DiagnosticLogItem[] GetDiagnosticLogItems()
+    public DiagnosticLogItem[] GetEvaluationDiagnosticLogItems()
         => [.. log];
 
     /// <summary>
@@ -46,13 +47,66 @@ internal sealed class ProjectFile(
     {
         if (project is null)
         {
-            return [ProjectFileInfo.CreateEmpty(language, filePath: null)];
+            return [ProjectFileInfo.CreateEmpty(language, PhysicalFilePath ?? projectFilePath)];
         }
 
-        var projectInstances = await buildManager.BuildProjectInstancesAsync(project, log, cancellationToken).ConfigureAwait(false);
+        var targetFrameworkValue = project.GetPropertyValue(PropertyNames.TargetFramework);
+        var targetFrameworksValue = project.GetPropertyValue(PropertyNames.TargetFrameworks);
 
-        return projectInstances.Select(
-            instance => new ProjectInstanceReader(language, _commandLineProvider, instance, project, PhysicalFilePath).CreateProjectFileInfo()).ToArray();
+        if (!RoslynString.IsNullOrEmpty(targetFrameworkValue) || RoslynString.IsNullOrEmpty(targetFrameworksValue))
+        {
+            return [await BuildProjectFileInfoAsync().ConfigureAwait(false)];
+        }
+
+        // This project has a <TargetFrameworks> property, but does not specify a <TargetFramework>.
+        // In this case, we need to iterate through the <TargetFrameworks>, set <TargetFramework> with
+        // each value, and build the project.
+
+        var targetFrameworks = targetFrameworksValue.Split(';');
+
+        if (!project.GlobalProperties.TryGetValue(PropertyNames.TargetFramework, out var initialGlobalTargetFrameworkValue))
+            initialGlobalTargetFrameworkValue = null;
+
+        var results = new List<ProjectFileInfo>(targetFrameworks.Length);
+        foreach (var targetFramework in targetFrameworks)
+        {
+            project.SetGlobalProperty(PropertyNames.TargetFramework, targetFramework);
+
+            try
+            {
+                project.ReevaluateIfNecessary();
+                results.Add(await BuildProjectFileInfoAsync().ConfigureAwait(false));
+            }
+            catch (MSB.Exceptions.InvalidProjectFileException e)
+            {
+                // The project only fails to evaluate for this target framework, so report that for just this target and still build the others.
+                var failureLog = new DiagnosticLog();
+                failureLog.Add(e, project.FullPath);
+                results.Add(ProjectFileInfo.CreateEmpty(language, PhysicalFilePath ?? projectFilePath) with { TargetFramework = targetFramework, Diagnostics = [.. failureLog] });
+            }
+        }
+
+        if (initialGlobalTargetFrameworkValue is null)
+        {
+            project.RemoveGlobalProperty(PropertyNames.TargetFramework);
+        }
+        else
+        {
+            project.SetGlobalProperty(PropertyNames.TargetFramework, initialGlobalTargetFrameworkValue);
+        }
+
+        // This puts the project back to how it was evaluated when it was loaded, which succeeded, so unlike in the loop this can't fail
+        project.ReevaluateIfNecessary();
+
+        return [.. results];
+
+        async Task<ProjectFileInfo> BuildProjectFileInfoAsync()
+        {
+            var (projectInstance, log) = await buildManager.BuildProjectInstanceAsync(project, cancellationToken).ConfigureAwait(false);
+
+            var projectFileInfo = new ProjectInstanceReader(language, _commandLineProvider, projectInstance, project, PhysicalFilePath).CreateProjectFileInfo();
+            return projectFileInfo with { Diagnostics = [.. log] };
+        }
     }
 
     public void AddDocument(string filePath, string? logicalPath = null)

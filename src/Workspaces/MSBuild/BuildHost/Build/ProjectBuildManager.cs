@@ -278,64 +278,25 @@ internal sealed class ProjectBuildManager : IDisposable
         _disposed = true;
     }
 
-    public async Task<MSB.Execution.ProjectInstance[]> BuildProjectInstancesAsync(
-        MSB.Evaluation.Project project, DiagnosticLog log, CancellationToken cancellationToken)
+    /// <summary>
+    /// Builds the project as it is currently evaluated, returning the resulting instance along with the diagnostics reported by just that build.
+    /// </summary>
+    public Task<(MSB.Execution.ProjectInstance ProjectInstance, DiagnosticLog Diagnostics)> BuildProjectInstanceAsync(
+        MSB.Evaluation.Project project, CancellationToken cancellationToken)
     {
         Contract.ThrowIfTrue(_disposed);
 
-        var targetFrameworkValue = project.GetPropertyValue(PropertyNames.TargetFramework);
-        var targetFrameworksValue = project.GetPropertyValue(PropertyNames.TargetFrameworks);
-
-        if (!RoslynString.IsNullOrEmpty(targetFrameworkValue) || RoslynString.IsNullOrEmpty(targetFrameworksValue))
-        {
-            return [await BuildProjectInstanceAsync(project, log, cancellationToken).ConfigureAwait(false)];
-        }
-
-        // This project has a <TargetFrameworks> property, but does not specify a <TargetFramework>.
-        // In this case, we need to iterate through the <TargetFrameworks>, set <TargetFramework> with
-        // each value, and build the project.
-
-        var targetFrameworks = targetFrameworksValue.Split(';');
-
-        if (!project.GlobalProperties.TryGetValue(PropertyNames.TargetFramework, out var initialGlobalTargetFrameworkValue))
-            initialGlobalTargetFrameworkValue = null;
-
-        var results = new List<MSB.Execution.ProjectInstance>(targetFrameworks.Length);
-        foreach (var targetFramework in targetFrameworks)
-        {
-            project.SetGlobalProperty(PropertyNames.TargetFramework, targetFramework);
-            project.ReevaluateIfNecessary();
-
-            var projectInstance = await BuildProjectInstanceAsync(project, log, cancellationToken).ConfigureAwait(false);
-            results.Add(projectInstance);
-        }
-
-        if (initialGlobalTargetFrameworkValue is null)
-        {
-            project.RemoveGlobalProperty(PropertyNames.TargetFramework);
-        }
-        else
-        {
-            project.SetGlobalProperty(PropertyNames.TargetFramework, initialGlobalTargetFrameworkValue);
-        }
-
-        project.ReevaluateIfNecessary();
-
-        return results.ToArray();
-    }
-
-    private Task<MSB.Execution.ProjectInstance> BuildProjectInstanceAsync(
-        MSB.Evaluation.Project project, DiagnosticLog log, CancellationToken cancellationToken)
-    {
         var requiredTargets = new[] { TargetNames.Compile, TargetNames.CoreCompile };
         var optionalTargets = new[] { TargetNames.DesignTimeMarkupCompilation };
 
-        return BuildProjectInstanceAsync(project, requiredTargets, optionalTargets, log, cancellationToken);
+        return BuildProjectInstanceAsync(project, requiredTargets, optionalTargets, cancellationToken);
     }
 
-    private async Task<MSB.Execution.ProjectInstance> BuildProjectInstanceAsync(
-        MSB.Evaluation.Project project, string[] requiredTargets, string[] optionalTargets, DiagnosticLog log, CancellationToken cancellationToken)
+    private async Task<(MSB.Execution.ProjectInstance, DiagnosticLog)> BuildProjectInstanceAsync(
+        MSB.Evaluation.Project project, string[] requiredTargets, string[] optionalTargets, CancellationToken cancellationToken)
     {
+        var log = new DiagnosticLog();
+
         // create a project instance to be executed by build engine.
         // The executed project will hold the final model of the project after execution via msbuild.
         var projectInstance = project.CreateProjectInstance();
@@ -346,7 +307,7 @@ internal sealed class ProjectBuildManager : IDisposable
             if (!projectInstance.Targets.ContainsKey(target))
             {
                 log.Add(string.Format(WorkspaceMSBuildBuildHostResources.Project_does_not_contain_0_target, target), projectInstance.FullPath);
-                return projectInstance;
+                return (projectInstance, log);
             }
         }
 
@@ -377,7 +338,7 @@ internal sealed class ProjectBuildManager : IDisposable
             }
         }
 
-        return result.ProjectStateAfterBuild ?? projectInstance;
+        return (result.ProjectStateAfterBuild ?? projectInstance, log);
     }
 
     private async Task<MSB.Execution.BuildResult> BuildAsync(MSB.Execution.BuildRequestData requestData, DiagnosticLog log, CancellationToken cancellationToken)

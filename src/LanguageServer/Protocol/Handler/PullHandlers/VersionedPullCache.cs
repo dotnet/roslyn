@@ -20,13 +20,13 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler;
 internal abstract partial class VersionedPullCache<TVersion, TState, TComputedData>(string uniqueKey)
 {
     /// <summary>
-    /// Map of workspace and diagnostic source to the data used to make the last pull report.
-    /// This is a concurrent dictionary as parallel access is allowed for different workspace+project/doc combinations.
+    /// Map of workspace and diagnostic scope to the data used to make the last pull report.
+    /// This is a concurrent dictionary as parallel access is allowed for different workspace+scope combinations.
     /// 
-    /// The <see cref="CacheItem"/> itself however will internally guarantee that the state for a specific workspace+project/doc will only
+    /// The <see cref="CacheItem"/> itself however will internally guarantee that the state for a specific workspace+scope will only
     /// be updated sequentially.
     /// </summary>
-    private readonly ConcurrentDictionary<(Workspace workspace, ProjectOrDocumentId id), CacheItem> _idToLastReportedResult = [];
+    private readonly ConcurrentDictionary<(Workspace workspace, DiagnosticScope scope), CacheItem> _scopeToLastReportedResult = [];
 
     /// <summary>
     /// The next available id to label results with.  Note that results are tagged on a per-document bases.  That
@@ -58,22 +58,22 @@ internal abstract partial class VersionedPullCache<TVersion, TState, TComputedDa
     /// If results have changed since the last request this calculates and returns a new
     /// non-null resultId to use for subsequent computation and caches it.
     /// </summary>
-    /// <param name="idToClientLastResult">a map of roslyn document or project id to the previous result the client sent us for that doc.</param>
-    /// <param name="projectOrDocumentId">the id of the project or document that we are checking to see if it has changed.</param>
+    /// <param name="scopeToClientLastResult">a map of diagnostic scope to the previous result the client sent us for it.</param>
+    /// <param name="scope">the diagnostic scope that we are checking to see if it has changed.</param>
     /// <returns>Null when results are unchanged, otherwise returns a non-null new resultId.</returns>
     public async Task<(string ResultId, TComputedData Data)?> GetOrComputeNewDataAsync(
-        Dictionary<ProjectOrDocumentId, PreviousPullResult> idToClientLastResult,
-        ProjectOrDocumentId projectOrDocumentId,
+        Dictionary<DiagnosticScope, PreviousPullResult> scopeToClientLastResult,
+        DiagnosticScope scope,
         Project project,
         TState state,
         CancellationToken cancellationToken)
     {
         // We have to make sure we've been fully loaded before using cached results as the previous results may not be complete.
         var isFullyLoaded = await IsFullyLoadedAsync(project.Solution, cancellationToken).ConfigureAwait(false);
-        var previousResult = IDictionaryExtensions.GetValueOrDefault(idToClientLastResult, projectOrDocumentId);
+        var previousResult = IDictionaryExtensions.GetValueOrDefault(scopeToClientLastResult, scope);
 
-        var cacheEntry = _idToLastReportedResult.GetOrAdd(
-            (project.Solution.Workspace, projectOrDocumentId),
+        var cacheEntry = _scopeToLastReportedResult.GetOrAdd(
+            (project.Solution.Workspace, scope),
             static (_, uniqueKey) => new CacheItem(uniqueKey),
             uniqueKey);
         return await cacheEntry.UpdateCacheItemAsync(

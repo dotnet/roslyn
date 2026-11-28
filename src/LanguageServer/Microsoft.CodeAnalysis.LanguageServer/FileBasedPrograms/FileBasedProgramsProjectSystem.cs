@@ -5,6 +5,7 @@
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Features.Workspaces;
 using Microsoft.CodeAnalysis.FileBasedPrograms;
@@ -35,9 +36,13 @@ internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoad
     /// </summary>
     protected override int MaxNodeCount => 1;
 
+    // File-based programs and the miscellaneous files that stand in for them are always C#
+    protected override string GetLanguageForFailedProject(string projectPath) => LanguageNames.CSharp;
+
     public FileBasedProgramsProjectSystem(
         ILspServices lspServices,
         IGlobalOptionService globalOptionService,
+        IDiagnosticsRefresher diagnosticsRefresher,
         ILoggerFactory loggerFactory,
         IAsynchronousOperationListenerProvider listenerProvider,
         ServerConfigurationFactory serverConfigurationFactory,
@@ -46,6 +51,7 @@ internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoad
             : base(
                 lspServices,
                 globalOptionService,
+                diagnosticsRefresher,
                 loggerFactory,
                 listenerProvider,
                 serverConfigurationFactory,
@@ -357,7 +363,7 @@ internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoad
             return new RemoteProjectLoadResult
             {
                 ProjectFileInfos = projectInfos,
-                DiagnosticLogItems = [],
+                EvaluationDiagnosticLogItems = [],
                 // This points to the Canonical.csproj, which always exists on disk and can be restored regardless of SDK.
                 ProjectRestorePath = projectInfos.FirstOrDefault()?.FilePath,
                 ProjectFactory = _workspaceFactory.MiscellaneousFilesWorkspaceProjectFactory,
@@ -385,7 +391,7 @@ internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoad
         return new RemoteProjectLoadResult
         {
             ProjectFileInfos = await loadedFile.GetProjectFileInfosAsync(cancellationToken),
-            DiagnosticLogItems = await loadedFile.GetDiagnosticLogItemsAsync(cancellationToken),
+            EvaluationDiagnosticLogItems = await loadedFile.GetEvaluationDiagnosticLogItemsAsync(cancellationToken),
             ProjectRestorePath = documentPath,
             ProjectFactory = _workspaceFactory.HostProjectFactory,
             IsFileBasedProgram = true,

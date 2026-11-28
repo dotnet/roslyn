@@ -19,7 +19,7 @@ internal abstract class AbstractDocumentDiagnosticSource<TDocument>(TDocument do
     public abstract Task<ImmutableArray<DiagnosticData>> GetDiagnosticsAsync(
         RequestContext context, CancellationToken cancellationToken);
 
-    public ProjectOrDocumentId GetId() => new(Document.Id);
+    public DiagnosticScope GetScope() => new(Document.Id);
     public Project GetProject() => Document.Project;
 
     public TextDocumentIdentifier? GetDocumentIdentifier()
