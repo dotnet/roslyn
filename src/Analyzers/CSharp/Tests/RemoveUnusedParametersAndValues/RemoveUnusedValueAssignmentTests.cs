@@ -4841,6 +4841,116 @@ class C
             }
             """, optionName);
 
+    [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/58407")]
+    [InlineData(nameof(PreferDiscard))]
+    [InlineData(nameof(PreferUnusedLocal))]
+    public Task WriteAfterLastRecursiveInvocation_ReadByRecursiveCaller(string optionName)
+        => TestMissingInRegularAndScriptAsync(
+            """
+            class C
+            {
+                public int M()
+                {
+                    int i = 0;
+                    int Recurse()
+                    {
+                        if (i > 10) return i;
+                        i += 1;
+                        var a = Recurse();
+                        i += 1;
+                        var b = Recurse();
+                        [|i|] += 1;
+                        return a + b;
+                    }
+
+                    return Recurse();
+                }
+            }
+            """, optionName);
+
+    [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/58407")]
+    [InlineData(nameof(PreferDiscard))]
+    [InlineData(nameof(PreferUnusedLocal))]
+    public Task WriteAfterLastRecursiveInvocation_ReadByRecursiveCaller_Lambda(string optionName)
+        => TestMissingInRegularAndScriptAsync(
+            """
+            using System;
+
+            class C
+            {
+                public int M()
+                {
+                    int i = 0;
+                    Func<int> recurse = null;
+                    recurse = () =>
+                    {
+                        if (i > 10) return i;
+                        var a = recurse();
+                        [|i|] += 1;
+                        return a;
+                    };
+
+                    return recurse();
+                }
+            }
+            """, optionName);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/58407")]
+    public Task WriteAfterLastRecursiveInvocation_LocalDeclaredInsideFunction()
+        => new VerifyCS.Test
+        {
+            // 'b' is a new variable in each invocation, so its last write can't be read by a recursive caller.
+            TestCode = """
+            using System;
+
+            class C
+            {
+                public int M()
+                {
+                    int i = 0;
+                    int Recurse()
+                    {
+                        if (i > 10) return i;
+                        i += 1;
+                        var a = Recurse();
+                        var b = a;
+                        Console.WriteLine(b);
+                        {|IDE0059:b|} = 2;
+                        return a;
+                    }
+
+                    return Recurse();
+                }
+            }
+            """,
+            FixedCode = """
+            using System;
+
+            class C
+            {
+                public int M()
+                {
+                    int i = 0;
+                    int Recurse()
+                    {
+                        if (i > 10) return i;
+                        i += 1;
+                        var a = Recurse();
+                        var b = a;
+                        Console.WriteLine(b);
+                        return a;
+                    }
+
+                    return Recurse();
+                }
+            }
+            """,
+            Options =
+            {
+                { CSharpCodeStyleOptions.UnusedValueAssignment, UnusedValuePreference.DiscardVariable },
+            },
+        }.RunAsync();
+
     [Theory]
     [InlineData(nameof(PreferDiscard))]
     [InlineData(nameof(PreferUnusedLocal))]

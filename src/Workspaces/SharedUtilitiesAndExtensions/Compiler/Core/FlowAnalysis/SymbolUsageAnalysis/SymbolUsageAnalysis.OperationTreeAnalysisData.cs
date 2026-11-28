@@ -20,7 +20,7 @@ internal static partial class SymbolUsageAnalysis
         private OperationTreeAnalysisData(
             PooledDictionary<(ISymbol symbol, IOperation operation), bool> symbolsWriteMap,
             PooledHashSet<ISymbol> symbolsRead,
-            PooledHashSet<IMethodSymbol> lambdaOrLocalFunctionsBeingAnalyzed,
+            PooledDictionary<IMethodSymbol, bool> lambdaOrLocalFunctionsBeingAnalyzed,
             Func<IMethodSymbol, BasicBlockAnalysisData> analyzeLocalFunction)
         {
             _analyzeLocalFunction = analyzeLocalFunction;
@@ -33,7 +33,7 @@ internal static partial class SymbolUsageAnalysis
 
         protected override PooledDictionary<(ISymbol symbol, IOperation operation), bool> SymbolsWriteBuilder { get; }
 
-        protected override PooledHashSet<IMethodSymbol> LambdaOrLocalFunctionsBeingAnalyzed { get; }
+        protected override PooledDictionary<IMethodSymbol, bool> LambdaOrLocalFunctionsBeingAnalyzed { get; }
 
         public static OperationTreeAnalysisData Create(
             ISymbol owningSymbol,
@@ -42,7 +42,7 @@ internal static partial class SymbolUsageAnalysis
             return new OperationTreeAnalysisData(
                 symbolsWriteMap: CreateSymbolsWriteMap(owningSymbol.GetParameters()),
                 symbolsRead: PooledHashSet<ISymbol>.GetInstance(),
-                lambdaOrLocalFunctionsBeingAnalyzed: PooledHashSet<IMethodSymbol>.GetInstance(),
+                lambdaOrLocalFunctionsBeingAnalyzed: PooledDictionary<IMethodSymbol, bool>.GetInstance(),
                 analyzeLocalFunction);
         }
 
