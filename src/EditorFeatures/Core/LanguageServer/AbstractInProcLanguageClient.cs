@@ -15,6 +15,7 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CommonLanguageServerProtocol.Framework;
 using Microsoft.VisualStudio.Composition;
 using Microsoft.VisualStudio.LanguageServer.Client;
@@ -208,6 +209,7 @@ internal abstract partial class AbstractInProcLanguageClient(
             hostServices,
             SupportedLanguages,
             serverKind,
+            _exportProvider.GetExportedValue<IAsynchronousOperationListenerProvider>(),
             typeRefResolver,
             logger);
 

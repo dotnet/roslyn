@@ -6,23 +6,42 @@ using System;
 using System.Globalization;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CommonLanguageServerProtocol.Framework;
+using Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer;
 
 internal sealed class RoslynRequestExecutionQueue : RequestExecutionQueue<RequestContext>
 {
     private readonly IInitializeManager _initializeManager;
+    private readonly IAsynchronousOperationListenerProvider _asynchronousOperationListenerProvider;
 
     /// <summary>
     /// Serial access is guaranteed by the queue.
     /// </summary>
     private CultureInfo? _cultureInfo;
 
-    public RoslynRequestExecutionQueue(AbstractLanguageServer<RequestContext> languageServer, AbstractHandlerProvider handlerProvider)
+    public RoslynRequestExecutionQueue(
+        AbstractLanguageServer<RequestContext> languageServer,
+        AbstractHandlerProvider handlerProvider,
+        IAsynchronousOperationListenerProvider asynchronousOperationListenerProvider)
         : base(languageServer, handlerProvider)
     {
         _initializeManager = languageServer.GetLspServices().GetRequiredService<IInitializeManager>();
+        _asynchronousOperationListenerProvider = asynchronousOperationListenerProvider;
+    }
+
+    protected override IDisposable? CreateRequestOperationScope(string methodName)
+    {
+        // Workspace diagnostics wait for future changes rather than finite request work.
+        if (methodName == Methods.WorkspaceDiagnosticName)
+            return null;
+
+        var listener = _asynchronousOperationListenerProvider.GetListener(FeatureAttribute.LanguageServer);
+        return ReferenceEquals(listener, AsynchronousOperationListenerProvider.NullListener)
+            ? null
+            : listener.BeginAsyncOperation(methodName);
     }
 
     public override async Task WrapStartRequestTaskAsync(Task requestTask, bool rethrowExceptions)

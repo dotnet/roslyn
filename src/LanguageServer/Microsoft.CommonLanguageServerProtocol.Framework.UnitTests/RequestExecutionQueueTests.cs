@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CommonLanguageServerProtocol.Framework.Example;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.VisualStudio.Threading;
 using Nerdbank.Streams;
 using StreamJsonRpc;
 using Xunit;
@@ -169,6 +170,154 @@ public sealed class RequestExecutionQueueTests
         Assert.False(requestExecutionQueue.LanguageServer.GetTestAccessor().HasShutdownStarted());
     }
 
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task RequestOperationScope_CoversQueueingAndHandlerCompletion(bool failRequest)
+    {
+        using var timeout = new CancellationTokenSource(TimeSpan.FromMinutes(1));
+        var handler = new GatedRequestHandler();
+        var scope = new TestRequestOperationScope();
+        await using var queue = new TestRequestExecutionQueue(
+            new MockServer(), new TestHandlerProvider([(TestMethodHandler.Metadata, handler)]), cancelInProgressWorkUponMutatingRequest: false)
+        {
+            RequestOperationScopeFactory = _ => scope.Begin()
+        };
+
+        var request = queue.ExecuteAsync(JsonSerializer.SerializeToElement(new MockRequest(1)), TestMethodHandler.Name, GetLspServices(), CancellationToken.None);
+        Assert.True(scope.HasPendingWork);
+        Assert.False(handler.Started.Task.IsCompleted);
+
+        queue.Start();
+        await handler.Started.Task.WithCancellation(timeout.Token);
+        Assert.True(scope.HasPendingWork);
+
+        if (failRequest)
+        {
+            handler.Response.SetException(new NotImplementedException());
+            await Assert.ThrowsAsync<NotImplementedException>(() => request);
+        }
+        else
+        {
+            handler.Response.SetResult(new MockResponse("finished"));
+            Assert.Equal("finished", ((MockResponse?)await request)?.Response);
+        }
+
+        await scope.Completed.Task.WithCancellation(timeout.Token);
+        Assert.False(scope.HasPendingWork);
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task RequestOperationScope_ClientCancellationWaitsForActualHandlerCompletion(bool mutatesSolutionState)
+    {
+        using var timeout = new CancellationTokenSource(TimeSpan.FromMinutes(1));
+        var handler = new GatedRequestHandler(mutatesSolutionState);
+        var scope = new TestRequestOperationScope();
+        await using var queue = new TestRequestExecutionQueue(
+            new MockServer(), new TestHandlerProvider([(TestMethodHandler.Metadata, handler)]), cancelInProgressWorkUponMutatingRequest: false)
+        {
+            RequestOperationScopeFactory = _ => scope.Begin()
+        };
+        using var cancellationSource = new CancellationTokenSource();
+
+        queue.Start();
+        var request = queue.ExecuteAsync(JsonSerializer.SerializeToElement(new MockRequest(1)), TestMethodHandler.Name, GetLspServices(), cancellationSource.Token);
+        await handler.Started.Task.WithCancellation(timeout.Token);
+
+        try
+        {
+            cancellationSource.Cancel();
+            await Assert.ThrowsAnyAsync<OperationCanceledException>(() => request);
+            Assert.True(scope.HasPendingWork);
+        }
+        finally
+        {
+            handler.Response.SetResult(new MockResponse("finished"));
+        }
+
+        await scope.Completed.Task.WithCancellation(timeout.Token);
+        Assert.False(scope.HasPendingWork);
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task RequestOperationScope_QueuedCancellationReleasesWithoutRunningHandler(bool shutDownQueue)
+    {
+        using var timeout = new CancellationTokenSource(TimeSpan.FromMinutes(1));
+        var handler = new GatedRequestHandler();
+        var scope = new TestRequestOperationScope();
+        await using var queue = new TestRequestExecutionQueue(
+            new MockServer(), new TestHandlerProvider([(TestMethodHandler.Metadata, handler)]), cancelInProgressWorkUponMutatingRequest: false)
+        {
+            RequestOperationScopeFactory = _ => scope.Begin()
+        };
+        using var cancellationSource = new CancellationTokenSource();
+
+        var request = queue.ExecuteAsync(JsonSerializer.SerializeToElement(new MockRequest(1)), TestMethodHandler.Name, GetLspServices(), cancellationSource.Token);
+        Assert.True(scope.HasPendingWork);
+
+        if (shutDownQueue)
+            await queue.DisposeAsync();
+        else
+            cancellationSource.Cancel();
+
+        await Assert.ThrowsAnyAsync<OperationCanceledException>(() => request);
+        await scope.Completed.Task.WithCancellation(timeout.Token);
+        Assert.False(scope.HasPendingWork);
+        Assert.False(handler.Started.Task.IsCompleted);
+    }
+
+    [Fact]
+    public async Task RequestOperationScope_MissingHandlerReleasesScope()
+    {
+        using var timeout = new CancellationTokenSource(TimeSpan.FromMinutes(1));
+        var scope = new TestRequestOperationScope();
+        await using var queue = GetRequestExecutionQueue(false, (TestMethodHandler.Metadata, TestMethodHandler.Instance));
+        queue.RequestOperationScopeFactory = _ => scope.Begin();
+
+        var request = queue.ExecuteAsync(JsonSerializer.SerializeToElement(new MockRequest(1)), "missing", GetLspServices(), CancellationToken.None);
+        await Assert.ThrowsAsync<LocalRpcException>(() => request);
+        await scope.Completed.Task.WithCancellation(timeout.Token);
+        Assert.False(scope.HasPendingWork);
+    }
+
+    private sealed class GatedRequestHandler(bool mutatesSolutionState = false) : IRequestHandler<MockRequest, MockResponse, TestRequestContext>
+    {
+        public TaskCompletionSource<object?> Started { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
+        public TaskCompletionSource<MockResponse> Response { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
+        public bool MutatesSolutionState => mutatesSolutionState;
+
+        public Task<MockResponse> HandleRequestAsync(MockRequest request, TestRequestContext context, CancellationToken cancellationToken)
+        {
+            Started.SetResult(null);
+            // Keep executing until released, even when the client has cancelled its response.
+            return Response.Task;
+        }
+    }
+
+    private sealed class TestRequestOperationScope : IDisposable
+    {
+        private int _active;
+
+        public TaskCompletionSource<object?> Completed { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
+        public bool HasPendingWork => Volatile.Read(ref _active) != 0;
+
+        public IDisposable Begin()
+        {
+            Assert.Equal(0, Interlocked.Exchange(ref _active, 1));
+            return this;
+        }
+
+        public void Dispose()
+        {
+            Assert.Equal(1, Interlocked.Exchange(ref _active, 0));
+            Completed.SetResult(null);
+        }
+    }
+
     private sealed class TestRequestExecutionQueue : RequestExecutionQueue<TestRequestContext>
     {
         private readonly bool _cancelInProgressWorkUponMutatingRequest;
@@ -181,8 +330,12 @@ public sealed class RequestExecutionQueueTests
         }
 
         public MockServer LanguageServer { get; }
+        public Func<string, IDisposable?>? RequestOperationScopeFactory { get; set; }
 
         protected override bool CancelInProgressWorkUponMutatingRequest => _cancelInProgressWorkUponMutatingRequest;
+
+        protected override IDisposable? CreateRequestOperationScope(string methodName)
+            => RequestOperationScopeFactory?.Invoke(methodName);
 
         public void Complete()
             => _queue.Complete();
