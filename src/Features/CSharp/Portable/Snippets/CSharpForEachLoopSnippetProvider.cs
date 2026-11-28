@@ -5,9 +5,9 @@
 using System;
 using System.Collections.Immutable;
 using System.Composition;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
@@ -36,6 +36,9 @@ internal sealed class CSharpForEachLoopSnippetProvider() : AbstractForEachLoopSn
 
     public override string Description => FeaturesResources.foreach_loop;
 
+    protected override bool IsValidAccessingType(ITypeSymbol type, SnippetContext context, CancellationToken cancellationToken)
+        => base.IsValidAccessingType(type, context, cancellationToken) || context.SemanticModel.GetAsyncIterationType(context.Position, type, cancellationToken) is not null;
+
     protected override bool IsValidSnippetLocationCore(SnippetContext context, CancellationToken cancellationToken)
     {
         var syntaxContext = context.SyntaxContext;
@@ -56,21 +59,45 @@ internal sealed class CSharpForEachLoopSnippetProvider() : AbstractForEachLoopSn
     protected override bool CanInsertStatementAfterToken(SyntaxToken token)
         => token.IsBeginningOfStatementContext() || token.IsBeginningOfGlobalStatementContext();
 
+    protected override ValueTask<ForEachStatementSyntax> AdjustSnippetExpressionAsync(Document document, ForEachStatementSyntax snippetExpressionNode, CancellationToken cancellationToken)
+        => new(snippetExpressionNode.WithType(snippetExpressionNode.Type.WithAdditionalAnnotations(Simplifier.Annotation)));
+
     protected override ForEachStatementSyntax GenerateStatement(
-        SyntaxGenerator generator, SyntaxContext syntaxContext, SimplifierOptions simplifierOptions, InlineExpressionInfo? inlineExpressionInfo)
+        SyntaxGenerator generator,
+        SyntaxContext syntaxContext,
+        SimplifierOptions simplifierOptions,
+        InlineExpressionInfo? inlineExpressionInfo,
+        CancellationToken cancellationToken)
     {
         var semanticModel = syntaxContext.SemanticModel;
         var position = syntaxContext.Position;
 
-        var varIdentifier = IdentifierName("var");
         var collectionIdentifier = (ExpressionSyntax?)inlineExpressionInfo?.Node;
 
         if (collectionIdentifier is null)
         {
-            var isAsync = syntaxContext.TargetToken is { RawKind: (int)SyntaxKind.AwaitKeyword } or { RawKind: (int)SyntaxKind.IdentifierToken, ValueText: "await" };
-            var enumerationSymbol = semanticModel.LookupSymbols(position).FirstOrDefault(symbol => symbol.GetSymbolType() is { } symbolType &&
-                (isAsync ? symbolType.CanBeAsynchronouslyEnumerated(semanticModel.Compilation) : symbolType.CanBeEnumerated()) &&
-                symbol.Kind is SymbolKind.Local or SymbolKind.Field or SymbolKind.Parameter or SymbolKind.Property);
+            var isAsync = syntaxContext.TargetToken.IsKindOrHasMatchingText(SyntaxKind.AwaitKeyword);
+
+            ISymbol? enumerationSymbol = null;
+            foreach (var symbol in semanticModel.LookupSymbols(position))
+            {
+                if (symbol.GetSymbolType() is not { } symbolType ||
+                    symbol.Kind is not (SymbolKind.Local or SymbolKind.Field or SymbolKind.Parameter or SymbolKind.Property))
+                {
+                    continue;
+                }
+
+                var iterationType = isAsync
+                    ? semanticModel.GetAsyncIterationType(position, symbolType, cancellationToken)
+                    : semanticModel.GetIterationType(position, symbolType, cancellationToken);
+
+                if (iterationType is not null)
+                {
+                    enumerationSymbol = symbol;
+                    break;
+                }
+            }
+
             collectionIdentifier = enumerationSymbol is null
                 ? IdentifierName("collection")
                 : IdentifierName(enumerationSymbol.Name);
@@ -81,14 +108,16 @@ internal sealed class CSharpForEachLoopSnippetProvider() : AbstractForEachLoopSn
 
         ForEachStatementSyntax forEachStatement;
 
-        if (inlineExpressionInfo is { TypeInfo: var typeInfo } &&
-            typeInfo.Type!.CanBeAsynchronouslyEnumerated(semanticModel.Compilation))
+        var inlineExpressionType = inlineExpressionInfo?.TypeInfo.Type;
+
+        if (inlineExpressionType is not null &&
+            semanticModel.GetAsyncIterationType(position, inlineExpressionType, cancellationToken) is { } asyncIterationType)
         {
             forEachStatement = ForEachStatement(
                 AwaitKeyword,
                 ForEachKeyword,
                 OpenParenToken,
-                varIdentifier,
+                asyncIterationType.GenerateTypeSyntax(),
                 Identifier(itemString),
                 InKeyword,
                 collectionIdentifier.WithoutLeadingTrivia(),
@@ -97,8 +126,13 @@ internal sealed class CSharpForEachLoopSnippetProvider() : AbstractForEachLoopSn
         }
         else
         {
+            var iterationTypeSyntax = inlineExpressionType is not null &&
+                                      semanticModel.GetIterationType(position, inlineExpressionType, cancellationToken) is { } iterationType
+                ? iterationType.GenerateTypeSyntax()
+                : IdentifierName("var");
+
             forEachStatement = ForEachStatement(
-                varIdentifier,
+                iterationTypeSyntax,
                 itemString,
                 collectionIdentifier.WithoutLeadingTrivia(),
                 Block());

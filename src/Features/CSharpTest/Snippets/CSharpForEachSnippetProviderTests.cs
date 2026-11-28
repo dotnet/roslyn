@@ -208,8 +208,15 @@ public sealed class CSharpForEachSnippetProviderTests : AbstractCSharpSnippetPro
             """);
 
     [Theory]
-    [MemberData(nameof(CommonSnippetTestData.CommonEnumerableTypes), MemberType = typeof(CommonSnippetTestData))]
-    public Task InsertInlineForEachSnippetForCorrectTypeTest(string collectionType)
+    [InlineData("string", "char")]
+    [InlineData("System.Collections.Generic.List<int>", "int")]
+    [InlineData("int[]", "int")]
+    [InlineData("System.Collections.Generic.IEnumerable<int>", "int")]
+    [InlineData("System.Collections.ArrayList", "object")]
+    [InlineData("System.Collections.IEnumerable", "object")]
+    [InlineData("System.Span<long>", "long")]
+    [InlineData("System.ReadOnlySpan<char>", "char")]
+    public Task InsertInlineForEachSnippetForCorrectTypeTest(string collectionType, string iterationType)
         => VerifySnippetAsync($$"""
             class C
             {
@@ -223,13 +230,14 @@ public sealed class CSharpForEachSnippetProviderTests : AbstractCSharpSnippetPro
             {
                 void M({{collectionType}} enumerable)
                 {
-                    foreach (var {|0:item|} in enumerable)
+                    foreach ({{iterationType}} {|0:item|} in enumerable)
                     {
                         $$
                     }
                 }
             }
-            """);
+            """,
+            referenceAssemblies: ReferenceAssemblies.Net.Net100);
 
     [Fact]
     public Task NoInlineForEachSnippetForIncorrectTypeTest()
@@ -278,7 +286,7 @@ public sealed class CSharpForEachSnippetProviderTests : AbstractCSharpSnippetPro
                 void M(int[] arr)
                 {
                     {{trivia}}
-                    foreach (var {|0:item|} in arr)
+                    foreach (int {|0:item|} in arr)
                     {
                         $$
                     }
@@ -306,7 +314,7 @@ public sealed class CSharpForEachSnippetProviderTests : AbstractCSharpSnippetPro
                 void M(int[] arr)
                 {
             {{trivia}}
-                    foreach (var {|0:item|} in arr)
+                    foreach (int {|0:item|} in arr)
                     {
                         $$
                     }
@@ -323,7 +331,7 @@ public sealed class CSharpForEachSnippetProviderTests : AbstractCSharpSnippetPro
             (new int[10]).$$
             """, $$"""
             {{trivia}}
-            foreach (var {|0:item|} in new int[10])
+            foreach (int {|0:item|} in new int[10])
             {
                 $$
             }
@@ -341,7 +349,7 @@ public sealed class CSharpForEachSnippetProviderTests : AbstractCSharpSnippetPro
             """, $$"""
 
             {{trivia}}
-            foreach (var {|0:item|} in new int[10])
+            foreach (int {|0:item|} in new int[10])
             {
                 $$
             }
@@ -449,7 +457,39 @@ public sealed class CSharpForEachSnippetProviderTests : AbstractCSharpSnippetPro
             {
                 {{asyncKeyword}}void M(IAsyncEnumerable<int> asyncEnumerable)
                 {
-                    await foreach (var {|0:item|} in asyncEnumerable)
+                    await foreach (int {|0:item|} in asyncEnumerable)
+                    {
+                        $$
+                    }
+                }
+            }
+            """,
+            referenceAssemblies: ReferenceAssemblies.Net.Net70);
+
+    [Theory]
+    [InlineData("")]
+    [InlineData("async ")]
+    public Task InsertAwaitForEachSnippetForPostfixAsyncEnumerableWithCancellationTest(string asyncKeyword)
+        => VerifySnippetAsync($$"""
+            using System.Collections.Generic;
+            using System.Threading.Tasks;
+            
+            class C
+            {
+                {{asyncKeyword}}void M(IAsyncEnumerable<int> asyncEnumerable)
+                {
+                    asyncEnumerable.WithCancellation(default).$$
+                }
+            }
+            """, $$"""
+            using System.Collections.Generic;
+            using System.Threading.Tasks;
+            
+            class C
+            {
+                {{asyncKeyword}}void M(IAsyncEnumerable<int> asyncEnumerable)
+                {
+                    await foreach (int {|0:item|} in asyncEnumerable.WithCancellation(default))
                     {
                         $$
                     }
@@ -478,7 +518,7 @@ public sealed class CSharpForEachSnippetProviderTests : AbstractCSharpSnippetPro
             {
                 void M(IEnumerable<int> ints)
                 {
-                    foreach (var {|0:item|} in ints)
+                    foreach (int {|0:item|} in ints)
                     {
                         $$
                     }
@@ -509,7 +549,7 @@ public sealed class CSharpForEachSnippetProviderTests : AbstractCSharpSnippetPro
             {
                 async void M(IEnumerable<int> ints, Task t)
                 {
-                    foreach (var {|0:item|} in ints)
+                    foreach (int {|0:item|} in ints)
                     {
                         $$
                     }
@@ -543,7 +583,7 @@ public sealed class CSharpForEachSnippetProviderTests : AbstractCSharpSnippetPro
             {
                 void M(IEnumerable<int> ints)
                 {
-                    foreach (var {|0:item|} in ints)
+                    foreach (int {|0:item|} in ints)
                     {
                         $$
                     }
@@ -572,7 +612,7 @@ public sealed class CSharpForEachSnippetProviderTests : AbstractCSharpSnippetPro
             {
                 void M(int[] ints)
                 {
-                    foreach (var {|0:item|} in ints)
+                    foreach (int {|0:item|} in ints)
                     {
                         $$
                     }
@@ -629,7 +669,7 @@ public sealed class CSharpForEachSnippetProviderTests : AbstractCSharpSnippetPro
             {
                 void M(IAsyncEnumerable<int> asyncInts)
                 {
-                    await foreach (var {|0:item|} in asyncInts)
+                    await foreach (int {|0:item|} in asyncInts)
                     {
                         $$
                     }
@@ -661,7 +701,7 @@ public sealed class CSharpForEachSnippetProviderTests : AbstractCSharpSnippetPro
             {
                 async void M(IAsyncEnumerable<int> asyncInts, Task t)
                 {
-                    await foreach (var {|0:item|} in asyncInts)
+                    await foreach (int {|0:item|} in asyncInts)
                     {
                         $$
                     }
@@ -696,7 +736,7 @@ public sealed class CSharpForEachSnippetProviderTests : AbstractCSharpSnippetPro
             {
                 void M(IAsyncEnumerable<int> asyncInts)
                 {
-                    await foreach (var {|0:item|} in asyncInts)
+                    await foreach (int {|0:item|} in asyncInts)
                     {
                         $$
                     }
@@ -728,7 +768,7 @@ public sealed class CSharpForEachSnippetProviderTests : AbstractCSharpSnippetPro
             {
                 void M(IAsyncEnumerable<int> ints)
                 {
-                    await foreach (var {|0:item|} in ints)
+                    await foreach (int {|0:item|} in ints)
                     {
                         $$
                     }
@@ -779,7 +819,8 @@ public sealed class CSharpForEachSnippetProviderTests : AbstractCSharpSnippetPro
                     {{collectionType}}.$$
                 }
             }
-            """);
+            """,
+            referenceAssemblies: ReferenceAssemblies.Net.Net100);
 
     [Theory]
     [MemberData(nameof(CommonSnippetTestData.CommonEnumerableTypes), MemberType = typeof(CommonSnippetTestData))]
@@ -792,7 +833,8 @@ public sealed class CSharpForEachSnippetProviderTests : AbstractCSharpSnippetPro
                     ({{collectionType}}).$$
                 }
             }
-            """);
+            """,
+            referenceAssemblies: ReferenceAssemblies.Net.Net100);
 
     [Theory]
     [MemberData(nameof(CommonSnippetTestData.CommonEnumerableTypes), MemberType = typeof(CommonSnippetTestData))]
@@ -808,7 +850,8 @@ public sealed class CSharpForEachSnippetProviderTests : AbstractCSharpSnippetPro
                     await Task.Delay(10);
                 }
             }
-            """);
+            """,
+            referenceAssemblies: ReferenceAssemblies.Net.Net100);
 
     [Theory]
     [InlineData("ArrayList")]
@@ -828,9 +871,9 @@ public sealed class CSharpForEachSnippetProviderTests : AbstractCSharpSnippetPro
                 }
             }
 
-            class MyCollection : IEnumerable<int>
+            class MyCollection : IEnumerable<object>
             {
-                public IEnumerator<int> GetEnumerator() => null;
+                public IEnumerator<object> GetEnumerator() => null;
                 IEnumerator IEnumerable.GetEnumerator() = null;
             }
             """, $$"""
@@ -842,17 +885,155 @@ public sealed class CSharpForEachSnippetProviderTests : AbstractCSharpSnippetPro
                 void M()
                 {
                     {{typeAndVariableName}} {{typeAndVariableName}} = default;
-                    foreach (var {|0:item|} in {{typeAndVariableName}})
+                    foreach (object {|0:item|} in {{typeAndVariableName}})
                     {
                         $$
                     }
                 }
             }
             
-            class MyCollection : IEnumerable<int>
+            class MyCollection : IEnumerable<object>
             {
-                public IEnumerator<int> GetEnumerator() => null;
+                public IEnumerator<object> GetEnumerator() => null;
                 IEnumerator IEnumerable.GetEnumerator() = null;
             }
+            """);
+
+    [Fact]
+    public Task InsertInlineForeachSnippetWithVarAsIterationTypeWhenVarIsPreferredTest1()
+        => VerifySnippetAsync("""
+            using System.Collections.Generic;
+
+            class C
+            {
+                void M(List<bool> bools)
+                {
+                    bools.$$
+                }
+            }
+            """, """
+            using System.Collections.Generic;
+            
+            class C
+            {
+                void M(List<bool> bools)
+                {
+                    foreach (var {|0:item|} in bools)
+                    {
+                        $$
+                    }
+                }
+            }
+            """,
+            editorconfig: """
+            root = true
+            
+            [*]
+            csharp_style_var_for_built_in_types = true
+            """);
+
+    [Fact]
+    public Task InsertInlineForeachSnippetWithVarAsIterationTypeWhenVarIsPreferredTest2()
+        => VerifySnippetAsync("""
+            using System;
+            using System.Collections.Generic;
+
+            class C
+            {
+                void M(IReadOnlyCollection<DateTime> dates)
+                {
+                    dates.$$
+                }
+            }
+            """, """
+            using System;
+            using System.Collections.Generic;
+            
+            class C
+            {
+                void M(IReadOnlyCollection<DateTime> dates)
+                {
+                    foreach (var {|0:item|} in dates)
+                    {
+                        $$
+                    }
+                }
+            }
+            """,
+            editorconfig: """
+            root = true
+            
+            [*]
+            csharp_style_var_elsewhere = true
+            """);
+
+    [Fact]
+    public Task InsertInlineAwaitForeachSnippetWithVarAsIterationTypeWhenVarIsPreferredTest1()
+        => VerifySnippetAsync("""
+            using System.Collections.Generic;
+
+            class C
+            {
+                async void M(IAsyncEnumerable<byte> bytes)
+                {
+                    bytes.$$
+                }
+            }
+            """, """
+            using System.Collections.Generic;
+            
+            class C
+            {
+                async void M(IAsyncEnumerable<byte> bytes)
+                {
+                    await foreach (var {|0:item|} in bytes)
+                    {
+                        $$
+                    }
+                }
+            }
+            """,
+            referenceAssemblies: ReferenceAssemblies.Net.Net100,
+            editorconfig: """
+            root = true
+            
+            [*]
+            csharp_style_var_for_built_in_types = true
+            """);
+
+    [Fact]
+    public Task InsertInlineAwaitForeachSnippetWithVarAsIterationTypeWhenVarIsPreferredTest2()
+        => VerifySnippetAsync("""
+            using System;
+            using System.Collections.Generic;
+
+            class C
+            {
+                async void M(IAsyncEnumerable<DayOfWeek> days)
+                {
+                    days.$$
+                }
+            }
+            """, """
+            using System;
+            using System.Collections.Generic;
+            
+            class C
+            {
+                async void M(IAsyncEnumerable<DayOfWeek> days)
+                {
+                    await foreach (var {|0:item|} in days)
+                    {
+                        $$
+                    }
+                }
+            }
+            """,
+            referenceAssemblies: ReferenceAssemblies.Net.Net100,
+            editorconfig: """
+            root = true
+            
+            [*]
+            csharp_style_var_elsewhere = true
             """);
 }

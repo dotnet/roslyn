@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Linq;
+using System.Threading;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.Snippets.SnippetProviders;
@@ -10,13 +11,14 @@ namespace Microsoft.CodeAnalysis.Snippets.SnippetProviders;
 internal abstract class AbstractForLoopSnippetProvider<TStatementSyntax> : AbstractInlineStatementSnippetProvider<TStatementSyntax>
     where TStatementSyntax : SyntaxNode
 {
-    protected sealed override bool IsValidAccessingType(ITypeSymbol type, Compilation compilation)
+    protected sealed override bool IsValidAccessingType(ITypeSymbol type, SnippetContext context, CancellationToken cancellationToken)
     {
         if (IsSuitableIntegerType(type))
         {
             return true;
         }
 
+        var compilation = context.SemanticModel.Compilation;
         var hasLengthProperty = FindLengthProperty(type, compilation) is not null;
         var hasCountProperty = FindCountProperty(type, compilation) is not null;
 
