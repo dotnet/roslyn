@@ -19,6 +19,20 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Converters;
 /// </summary>
 public sealed class SumConverterTypeFilteringTests
 {
+    private static readonly JsonSerializerOptions s_options = new()
+    {
+        Converters =
+        {
+            new SumConverter<SumType<int[], string[]>>(),
+            new SumConverter<SumType<string[], int[]>>(),
+            new SumConverter<SumType<string[][], int[]>>(),
+            new SumConverter<SumType<SumType<string, int>[], bool>>(),
+            new SumConverter<SumType<string, int>>(),
+            new SumConverter<SumType<int[][], SimpleObject[]>>(),
+            new SumConverter<SumType<int[], StringWrapper[]>>(),
+        },
+    };
+
     [Fact]
     public void Deserialize_StringArray_MatchesStringArrayArm()
     {
@@ -92,7 +106,7 @@ public sealed class SumConverterTypeFilteringTests
         // When the array element type is itself a SumType (has a custom JsonConverter),
         // peeking cannot determine compatibility, so the array arm must not be rejected.
         var json = """{"value": ["hello"]}""";
-        var result = JsonSerializer.Deserialize<SumTypeOrBoolArrayHolder>(json);
+        var result = JsonSerializer.Deserialize<SumTypeOrBoolArrayHolder>(json, s_options);
 
         Assert.NotNull(result);
         Assert.True(result.Value.TryGetFirst(out var array));
@@ -128,7 +142,7 @@ public sealed class SumConverterTypeFilteringTests
         // converter registered via options handles String tokens for StringWrapper.
         // Without the two-pass approach, this would throw "No sum type match".
         var json = """{"value": ["hello", "world"]}""";
-        var options = new JsonSerializerOptions();
+        var options = new JsonSerializerOptions(s_options);
         options.Converters.Add(new StringWrapperConverter());
 
         var result = JsonSerializer.Deserialize<IntOrStringWrapperArrayHolder>(json, options);
@@ -158,7 +172,7 @@ public sealed class SumConverterTypeFilteringTests
         AppDomain.CurrentDomain.FirstChanceException += handler;
         try
         {
-            var result = JsonSerializer.Deserialize<T>(json);
+            var result = JsonSerializer.Deserialize<T>(json, s_options);
             Assert.NotNull(result);
             Assert.Empty(exceptions);
             return result;

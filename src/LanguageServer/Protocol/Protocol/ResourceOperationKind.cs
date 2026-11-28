@@ -15,8 +15,10 @@ using System.Text.Json.Serialization;
 /// </summary>
 [JsonConverter(typeof(StringEnumConverter<ResourceOperationKind>))]
 [TypeConverter(typeof(StringEnumConverter<ResourceOperationKind>.TypeConverter))]
-internal readonly record struct ResourceOperationKind(string Value) : IStringEnum
+internal readonly record struct ResourceOperationKind(string Value) : IStringEnum<ResourceOperationKind>
 {
+    ResourceOperationKind IStringEnum<ResourceOperationKind>.Create(string value) => new(value);
+
     /// <summary>
     /// Supports creating new files and folders.
     /// </summary>

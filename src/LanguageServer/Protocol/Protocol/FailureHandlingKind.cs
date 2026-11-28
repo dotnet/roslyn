@@ -16,8 +16,10 @@ namespace Roslyn.LanguageServer.Protocol;
 /// <remarks>Since 3.13</remarks>
 [JsonConverter(typeof(StringEnumConverter<FailureHandlingKind>))]
 [TypeConverter(typeof(StringEnumConverter<FailureHandlingKind>.TypeConverter))]
-internal readonly record struct FailureHandlingKind(string Value) : IStringEnum
+internal readonly record struct FailureHandlingKind(string Value) : IStringEnum<FailureHandlingKind>
 {
+    FailureHandlingKind IStringEnum<FailureHandlingKind>.Create(string value) => new(value);
+
     /// <summary>
     /// Applying the workspace change is simply aborted if one of the changes
     /// provided fails. All operations executed before the failing operation

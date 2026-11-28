@@ -125,7 +125,7 @@ internal abstract partial class RazorBrokeredServiceBase
             var pipe = stream.UsePipe();
 
             var descriptor = typeof(IRemoteJsonService).IsAssignableFrom(typeof(TService))
-                ? RazorServices.JsonDescriptors.GetDescriptorForServiceFactory(typeof(TService))
+                ? RemoteRazorJsonSerializerContext.JsonServiceDescriptors.GetDescriptorForServiceFactory(typeof(TService))
                 : RazorServices.Descriptors.GetDescriptorForServiceFactory(typeof(TService));
             var serverConnection = descriptor.WithTraceSource(traceSource).ConstructRpcConnection(pipe);
             return serverConnection;

@@ -11,9 +11,16 @@ namespace Microsoft.CodeAnalysis.Razor.Protocol;
 internal static class JsonHelpers
 {
     /// <summary>
-    /// Serializer options to use when serializing or deserializing a Roslyn LSP type
+    /// Serializer options to use when serializing or deserializing a Razor or Roslyn LSP type.
     /// </summary>
-    internal static JsonSerializerOptions JsonSerializerOptions => ProtocolConversions.LspJsonSerializerOptions;
+    internal static JsonSerializerOptions JsonSerializerOptions { get; } = CreateJsonSerializerOptions();
+
+    private static JsonSerializerOptions CreateJsonSerializerOptions()
+    {
+        var options = new JsonSerializerOptions(ProtocolConversions.LspJsonSerializerOptions);
+        options.TypeInfoResolverChain.Insert(0, RazorJsonSerializerContext.Default);
+        return options;
+    }
 
     /// <summary>
     /// Converts an LSP object to a different LSP object, either by casting or serializing and deserializing

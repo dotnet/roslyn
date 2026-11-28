@@ -5,8 +5,14 @@
 namespace Roslyn.LanguageServer.Protocol;
 
 using System;
+using System.Runtime.CompilerServices;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+
+internal interface IVSExtensionConverter
+{
+    Type BaseType { get; }
+}
 
 /// <summary>
 /// Converter used to serialize and deserialize classes extending types defined in the
@@ -15,10 +21,12 @@ using System.Text.Json.Serialization;
 /// <typeparam name="TBase">Base class that is specified in the
 /// Microsoft.VisualStudio.LanguageServer.Protocol package.</typeparam>
 /// <typeparam name="TExtension">Extension class that extends TBase.</typeparam>
-internal sealed class VSExtensionConverter<TBase, TExtension> : JsonConverter<TBase>
+internal sealed class VSExtensionConverter<TBase, TExtension> : JsonConverter<TBase>, IVSExtensionConverter
 where TExtension : TBase
 {
-    private JsonSerializerOptions? _trimmedOptions;
+    private readonly ConditionalWeakTable<JsonSerializerOptions, JsonSerializerOptions> _trimmedOptions = new();
+
+    Type IVSExtensionConverter.BaseType => typeof(TBase);
 
     public override TBase? Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
     {
@@ -43,17 +51,18 @@ where TExtension : TBase
 
     private JsonSerializerOptions DropConverter(JsonSerializerOptions options)
     {
-        if (_trimmedOptions != null)
+        if (_trimmedOptions.TryGetValue(options, out var trimmedOptions))
         {
-            return _trimmedOptions;
+            return trimmedOptions;
         }
 
-        lock (this)
-        {
-            options = new System.Text.Json.JsonSerializerOptions(options);
-            options.Converters.Remove(this);
-            _trimmedOptions = options;
-            return options;
-        }
+        return _trimmedOptions.GetValue(options, CreateTrimmedOptions);
+    }
+
+    private JsonSerializerOptions CreateTrimmedOptions(JsonSerializerOptions options)
+    {
+        var trimmedOptions = new JsonSerializerOptions(options);
+        trimmedOptions.Converters.Remove(this);
+        return trimmedOptions;
     }
 }

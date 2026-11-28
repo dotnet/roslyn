@@ -125,7 +125,7 @@ internal sealed class CompletionResolveHandler : ILspServiceRequestHandler<LSP.C
     private static LSP.TextDocumentIdentifier? GetTextDocumentCacheEntry(LSP.CompletionItem request)
     {
         Contract.ThrowIfNull(request.Data);
-        var resolveData = JsonSerializer.Deserialize<DocumentResolveData>((JsonElement)request.Data);
+        var resolveData = JsonSerializer.Deserialize<DocumentResolveData>((JsonElement)request.Data, ProtocolConversions.LspJsonSerializerOptions);
         if (resolveData is null)
         {
             Contract.Fail("Document should always be provided when resolving a completion item request.");
