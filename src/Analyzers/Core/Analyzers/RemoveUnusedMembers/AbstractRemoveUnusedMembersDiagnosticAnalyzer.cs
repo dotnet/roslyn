@@ -68,6 +68,16 @@ internal abstract class AbstractRemoveUnusedMembersDiagnosticAnalyzer<
     protected abstract SyntaxNode GetParentIfSoleDeclarator(SyntaxNode declaration);
 
     /// <summary>
+    /// Returns true if <paramref name="node"/> is a stackalloc array creation expression syntax
+    /// (e.g. 'stackalloc char[8]' or the implicit form 'stackalloc[] { 'a', 'b' }' where the
+    /// element type is inferred from the initializer). Stackalloc expressions currently have no
+    /// <see cref="IOperation"/> representation (see https://github.com/dotnet/roslyn/issues/66833) and
+    /// surface as <see cref="OperationKind.None"/>. Such an operation carries no member reference that
+    /// could be missed, so we special-case it to avoid bailing out of analyzing the whole containing type.
+    /// </summary>
+    protected virtual bool IsStackAllocArrayCreationExpression(SyntaxNode node) => false;
+
+    /// <summary>
     /// We need to analyze the whole document even for edits within a method body, because we might add or remove
     /// references to members in executable code. For example, if we had an unused field with no references, then
     /// editing any single method body to reference this field should clear the unused field diagnostic. Hence, we need
@@ -261,6 +271,15 @@ internal abstract class AbstractRemoveUnusedMembersDiagnosticAnalyzer<
                         // to cause us to bail out of processing. Instead, we'll handle this case explicitly in AnalyzeNameOfOperation.
                         if (operation is { Kind: OperationKind.None, Parent: INameOfOperation { Argument: var nameofArgument } } &&
                             nameofArgument == operation)
+                        {
+                            return;
+                        }
+
+                        // 'stackalloc' currently has no IOperation representation and surfaces as a 'None'
+                        // operation (https://github.com/dotnet/roslyn/issues/66833). It carries no member
+                        // reference that could be missed, so don't let it bail out analysis of the whole type.
+                        if (operation is { Kind: OperationKind.None } &&
+                            _analyzer.IsStackAllocArrayCreationExpression(operation.Syntax))
                         {
                             return;
                         }
