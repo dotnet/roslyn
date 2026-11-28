@@ -5899,6 +5899,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         var initializer = (AssignmentExpressionSyntax)memberInitializer;
 
+                        // Indexers cannot be assigned in a with expression
+                        if (initializer.Left is ImplicitElementAccessSyntax implicitElementAccess &&
+                            initializer.Parent.IsKind(SyntaxKind.WithInitializerExpression))
+                        {
+                            return BindIndexerInWithInitializer(initializer, implicitElementAccess, diagnostics);
+                        }
+
                         BoundExpression boundLeft = BindObjectInitializerMember(initializer, implicitReceiver, diagnostics);
 
                         if (boundLeft != null)
@@ -5956,6 +5963,26 @@ namespace Microsoft.CodeAnalysis.CSharp
             var boundExpression = BindValue(memberInitializer, diagnostics, BindValueKind.RValue);
             Error(diagnostics, ErrorCode.ERR_InvalidInitializerElementInitializer, memberInitializer);
             return BindToTypeForErrorRecovery(ToBadExpression(boundExpression, LookupResultKind.NotAValue));
+        }
+
+        private BoundExpression BindIndexerInWithInitializer(
+            AssignmentExpressionSyntax initializer,
+            ImplicitElementAccessSyntax implicitElementAccess,
+            BindingDiagnosticBag diagnostics)
+        {
+            // Only bind the operands, for error recovery.
+            var children = ArrayBuilder<BoundExpression>.GetInstance();
+
+            foreach (var argument in implicitElementAccess.ArgumentList.Arguments)
+            {
+                children.Add(BindValue(argument.Expression, diagnostics, BindValueKind.RValue));
+            }
+
+            var rhsExpr = initializer.Right.CheckAndUnwrapRefExpression(diagnostics, out _);
+            children.Add(BindValue(rhsExpr, diagnostics, BindValueKind.RValue));
+
+            Error(diagnostics, ErrorCode.ERR_InvalidInitializerElementInitializer, initializer);
+            return BadExpression(initializer, children.ToImmutableAndFree());
         }
 
         // returns BadBoundExpression or BoundObjectInitializerMember or BoundDynamicObjectInitializerMember or BoundImplicitIndexerAccess or BoundArrayAccess or BoundPointerElementAccess

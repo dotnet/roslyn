@@ -10099,9 +10099,6 @@ public class C
 
             var expectedDiagnostics = new[]
             {
-                // (7,26): error CS0131: The left-hand side of an assignment must be a variable, property or indexer
-                //         var b = a with { [0] = 20 };
-                Diagnostic(ErrorCode.ERR_AssgLvalueExpected, "[0]").WithLocation(7, 26),
                 // (7,26): error CS0747: Invalid initializer member declarator
                 //         var b = a with { [0] = 20 };
                 Diagnostic(ErrorCode.ERR_InvalidInitializerElementInitializer, "[0] = 20").WithLocation(7, 26)
@@ -10159,7 +10156,10 @@ Block[B0] - Entry
                       Value:
                         ILocalReferenceOperation: a (OperationKind.LocalReference, Type: <anonymous type: System.Int32 A>) (Syntax: 'a')
 
-                    ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 20, IsInvalid) (Syntax: '20')
+                    IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: '[0] = 20')
+                      Children(2):
+                          ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0, IsInvalid) (Syntax: '0')
+                          ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 20, IsInvalid) (Syntax: '20')
 
                     IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsInvalid, IsImplicit) (Syntax: 'a with { [0] = 20 }')
                       Value:
