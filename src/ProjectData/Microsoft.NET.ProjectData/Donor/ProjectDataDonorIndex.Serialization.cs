@@ -12,13 +12,17 @@ public static partial class ProjectDataDonorIndex
 	private static readonly int ProcessId = GetCurrentProcessId();
 
 	private static ProjectDataDonorIndexFile ReadIndex(string indexPath)
+		=> ReadIndex(indexPath, ProjectDataEnvironment.Default);
+
+	private static ProjectDataDonorIndexFile ReadIndex(string indexPath, ProjectDataEnvironment environment)
 	{
-		if (!File.Exists(indexPath))
+		FileInfo indexFile = environment.GetFileInfo(indexPath);
+		if (!File.Exists(indexFile.FullName))
 		{
 			return new ProjectDataDonorIndexFile { Version = CurrentVersion };
 		}
 
-		using FileStream stream = new(indexPath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite | FileShare.Delete);
+		using FileStream stream = new(indexFile.FullName, FileMode.Open, FileAccess.Read, FileShare.ReadWrite | FileShare.Delete);
 		using JsonDocument document = JsonDocument.Parse(stream);
 		JsonElement root = document.RootElement;
 		if (root.ValueKind != JsonValueKind.Object)
@@ -38,19 +42,19 @@ public static partial class ProjectDataDonorIndex
 			RequireValueKind(entries, JsonValueKind.Array, "entries");
 			foreach (JsonElement item in entries.EnumerateArray())
 			{
-				index.Entries.Add(ReadEntry(item));
+				index.Entries.Add(ReadEntry(item, environment));
 			}
 		}
 
 		return index;
 	}
 
-	private static ProjectDataDonorIndexFile ReadIndexForWrite(string indexPath, out string? recoveryMessage)
+	private static ProjectDataDonorIndexFile ReadIndexForWrite(string indexPath, out string? recoveryMessage, ProjectDataEnvironment environment)
 	{
 		recoveryMessage = null;
 		try
 		{
-			ProjectDataDonorIndexFile index = ReadIndex(indexPath);
+			ProjectDataDonorIndexFile index = ReadIndex(indexPath, environment);
 			if (index.Version == CurrentVersion)
 			{
 				return index;
@@ -67,12 +71,12 @@ public static partial class ProjectDataDonorIndex
 		}
 
 		string quarantinePath = indexPath + ".corrupt-" + DateTimeOffset.UtcNow.ToString("yyyyMMddHHmmssfff") + "-" + Guid.NewGuid().ToString("N");
-		File.Move(indexPath, quarantinePath);
+		File.Move(environment.GetFileInfo(indexPath).FullName, environment.GetFileInfo(quarantinePath).FullName);
 		recoveryMessage = $"Recovered corrupt donor index '{indexPath}'; the original was preserved at '{quarantinePath}'.";
 		return new ProjectDataDonorIndexFile { Version = CurrentVersion };
 	}
 
-	private static ProjectDataDonorIndexEntry ReadEntry(JsonElement element)
+	private static ProjectDataDonorIndexEntry ReadEntry(JsonElement element, ProjectDataEnvironment environment)
 	{
 		RequireValueKind(element, JsonValueKind.Object, "index entry");
 
@@ -85,7 +89,7 @@ public static partial class ProjectDataDonorIndex
 		string normalizedPath;
 		try
 		{
-			normalizedPath = Path.GetFullPath(entryPath);
+			normalizedPath = environment.GetFullPath(entryPath);
 		}
 		catch (Exception ex) when (ex is ArgumentException or NotSupportedException or PathTooLongException)
 		{
@@ -100,13 +104,15 @@ public static partial class ProjectDataDonorIndex
 		};
 	}
 
-	private static void WriteIndex(string indexPath, ProjectDataDonorIndexFile index)
+	private static void WriteIndex(string indexPath, ProjectDataDonorIndexFile index, ProjectDataEnvironment environment)
 	{
-		Directory.CreateDirectory(Path.GetDirectoryName(indexPath)!);
+		FileInfo indexFile = environment.GetFileInfo(indexPath);
+		indexFile.Directory!.Create();
 		string tempPath = indexPath + "." + ProcessId + "." + Guid.NewGuid().ToString("N") + ".tmp";
+		FileInfo tempFile = environment.GetFileInfo(tempPath);
 		try
 		{
-			using (FileStream stream = File.Create(tempPath))
+			using (FileStream stream = File.Create(tempFile.FullName))
 			using (Utf8JsonWriter writer = new(stream, new JsonWriterOptions { Indented = true }))
 			{
 				writer.WriteStartObject();
@@ -121,13 +127,13 @@ public static partial class ProjectDataDonorIndex
 				writer.WriteEndObject();
 			}
 
-			ReplaceOrMove(tempPath, indexPath);
+			ReplaceOrMove(tempFile, indexFile);
 		}
 		finally
 		{
 			try
 			{
-				File.Delete(tempPath);
+				File.Delete(tempFile.FullName);
 			}
 			catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
 			{
@@ -159,15 +165,15 @@ public static partial class ProjectDataDonorIndex
 		}
 	}
 
-	private static void ReplaceOrMove(string tempPath, string indexPath)
+	private static void ReplaceOrMove(FileInfo tempFile, FileInfo indexFile)
 	{
-		if (File.Exists(indexPath))
+		if (File.Exists(indexFile.FullName))
 		{
-			File.Replace(tempPath, indexPath, destinationBackupFileName: null);
+			File.Replace(tempFile.FullName, indexFile.FullName, destinationBackupFileName: null);
 			return;
 		}
 
-		File.Move(tempPath, indexPath);
+		File.Move(tempFile.FullName, indexFile.FullName);
 	}
 
 	private static string? GetString(JsonElement element, string name)
@@ -239,15 +245,15 @@ public static partial class ProjectDataDonorIndex
 		public int Version { get; set; }
 		public List<ProjectDataDonorIndexEntry> Entries { get; } = [];
 
-		public void UpsertEntry(ProjectDataDonorIndexEntry entry)
+		public void UpsertEntry(ProjectDataDonorIndexEntry entry, ProjectDataEnvironment environment)
 		{
-			ProjectDataDonorIndexEntry? existingEntry = this.Entries.FirstOrDefault(existing => PathsEqual(existing.Path, entry.Path));
+			ProjectDataDonorIndexEntry? existingEntry = this.Entries.FirstOrDefault(existing => PathsEqual(existing.Path, entry.Path, environment));
 			if (existingEntry?.NewestMtimeMs > entry.NewestMtimeMs)
 			{
 				entry.NewestMtimeMs = existingEntry.NewestMtimeMs;
 			}
 
-			this.Entries.RemoveAll(existing => PathsEqual(existing.Path, entry.Path));
+			this.Entries.RemoveAll(existing => PathsEqual(existing.Path, entry.Path, environment));
 			this.Entries.Insert(0, entry);
 		}
 	}

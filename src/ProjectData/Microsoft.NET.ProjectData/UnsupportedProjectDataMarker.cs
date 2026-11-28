@@ -28,6 +28,9 @@ public static class UnsupportedProjectDataMarker
 
 	public static string GetMarkerFilePath(string projectFilePath) => UserFolderCachePath.Compute(projectFilePath) + MarkerExtension;
 
+	private static string GetMarkerFilePath(string projectFilePath, ProjectDataEnvironment environment)
+		=> UserFolderCachePath.Compute(projectFilePath, environment) + MarkerExtension;
+
 	public static bool TryReadValid(
 		string projectFilePath,
 		CancellationToken cancellationToken,
@@ -97,31 +100,31 @@ public static class UnsupportedProjectDataMarker
 	}
 
 	public static string Write(string projectFilePath, string reason)
+		=> Write(projectFilePath, reason, ProjectDataEnvironment.Default);
+
+	internal static string Write(string projectFilePath, string reason, ProjectDataEnvironment environment)
 	{
 		if (string.IsNullOrWhiteSpace(reason))
 		{
 			reason = "Unsupported";
 		}
 
-		string markerPath = GetMarkerFilePath(projectFilePath);
-		string? directory = Path.GetDirectoryName(markerPath);
-		if (!string.IsNullOrEmpty(directory))
-		{
-			Directory.CreateDirectory(directory);
-		}
+		string markerPath = GetMarkerFilePath(projectFilePath, environment);
+		FileInfo markerFile = environment.GetFileInfo(markerPath);
+		markerFile.Directory?.Create();
 
 		string content =
 			$"version={SchemaVersion}\n" +
 			$"rulesVersion={RulesVersion}\n" +
-			$"project={Path.GetFullPath(projectFilePath)}\n" +
-			$"projectFingerprint={ComputeProjectFingerprint(projectFilePath, CancellationToken.None)}\n" +
-			$"inputsFingerprint={ComputeAncestorInputsFingerprintCore(projectFilePath, CancellationToken.None)}\n" +
+			$"project={environment.GetFullPath(projectFilePath)}\n" +
+			$"projectFingerprint={ComputeFileFingerprint(environment.GetFileInfo(projectFilePath), CancellationToken.None)}\n" +
+			$"inputsFingerprint={ComputeAncestorInputsFingerprintCore(projectFilePath, environment, CancellationToken.None)}\n" +
 			$"reason={reason}\n";
 
 		try
 		{
-			if (File.Exists(markerPath) &&
-				string.Equals(File.ReadAllText(markerPath), content, StringComparison.Ordinal))
+			if (File.Exists(markerFile.FullName) &&
+				string.Equals(File.ReadAllText(markerFile.FullName), content, StringComparison.Ordinal))
 			{
 				return markerPath;
 			}
@@ -134,16 +137,19 @@ public static class UnsupportedProjectDataMarker
 				ex.Message);
 		}
 
-		WriteAllTextAtomically(markerPath, content);
+		WriteAllTextAtomically(markerFile, content, environment);
 		return markerPath;
 	}
 
 	public static void Delete(string projectFilePath)
+		=> Delete(projectFilePath, ProjectDataEnvironment.Default);
+
+	internal static void Delete(string projectFilePath, ProjectDataEnvironment environment)
 	{
 		try
 		{
-			string markerPath = GetMarkerFilePath(projectFilePath);
-			File.Delete(markerPath);
+			FileInfo markerFile = environment.GetFileInfo(GetMarkerFilePath(projectFilePath, environment));
+			File.Delete(markerFile.FullName);
 		}
 		catch (Exception ex) when (IsRecoverableMarkerException(ex))
 		{
@@ -155,28 +161,31 @@ public static class UnsupportedProjectDataMarker
 	}
 
 	public static string ComputeProjectFingerprint(string projectFilePath, CancellationToken cancellationToken)
-		=> ComputeFileFingerprint(Path.GetFullPath(projectFilePath), cancellationToken);
+		=> ComputeFileFingerprint(ProjectDataEnvironment.Default.GetFileInfo(projectFilePath), cancellationToken);
 
 	public static string ComputeAncestorInputsFingerprint(string projectFilePath, CancellationToken cancellationToken)
 		=> ComputeAncestorInputsFingerprintCore(projectFilePath, cancellationToken);
 
 	private static string ComputeAncestorInputsFingerprintCore(string projectFilePath, CancellationToken cancellationToken)
+		=> ComputeAncestorInputsFingerprintCore(projectFilePath, ProjectDataEnvironment.Default, cancellationToken);
+
+	private static string ComputeAncestorInputsFingerprintCore(string projectFilePath, ProjectDataEnvironment environment, CancellationToken cancellationToken)
 	{
-		string? directory = Path.GetDirectoryName(Path.GetFullPath(projectFilePath));
+		string? directory = Path.GetDirectoryName(environment.GetFullPath(projectFilePath));
 		List<string> inputs = [];
 		while (!string.IsNullOrEmpty(directory))
 		{
 			cancellationToken.ThrowIfCancellationRequested();
 			foreach (string fileName in AncestorInputFileNames)
 			{
-				string candidate = Path.Combine(directory, fileName);
-				if (File.Exists(candidate))
+				FileInfo candidate = environment.GetFileInfo(Path.Combine(directory, fileName));
+				if (File.Exists(candidate.FullName))
 				{
-					inputs.Add(Path.GetFullPath(candidate));
+					inputs.Add(candidate.FullName);
 				}
 			}
 
-			DirectoryInfo? parent = Directory.GetParent(directory);
+			DirectoryInfo? parent = environment.GetDirectoryInfo(directory).Parent;
 			if (parent is null || string.Equals(parent.FullName, directory, StringComparison.Ordinal))
 			{
 				break;
@@ -190,8 +199,9 @@ public static class UnsupportedProjectDataMarker
 		foreach (string input in inputs)
 		{
 			cancellationToken.ThrowIfCancellationRequested();
-			builder.AppendLine(NormalizePathForFingerprint(input));
-			builder.AppendLine(ComputeFileFingerprint(input, cancellationToken));
+			FileInfo inputFile = environment.GetFileInfo(input);
+			builder.AppendLine(NormalizePathForFingerprint(inputFile));
+			builder.AppendLine(ComputeFileFingerprint(inputFile, cancellationToken));
 		}
 
 		cancellationToken.ThrowIfCancellationRequested();
@@ -222,10 +232,10 @@ public static class UnsupportedProjectDataMarker
 		return values.TryGetValue(key, out string? text) && int.TryParse(text, out value);
 	}
 
-	private static string ComputeFileFingerprint(string path, CancellationToken cancellationToken)
+	private static string ComputeFileFingerprint(FileInfo file, CancellationToken cancellationToken)
 	{
 		cancellationToken.ThrowIfCancellationRequested();
-		using FileStream stream = File.Open(path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite | FileShare.Delete);
+		using FileStream stream = File.Open(file.FullName, FileMode.Open, FileAccess.Read, FileShare.ReadWrite | FileShare.Delete);
 		using SHA256 sha256 = SHA256.Create();
 		byte[] hash = sha256.ComputeHash(stream);
 		cancellationToken.ThrowIfCancellationRequested();
@@ -239,26 +249,26 @@ public static class UnsupportedProjectDataMarker
 		return HexEncoder.ToLowerHex(hash);
 	}
 
-	private static void WriteAllTextAtomically(string path, string content)
+	private static void WriteAllTextAtomically(FileInfo file, string content, ProjectDataEnvironment environment)
 	{
-		string tempPath = path + "." + Guid.NewGuid().ToString("N") + ".tmp";
+		FileInfo tempFile = environment.GetFileInfo(file.FullName + "." + Guid.NewGuid().ToString("N") + ".tmp");
 		try
 		{
-			File.WriteAllText(tempPath, content, Utf8NoBom);
-			if (File.Exists(path))
+			File.WriteAllText(tempFile.FullName, content, Utf8NoBom);
+			if (File.Exists(file.FullName))
 			{
-				File.Replace(tempPath, path, destinationBackupFileName: null);
+				File.Replace(tempFile.FullName, file.FullName, destinationBackupFileName: null);
 			}
 			else
 			{
-				File.Move(tempPath, path);
+				File.Move(tempFile.FullName, file.FullName);
 			}
 		}
 		finally
 		{
 			try
 			{
-				File.Delete(tempPath);
+				File.Delete(tempFile.FullName);
 			}
 			catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
 			{
@@ -272,9 +282,9 @@ public static class UnsupportedProjectDataMarker
 	private static bool IsRecoverableMarkerException(Exception ex)
 		=> ex is IOException or UnauthorizedAccessException or FormatException or ArgumentException or NotSupportedException or InvalidOperationException or CryptographicException;
 
-	private static string NormalizePathForFingerprint(string path)
+	private static string NormalizePathForFingerprint(FileInfo file)
 	{
-		string normalized = Path.GetFullPath(path);
+		string normalized = file.FullName;
 		return IsCaseSensitiveFileSystem()
 			? normalized
 			: normalized.ToLowerInvariant();

@@ -4,6 +4,7 @@
 
 using System.Buffers;
 using System.Collections.Frozen;
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices;
 using System.Text;
 using Microsoft.Build.Framework;
@@ -160,9 +161,10 @@ internal static class ProjectDataWriter
 		string[]? capabilities = null,
 		ITaskItem[]? sdkKnownAnalyzerPacks = null,
 		ITaskItem[]? sdkAnalyzerConfigPolicy = null,
-		Action<ProjectDataDuplicateItemDiagnostic>? duplicateItemReporter = null)
+		Action<ProjectDataDuplicateItemDiagnostic>? duplicateItemReporter = null,
+		ProjectDataEnvironment? environment = null)
 	{
-		CachePathResolver resolver = new CachePathResolver(projectFilePath);
+		CachePathResolver resolver = new CachePathResolver(projectFilePath, environment ?? ProjectDataEnvironment.Default);
 
 		if (writeHeader)
 		{
@@ -346,7 +348,7 @@ internal static class ProjectDataWriter
 	{
 		string normalized = NormalizeLineEndings(content);
 		byte[] bytes = Utf8NoBom.GetBytes(normalized);
-		WriteAtomicallyCore(outputPath, bytes, bytes.Length, preserveUnknownData: false, candidateTextFactory: null, tempDirectory);
+		WriteAtomicallyCore(outputPath, bytes, bytes.Length, preserveUnknownData: false, candidateTextFactory: null, tempDirectory, ProjectDataEnvironment.Default);
 	}
 
 	/// <summary>
@@ -363,10 +365,10 @@ internal static class ProjectDataWriter
 	/// materialized lazily only on the rare path where a newer minor version's data actually has to
 	/// be spliced in.
 	/// </remarks>
-	public static void AtomicWriteStreamed(string outputPath, Action<TextWriter> writeContent, string? tempDirectory = null)
+	public static void AtomicWriteStreamed(string outputPath, Action<TextWriter> writeContent, string? tempDirectory = null, ProjectDataEnvironment? environment = null)
 	{
 		using PooledCacheRender render = PooledCacheRender.Create(writeContent);
-		WriteAtomicallyCore(outputPath, render.Bytes, render.ByteLength, preserveUnknownData: true, candidateTextFactory: render.GetText, tempDirectory);
+		WriteAtomicallyCore(outputPath, render.Bytes, render.ByteLength, preserveUnknownData: true, candidateTextFactory: render.GetText, tempDirectory, environment ?? ProjectDataEnvironment.Default);
 	}
 
 	/// <summary>
@@ -383,7 +385,8 @@ internal static class ProjectDataWriter
 		int candidateLength,
 		bool preserveUnknownData,
 		Func<string>? candidateTextFactory,
-		string? tempDirectory)
+		string? tempDirectory,
+		ProjectDataEnvironment environment)
 	{
 		byte[]? rented = null;
 		try
@@ -454,7 +457,7 @@ internal static class ProjectDataWriter
 				}
 			}
 
-			AtomicReplace(outputPath, finalBuffer, finalLength, tempDirectory);
+			AtomicReplace(outputPath, finalBuffer, finalLength, tempDirectory, environment);
 		}
 		finally
 		{
@@ -463,6 +466,7 @@ internal static class ProjectDataWriter
 		}
 	}
 
+	[SuppressMessage("MSBuild.TaskAuthoring", "MSBuildTask0005", Justification = "The task resolves the output path before calling the writer.")]
 	private static bool TryGetFileLength(string path, out int length)
 	{
 		length = 0;
@@ -480,6 +484,7 @@ internal static class ProjectDataWriter
 		}
 	}
 
+	[SuppressMessage("MSBuild.TaskAuthoring", "MSBuildTask0005", Justification = "The task resolves the output path before calling the writer.")]
 	private static bool TryReadAll(string path, byte[] buffer, int length, out int bytesRead)
 	{
 		bytesRead = 0;
@@ -527,7 +532,8 @@ internal static class ProjectDataWriter
 		return length;
 	}
 
-	private static void AtomicReplace(string outputPath, byte[] content, int length, string? tempDirectory)
+	[SuppressMessage("MSBuild.TaskAuthoring", "MSBuildTask0005", Justification = "The task resolves outputPath; ResolveTempDirectory resolves the staging directory through the supplied environment.")]
+	private static void AtomicReplace(string outputPath, byte[] content, int length, string? tempDirectory, ProjectDataEnvironment environment)
 	{
 		string? outputDir = Path.GetDirectoryName(outputPath);
 		if (!string.IsNullOrEmpty(outputDir)) Directory.CreateDirectory(outputDir);
@@ -535,7 +541,7 @@ internal static class ProjectDataWriter
 		// Keep the transient side-file out of the (committed, watched) project folder by preferring
 		// the intermediate output directory, falling back to the output directory when none is given
 		// or it is on a different volume.
-		string tempDir = ResolveTempDirectory(tempDirectory, outputDir);
+		string tempDir = ResolveTempDirectory(tempDirectory, outputDir, environment);
 		string tempPath = Path.Combine(tempDir, Path.GetFileName(outputPath) + "." + Guid.NewGuid().ToString("N") + ".tmp");
 		try
 		{
@@ -556,7 +562,8 @@ internal static class ProjectDataWriter
 	/// when it is on a different volume (so <see cref="File.Move(string, string, bool)"/> performs an
 	/// atomic same-volume rename rather than a cross-volume copy), or when it cannot be created.
 	/// </summary>
-	private static string ResolveTempDirectory(string? tempDirectory, string? outputDir)
+	[SuppressMessage("MSBuild.TaskAuthoring", "MSBuildTask0005", Justification = "The staging directory is resolved through the supplied ProjectDataEnvironment before file I/O.")]
+	private static string ResolveTempDirectory(string? tempDirectory, string? outputDir, ProjectDataEnvironment environment)
 	{
 		string fallback = string.IsNullOrEmpty(outputDir) ? "." : outputDir!;
 		if (string.IsNullOrEmpty(tempDirectory))
@@ -564,9 +571,9 @@ internal static class ProjectDataWriter
 
 		try
 		{
-			string full = Path.GetFullPath(tempDirectory!);
+			string full = environment.GetFullPath(tempDirectory!);
 			if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows) &&
-				!string.Equals(Path.GetPathRoot(full), Path.GetPathRoot(Path.GetFullPath(fallback)), StringComparison.OrdinalIgnoreCase))
+				!string.Equals(Path.GetPathRoot(full), Path.GetPathRoot(environment.GetFullPath(fallback)), StringComparison.OrdinalIgnoreCase))
 			{
 				return fallback;
 			}
@@ -663,12 +670,14 @@ internal static class ProjectDataWriter
 				|| arg.StartsWith("-platform:", StringComparison.OrdinalIgnoreCase));
 	}
 
+	[SuppressMessage("MSBuild.TaskAuthoring", "MSBuildTask0005", Justification = "Reference paths are resolved by CachePathResolver using the supplied ProjectDataEnvironment before file I/O.")]
 	internal static bool TryValidateNetFrameworkReferences(
 		string projectFilePath,
 		ITaskItem[]? sliceDimensions,
 		ITaskItem[]? properties,
 		ITaskItem[]? metadataReferences,
-		out string unsupportedReason)
+		out string unsupportedReason,
+		ProjectDataEnvironment? environment = null)
 	{
 		unsupportedReason = string.Empty;
 		var targetFramework = new TargetFramework(
@@ -686,8 +695,7 @@ internal static class ProjectDataWriter
 			return false;
 		}
 
-		string projectDirectory = Path.GetDirectoryName(projectFilePath) ?? string.Empty;
-		CachePathResolver resolver = new CachePathResolver(projectFilePath);
+		CachePathResolver resolver = new CachePathResolver(projectFilePath, environment ?? ProjectDataEnvironment.Default);
 		bool foundCanonicalReferenceAssembly = false;
 
 		foreach (ITaskItem item in metadataReferences)
@@ -697,9 +705,7 @@ internal static class ProjectDataWriter
 				continue;
 			}
 
-			string absolutePath = Path.IsPathRooted(item.ItemSpec)
-				? Path.GetFullPath(item.ItemSpec)
-				: Path.GetFullPath(Path.Combine(projectDirectory, item.ItemSpec));
+			string absolutePath = resolver.ToAbsolutePath(item.ItemSpec);
 			string portable = resolver.ToPortable(absolutePath);
 
 			if (TryExtractNetFrameworkReferenceAssembly(portable, targetFramework) is not null)

@@ -6,8 +6,18 @@ namespace Microsoft.NET.ProjectData;
 
 public sealed class ProjectDataDonorWriteOptions
 {
-	public bool Enabled { get; set; } = ProjectDataDonorConfiguration.IsEnabledByEnvironmentValue(
-		Environment.GetEnvironmentVariable(ProjectDataDonorConfiguration.EnabledEnvironmentVariableName));
+	public ProjectDataDonorWriteOptions()
+		: this(ProjectDataEnvironment.Default)
+	{
+	}
+
+	internal ProjectDataDonorWriteOptions(ProjectDataEnvironment environment)
+	{
+		this.Enabled = ProjectDataDonorConfiguration.IsEnabledByEnvironmentValue(
+			environment.GetEnvironmentVariable(ProjectDataDonorConfiguration.EnabledEnvironmentVariableName));
+	}
+
+	public bool Enabled { get; set; }
 
 	public string? IndexPath { get; set; }
 
