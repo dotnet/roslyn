@@ -4,6 +4,7 @@
 
 #nullable disable
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -58,10 +59,18 @@ internal static class ExtractTypeHelpers
         CancellationToken cancellationToken)
     {
         var newDocumentId = DocumentId.CreateNewId(projectId, debugName: fileName);
+
+        // The file name suggested for the new type may already exist in the project
+        // (for example, the user previously created a file with that name). Adding a
+        // second document with the same path would silently overwrite the existing
+        // file's contents when the refactoring is applied, so pick a file name that
+        // isn't in use instead. See https://github.com/dotnet/roslyn/issues/61471.
+        fileName = GetUniqueFileName(solution, projectId, fileName);
         var newDocumentPath = PathUtilities.CombinePaths(PathUtilities.GetDirectoryName(hintDocument.FilePath), fileName);
 
-        var solutionWithInterfaceDocument = solution.AddDocument(newDocumentId, fileName, text: "", folders: folders, filePath: newDocumentPath);
-        var newDocument = solutionWithInterfaceDocument.GetRequiredDocument(newDocumentId);
+        var solutionWithNewDocument = solution.AddDocument(newDocumentId, fileName, text: "", folders: folders, filePath: newDocumentPath);
+        var newDocument = solutionWithNewDocument.GetRequiredDocument(newDocumentId);
+
         var newSemanticModel = await newDocument.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
         var context = new CodeGenerationContext(
@@ -110,6 +119,40 @@ internal static class ExtractTypeHelpers
         var formattedDocument = await Formatter.FormatAsync(simplified, newCleanupOptions.FormattingOptions, cancellationToken).ConfigureAwait(false);
 
         return (formattedDocument, typeAnnotation);
+    }
+
+    /// <summary>
+    /// Returns <paramref name="fileName"/> when no document in the project already uses
+    /// that file name; otherwise returns the first unused name of the form
+    /// <c>Name1.cs</c>, <c>Name2.cs</c>, ...
+    /// </summary>
+    private static string GetUniqueFileName(Solution solution, ProjectId projectId, string fileName)
+    {
+        // Collect the file names already used in the project once. The new name just
+        // has to avoid being one of those names. This intentionally ignores folders:
+        // document paths in a project need not share a common directory string (for
+        // example, test workspaces give the hint document a "/0/..." path while an
+        // existing file keeps its bare name), so comparing directories can miss a
+        // file that the new document would overwrite.
+        var fileNamesInProject = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        var project = solution.GetProject(projectId);
+        if (project is not null)
+        {
+            foreach (var document in project.Documents)
+            {
+                var filePath = document.FilePath;
+                if (filePath is not null)
+                {
+                    fileNamesInProject.Add(PathUtilities.GetFileName(filePath));
+                }
+            }
+        }
+
+        var extensionIndex = fileName.LastIndexOf('.');
+        var nameWithoutExtension = extensionIndex >= 0 ? fileName[..extensionIndex] : fileName;
+        var extension = extensionIndex >= 0 ? fileName[extensionIndex..] : string.Empty;
+
+        return NameGenerator.GenerateUniqueName(nameWithoutExtension, extension, candidate => !fileNamesInProject.Contains(candidate));
     }
 
     public static string GetTypeParameterSuffix(
