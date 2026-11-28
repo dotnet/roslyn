@@ -15,6 +15,26 @@ using System.Text;
 namespace Microsoft.CodeAnalysis.CommandLine
 {
     /// <summary>
+    /// Classifies a compiler server log message by meaning. Each <see cref="ICompilerServerLogger"/>
+    /// implementation decides which sinks receive each kind.
+    /// </summary>
+    internal enum CompilerServerLogKind
+    {
+        /// <summary>
+        /// Detailed tracing intended for diagnosing compiler client and server implementation behavior.
+        /// The MSBuild task adapter routes these only to the optional compiler server log file.
+        /// </summary>
+        Trace,
+
+        /// <summary>
+        /// Client-side lifecycle and failure information useful for diagnosing compiler selection and fallback.
+        /// This classification indicates operational significance, not error severity. The MSBuild task
+        /// adapter routes these to the task log and to the optional compiler server log file.
+        /// </summary>
+        Operational,
+    }
+
+    /// <summary>
     /// Used to log information from within the compiler server
     /// </summary>
     /// <remarks>
@@ -23,46 +43,56 @@ namespace Microsoft.CodeAnalysis.CommandLine
     /// </remarks>
     internal interface ICompilerServerLogger
     {
-        bool IsLogging { get; }
-        void Log(string message);
+        /// <summary>
+        /// Returns whether messages of <paramref name="kind"/> are recorded by any sink.
+        /// </summary>
+        bool IsEnabled(CompilerServerLogKind kind);
+
+        /// <summary>
+        /// Logs <paramref name="message"/> if the implementation records messages of <paramref name="kind"/>.
+        /// Callers may check <see cref="IsEnabled"/> to avoid constructing expensive messages.
+        /// </summary>
+        void Log(CompilerServerLogKind kind, string message);
     }
 
     internal static class CompilerServerLoggerExtensions
     {
-        internal static void Log(this ICompilerServerLogger logger, string format, params object?[] arguments)
-        {
-            if (logger.IsLogging)
-            {
-                logger.Log(string.Format(format, arguments));
-            }
-        }
+        internal static void LogTrace(this ICompilerServerLogger logger, string message)
+            => logger.Log(CompilerServerLogKind.Trace, message);
 
-        internal static void LogError(this ICompilerServerLogger logger, string message)
-        {
-            if (logger.IsLogging)
-            {
-                logger.Log($"Error: {message}");
-            }
-        }
+        internal static void LogTrace(this ICompilerServerLogger logger, string format, params object?[] arguments)
+            => logger.Log(CompilerServerLogKind.Trace, string.Format(format, arguments));
 
-        internal static void LogError(this ICompilerServerLogger logger, string format, params object?[] arguments)
-        {
-            if (logger.IsLogging)
-            {
-                logger.Log($"Error: {format}", arguments);
-            }
-        }
+        internal static void LogOperational(this ICompilerServerLogger logger, string message)
+            => logger.Log(CompilerServerLogKind.Operational, message);
+
+        internal static void LogOperational(this ICompilerServerLogger logger, string format, params object?[] arguments)
+            => logger.Log(CompilerServerLogKind.Operational, string.Format(format, arguments));
+
+        internal static void LogTraceError(this ICompilerServerLogger logger, string message)
+            => logger.Log(CompilerServerLogKind.Trace, $"Error: {message}");
+
+        internal static void LogTraceError(this ICompilerServerLogger logger, string format, params object?[] arguments)
+            => logger.LogTrace($"Error: {format}", arguments);
 
         /// <summary>
         /// Log an exception. Also logs information about inner exceptions.
         /// </summary>
-        internal static void LogException(this ICompilerServerLogger logger, Exception exception, string reason)
-        {
-            if (!logger.IsLogging)
-            {
-                return;
-            }
+        internal static void LogTraceException(this ICompilerServerLogger logger, Exception exception, string reason)
+            => LogException(logger, CompilerServerLogKind.Trace, exception, reason);
 
+        /// <summary>
+        /// Log an operational exception. Also logs information about inner exceptions.
+        /// </summary>
+        internal static void LogOperationalException(this ICompilerServerLogger logger, Exception exception, string reason)
+            => LogException(logger, CompilerServerLogKind.Operational, exception, reason);
+
+        private static void LogException(
+            ICompilerServerLogger logger,
+            CompilerServerLogKind kind,
+            Exception exception,
+            string reason)
+        {
             var builder = new StringBuilder();
             AppendException(exception);
 
@@ -76,7 +106,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
                 innerExceptionLevel += 1;
             }
 
-            logger.Log(builder.ToString());
+            logger.Log(kind, builder.ToString());
 
             void AppendException(Exception exception)
             {
@@ -103,7 +133,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
         private Stream? _loggingStream;
         private readonly string _identifier;
 
-        public bool IsLogging => _loggingStream is object;
+        public bool IsEnabled(CompilerServerLogKind kind) => _loggingStream is object;
 
         public CompilerServerLogger(string identifier, IBuildEnvironment buildEnvironment)
             : this(identifier, GetLoggingFilePath(buildEnvironment))
@@ -139,7 +169,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
             _loggingStream = null;
         }
 
-        public void Log(string message)
+        public void Log(CompilerServerLogKind kind, string message)
         {
             if (_loggingStream is object)
             {
@@ -196,13 +226,13 @@ namespace Microsoft.CodeAnalysis.CommandLine
     {
         public static EmptyCompilerServerLogger Instance { get; } = new EmptyCompilerServerLogger();
 
-        public bool IsLogging => false;
+        public bool IsEnabled(CompilerServerLogKind kind) => false;
 
         private EmptyCompilerServerLogger()
         {
         }
 
-        public void Log(string message)
+        public void Log(CompilerServerLogKind kind, string message)
         {
         }
     }

@@ -57,19 +57,19 @@ namespace Microsoft.CodeAnalysis.CompilerServer
             errorMessages = null;
             try
             {
-                logger.Log($"Begin Analyzer Consistency Check for {baseDirectory}");
+                logger.LogTrace($"Begin Analyzer Consistency Check for {baseDirectory}");
                 return CheckCore(baseDirectory, analyzerReferences, loader, logger, out errorMessages);
             }
             catch (Exception e)
             {
-                logger.LogException(e, "Analyzer Consistency Check");
+                logger.LogTraceException(e, "Analyzer Consistency Check");
                 errorMessages ??= new List<string>();
                 errorMessages.Add(e.Message);
                 return false;
             }
             finally
             {
-                logger?.Log("End Analyzer Consistency Check");
+                logger?.LogTrace("End Analyzer Consistency Check");
             }
         }
 
@@ -133,7 +133,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                     var message = $"analyzer assembly '{resolvedPath}' has MVID '{resolvedPathMvid}' but loaded assembly '{loadedAssemblyLocation}' has MVID '{loadedAssemblyMvid}'";
                     errorMessages ??= new List<string>();
                     errorMessages.Add(message);
-                    logger.LogError(message);
+                    logger.LogTraceError(message);
                 }
             }
 

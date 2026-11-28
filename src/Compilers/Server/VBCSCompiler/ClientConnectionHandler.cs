@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
             }
             catch (Exception ex)
             {
-                Logger.LogException(ex, $"Error processing request for client");
+                Logger.LogTraceException(ex, $"Error processing request for client");
                 return CompletionData.RequestError;
             }
 
@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
             {
                 using var clientConnection = await clientConnectionTask.ConfigureAwait(false);
                 var request = await clientConnection.ReadBuildRequestAsync(cancellationToken).ConfigureAwait(false);
-                Logger.Log($"Received request {request.RequestId} of type {request.GetType()}");
+                Logger.LogTrace($"Received request {request.RequestId} of type {request.GetType()}");
 
                 if (!string.Equals(request.CompilerHash, BuildProtocolConstants.GetCommitHash(), StringComparison.OrdinalIgnoreCase))
                 {
@@ -103,7 +103,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                 RejectedBuildResponse r => $"Writing {r.Type} response '{r.Reason}' for {requestId}",
                 _ => $"Writing {response.Type} response for {requestId}"
             };
-            Logger.Log(message);
+            Logger.LogTrace(message);
             await clientConnection.WriteBuildResponseAsync(response, cancellationToken).ConfigureAwait(false);
             return completionData;
         }
@@ -138,7 +138,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                     {
                         // The compilation task should never throw. If it does we need to assume that the compiler is
                         // in a bad state and need to issue a RequestError
-                        Logger.LogException(ex, $"Exception running compilation for {request.RequestId}");
+                        Logger.LogTraceException(ex, $"Exception running compilation for {request.RequestId}");
                         response = new RejectedBuildResponse($"Exception during compilation: {ex.Message}");
                         completionData = CompletionData.RequestError;
                     }
