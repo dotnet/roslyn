@@ -205,10 +205,10 @@
     <value>Debug</value>
   </data>
   <data name="Setting_LogLevelDescription" xml:space="preserve">
-    <value>Sets the level of logging to show in the Razor Logger Output category of the Output Window.</value>
+    <value>Sets the level of logging to show in the Razor Logger Output category of the Output window.</value>
   </data>
   <data name="Setting_LogLevelDisplayName" xml:space="preserve">
-    <value>Output Window Log Level</value>
+    <value>Output window log level</value>
   </data>
   <data name="Setting_LogLevelError" xml:space="preserve">
     <value>Error</value>
@@ -238,10 +238,10 @@
     <value>Custom</value>
   </data>
   <data name="Setting_SnippetsDescription" xml:space="preserve">
-    <value>What snippets to include in a razor file. If set to custom, only snippets that are not included with Visual Studio will be shown. </value>
+    <value>What snippets to include in a Razor file. If set to custom, only snippets that are not included with Visual Studio will be shown. </value>
   </data>
   <data name="Setting_SnippetsDisplayName" xml:space="preserve">
-    <value>Included Snippets</value>
+    <value>Included snippets</value>
   </data>
   <data name="Setting_SnippetsNone" xml:space="preserve">
     <value>None</value>
@@ -250,10 +250,10 @@
     <value>Typing</value>
   </data>
   <data name="Setting_AttributeIndentStyleDisplayName" xml:space="preserve">
-    <value>Attribute Indent Style</value>
+    <value>Attribute indent style</value>
   </data>
   <data name="Setting_AttributeIndentStyleDescription" xml:space="preserve">
-    <value>Defines how Html and component tag attributes should be indented</value>
+    <value>Defines how HTML and component tag attributes should be indented</value>
   </data>
   <data name="Setting_AttributeIndentStyleAlignWithFirst" xml:space="preserve">
     <value>Align with first attribute</value>

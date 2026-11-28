@@ -48,13 +48,13 @@
         <note />
       </trans-unit>
       <trans-unit id="Setting_AttributeIndentStyleDescription">
-        <source>Defines how Html and component tag attributes should be indented</source>
-        <target state="translated">Define como os atributos das tags HTML e dos componentes devem ser recuados</target>
+        <source>Defines how HTML and component tag attributes should be indented</source>
+        <target state="needs-review-translation">Define como os atributos das tags HTML e dos componentes devem ser recuados</target>
         <note />
       </trans-unit>
       <trans-unit id="Setting_AttributeIndentStyleDisplayName">
-        <source>Attribute Indent Style</source>
-        <target state="translated">Estilo de Recuo do Atributo</target>
+        <source>Attribute indent style</source>
+        <target state="needs-review-translation">Estilo de Recuo do Atributo</target>
         <note />
       </trans-unit>
       <trans-unit id="Setting_AttributeIndentStyleIndentByOne">
@@ -158,13 +158,13 @@
         <note />
       </trans-unit>
       <trans-unit id="Setting_LogLevelDescription">
-        <source>Sets the level of logging to show in the Razor Logger Output category of the Output Window.</source>
-        <target state="translated">Define o nível de registro em log a ser exibido na categoria Saída do Agente do Razor da Janela de Saída.</target>
+        <source>Sets the level of logging to show in the Razor Logger Output category of the Output window.</source>
+        <target state="needs-review-translation">Define o nível de registro em log a ser exibido na categoria Saída do Agente do Razor da Janela de Saída.</target>
         <note />
       </trans-unit>
       <trans-unit id="Setting_LogLevelDisplayName">
-        <source>Output Window Log Level</source>
-        <target state="translated">Nível de log da janela de saída</target>
+        <source>Output window log level</source>
+        <target state="needs-review-translation">Nível de log da janela de saída</target>
         <note />
       </trans-unit>
       <trans-unit id="Setting_LogLevelError">
@@ -213,13 +213,13 @@
         <note />
       </trans-unit>
       <trans-unit id="Setting_SnippetsDescription">
-        <source>What snippets to include in a razor file. If set to custom, only snippets that are not included with Visual Studio will be shown. </source>
-        <target state="translated">Quais snippets devem ser incluídos em um arquivo Razor. Se definido como personalizado, somente os snippets que não estiverem incluídos no Visual Studio serão mostrados. </target>
+        <source>What snippets to include in a Razor file. If set to custom, only snippets that are not included with Visual Studio will be shown. </source>
+        <target state="needs-review-translation">Quais snippets devem ser incluídos em um arquivo Razor. Se definido como personalizado, somente os snippets que não estiverem incluídos no Visual Studio serão mostrados. </target>
         <note />
       </trans-unit>
       <trans-unit id="Setting_SnippetsDisplayName">
-        <source>Included Snippets</source>
-        <target state="translated">Snippets Incluídos</target>
+        <source>Included snippets</source>
+        <target state="needs-review-translation">Snippets Incluídos</target>
         <note />
       </trans-unit>
       <trans-unit id="Setting_SnippetsNone">
