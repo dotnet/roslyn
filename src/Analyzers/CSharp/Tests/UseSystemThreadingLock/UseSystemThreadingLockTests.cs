@@ -3,6 +3,8 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeStyle;
+using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.UseSystemThreadingLock;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -1620,5 +1622,198 @@ public sealed class UseSystemThreadingLockTests
                 """ + SystemThreadingLockTypePolyFill,
             LanguageVersion = LanguageVersion.CSharp13,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+        }.RunAsync();
+
+    [Fact]
+    public Task TestNotWhenOptionDisabled_MultipleFields()
+        => new VerifyCS.Test
+        {
+            TestCode = """
+                class C
+                {
+                    private object _gate1 = new object();
+                    private object _gate2 = new object();
+
+                    void M()
+                    {
+                        lock (_gate1)
+                        {
+                        }
+
+                        lock (_gate2)
+                        {
+                        }
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp13,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net90,
+            Options =
+            {
+                { CSharpCodeStyleOptions.PreferSystemThreadingLock, new CodeStyleOption2<bool>(false, NotificationOption2.Suggestion) },
+            },
+        }.RunAsync();
+
+    [Fact]
+    public Task TestNotWhenUsedByNestedType()
+        => new VerifyCS.Test
+        {
+            TestCode = """
+                using System.Threading;
+
+                class C
+                {
+                    private object _gate = new object();
+
+                    void M()
+                    {
+                        lock (_gate)
+                        {
+                        }
+                    }
+
+                    class Nested
+                    {
+                        void N(C c)
+                        {
+                            Monitor.Wait(c._gate);
+                        }
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp13,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net90,
+        }.RunAsync();
+
+    [Fact]
+    public Task TestNotWhenUsedByDoublyNestedType()
+        => new VerifyCS.Test
+        {
+            TestCode = """
+                using System.Threading;
+
+                class C
+                {
+                    private object _gate = new object();
+
+                    void M()
+                    {
+                        lock (_gate)
+                        {
+                        }
+                    }
+
+                    class Nested
+                    {
+                        class Nested2
+                        {
+                            void N(C c)
+                            {
+                                Monitor.Pulse(c._gate);
+                            }
+                        }
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp13,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net90,
+        }.RunAsync();
+
+    [Fact]
+    public Task TestLockedByNestedType()
+        => new VerifyCS.Test
+        {
+            TestCode = """
+                class C
+                {
+                    private object [|_gate|] = new object();
+
+                    void M()
+                    {
+                        lock (_gate)
+                        {
+                        }
+                    }
+
+                    class Nested
+                    {
+                        void N(C c)
+                        {
+                            lock (c._gate)
+                            {
+                            }
+                        }
+                    }
+                }
+                """,
+            FixedCode = """
+                using System.Threading;
+
+                class C
+                {
+                    private Lock _gate = new Lock();
+
+                    void M()
+                    {
+                        lock (_gate)
+                        {
+                        }
+                    }
+
+                    class Nested
+                    {
+                        void N(C c)
+                        {
+                            lock (c._gate)
+                            {
+                            }
+                        }
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp13,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net90,
+        }.RunAsync();
+
+    [Fact]
+    public Task TestNestedTypeWithItsOwnLock()
+        => new VerifyCS.Test
+        {
+            TestCode = """
+                class C
+                {
+                    class Nested
+                    {
+                        private object [|_gate|] = new object();
+
+                        void N()
+                        {
+                            lock (_gate)
+                            {
+                            }
+                        }
+                    }
+                }
+                """,
+            FixedCode = """
+                using System.Threading;
+
+                class C
+                {
+                    class Nested
+                    {
+                        private Lock _gate = new Lock();
+
+                        void N()
+                        {
+                            lock (_gate)
+                            {
+                            }
+                        }
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp13,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net90,
         }.RunAsync();
 }
