@@ -50,7 +50,7 @@ internal static class Program
 
         if (PlatformInformation.IsRunningOnMono)
         {
-            server = new RpcServer(pipeServer);
+            server = new RpcServer(pipeServer, logger);
             buildHost = new MonoBuildHost(logger, server);
         }
         else
@@ -58,7 +58,7 @@ internal static class Program
             (buildHost, server) = NetFrameworkBuildHost.Create(logger, pipeServer);
         }
 #else
-        server = new RpcServer(pipeServer);
+        server = new RpcServer(pipeServer, logger);
         buildHost = new NetCoreBuildHost(logger, server);
 #endif
 
