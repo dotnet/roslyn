@@ -19,6 +19,49 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     public class CompletionTests : CSharpTestBase
     {
         [Fact]
+        public void SpinWaitCompleteAlreadyComplete()
+        {
+            var state = new SymbolCompletionState();
+            var parts = CompletionPart.FinishBaseType | CompletionPart.FinishInterfaces;
+            Assert.True(state.NotePartComplete(parts));
+            using var cancellation = new CancellationTokenSource();
+            cancellation.Cancel();
+
+            state.SpinWaitComplete(parts, cancellation.Token);
+            Assert.True(state.HasComplete(parts));
+        }
+
+        [Fact]
+        public void SpinWaitCompleteCanceled()
+        {
+            var state = new SymbolCompletionState();
+            using var cancellation = new CancellationTokenSource();
+            cancellation.Cancel();
+
+            var exception = Assert.Throws<OperationCanceledException>(() =>
+                state.SpinWaitComplete(CompletionPart.FinishBaseType, cancellation.Token));
+            Assert.Equal(cancellation.Token, exception.CancellationToken);
+            Assert.False(state.HasComplete(CompletionPart.FinishBaseType));
+        }
+
+        [Fact]
+        public void SpinWaitCompleteTimesOut()
+        {
+            var state = new SymbolCompletionState();
+            Assert.True(state.NotePartComplete(CompletionPart.StartBaseType));
+            using var cancellation = new CancellationTokenSource(TimeSpan.FromSeconds(30));
+            var startTicks = unchecked((uint)Environment.TickCount);
+
+            const uint timeoutMilliseconds = 1000;
+            var exception = Assert.Throws<InvalidOperationException>(() =>
+                state.SpinWaitCompleteCore(CompletionPart.FinishBaseType, timeoutMilliseconds, cancellation.Token));
+
+            Assert.Equal("Symbol completion timed out.", exception.Message);
+            Assert.True(unchecked((uint)Environment.TickCount - startTicks) >= timeoutMilliseconds);
+            Assert.False(state.HasComplete(CompletionPart.FinishBaseType));
+        }
+
+        [Fact]
         public void FieldSymbolsAreLazy()
         {
             var text =
