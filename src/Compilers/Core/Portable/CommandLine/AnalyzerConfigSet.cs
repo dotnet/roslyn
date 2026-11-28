@@ -491,10 +491,13 @@ namespace Microsoft.CodeAnalysis
                 MergeSection(config.PathToFile, config.GlobalSection, config.GlobalLevel, isGlobalSection: true);
                 foreach (var section in config.NamedSections)
                 {
-                    if (IsAbsoluteEditorConfigPath(section.Name))
+                    // Resolve relative paths before merging, while the original config directory is available.
+                    var sectionPath = IsAbsoluteEditorConfigPath(section.Name)
+                        ? UnescapeSectionName(section.Name)
+                        : TryResolveRelativeEditorConfigPath(section.Name, config.NormalizedDirectory);
+                    if (sectionPath is not null)
                     {
-                        // Let's recreate the section with the name unescaped, since we can then properly merge and match it later
-                        var unescapedSection = new Section(UnescapeSectionName(section.Name), section.Properties);
+                        var unescapedSection = new Section(sectionPath, section.Properties);
 
                         MergeSection(config.PathToFile, unescapedSection, config.GlobalLevel, isGlobalSection: false);
                     }

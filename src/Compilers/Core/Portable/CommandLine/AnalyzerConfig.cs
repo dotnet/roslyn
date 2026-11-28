@@ -323,8 +323,8 @@ namespace Microsoft.CodeAnalysis
             }
 
             /// <summary>
-            /// For regular files, the name as present directly in the section specification of the editorconfig file. For sections in
-            /// global configs, this is the unescaped full file path.
+            /// For parsed configs, the name as present directly in the section specification of the editorconfig file. For sections in
+            /// merged global configs, this is the unescaped full file path.
             /// </summary>
             public string Name { get; }
 

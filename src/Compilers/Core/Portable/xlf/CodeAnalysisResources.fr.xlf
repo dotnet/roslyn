@@ -664,13 +664,13 @@
         <note />
       </trans-unit>
       <trans-unit id="WRN_InvalidGlobalSectionName">
-        <source>Global analyzer config section name '{0}' is invalid as it is not an absolute path. Section will be ignored. Section was declared in file: '{1}'</source>
-        <target state="translated">Le nom de section de configuration '{0}' de l'analyseur global est non valide, car il ne s'agit pas d'un chemin absolu. La section va être ignorée. La section a été déclarée dans le fichier '{1}'</target>
+        <source>Global analyzer config section name '{0}' is invalid as it is not a literal file path. Section will be ignored. Section was declared in file: '{1}'</source>
+        <target state="needs-review-translation">Le nom de section de configuration '{0}' de l'analyseur global est non valide, car il ne s'agit pas d'un chemin absolu. La section va être ignorée. La section a été déclarée dans le fichier '{1}'</target>
         <note>{0}: invalid section name, {1} path to global config</note>
       </trans-unit>
       <trans-unit id="WRN_InvalidGlobalSectionName_Title">
-        <source>Global analyzer config section name is invalid as it is not an absolute path. Section will be ignored.</source>
-        <target state="translated">Le nom de section de configuration de l'analyseur global est non valide, car il ne s'agit pas d'un chemin absolu. La section va être ignorée.</target>
+        <source>Global analyzer config section name is invalid as it is not a literal file path. Section will be ignored.</source>
+        <target state="needs-review-translation">Le nom de section de configuration de l'analyseur global est non valide, car il ne s'agit pas d'un chemin absolu. La section va être ignorée.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_InvalidSeverityInAnalyzerConfig">

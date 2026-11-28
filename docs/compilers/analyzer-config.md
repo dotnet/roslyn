@@ -22,3 +22,25 @@ use by analyzers.
 
 AnalyzerConfig files can be passed to the command-line compiler through the
 `/analyzerconfig:<file-path>` parameter.
+
+## Global analyzer configs
+
+A config named `.globalconfig`, or containing `is_global = true` before any section header, is a global analyzer config.
+Its top-level options apply to all files in the compilation regardless of their location.
+
+Named sections in a global analyzer config identify individual files rather than EditorConfig glob patterns.
+A section name can be an absolute path or a path relative to the directory containing the config file.
+Relative paths may include `.` and `..` components.
+Paths use `/` as the directory separator on all platforms,
+and EditorConfig special characters must be escaped with `\` to be treated literally.
+
+For example, in `obj/build.globalconfig`:
+
+```ini
+is_global = true
+
+[../Components/Counter.razor]
+build_metadata.AdditionalFiles.CustomOption = value
+```
+
+The section applies only to `Components/Counter.razor` next to the `obj` directory, not to files with the same name elsewhere.

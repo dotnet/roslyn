@@ -664,13 +664,13 @@
         <note />
       </trans-unit>
       <trans-unit id="WRN_InvalidGlobalSectionName">
-        <source>Global analyzer config section name '{0}' is invalid as it is not an absolute path. Section will be ignored. Section was declared in file: '{1}'</source>
-        <target state="translated">Genel çözümleyici yapılandırması bölümü adı ('{0}') mutlak bir yol olmadığından geçersiz. Bölüm yoksayılacak. Bölüm '{1}' dosyasında bildirildi</target>
+        <source>Global analyzer config section name '{0}' is invalid as it is not a literal file path. Section will be ignored. Section was declared in file: '{1}'</source>
+        <target state="needs-review-translation">Genel çözümleyici yapılandırması bölümü adı ('{0}') mutlak bir yol olmadığından geçersiz. Bölüm yoksayılacak. Bölüm '{1}' dosyasında bildirildi</target>
         <note>{0}: invalid section name, {1} path to global config</note>
       </trans-unit>
       <trans-unit id="WRN_InvalidGlobalSectionName_Title">
-        <source>Global analyzer config section name is invalid as it is not an absolute path. Section will be ignored.</source>
-        <target state="translated">Genel çözümleyici yapılandırması bölümü adı mutlak bir yol olmadığından geçersiz. Bölüm yoksayılacak.</target>
+        <source>Global analyzer config section name is invalid as it is not a literal file path. Section will be ignored.</source>
+        <target state="needs-review-translation">Genel çözümleyici yapılandırması bölümü adı mutlak bir yol olmadığından geçersiz. Bölüm yoksayılacak.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_InvalidSeverityInAnalyzerConfig">
