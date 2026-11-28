@@ -2443,6 +2443,55 @@ public class C
         }
 
         [Fact]
+        [WorkItem(77475, "https://github.com/dotnet/roslyn/issues/77475")]
+        public void NotNullIfNotNull_MethodGroupToSelectSameAsLambda_77475()
+        {
+            var source = @"
+using System.Linq;
+using System.Diagnostics.CodeAnalysis;
+public class C
+{
+    void M()
+    {
+        string[] a = new[] { ""1"", ""a"" };
+        _ = a.Select(Foo).First().ToString();
+        _ = a.Select(t => Foo(t)).First().ToString();
+    }
+    [return: NotNullIfNotNull(nameof(x))]
+    static string? Foo(string? x) => x;
+}
+";
+            var comp = CreateCompilation(new[] { source, NotNullIfNotNullAttributeDefinition }, options: WithNullableEnable());
+            comp.VerifyDiagnostics();
+        }
+        [Fact]
+        [WorkItem(77475, "https://github.com/dotnet/roslyn/issues/77475")]
+        public void NotNullIfNotNull_MethodGroupToSelect_NullableSourceStillWarns_77475()
+        {
+            var source = @"
+using System.Linq;
+using System.Diagnostics.CodeAnalysis;
+public class C
+{
+    void M()
+    {
+        string?[] a = new string?[] { ""1"", null };
+        _ = a.Select(Foo).First().ToString();
+        _ = a.Select(t => Foo(t)).First().ToString();
+    }
+    [return: NotNullIfNotNull(nameof(x))]
+    static string? Foo(string? x) => x;
+}
+";
+            var comp = CreateCompilation(new[] { source, NotNullIfNotNullAttributeDefinition }, options: WithNullableEnable());
+            comp.VerifyDiagnostics(
+                // (10,13): warning CS8602: Dereference of a possibly null reference.
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "a.Select(Foo).First()").WithLocation(10, 13),
+                // (11,13): warning CS8602: Dereference of a possibly null reference.
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "a.Select(t => Foo(t)).First()").WithLocation(11, 13));
+        }
+
+        [Fact]
         [WorkItem(46121, "https://github.com/dotnet/roslyn/issues/46121")]
         public void StaticInitializers_MultipleFiles_01()
         {
