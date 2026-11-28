@@ -40,21 +40,21 @@ internal sealed class ComponentComplexAttributeContentPass : ComponentIntermedia
             if (node.Children[i] is TagHelperPropertyIntermediateNode propertyNode &&
                 node.TagHelpers.Any(t => t.Kind == TagHelperKind.Component))
             {
-                ProcessAttribute(node, propertyNode, propertyNode.AttributeName);
+                ProcessAttribute(propertyNode, propertyNode.AttributeName);
             }
             else if (node.Children[i] is TagHelperHtmlAttributeIntermediateNode htmlNode &&
                 node.TagHelpers.Any(t => t.Kind == TagHelperKind.Component))
             {
-                ProcessAttribute(node, htmlNode, htmlNode.AttributeName);
+                ProcessAttribute(htmlNode, htmlNode.AttributeName);
             }
             else if (node.Children[i] is TagHelperDirectiveAttributeIntermediateNode directiveAttributeNode)
             {
-                ProcessAttribute(node, directiveAttributeNode, directiveAttributeNode.OriginalAttributeName);
+                ProcessAttribute(directiveAttributeNode, directiveAttributeNode.OriginalAttributeName);
             }
         }
     }
 
-    private static void ProcessAttribute(IntermediateNode parent, IntermediateNode node, string attributeName)
+    internal static void ProcessAttribute(IntermediateNode node, string attributeName)
     {
         var issueDiagnostic = false;
 
