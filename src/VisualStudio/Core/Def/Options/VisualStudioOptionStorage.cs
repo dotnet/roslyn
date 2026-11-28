@@ -184,6 +184,7 @@ internal abstract class VisualStudioOptionStorage
         {"csharp_indent_case_contents", new RoamingProfileStorage("TextEditor.CSharp.Specific.IndentSwitchCaseSection")},
         {"csharp_indent_case_contents_when_block", new RoamingProfileStorage("TextEditor.CSharp.Specific.IndentSwitchCaseSectionWhenBlock")},
         {"csharp_indent_labels", new RoamingProfileStorage("TextEditor.CSharp.Specific.LabelPositioning")},
+        {"csharp_indent_list_pattern_contents", new RoamingProfileStorage("TextEditor.CSharp.Specific.IndentListPatternContents")},
         {"csharp_indent_switch_labels", new RoamingProfileStorage("TextEditor.CSharp.Specific.IndentSwitchSection")},
         {"csharp_new_line_before_open_brace", new RoamingProfileStorage("TextEditor.CSharp.Specific.csharp_new_line_before_open_brace") },
         {"csharp_new_line_before_catch", new RoamingProfileStorage("TextEditor.CSharp.Specific.NewLineForCatch")},
