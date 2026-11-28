@@ -1469,7 +1469,7 @@ End Class
             Assert.Equal("p, local", GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsIn))
             Assert.Empty(dataFlowAnalysisResults.DataFlowsOut)
             Assert.Equal("p, local, e, d, ap", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadInside))
-            Assert.Equal("local, e, d, ap", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenInside))
+            Assert.Equal("e, d, ap", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenInside))
             Assert.Equal("p", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadOutside))
             Assert.Equal("Me, p, local", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenOutside))
 

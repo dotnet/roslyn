@@ -1235,10 +1235,12 @@ lUnsplitAndFinish:
             Debug.Assert(receiver.IsLValue)
             Debug.Assert(method IsNot Nothing)
 
-            If receiver.Type.IsReferenceType Then
-                ' If a receiver is of reference type, it will not be modified if the 
-                ' method is not an extension method, note that extension method may 
+            If receiver.Type.IsReferenceType OrElse receiver.Type.IsIntrinsicOrEnumType() Then
+                ' If a receiver is of reference type, it will not be modified if the
+                ' method is not an extension method, note that extension method may
                 ' write to ByRef parameter
+                ' The same goes for intrinsic and enum types: their instance methods
+                ' cannot change the value they are called on
 
                 Dim reducedFrom As MethodSymbol = method.CallsiteReducedFromMethod
                 If reducedFrom Is Nothing OrElse reducedFrom.ParameterCount = 0 OrElse Not reducedFrom.Parameters(0).IsByRef Then
