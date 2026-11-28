@@ -1907,7 +1907,16 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             initializersBody ??= GetSynthesizedEmptyBody(method);
 
-            if (method is SourceMemberMethodSymbol sourceMethod)
+            if (method is SynthesizedUnionCtor unionCtor)
+            {
+                var node = unionCtor.SyntaxNode;
+                var factory = new SyntheticBoundNodeFactory(unionCtor, node, compilationState, diagnostics);
+                var stmts = ArrayBuilder<BoundStatement>.GetInstance();
+                unionCtor.GenerateMethodBodyStatements(factory, stmts);
+                body = BoundBlock.SynthesizedNoLocals(node, stmts.ToImmutableAndFree());
+                nullableInitialState = getInitializerState(body);
+            }
+            else if (method is SourceMemberMethodSymbol sourceMethod)
             {
                 CSharpSyntaxNode syntaxNode = sourceMethod.SyntaxNode;
 

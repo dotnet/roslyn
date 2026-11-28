@@ -43,8 +43,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             Debug.Assert(owner is not LambdaSymbol); // therefore we don't need to deal with discard parameters
 
-            var name = identifier.ValueText;
-            var location = new SourceLocation(name == "" ? syntax.Type : identifier);
+            bool isUnionCaseParameter = owner is SynthesizedUnionCtor;
+            var name = isUnionCaseParameter ? ValueParameterName : identifier.ValueText;
+            var location = new SourceLocation(isUnionCaseParameter || name == "" ? syntax.Type : identifier);
 
             if (hasParamsModifier && parameterType.IsSZArray())
             {
@@ -75,16 +76,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     scope);
             }
 
-            if (!hasParamsModifier &&
+            Debug.Assert(!isUnionCaseParameter ||
+                (!hasParamsModifier &&
+                !isExtensionMethodThis &&
+                !owner.IsPartialMember() &&
+                scope == ScopedKind.None));
+
+            if (isUnionCaseParameter ||
+                (!hasParamsModifier &&
                 !isExtensionMethodThis &&
                 (syntax.Default == null) &&
                 (syntax.AttributeLists.Count == 0) &&
                 !owner.IsPartialMember() &&
-                scope == ScopedKind.None)
+                scope == ScopedKind.None))
             {
                 return new SourceSimpleParameterSymbol(owner, parameterType, ordinal, refKind, name, location);
             }
 
+            Debug.Assert(!isUnionCaseParameter);
             return new SourceComplexParameterSymbol(
                 owner,
                 ordinal,
@@ -288,7 +297,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // Parameters of accessors are always synthesized. (e.g., parameter of indexer accessors).
                 // The non-synthesized accessors are on the property/event itself.
                 MethodSymbol owningMethod = ContainingSymbol as MethodSymbol;
-                return (object)owningMethod != null && owningMethod.IsAccessor();
+                return (object)owningMethod != null && (owningMethod.IsAccessor() || owningMethod is SynthesizedUnionCtor);
             }
         }
 

@@ -11,34 +11,44 @@ using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
-    internal sealed class SynthesizedUnionCtor : SynthesizedInstanceConstructor
+    internal sealed class SynthesizedUnionCtor : SourceConstructorSymbolBase
     {
         private readonly int _memberOffset;
-        private readonly SyntaxReference _typeSyntax;
 
         public SynthesizedUnionCtor(
             SourceMemberContainerTypeSymbol containingType,
-            TypeSyntax typeSyntax,
-            TypeWithAnnotations parameterType,
+            ParameterSyntax parameterSyntax,
             int memberOffset)
-            : base(containingType)
+            : base(containingType, parameterSyntax.Type!.GetLocation(), parameterSyntax, isIterator: false, MakeModifiersAndFlags())
         {
             _memberOffset = memberOffset;
-            _typeSyntax = typeSyntax.GetReference();
-            Parameters = [SynthesizedParameterSymbol.Create(this, parameterType, ordinal: 0, RefKind.None, ParameterSymbol.ValueParameterName)];
-            Locations = [typeSyntax.GetLocation()];
         }
 
-        public override ImmutableArray<ParameterSymbol> Parameters { get; }
+        private static (DeclarationModifiers, Flags) MakeModifiersAndFlags()
+        {
+            Flags flags = MakeFlags(
+                                    MethodKind.Constructor,
+                                    RefKind.None,
+                                    DeclarationModifiers.Public,
+                                    returnsVoid: true,
+                                    returnsVoidIsSet: true,
+                                    isExpressionBodied: false,
+                                    isExtensionMethod: false,
+                                    isVarArg: false,
+                                    isNullableAnalysisEnabled: false,
+                                    isExplicitInterfaceImplementation: false,
+                                    hasThisInitializer: false);
 
-        public override ImmutableArray<Location> Locations { get; }
-
-        public override Accessibility DeclaredAccessibility => Accessibility.Public;
+            return (DeclarationModifiers.Public, flags);
+        }
 
         internal override LexicalSortKey GetLexicalSortKey() => LexicalSortKey.GetSynthesizedMemberKey(_memberOffset);
 
-        internal override void GenerateMethodBodyStatements(SyntheticBoundNodeFactory F, ArrayBuilder<BoundStatement> statements, BindingDiagnosticBag diagnostics)
+        internal void GenerateMethodBodyStatements(SyntheticBoundNodeFactory F, ArrayBuilder<BoundStatement> statements)
         {
+            var parameterSyntax = (ParameterSyntax)SyntaxNode;
+            Debug.Assert(parameterSyntax.Type is not null);
+
             // Write an assignment to Value property
             // {
             //     this._ValueBackingField = parameter
@@ -61,7 +71,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             // Add a sequence point at the end of the constructor, so that a breakpoint placed on the case type 
             // can be hit whenever a new instance of the union for that case type is created.
-            statements.Add(new BoundSequencePoint(_typeSyntax.GetSyntax(), statementOpt: null));
+            statements.Add(new BoundSequencePoint(parameterSyntax.Type, statementOpt: null));
         }
 
         public static bool IsValidParameterTypeConversion(Conversion c)
@@ -69,21 +79,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return c.Exists && c.IsImplicit && (c.IsIdentity || c.IsReference || c.IsBoxing);
         }
 
-        internal override void AddSynthesizedAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<CSharpAttributeData> attributes)
-        {
-            base.AddSynthesizedAttributes(moduleBuilder, ref attributes);
-            Debug.Assert(IsImplicitlyDeclared);
-            var compilation = this.DeclaringCompilation;
-            AddSynthesizedAttribute(ref attributes, compilation.TrySynthesizeAttribute(WellKnownMember.System_Runtime_CompilerServices_CompilerGeneratedAttribute__ctor));
-            Debug.Assert(WellKnownMembers.IsSynthesizedAttributeOptional(WellKnownMember.System_Runtime_CompilerServices_CompilerGeneratedAttribute__ctor));
-        }
-
         internal override void AfterAddingTypeMembersChecks(ConversionsBase conversions, BindingDiagnosticBag diagnostics)
         {
             base.AfterAddingTypeMembersChecks(conversions, diagnostics);
 
             TypeSymbol parameterType = this.Parameters[0].Type;
-            parameterType.CheckAllConstraints(DeclaringCompilation, conversions, GetFirstLocation(), diagnostics);
 
             if (!parameterType.IsErrorType())
             {
@@ -91,14 +91,58 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 CSharpCompilation compilation = DeclaringCompilation;
                 var useSiteInfo = new CompoundUseSiteInfo<AssemblySymbol>(diagnostics, compilation.Assembly);
                 Conversion c = compilation.Conversions.ClassifyImplicitConversionFromType(parameterType, compilation.GetSpecialType(SpecialType.System_Object), ref useSiteInfo);
-                diagnostics.Add(_typeSyntax.GetLocation(), useSiteInfo);
+                diagnostics.Add(GetFirstLocation(), useSiteInfo);
 
                 if (!IsValidParameterTypeConversion(c))
                 {
-                    diagnostics.Add(ErrorCode.ERR_NoImplicitConversionToObject, _typeSyntax.GetLocation(), parameterType);
+                    diagnostics.Add(ErrorCode.ERR_NoImplicitConversionToObject, GetFirstLocation(), parameterType);
                 }
             }
         }
+
+        protected override SeparatedSyntaxList<ParameterSyntax> GetParameterList()
+        {
+            var result = SyntaxFactory.SingletonSeparatedList((ParameterSyntax)SyntaxNode);
+            Debug.Assert(result[0] == (object)SyntaxNode);
+            return result;
+        }
+
+        protected override Binder GetParameterListBinder()
+        {
+            var syntax = (ParameterSyntax)SyntaxNode;
+            var binderFactory = this.DeclaringCompilation.GetBinderFactory(syntax.SyntaxTree);
+            var signatureBinder = binderFactory.GetBinder((ParameterListSyntax)syntax.Parent!, (TypeDeclarationSyntax)syntax.Parent!.Parent!, ContainingType);
+            return signatureBinder;
+        }
+
+        internal sealed override ExecutableCodeBinder? TryGetBodyBinder(BinderFactory? binderFactoryOpt = null, bool ignoreAccessibility = false) => throw ExceptionUtilities.Unreachable();
+
+        internal override bool HasSafeModifier => (DeclarationModifiers & DeclarationModifiers.Safe) != 0; // Like SynthesizedPrimaryConstructor
+        internal override bool HasUnsafeModifier => (DeclarationModifiers & DeclarationModifiers.Unsafe) != 0; // Like SynthesizedPrimaryConstructor
+        internal override bool CanRequireUnsafe
+        {
+            get
+            {
+                Debug.Assert(!HasUnsafeModifier, $"Revisit {nameof(CanRequireUnsafe)} implementation if {nameof(SynthesizedUnionCtor)} can be marked 'unsafe'.");
+                return false; // Like SynthesizedPrimaryConstructor
+            }
+        }
+
+        protected override bool IsWithinExpressionOrBlockBody(int position, out int offset)
+        {
+            // Like SynthesizedPrimaryConstructor
+            offset = -1;
+            return false;
+        }
+
+        protected override CSharpSyntaxNode? GetInitializer() => null;
+
+        internal override bool IsNullableAnalysisEnabled() => false;
+
+        protected override bool AllowRefOrOut => false;
+
+        public override bool IsImplicitlyDeclared => true;
+        public override ImmutableArray<SyntaxReference> DeclaringSyntaxReferences => [];
     }
 }
 

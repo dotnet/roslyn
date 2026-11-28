@@ -28,19 +28,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             (DeclarationModifiers declarationModifiers, Flags flags) modifiersAndFlags)
             : base(containingType, syntax.GetReference(), location, isIterator, modifiersAndFlags)
         {
-            Debug.Assert(syntax.Kind() is SyntaxKind.ConstructorDeclaration or SyntaxKind.RecordDeclaration or SyntaxKind.RecordStructDeclaration or SyntaxKind.ClassDeclaration or SyntaxKind.StructDeclaration or SyntaxKind.UnionDeclaration);
+            Debug.Assert(syntax.Kind() is SyntaxKind.ConstructorDeclaration or SyntaxKind.RecordDeclaration or SyntaxKind.RecordStructDeclaration or SyntaxKind.ClassDeclaration or SyntaxKind.StructDeclaration or SyntaxKind.Parameter);
+            Debug.Assert(syntax.Kind() != SyntaxKind.Parameter || syntax?.Parent?.Parent.Kind() == SyntaxKind.UnionDeclaration);
         }
 
         protected sealed override void MethodChecks(BindingDiagnosticBag diagnostics)
         {
             var syntax = (CSharpSyntaxNode)syntaxReferenceOpt.GetSyntax();
-            var binderFactory = this.DeclaringCompilation.GetBinderFactory(syntax.SyntaxTree);
-            ParameterListSyntax parameterList = GetParameterList();
+            SeparatedSyntaxList<ParameterSyntax> parameterList = GetParameterList();
 
             // NOTE: if we asked for the binder for the body of the constructor, we'd risk a stack overflow because
             // we might still be constructing the member list of the containing type.  However, getting the binder
             // for the parameters should be safe.
-            var bodyBinder = binderFactory.GetBinder(parameterList, syntax, this).WithContainingMemberOrLambda(this);
+            var bodyBinder = GetParameterListBinder();
 
             // Constraint checking for parameter and return types must be delayed until
             // the method has been added to the containing type member list since
@@ -78,12 +78,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
 #nullable enable
-        protected abstract ParameterListSyntax GetParameterList();
+        protected abstract SeparatedSyntaxList<ParameterSyntax> GetParameterList();
+        protected abstract Binder GetParameterListBinder();
 
         protected abstract bool AllowRefOrOut { get; }
 #nullable disable
 
-        internal sealed override void AfterAddingTypeMembersChecks(ConversionsBase conversions, BindingDiagnosticBag diagnostics)
+        internal override void AfterAddingTypeMembersChecks(ConversionsBase conversions, BindingDiagnosticBag diagnostics)
         {
             base.AfterAddingTypeMembersChecks(conversions, diagnostics);
 
@@ -107,14 +108,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Debug.Assert(!IsPartial);
         }
 
-        public sealed override bool IsImplicitlyDeclared
-        {
-            get
-            {
-                return base.IsImplicitlyDeclared;
-            }
-        }
-
         internal sealed override int ParameterCount
         {
             get
@@ -124,7 +117,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     return _lazyParameters.Length;
                 }
 
-                return GetParameterList().ParameterCount;
+                return ParameterListSyntax.GetParameterCount(GetParameterList());
             }
         }
 

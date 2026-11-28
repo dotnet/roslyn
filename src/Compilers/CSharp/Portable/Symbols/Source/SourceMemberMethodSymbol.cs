@@ -807,6 +807,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         protected ExecutableCodeBinder TryGetBodyBinderFromSyntax(BinderFactory binderFactoryOpt = null, bool ignoreAccessibility = false)
         {
+            Debug.Assert(this is not SynthesizedUnionCtor);
             Binder inMethod = TryGetInMethodBinder(binderFactoryOpt);
             return inMethod == null ? null : new ExecutableCodeBinder(SyntaxNode, this, inMethod.WithAdditionalFlags(ignoreAccessibility ? BinderFlags.IgnoreAccessibility : BinderFlags.None));
         }

@@ -2383,7 +2383,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // we've already produced a diagnostic for the missing return type and we suppress the
             // diagnostic about duplicate signature.
             if (method1.OriginalDefinition is SourceMemberMethodSymbol { MethodKind: MethodKind.Constructor } constructor &&
-                ((ConstructorDeclarationSyntax)constructor.SyntaxRef.GetSyntax()).Identifier.ValueText != method1.ContainingType.Name)
+                constructor.SyntaxRef.GetSyntax() is ConstructorDeclarationSyntax { Identifier.ValueText: var typeName } &&
+                typeName != method1.ContainingType.Name)
             {
                 return;
             }
@@ -5003,13 +5004,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 if (declaredMembersAndInitializers.DeclarationWithParameters?.ParameterList is { } parameterList)
                 {
                     // Synthesize Union type constructors
-
-                    var binderFactory = compilation.GetBinderFactory(declaredMembersAndInitializers.DeclarationWithParameters.SyntaxTree);
-                    var signatureBinder = binderFactory.GetBinder(parameterList, declaredMembersAndInitializers.DeclarationWithParameters, this);
-
-                    // Constraints are checked in AfterAddingTypeMembersChecks.
-                    signatureBinder = signatureBinder.WithAdditionalFlagsAndContainingMemberOrLambda(BinderFlags.SuppressConstraintChecks, this);
-                    var typesBuilder = ArrayBuilder<TypeSyntax>.GetInstance(parameterList.Parameters.Count);
+                    var parametersBuilder = ArrayBuilder<ParameterSyntax>.GetInstance(parameterList.Parameters.Count);
 
                     foreach (var parameterSyntax in parameterList.Parameters)
                     {
@@ -5024,7 +5019,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                         TypeSyntax? typeSyntax = parameterSyntax.Type;
                         Debug.Assert(typeSyntax != null);
-                        typesBuilder.Add(typeSyntax);
+                        parametersBuilder.Add(parameterSyntax);
 
                         SyntaxToken syntaxToken = parameterSyntax.GetFirstToken();
                         if (syntaxToken != typeSyntax.GetFirstToken())
@@ -5040,17 +5035,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         }
                     }
 
-                    int memberOffset = members.Count + typesBuilder.Count; // In order to keep the same relative order between constructors during emit we assign offset in decreasing order
-                    foreach (var typeSyntax in typesBuilder)
+                    int memberOffset = members.Count + parametersBuilder.Count; // In order to keep the same relative order between constructors during emit we assign offset in decreasing order
+                    foreach (var parameterSyntax in parametersBuilder)
                     {
-                        var parameterType = signatureBinder.BindType(typeSyntax, diagnostics, suppressUseSiteDiagnostics: false);
-                        var ctor = new SynthesizedUnionCtor(this, typeSyntax, parameterType, memberOffset: --memberOffset);
+                        var ctor = new SynthesizedUnionCtor(this, parameterSyntax, memberOffset: --memberOffset);
                         members.Add(ctor);
                     }
 
-                    Debug.Assert(memberOffset == members.Count - typesBuilder.Count);
+                    Debug.Assert(memberOffset == members.Count - parametersBuilder.Count);
 
-                    typesBuilder.Free();
+                    parametersBuilder.Free();
                 }
 
                 if (report_ERR_UnionDeclarationNeedsCaseTypes)

@@ -109,6 +109,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return;
                     }
 
+                    Debug.Assert(sourceMethod is not SynthesizedUnionCtor);
                     syntaxNode = sourceMethod.SyntaxNode;
                 }
 

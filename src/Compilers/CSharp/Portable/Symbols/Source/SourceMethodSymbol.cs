@@ -239,7 +239,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                           SynthesizedSourceOrdinaryMethodSymbol or
                           SynthesizedRecordEqualityOperatorBase or
                           SynthesizedEventAccessorSymbol or
-                          SourceFieldLikeEventSymbol.SourceEventDefinitionAccessorSymbol)
+                          SourceFieldLikeEventSymbol.SourceEventDefinitionAccessorSymbol or
+                          SynthesizedUnionCtor)
             {
                 Debug.Assert(WellKnownMembers.IsSynthesizedAttributeOptional(WellKnownMember.System_Runtime_CompilerServices_CompilerGeneratedAttribute__ctor));
                 AddSynthesizedAttribute(ref attributes,

@@ -128,9 +128,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return TryGetBodyBinderFromSyntax(binderFactoryOpt, ignoreAccessibility);
         }
 
-        protected override ParameterListSyntax GetParameterList()
+        protected override SeparatedSyntaxList<ParameterSyntax> GetParameterList()
         {
-            return GetSyntax().ParameterList;
+            return GetSyntax().ParameterList.Parameters;
+        }
+
+        protected override Binder GetParameterListBinder()
+        {
+            ConstructorDeclarationSyntax syntax = GetSyntax();
+            var binderFactory = this.DeclaringCompilation.GetBinderFactory(syntax.SyntaxTree);
+
+            // NOTE: if we asked for the binder for the body of the constructor, we'd risk a stack overflow because
+            // we might still be constructing the member list of the containing type.  However, getting the binder
+            // for the parameters should be safe.
+            return binderFactory.GetBinder(syntax.ParameterList, syntax, this).WithContainingMemberOrLambda(this);
         }
 
         protected override CSharpSyntaxNode GetInitializer()

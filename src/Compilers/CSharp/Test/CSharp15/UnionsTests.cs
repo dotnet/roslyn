@@ -4,6 +4,7 @@
 
 #nullable disable
 
+using System;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
@@ -49301,8 +49302,12 @@ class Program
             Assert.True(members[2].IsImplicitlyDeclared);
             Assert.False(members[^3].IsStatic);
             Assert.True(members[^3].IsImplicitlyDeclared);
+            Assert.True(((MethodSymbol)members[^3]).IsConstructor());
+            Assert.True(((MethodSymbol)members[^3]).Parameters.Single().IsImplicitlyDeclared);
             Assert.False(members[^2].IsStatic);
             Assert.True(members[^2].IsImplicitlyDeclared);
+            Assert.True(((MethodSymbol)members[^2]).IsConstructor());
+            Assert.True(((MethodSymbol)members[^2]).Parameters.Single().IsImplicitlyDeclared);
 
             var tree = comp1.SyntaxTrees.First();
             var model = comp1.GetSemanticModel(tree);
@@ -49314,7 +49319,9 @@ class Program
             Assert.Equal(s1Decl, members[1].DeclaringSyntaxReferences.Single().GetSyntax());
             Assert.Equal(s1Decl, members[2].DeclaringSyntaxReferences.Single().GetSyntax());
             Assert.Empty(members[^3].DeclaringSyntaxReferences);
+            Assert.Empty(((MethodSymbol)members[^3]).Parameters.Single().DeclaringSyntaxReferences);
             Assert.Empty(members[^2].DeclaringSyntaxReferences);
+            Assert.Empty(((MethodSymbol)members[^2]).Parameters.Single().DeclaringSyntaxReferences);
 
             var location = members[0].Locations.Single();
             Assert.Equal(members[1].Locations.Single(), location);
@@ -49324,8 +49331,10 @@ class Program
             Assert.Equal(s1Decl, location.SourceTree.GetRoot().FindNode(location.SourceSpan));
             location = members[^3].Locations.Single();
             Assert.Equal("bool", location.SourceTree.GetRoot().FindNode(location.SourceSpan).ToString());
+            Assert.Equal(location, ((MethodSymbol)members[^3]).Parameters.Single().Locations.Single());
             location = members[^2].Locations.Single();
             Assert.Equal("int", location.SourceTree.GetRoot().FindNode(location.SourceSpan).ToString());
+            Assert.Equal(location, ((MethodSymbol)members[^2]).Parameters.Single().Locations.Single());
 
             Assert.Same(s1, model.GetDeclaredSymbol(s1Decl).GetSymbol());
             Assert.Null(model.GetDeclaredSymbol(s1Decl.ParameterList));
@@ -49622,14 +49631,50 @@ static union S1(int, bool)
 union S1(int, int)
 {
 }
+
+#line 200
+union S2(int)
+{
+    public S2(int x) { }
+}
+
+#line 300
+partial union S3
+{
+    public S3(int x) { }
+}
+
+#line 400
+partial union S3(int)
+{
+}
 ";
             var comp = CreateCompilation([src, UnionAttributeSource, IUnionSource]);
 
-            // https://github.com/dotnet/roslyn/issues/82636: Consider reporting a more informative error.
             comp.VerifyEmitDiagnostics(
+                // https://github.com/dotnet/roslyn/issues/82636: Consider reporting a more informative error.
                 // (100,15): error CS0111: Type 'S1' already defines a member called 'S1' with the same parameter types
                 // union S1(int, int)
-                Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "int").WithArguments("S1", "S1").WithLocation(100, 15)
+                Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "int").WithArguments("S1", "S1").WithLocation(100, 15),
+
+                // (202,12): error CS0111: Type 'S2' already defines a member called 'S2' with the same parameter types
+                //     public S2(int x) { }
+                Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "S2").WithArguments("S2", "S2").WithLocation(202, 12),
+                // (202,12): error CS9374: Explicitly declared public constructors with a single parameter are not permitted in a 'union' declaration.
+                //     public S2(int x) { }
+                Diagnostic(ErrorCode.ERR_InstanceCtorWithOneParameterInUnion, "S2").WithLocation(202, 12),
+                // (202,12): error CS9375: A constructor declared in a 'union' declaration must have a 'this' initializer that calls a synthesized constructor or an explicitly declared constructor.
+                //     public S2(int x) { }
+                Diagnostic(ErrorCode.ERR_UnionConstructorCallsDefaultConstructor, "S2").WithLocation(202, 12),
+                // (302,12): error CS0111: Type 'S3' already defines a member called 'S3' with the same parameter types
+                //     public S3(int x) { }
+                Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "S3").WithArguments("S3", "S3").WithLocation(302, 12),
+                // (302,12): error CS9374: Explicitly declared public constructors with a single parameter are not permitted in a 'union' declaration.
+                //     public S3(int x) { }
+                Diagnostic(ErrorCode.ERR_InstanceCtorWithOneParameterInUnion, "S3").WithLocation(302, 12),
+                // (302,12): error CS9375: A constructor declared in a 'union' declaration must have a 'this' initializer that calls a synthesized constructor or an explicitly declared constructor.
+                //     public S3(int x) { }
+                Diagnostic(ErrorCode.ERR_UnionConstructorCallsDefaultConstructor, "S3").WithLocation(302, 12)
                 );
         }
 
@@ -50536,9 +50581,44 @@ union U2(
 union U3(
     int // c
 );
+
+union U4(
+#line 800
+    this int
+);
+
+union U5(
+#line 900
+    params int[]
+);
+
+union U6(
+#line 1000
+    scoped ref int
+);
+
+union U7(
+#line 1100
+    ref ref int
+);
 ";
 
             var comp = CreateCompilation([unionSrc, UnionAttributeSource, IUnionSource]);
+
+            Assert.Equal(RefKind.None, comp.SourceModule.GlobalNamespace.GetTypeMember("U1").InstanceConstructors.Where(c => c.Parameters is [{ Type.SpecialType: SpecialType.System_SByte }]).Single().Parameters[0].RefKind);
+
+            var ushortParameter = (SourceParameterSymbol)comp.SourceModule.GlobalNamespace.GetTypeMember("U1").InstanceConstructors.Where(c => c.Parameters is [{ Type.SpecialType: SpecialType.System_UInt16 }]).Single().Parameters[0];
+            Assert.False(ushortParameter.HasExplicitDefaultValue);
+            Assert.False(ushortParameter.HasDefaultArgumentSyntax);
+            Assert.False(ushortParameter.IsMetadataOptional);
+            Assert.False(ushortParameter.IsOptional);
+            Assert.Throws<InvalidOperationException>(() => ushortParameter.ExplicitDefaultValue);
+            Assert.Null(ushortParameter.ExplicitDefaultConstantValue);
+
+            Assert.False(comp.SourceModule.GlobalNamespace.GetTypeMember("U5").InstanceConstructors.Where(c => c.ParameterCount == 1).Single().Parameters[0].IsParams);
+
+            Assert.Equal(ScopedKind.None, comp.SourceModule.GlobalNamespace.GetTypeMember("U6").InstanceConstructors.Where(c => c.ParameterCount == 1).Single().Parameters[0].DeclaredScope);
+
             comp.VerifyDiagnostics(
                 // (100,5): error CS1073: Unexpected token '['
                 //     [Optional] byte,
@@ -50557,7 +50637,19 @@ union U3(
                 Diagnostic(ErrorCode.ERR_UnexpectedToken, "=").WithArguments("=").WithLocation(500, 9),
                 // (500,11): error CS1525: Invalid expression term ')'
                 //     int = )
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ")").WithArguments(")").WithLocation(500, 11)
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ")").WithArguments(")").WithLocation(500, 11),
+                // (800,5): error CS1073: Unexpected token 'this'
+                //     this int
+                Diagnostic(ErrorCode.ERR_UnexpectedToken, "this").WithArguments("this").WithLocation(800, 5),
+                // (900,5): error CS1073: Unexpected token 'params'
+                //     params int[]
+                Diagnostic(ErrorCode.ERR_UnexpectedToken, "params").WithArguments("params").WithLocation(900, 5),
+                // (1000,5): error CS1073: Unexpected token 'scoped'
+                //     scoped ref int
+                Diagnostic(ErrorCode.ERR_UnexpectedToken, "scoped").WithArguments("scoped").WithLocation(1000, 5),
+                // (1100,5): error CS1073: Unexpected token 'ref'
+                //     ref ref int
+                Diagnostic(ErrorCode.ERR_UnexpectedToken, "ref").WithArguments("ref").WithLocation(1100, 5)
                 );
         }
 
@@ -50915,6 +51007,70 @@ union U2(U1, U2);
             comp.MakeTypeMissing(SpecialType.System_Object);
             VerifyCaseTypes(comp, "U1", ["U1", "U2"]);
             VerifyCaseTypes(comp, "U2", ["U1", "U2"]);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/86583")]
+        public void UnionDeclaration_45_InconsistentAccessibility()
+        {
+            var source = """
+public union Outer1(Outer1.Inner)
+{
+    private class Inner;
+}
+
+public union U2(Internal);
+
+class Internal;
+
+union U3(Internal);
+
+union Outer4(Outer4.Inner)
+{
+    private class Inner;
+}
+
+union Outer5(Outer5.Inner)
+{
+    internal class Inner;
+}
+
+public union Outer6(Outer6.Inner)
+{
+    public class Inner;
+}
+""";
+
+            var comp = CreateCompilation([source, UnionAttributeSource, IUnionSource]);
+            comp.VerifyDiagnostics(
+                // (1,21): error CS0051: Inconsistent accessibility: parameter type 'Outer1.Inner' is less accessible than method 'Outer1.Outer1(Outer1.Inner)'
+                // public union Outer1(Outer1.Inner)
+                Diagnostic(ErrorCode.ERR_BadVisParamType, "Outer1.Inner").WithArguments("Outer1.Outer1(Outer1.Inner)", "Outer1.Inner").WithLocation(1, 21),
+                // (6,17): error CS0051: Inconsistent accessibility: parameter type 'Internal' is less accessible than method 'U2.U2(Internal)'
+                // public union U2(Internal);
+                Diagnostic(ErrorCode.ERR_BadVisParamType, "Internal").WithArguments("U2.U2(Internal)", "Internal").WithLocation(6, 17),
+                // (12,14): error CS0051: Inconsistent accessibility: parameter type 'Outer4.Inner' is less accessible than method 'Outer4.Outer4(Outer4.Inner)'
+                // union Outer4(Outer4.Inner)
+                Diagnostic(ErrorCode.ERR_BadVisParamType, "Outer4.Inner").WithArguments("Outer4.Outer4(Outer4.Inner)", "Outer4.Inner").WithLocation(12, 14)
+                );
+        }
+
+        [Fact]
+        public void UnionDeclaration_46_FileTypes()
+        {
+            var source = """
+union U1(FileType);
+
+file class FileType;
+
+file union U2(FileType);
+""";
+
+            var comp = CreateCompilation([source, UnionAttributeSource, IUnionSource]);
+            comp.VerifyDiagnostics(
+                // (1,10): error CS9051: File-local type 'FileType' cannot be used in a member signature in non-file-local type 'U1'.
+                // union U1(FileType);
+                Diagnostic(ErrorCode.ERR_FileTypeDisallowedInSignature, "FileType").WithArguments("FileType", "U1").WithLocation(1, 10)
+                );
         }
 
         [Fact]
@@ -61461,6 +61617,31 @@ public union TestUnion(string, int)
             {
                 Interlocked.Increment(ref FireCount22);
                 Assert.Equal("TestUnion", context.Symbol.ToTestDisplayString());
+            }
+        }
+
+        [Fact]
+        public void CaseTypeAttributes_03()
+        {
+            var unionSrc = @"
+union U1([My] int);
+
+class MyAttribute : System.Attribute;
+";
+
+            var comp = CreateCompilation([unionSrc, UnionAttributeSource, IUnionSource]);
+            comp.VerifyDiagnostics(
+                // (2,10): error CS1073: Unexpected token '['
+                // union U1([My] int);
+                Diagnostic(ErrorCode.ERR_UnexpectedToken, "[").WithArguments("[").WithLocation(2, 10)
+                );
+
+            validate(comp.SourceModule);
+
+            void validate(ModuleSymbol m)
+            {
+                var u1Ctor = m.GlobalNamespace.GetTypeMember("U1").InstanceConstructors.Where(c => c.ParameterCount == 1).Single();
+                AssertEx.Equal([], u1Ctor.Parameters[0].GetAttributes().Select(a => a.ToString()));
             }
         }
     }

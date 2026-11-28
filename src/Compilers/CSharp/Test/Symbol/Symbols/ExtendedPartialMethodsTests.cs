@@ -3952,5 +3952,141 @@ partial class C
             var compilation1 = CreateCompilation(sources);
             compilation1.GetSemanticModel(compilation1.SyntaxTrees[1]).GetDiagnostics().Verify(expected);
         }
+
+        [Fact]
+        public void InconsistentAccessibility()
+        {
+            var source = """
+public partial class C
+{
+    private class Hidden { }
+
+    public partial object M1();
+    public partial Hidden M1() => null;
+
+    public partial Hidden M2() => null;
+    public partial object M2();
+
+    public partial Hidden M3();
+    public partial object M3() => null;
+
+    public partial object M4() => null;
+    public partial Hidden M4();
+
+    public partial Hidden M5();
+    public partial Hidden M5() => null;
+
+    public partial Hidden M6() => null;
+    public partial Hidden M6();
+}
+""";
+
+            CreateCompilation(source).VerifyDiagnostics(
+                // (6,27): error CS0050: Inconsistent accessibility: return type 'C.Hidden' is less accessible than method 'C.M1()'
+                //     public partial Hidden M1() => null;
+                Diagnostic(ErrorCode.ERR_BadVisReturnType, "M1").WithArguments("C.M1()", "C.Hidden").WithLocation(6, 27),
+                // (6,27): error CS8817: Both partial method declarations must have the same return type.
+                //     public partial Hidden M1() => null;
+                Diagnostic(ErrorCode.ERR_PartialMethodReturnTypeDifference, "M1").WithLocation(6, 27),
+                // (8,27): error CS0050: Inconsistent accessibility: return type 'C.Hidden' is less accessible than method 'C.M2()'
+                //     public partial Hidden M2() => null;
+                Diagnostic(ErrorCode.ERR_BadVisReturnType, "M2").WithArguments("C.M2()", "C.Hidden").WithLocation(8, 27),
+                // (8,27): error CS8817: Both partial method declarations must have the same return type.
+                //     public partial Hidden M2() => null;
+                Diagnostic(ErrorCode.ERR_PartialMethodReturnTypeDifference, "M2").WithLocation(8, 27),
+                // (11,27): error CS0050: Inconsistent accessibility: return type 'C.Hidden' is less accessible than method 'C.M3()'
+                //     public partial Hidden M3();
+                Diagnostic(ErrorCode.ERR_BadVisReturnType, "M3").WithArguments("C.M3()", "C.Hidden").WithLocation(11, 27),
+                // (12,27): error CS8817: Both partial method declarations must have the same return type.
+                //     public partial object M3() => null;
+                Diagnostic(ErrorCode.ERR_PartialMethodReturnTypeDifference, "M3").WithLocation(12, 27),
+                // (14,27): error CS8817: Both partial method declarations must have the same return type.
+                //     public partial object M4() => null;
+                Diagnostic(ErrorCode.ERR_PartialMethodReturnTypeDifference, "M4").WithLocation(14, 27),
+                // (15,27): error CS0050: Inconsistent accessibility: return type 'C.Hidden' is less accessible than method 'C.M4()'
+                //     public partial Hidden M4();
+                Diagnostic(ErrorCode.ERR_BadVisReturnType, "M4").WithArguments("C.M4()", "C.Hidden").WithLocation(15, 27),
+                // (17,27): error CS0050: Inconsistent accessibility: return type 'C.Hidden' is less accessible than method 'C.M5()'
+                //     public partial Hidden M5();
+                Diagnostic(ErrorCode.ERR_BadVisReturnType, "M5").WithArguments("C.M5()", "C.Hidden").WithLocation(17, 27),
+                // (18,27): error CS0050: Inconsistent accessibility: return type 'C.Hidden' is less accessible than method 'C.M5()'
+                //     public partial Hidden M5() => null;
+                Diagnostic(ErrorCode.ERR_BadVisReturnType, "M5").WithArguments("C.M5()", "C.Hidden").WithLocation(18, 27),
+                // (20,27): error CS0050: Inconsistent accessibility: return type 'C.Hidden' is less accessible than method 'C.M6()'
+                //     public partial Hidden M6() => null;
+                Diagnostic(ErrorCode.ERR_BadVisReturnType, "M6").WithArguments("C.M6()", "C.Hidden").WithLocation(20, 27),
+                // (21,27): error CS0050: Inconsistent accessibility: return type 'C.Hidden' is less accessible than method 'C.M6()'
+                //     public partial Hidden M6();
+                Diagnostic(ErrorCode.ERR_BadVisReturnType, "M6").WithArguments("C.M6()", "C.Hidden").WithLocation(21, 27)
+                );
+        }
+
+        [Fact]
+        public void FileScoped()
+        {
+            var source = """
+file class Hidden { }
+
+partial class C
+{
+    public partial object M1();
+    public partial Hidden M1() => null;
+
+    public partial Hidden M2() => null;
+    public partial object M2();
+
+    public partial Hidden M3();
+    public partial object M3() => null;
+
+    public partial object M4() => null;
+    public partial Hidden M4();
+
+    public partial Hidden M5();
+    public partial Hidden M5() => null;
+
+    public partial Hidden M6() => null;
+    public partial Hidden M6();
+}
+""";
+
+            CreateCompilation(source).VerifyDiagnostics(
+                // (6,27): error CS9051: File-local type 'Hidden' cannot be used in a member signature in non-file-local type 'C'.
+                //     public partial Hidden M1() => null;
+                Diagnostic(ErrorCode.ERR_FileTypeDisallowedInSignature, "M1").WithArguments("Hidden", "C").WithLocation(6, 27),
+                // (6,27): error CS8817: Both partial method declarations must have the same return type.
+                //     public partial Hidden M1() => null;
+                Diagnostic(ErrorCode.ERR_PartialMethodReturnTypeDifference, "M1").WithLocation(6, 27),
+                // (8,27): error CS9051: File-local type 'Hidden' cannot be used in a member signature in non-file-local type 'C'.
+                //     public partial Hidden M2() => null;
+                Diagnostic(ErrorCode.ERR_FileTypeDisallowedInSignature, "M2").WithArguments("Hidden", "C").WithLocation(8, 27),
+                // (8,27): error CS8817: Both partial method declarations must have the same return type.
+                //     public partial Hidden M2() => null;
+                Diagnostic(ErrorCode.ERR_PartialMethodReturnTypeDifference, "M2").WithLocation(8, 27),
+                // (11,27): error CS9051: File-local type 'Hidden' cannot be used in a member signature in non-file-local type 'C'.
+                //     public partial Hidden M3();
+                Diagnostic(ErrorCode.ERR_FileTypeDisallowedInSignature, "M3").WithArguments("Hidden", "C").WithLocation(11, 27),
+                // (12,27): error CS8817: Both partial method declarations must have the same return type.
+                //     public partial object M3() => null;
+                Diagnostic(ErrorCode.ERR_PartialMethodReturnTypeDifference, "M3").WithLocation(12, 27),
+                // (14,27): error CS8817: Both partial method declarations must have the same return type.
+                //     public partial object M4() => null;
+                Diagnostic(ErrorCode.ERR_PartialMethodReturnTypeDifference, "M4").WithLocation(14, 27),
+                // (15,27): error CS9051: File-local type 'Hidden' cannot be used in a member signature in non-file-local type 'C'.
+                //     public partial Hidden M4();
+                Diagnostic(ErrorCode.ERR_FileTypeDisallowedInSignature, "M4").WithArguments("Hidden", "C").WithLocation(15, 27),
+                // (17,27): error CS9051: File-local type 'Hidden' cannot be used in a member signature in non-file-local type 'C'.
+                //     public partial Hidden M5();
+                Diagnostic(ErrorCode.ERR_FileTypeDisallowedInSignature, "M5").WithArguments("Hidden", "C").WithLocation(17, 27),
+                // (18,27): error CS9051: File-local type 'Hidden' cannot be used in a member signature in non-file-local type 'C'.
+                //     public partial Hidden M5() => null;
+                Diagnostic(ErrorCode.ERR_FileTypeDisallowedInSignature, "M5").WithArguments("Hidden", "C").WithLocation(18, 27),
+                // (20,27): error CS9051: File-local type 'Hidden' cannot be used in a member signature in non-file-local type 'C'.
+                //     public partial Hidden M6() => null;
+                Diagnostic(ErrorCode.ERR_FileTypeDisallowedInSignature, "M6").WithArguments("Hidden", "C").WithLocation(20, 27),
+                // (21,27): error CS9051: File-local type 'Hidden' cannot be used in a member signature in non-file-local type 'C'.
+                //     public partial Hidden M6();
+                Diagnostic(ErrorCode.ERR_FileTypeDisallowedInSignature, "M6").WithArguments("Hidden", "C").WithLocation(21, 27)
+                );
+        }
     }
 }

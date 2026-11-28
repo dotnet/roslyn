@@ -10,21 +10,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 {
     public partial class ParameterListSyntax
     {
-        internal int ParameterCount
+        internal int ParameterCount => GetParameterCount(this.Parameters);
+
+        internal static int GetParameterCount(SeparatedSyntaxList<ParameterSyntax> parameters)
         {
-            get
+            int count = 0;
+            foreach (ParameterSyntax parameter in parameters)
             {
-                int count = 0;
-                foreach (ParameterSyntax parameter in this.Parameters)
+                // __arglist does not affect the parameter count.
+                if (!parameter.IsArgList)
                 {
-                    // __arglist does not affect the parameter count.
-                    if (!parameter.IsArgList)
-                    {
-                        count++;
-                    }
+                    count++;
                 }
-                return count;
             }
+            return count;
         }
     }
 }

@@ -323,7 +323,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             parameters = ParameterHelpers.MakeParameters(
                 signatureBinder,
                 this,
-                declarationSyntax.ParameterList,
+                declarationSyntax.ParameterList.Parameters,
                 out arglistToken,
                 allowRefOrOut: true,
                 allowThis: false,

@@ -124,7 +124,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var signatureBinder = withTypeParamsBinder.WithAdditionalFlagsAndContainingMemberOrLambda(BinderFlags.SuppressConstraintChecks, this);
 
             ImmutableArray<ParameterSymbol> parameters = ParameterHelpers.MakeParameters(
-                signatureBinder, this, syntax.ParameterList, out _,
+                signatureBinder, this, syntax.ParameterList.Parameters, out _,
                 allowRefOrOut: true,
                 allowThis: !this.IsExtensionBlockMember(),
                 addRefReadOnlyModifier: IsVirtual || IsAbstract,

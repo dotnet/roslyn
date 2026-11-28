@@ -271,7 +271,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 SyntaxToken arglistToken;
                 var parameters = ParameterHelpers.MakeParameters(
-                    binder, this, syntax.ParameterList, out arglistToken,
+                    binder, this, syntax.ParameterList.Parameters, out arglistToken,
                     allowRefOrOut: true,
                     allowThis: false,
                     addRefReadOnlyModifier: true,

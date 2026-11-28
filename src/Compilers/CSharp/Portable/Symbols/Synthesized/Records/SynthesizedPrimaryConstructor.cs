@@ -76,9 +76,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return new OneOrMany<SyntaxList<AttributeListSyntax>>(((SourceNamedTypeSymbol)ContainingType).GetAttributeDeclarations());
         }
 
-        protected override ParameterListSyntax GetParameterList()
+        protected override SeparatedSyntaxList<ParameterSyntax> GetParameterList()
         {
-            return GetSyntax().ParameterList!;
+            return GetSyntax().ParameterList!.Parameters;
+        }
+
+        protected override Binder GetParameterListBinder()
+        {
+            TypeDeclarationSyntax syntax = GetSyntax();
+            var binderFactory = this.DeclaringCompilation.GetBinderFactory(syntax.SyntaxTree);
+
+            return binderFactory.GetBinder(syntax.ParameterList, syntax, this).WithContainingMemberOrLambda(this);
         }
 
         protected override CSharpSyntaxNode? GetInitializer()

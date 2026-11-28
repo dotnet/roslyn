@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public static ImmutableArray<SourceParameterSymbol> MakeParameters(
             Binder withTypeParametersBinder,
             Symbol owner,
-            BaseParameterListSyntax syntax,
+            SeparatedSyntaxList<ParameterSyntax> parametersSyntax,
             out SyntaxToken arglistToken,
             BindingDiagnosticBag diagnostics,
             bool allowRefOrOut,
@@ -30,14 +30,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return MakeParameters<ParameterSyntax, SourceParameterSymbol, Symbol>(
                 withTypeParametersBinder,
                 owner,
-                syntax.Parameters,
+                parametersSyntax,
                 out arglistToken,
                 diagnostics,
                 allowRefOrOut,
                 allowThis,
                 addRefReadOnlyModifier,
                 suppressUseSiteDiagnostics: false,
-                lastIndex: syntax.Parameters.Count - 1,
+                lastIndex: parametersSyntax.Count - 1,
                 parameterCreationFunc: static (Binder context, Symbol owner, TypeWithAnnotations parameterType,
                                         ParameterSyntax syntax, RefKind refKind, int ordinal,
                                         SyntaxToken paramsKeyword, SyntaxToken thisKeyword, bool addRefReadOnlyModifier,
@@ -263,10 +263,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             where TOwningSymbol : Symbol
         {
             Debug.Assert(parameterContext is ParameterContext.Default or ParameterContext.FunctionPointer or ParameterContext.ExtensionReceiverParameter);
-            CheckParameterModifiers(parameterSyntax, diagnostics, parameterContext);
 
             bool inExtension = parameterContext is ParameterContext.ExtensionReceiverParameter;
-            var refKind = GetModifiers(parameterSyntax.Modifiers, ignoreParams: inExtension, out SyntaxToken refnessKeyword, out SyntaxToken paramsKeyword, out SyntaxToken thisKeyword, out ScopedKind scope);
+            SyntaxToken refnessKeyword = default;
+            SyntaxToken paramsKeyword = default;
+            SyntaxToken thisKeyword = default;
+            ScopedKind scope = ScopedKind.None;
+            RefKind refKind = RefKind.None;
+
+            bool isUnionCaseParameter = owner is SynthesizedUnionCtor;
+            if (!isUnionCaseParameter)
+            {
+                CheckParameterModifiers(parameterSyntax, diagnostics, parameterContext);
+                refKind = GetModifiers(parameterSyntax.Modifiers, ignoreParams: inExtension, out refnessKeyword, out paramsKeyword, out thisKeyword, out scope);
+            }
 
             if (thisKeyword.Kind() != SyntaxKind.None && !allowThis)
             {
@@ -298,7 +308,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     return null;
                 }
 
-                if (concreteParam.Default != null && firstDefault == -1)
+                if (!isUnionCaseParameter && concreteParam.Default != null && firstDefault == -1)
                 {
                     firstDefault = parameterIndex;
                 }
@@ -620,7 +630,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal static Location GetParameterLocation(ParameterSymbol parameter) => parameter.GetNonNullSyntaxNode().Location;
+        internal static Location GetParameterLocation(ParameterSymbol parameter)
+        {
+            CSharpSyntaxNode syntaxNode = parameter.GetNonNullSyntaxNode();
+
+            if (syntaxNode.SyntaxTree == CSharpSyntaxTree.Dummy && parameter.TryGetFirstLocation() is { } location)
+            {
+                return location;
+            }
+
+            return syntaxNode.Location;
+        }
 
         internal static void CheckParameterModifiers(
             BaseParameterSyntax parameter,
@@ -890,7 +910,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             BindingDiagnosticBag diagnostics)
         {
             int parameterIndex = ordinal;
-            bool isDefault = syntax is ParameterSyntax { Default: { } };
+            bool isDefault = syntax is ParameterSyntax { Default: { } } && owner is not SynthesizedUnionCtor;
 
             if (thisKeyword.Kind() == SyntaxKind.ThisKeyword && parameterIndex != 0 && owner?.IsExtensionBlockMember() != true)
             {
@@ -955,6 +975,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             BoundExpression convertedExpression,
             BindingDiagnosticBag diagnostics)
         {
+            Debug.Assert(owner is not ParameterSymbol);
+            Debug.Assert(owner is not SynthesizedUnionCtor);
+
             bool hasErrors = false;
 
             // SPEC VIOLATION: The spec says that the conversion from the initializer to the 
