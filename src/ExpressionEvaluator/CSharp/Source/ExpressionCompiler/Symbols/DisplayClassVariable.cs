@@ -68,7 +68,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             fields.ReverseContents();
             foreach (var field in fields)
             {
-                expr = new BoundFieldAccess(syntax, expr, field, constantValueOpt: null) { WasCompilerGenerated = true };
+                expr = new BoundFieldAccess(syntax, isInUnsafeRegion: false, expr, field, constantValueOpt: null) { WasCompilerGenerated = true };
             }
             fields.Free();
             return expr;

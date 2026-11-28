@@ -51,6 +51,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             return CreateConversion(syntax, source, conversion, isCast: isCast, conversionGroupOpt, inConversionGroupFlags, source.WasCompilerGenerated, destination, diagnostics);
         }
 
+        /// <remarks>
+        /// See <see cref="BoundExpression.IsInUnsafeRegion"/> for the general unsafe-context rules.
+        /// <para>
+        /// The binder supplies the context of the conversion and its constituent operations, following the
+        /// <see href="https://github.com/dotnet/csharplang/blob/5f34b502b421cc5e1a5a95af01024f5aa45362e2/proposals/unsafe-evolution.md#conversions">unsafe-expression conversion rules</see>.
+        /// </para>
+        /// <para>
+        /// An elided identity conversion returns the operand without changing its context.
+        /// </para>
+        /// </remarks>
         protected BoundExpression CreateConversion(
             SyntaxNode syntax,
             BoundExpression source,
@@ -63,7 +73,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             BindingDiagnosticBag diagnostics,
             bool hasErrors = false)
         {
-
             var result = createConversion(syntax, source, conversion, isCast, conversionGroupOpt, inConversionGroupFlags, wasCompilerGenerated, destination, diagnostics, hasErrors);
 
             Debug.Assert(result is BoundConversion || (conversion.IsIdentity && ((object)result == source) || source.NeedsToBeConverted()) || hasErrors);
@@ -76,7 +85,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else if (source.Type is not null && filterConversion(conversion, result))
             {
-                var placeholder2 = new BoundValuePlaceholder(source.Syntax, source.Type);
+                var placeholder2 = new BoundValuePlaceholder(source.Syntax, isInUnsafeRegion: source.IsInUnsafeRegion, source.Type);
                 var result2 = createConversion(syntax, placeholder2, conversion, isCast, conversionGroupOpt: new ConversionGroup(conversion), InConversionGroupFlags.Unspecified, wasCompilerGenerated, destination, BindingDiagnosticBag.Discarded, hasErrors);
                 Debug.Assert(BoundNode.GetConversion(result2, placeholder2) == conversion);
             }
@@ -202,6 +211,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var convertedSwitch = ConvertSwitchExpression((BoundUnconvertedSwitchExpression)source, destination, conversionIfTargetTyped: conversion, diagnostics);
                     return new BoundConversion(
                         syntax,
+                        InUnsafeRegion,
                         convertedSwitch,
                         conversion,
                         CheckOverflowAtRuntime,
@@ -218,6 +228,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var convertedConditional = ConvertConditionalExpression((BoundUnconvertedConditionalOperator)source, destination, conversionIfTargetTyped: conversion, diagnostics);
                     return new BoundConversion(
                         syntax,
+                        InUnsafeRegion,
                         convertedConditional,
                         conversion,
                         CheckOverflowAtRuntime,
@@ -240,6 +251,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     return new BoundConversion(
                         syntax,
+                        InUnsafeRegion,
                         BindUnconvertedInterpolatedExpressionToHandlerType(source, (NamedTypeSymbol)destination, diagnostics),
                         conversion,
                         @checked: CheckOverflowAtRuntime,
@@ -260,7 +272,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         hasErrors = true;
                     }
 
-                    source = ConvertSwitchExpression((BoundUnconvertedSwitchExpression)source, type, conversionIfTargetTyped: null, diagnostics, hasErrors);
+                    source = WithUnsafeRegion(source.IsInUnsafeRegion).ConvertSwitchExpression((BoundUnconvertedSwitchExpression)source, type, conversionIfTargetTyped: null, diagnostics, hasErrors);
                     if (destination.Equals(type, TypeCompareKind.ConsiderEverything) && wasCompilerGenerated)
                     {
                         return source;
@@ -285,6 +297,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         diagnostics);
                     return new BoundConversion(
                         syntax,
+                        InUnsafeRegion,
                         collectionExpression,
                         conversion,
                         @checked: CheckOverflowAtRuntime,
@@ -322,7 +335,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ConstantValue? constantValue = this.FoldConstantConversion(syntax, source, conversion, destination, diagnostics);
                 if (conversion.Kind == ConversionKind.DefaultLiteral)
                 {
-                    source = new BoundDefaultExpression(source.Syntax, targetType: null, constantValue, type: destination)
+                    source = new BoundDefaultExpression(source.Syntax, isInUnsafeRegion: source.IsInUnsafeRegion, targetType: null, constantValue, type: destination)
                         .WithSuppression(source.IsSuppressed);
                 }
 
@@ -346,6 +359,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 return new BoundConversion(
                     syntax,
+                    InUnsafeRegion,
                     BindToNaturalType(source, diagnostics),
                     conversion,
                     @checked: CheckOverflowAtRuntime,
@@ -364,7 +378,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     ReportDiagnosticsIfObsolete(diagnostics, conversion, syntax, hasBaseReceiver: false);
                     if (conversion.Method is not null)
                     {
-                        ReportDiagnosticsIfUnsafeMemberAccess(diagnostics, conversion.Method, syntax);
+                        ReportDiagnosticsIfUnsafeMemberAccess(diagnostics, conversion.Method, syntax, InUnsafeRegion);
                         ReportUseSite(conversion.Method, diagnostics, syntax.Location);
                     }
 
@@ -385,7 +399,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             case true:
                                 _ = CreateConversion(
                                         syntax,
-                                        new BoundValuePlaceholder(source.Syntax, source.Type.GetNullableUnderlyingType()),
+                                        new BoundValuePlaceholder(source.Syntax, isInUnsafeRegion: source.IsInUnsafeRegion, source.Type.GetNullableUnderlyingType()),
                                         conversion.UnderlyingConversions[0],
                                         isCast: false,
                                         conversionGroupOpt: null,
@@ -416,7 +430,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         _ = CreateConversion(
                                 syntax,
-                                new BoundValuePlaceholder(source.Syntax, source.Type.GetNullableUnderlyingType()),
+                                new BoundValuePlaceholder(source.Syntax, isInUnsafeRegion: source.IsInUnsafeRegion, source.Type.GetNullableUnderlyingType()),
                                 conversion.UnderlyingConversions[0],
                                 isCast: false,
                                 conversionGroupOpt: null,
@@ -445,7 +459,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             _ = CreateConversion(
                                     syntax,
-                                    new BoundValuePlaceholder(source.Syntax, sourceTypes[i].Type),
+                                    new BoundValuePlaceholder(source.Syntax, isInUnsafeRegion: source.IsInUnsafeRegion, sourceTypes[i].Type),
                                     elementConversions[i],
                                     isCast: false,
                                     conversionGroupOpt: null,
@@ -793,6 +807,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 return new BoundInterpolatedString(
                     unconvertedSource.Syntax,
+                    isInUnsafeRegion: unconvertedSource.IsInUnsafeRegion,
                     interpolationData: null,
                     BindInterpolatedStringParts(unconvertedSource, diagnostics),
                     unconvertedSource.ConstantValueOpt,
@@ -815,7 +830,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private static BoundExpression ConvertObjectCreationExpression(
+        private BoundExpression ConvertObjectCreationExpression(
             SyntaxNode syntax, BoundUnconvertedObjectCreationExpression node, Conversion conversion, bool isCast, TypeSymbol destination,
             ConversionGroup? conversionGroupOpt, InConversionGroupFlags inConversionGroupFlags, bool wasCompilerGenerated, BindingDiagnosticBag diagnostics)
         {
@@ -837,6 +852,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             expr = new BoundConversion(
                                   syntax,
+                                  InUnsafeRegion,
                                   expr,
                                   expr is BoundBadExpression ? Conversion.NoConversion : conversion,
                                   node.Binder.CheckOverflowAtRuntime,
@@ -917,6 +933,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 return new BoundCollectionExpression(
                     _node.Syntax,
+                    isInUnsafeRegion: _binder.InUnsafeRegion,
                     collectionTypeKind,
                     placeholder,
                     collectionCreation,
@@ -1041,7 +1058,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return null;
                 }
 
-                var implicitReceiver = new BoundObjectOrCollectionValuePlaceholder(syntax, isNewInstance: true, _targetType) { WasCompilerGenerated = true };
+                var implicitReceiver = new BoundObjectOrCollectionValuePlaceholder(syntax, isInUnsafeRegion: _binder.InUnsafeRegion, isNewInstance: true, _targetType) { WasCompilerGenerated = true };
 
                 var collectionCreation = bindCollectionConstructorConstruction(in this, _node.WithElement?.Syntax ?? _node.Syntax, constructor);
                 Debug.Assert(collectionCreation is BoundObjectCreationExpressionBase or BoundBadExpression);
@@ -1192,7 +1209,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     Debug.Assert(enumeratorInfo.ElementType is { }); // ElementType is set always, even for IEnumerable.
 
                     var expressionSyntax = element.Expression.Syntax;
-                    var elementPlaceholder = new BoundValuePlaceholder(expressionSyntax, enumeratorInfo.ElementType) { WasCompilerGenerated = true };
+                    var elementPlaceholder = new BoundValuePlaceholder(expressionSyntax, isInUnsafeRegion: @this._binder.InUnsafeRegion, enumeratorInfo.ElementType) { WasCompilerGenerated = true };
                     elementPlaceholder = (BoundValuePlaceholder)elementPlaceholder.WithSuppression(element.Expression.IsSuppressed);
                     var convertElement = @this._binder.CreateConversion(
                         expressionSyntax,
@@ -1388,6 +1405,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     var methodGroup = new BoundMethodGroup(
                         syntax,
+                        isInUnsafeRegion: @this._binder.InUnsafeRegion,
                         // Intentionally no type arguments here.  Projection methods are guaranteed to not be generic so we
                         // do not want any sort of generic shenanigans to occur here.
                         typeArgumentsOpt: default,
@@ -1433,7 +1451,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // CollectionBuilder.Create<T1, T2, ..>(a, b, c, <placeholder for [x, y, z]>).
 
                     var readonlySpanParameter = collectionBuilderMethod.Parameters.Last();
-                    var collectionBuilderElementsPlaceholder = new BoundCollectionBuilderElementsPlaceholder(syntax, readonlySpanParameter.Type) { WasCompilerGenerated = true };
+                    var collectionBuilderElementsPlaceholder = new BoundCollectionBuilderElementsPlaceholder(syntax, isInUnsafeRegion: @this._binder.InUnsafeRegion, readonlySpanParameter.Type) { WasCompilerGenerated = true };
 
                     var arguments = projectionCall.Arguments;
                     var argumentNames = projectionCall.ArgumentNamesOpt;
@@ -1452,6 +1470,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     var builderCall = new BoundCall(
                         syntax,
+                        isInUnsafeRegion: projectionCall.IsInUnsafeRegion,
                         receiverOpt: null,
                         // No receiver.  So no concern about cloning.
                         initialBindingReceiverIsSubjectToCloning: ThreeState.False,
@@ -1643,7 +1662,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             ReportDiagnosticsIfObsolete(diagnostics, collectionBuilderMethod.ContainingType, syntax, hasBaseReceiver: false);
             ReportDiagnosticsIfObsolete(diagnostics, collectionBuilderMethod, syntax, hasBaseReceiver: false);
-            ReportDiagnosticsIfUnsafeMemberAccess(diagnostics, collectionBuilderMethod, syntax);
+            ReportDiagnosticsIfUnsafeMemberAccess(diagnostics, collectionBuilderMethod, syntax, InUnsafeRegion);
             ReportDiagnosticsIfUnmanagedCallersOnly(diagnostics, collectionBuilderMethod, syntax, isDelegateConversion: false);
 
             Debug.Assert(!collectionBuilderMethod.IsExtensionBlockMember());
@@ -1777,7 +1796,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var method = memberResolutionResult.Member;
 
                 binder.ReportDiagnosticsIfObsolete(diagnostics, method, node, hasBaseReceiver: false);
-                binder.ReportDiagnosticsIfUnsafeMemberAccess(diagnostics, method, node);
+                binder.ReportDiagnosticsIfUnsafeMemberAccess(diagnostics, method, node, binder.InUnsafeRegion);
                 // NOTE: Use-site diagnostics were reported during overload resolution.
 
                 ImmutableSegmentedDictionary<string, Symbol> requiredMembers = GetMembersRequiringInitialization(method);
@@ -1843,12 +1862,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return true;
             }
 
-            var implicitReceiver = new BoundObjectOrCollectionValuePlaceholder(syntax, isNewInstance: true, targetType) { WasCompilerGenerated = true };
+            var implicitReceiver = new BoundObjectOrCollectionValuePlaceholder(syntax, isInUnsafeRegion: InUnsafeRegion, isNewInstance: true, targetType) { WasCompilerGenerated = true };
 
             // For the element, we create a dynamic argument and will be forcing overload resolution to convert it to any type.
             // This way we are going to do most of the work in terms of determining applicability of 'Add' method candidates
             // in overload resolution.
-            var elementPlaceholder = new BoundValuePlaceholder(syntax, Compilation.DynamicType) { WasCompilerGenerated = true };
+            var elementPlaceholder = new BoundValuePlaceholder(syntax, isInUnsafeRegion: InUnsafeRegion, Compilation.DynamicType) { WasCompilerGenerated = true };
 
             var addMethodBinder = WithAdditionalFlags(BinderFlags.CollectionInitializerAddMethod | BinderFlags.CollectionExpressionConversionValidation);
 
@@ -2027,7 +2046,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 else if (addMethods.Length == 1)
                                 {
                                     addMethodBinder.ReportDiagnosticsIfObsolete(diagnostics, addMethods[0], syntax, hasBaseReceiver: false);
-                                    addMethodBinder.ReportDiagnosticsIfUnsafeMemberAccess(diagnostics, addMethods[0], syntax);
+                                    addMethodBinder.ReportDiagnosticsIfUnsafeMemberAccess(diagnostics, addMethods[0], syntax, addMethodBinder.InUnsafeRegion);
                                     ReportDiagnosticsIfUnmanagedCallersOnly(diagnostics, addMethods[0], syntax, isDelegateConversion: false);
                                     Debug.Assert(!IsDisallowedExtensionInOlderLangVer(addMethods[0]));
                                 }
@@ -2133,7 +2152,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                     member.ContainingType,
                                     parameterTypes,
                                     parameterRefKinds,
-                                    ImmutableArray.Create<BoundExpression>(methodGroup.ReceiverOpt, new BoundValuePlaceholder(syntax, secondArgumentType) { WasCompilerGenerated = true }),
+                                    ImmutableArray.Create<BoundExpression>(methodGroup.ReceiverOpt, new BoundValuePlaceholder(syntax, isInUnsafeRegion: false, secondArgumentType) { WasCompilerGenerated = true }),
                                     ref useSiteInfo);
 
                                 if (!inferenceResult.Success)
@@ -2181,7 +2200,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 member.ContainingType,
                                 parameterTypes,
                                 parameterRefKinds,
-                                ImmutableArray.Create<BoundExpression>(new BoundValuePlaceholder(syntax, member.Parameters[0].Type) { WasCompilerGenerated = true }),
+                                ImmutableArray.Create<BoundExpression>(new BoundValuePlaceholder(syntax, isInUnsafeRegion: false, member.Parameters[0].Type) { WasCompilerGenerated = true }),
                                 ref useSiteInfo);
 
                             if (!inferenceResult.Success)
@@ -2312,7 +2331,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal bool TryGetCollectionIterationType(SyntaxNode syntax, TypeSymbol collectionType, out TypeWithAnnotations iterationType)
         {
-            BoundExpression collectionExpr = new BoundValuePlaceholder(syntax, collectionType);
+            BoundExpression collectionExpr = new BoundValuePlaceholder(syntax, isInUnsafeRegion: InUnsafeRegion, collectionType);
             bool result = GetEnumeratorInfoAndInferCollectionElementType(
                 syntax,
                 syntax,
@@ -2346,7 +2365,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var naturalWithArguments = withArgumentsBuilder.ToImmutableAndFree();
             var collectionCreation = naturalWithArguments.Length > 0
-                ? new BoundBadExpression(node.WithElement!.Syntax, LookupResultKind.Empty, symbols: [], naturalWithArguments, CreateErrorType())
+                ? new BoundBadExpression(node.WithElement!.Syntax, isInUnsafeRegion: node.IsInUnsafeRegion, LookupResultKind.Empty, symbols: [], naturalWithArguments, CreateErrorType())
                 : null;
 
             var elementsBuilder = ArrayBuilder<BoundNode>.GetInstance(node.Elements.Length);
@@ -2360,6 +2379,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return new BoundCollectionExpression(
                 node.Syntax,
+                isInUnsafeRegion: node.IsInUnsafeRegion,
                 collectionTypeKind: CollectionExpressionTypeKind.None,
                 placeholder: null,
                 collectionCreation,
@@ -2507,7 +2527,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     new CSharpRequiredLanguageVersion(MessageID.IDS_FeatureTargetTypedConditional.RequiredVersion()));
             }
 
-            return new BoundConditionalOperator(source.Syntax, isRef: false, condition, trueExpr, falseExpr, constantValue, source.Type, wasTargetTyped: targetTyped, destination, hasErrors)
+            return new BoundConditionalOperator(source.Syntax, isInUnsafeRegion: source.IsInUnsafeRegion, isRef: false, condition, trueExpr, falseExpr, constantValue, source.Type, wasTargetTyped: targetTyped, destination, hasErrors)
                 .WithSuppression(source.IsSuppressed);
         }
 
@@ -2537,7 +2557,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var newSwitchArms = builder.ToImmutableAndFree();
             return new BoundConvertedSwitchExpression(
-                source.Syntax, source.Type, targetTyped, source.Expression, newSwitchArms, source.ReachabilityDecisionDag,
+                source.Syntax, isInUnsafeRegion: source.IsInUnsafeRegion, source.Type, targetTyped, source.Expression, newSwitchArms, source.ReachabilityDecisionDag,
                 source.DefaultLabel, source.ReportedNotExhaustive, destination, hasErrors || source.HasErrors).WithSuppression(source.IsSuppressed);
         }
 
@@ -2563,6 +2583,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 return new BoundConversion(
                     syntax,
+                    InUnsafeRegion,
                     BindToNaturalType(source, diagnostics),
                     conversion,
                     CheckOverflowAtRuntime,
@@ -2653,6 +2674,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // NB: not calling CreateConversion here because this is the recursive base case.
                 userDefinedConversion = new BoundConversion(
                     syntax,
+                    InUnsafeRegion,
                     convertedOperand,
                     conversion,
                     @checked: CheckOverflowAtRuntime,
@@ -2699,6 +2721,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // NB: not calling CreateConversion here because this is the recursive base case.
                 userDefinedConversion = new BoundConversion(
                     syntax,
+                    InUnsafeRegion,
                     convertedOperand,
                     conversion,
                     @checked: CheckOverflowAtRuntime,
@@ -2754,6 +2777,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 return new BoundConversion(
                     syntax,
+                    InUnsafeRegion,
                     BindToNaturalType(source, diagnostics),
                     conversion,
                     CheckOverflowAtRuntime,
@@ -2831,6 +2855,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var unionConversion = new BoundConversion(
                     syntax,
+                    InUnsafeRegion,
                     convertedOperand,
                     conversion,
                     @checked: CheckOverflowAtRuntime,
@@ -2893,7 +2918,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 GenerateImplicitConversionError(diagnostics, syntax, conversion, source, delegateType);
                 expr = new BoundConversion(
-                    syntax, source, conversion, @checked: false, explicitCastInCode: isCast,
+                    syntax, InUnsafeRegion, source, conversion, @checked: false, explicitCastInCode: isCast,
                     conversionGroup, inConversionGroupFlags | InConversionGroupFlags.FunctionTypeDelegate,
                     constantValueOpt: ConstantValue.NotAvailable, type: delegateType, hasErrors: true)
                 { WasCompilerGenerated = source.WasCompilerGenerated };
@@ -2941,6 +2966,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             CheckLambdaConversion((LambdaSymbol)boundLambda.Symbol, destination, diagnostics);
             return new BoundConversion(
                 syntax,
+                InUnsafeRegion,
                 boundLambda,
                 conversion,
                 @checked: false,
@@ -2974,7 +3000,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(conversion.UnderlyingConversions.IsDefault);
             conversion.MarkUnderlyingConversionsChecked();
 
-            return new BoundConversion(syntax, group, conversion, @checked: false, explicitCastInCode: isCast, conversionGroup, inConversionGroupFlags, constantValueOpt: ConstantValue.NotAvailable, type: destination, hasErrors: hasErrors) { WasCompilerGenerated = group.WasCompilerGenerated };
+            return new BoundConversion(syntax, InUnsafeRegion, group, conversion, @checked: false, explicitCastInCode: isCast, conversionGroup, inConversionGroupFlags, constantValueOpt: ConstantValue.NotAvailable, type: destination, hasErrors: hasErrors) { WasCompilerGenerated = group.WasCompilerGenerated };
         }
 
         private static void CheckParameterModifierMismatchMethodConversion(SyntaxNode syntax, MethodSymbol lambdaOrMethod, TypeSymbol targetType, bool invokedAsExtensionMethod, BindingDiagnosticBag diagnostics)
@@ -3127,11 +3153,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             switch (conversion.Kind)
             {
                 case ConversionKind.StackAllocToPointerType:
-                    ReportUnsafeIfNotAllowed(syntax.Location, diagnostics, disallowedUnder: MemorySafetyRulesVersion.Version1);
+                    ReportUnsafeIfNotAllowed(syntax, diagnostics, source.IsInUnsafeRegion, disallowedUnder: MemorySafetyRulesVersion.Version1);
                     stackAllocType = new PointerTypeSymbol(TypeWithAnnotations.Create(elementType));
                     break;
                 case ConversionKind.StackAllocToSpanType:
-                    ReportUnsafeForUninitializedSpanStackAllocIfRequired(syntax, diagnostics, hasInitializer: boundStackAlloc.InitializerOpt is not null);
+                    ReportUnsafeForUninitializedSpanStackAllocIfRequired(syntax, diagnostics, hasInitializer: boundStackAlloc.InitializerOpt is not null, source.IsInUnsafeRegion);
 
                     CheckFeatureAvailability(syntax, MessageID.IDS_FeatureRefStructs, diagnostics);
                     stackAllocType = Compilation.GetWellKnownType(WellKnownType.System_Span_T).Construct(elementType);
@@ -3140,7 +3166,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     throw ExceptionUtilities.UnexpectedValue(conversion.Kind);
             }
 
-            var convertedNode = new BoundConvertedStackAllocExpression(syntax, elementType, boundStackAlloc.Count, boundStackAlloc.InitializerOpt, stackAllocType, boundStackAlloc.HasErrors);
+            var convertedNode = new BoundConvertedStackAllocExpression(syntax, isInUnsafeRegion: source.IsInUnsafeRegion, elementType, boundStackAlloc.Count, boundStackAlloc.InitializerOpt, stackAllocType, boundStackAlloc.HasErrors);
 
             var underlyingConversion = conversion.UnderlyingConversions.Single();
             return CreateConversion(syntax, convertedNode, underlyingConversion, isCast: isCast, conversionGroup, inConversionGroupFlags, destination, diagnostics);
@@ -3221,12 +3247,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             BoundExpression result = new BoundConvertedTupleLiteral(
                 sourceTuple.Syntax,
+                isInUnsafeRegion: sourceTuple.IsInUnsafeRegion,
                 sourceTuple,
                 wasTargetTyped: true,
                 convertedArguments.ToImmutableAndFree(),
                 sourceTuple.ArgumentNamesOpt,
                 sourceTuple.InferredNamesOpt,
-                targetType).WithSuppression(sourceTuple.IsSuppressed);
+                targetType)
+                .WithSuppression(sourceTuple.IsSuppressed);
 
             Debug.Assert((inConversionGroupFlags & InConversionGroupFlags.TupleLiteral) == 0);
             if (!TypeSymbol.Equals(sourceTuple.Type, destination, TypeCompareKind.ConsiderEverything2))
@@ -3234,6 +3262,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // literal cast is applied to the literal 
                 result = new BoundConversion(
                     sourceTuple.Syntax,
+                    InUnsafeRegion,
                     result,
                     conversion,
                     @checked: false,
@@ -3251,6 +3280,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 result = new BoundConversion(
                     syntax,
+                    InUnsafeRegion,
                     result,
                     Conversion.Identity,
                     @checked: false,
@@ -3762,7 +3792,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             if ((selectedMethod.HasParameterContainingPointerType() || selectedMethod.ReturnType.ContainsPointerOrFunctionPointer())
-                && ReportUnsafeIfNotAllowed(syntax, diagnostics, disallowedUnder: MemorySafetyRulesVersion.Version1))
+                && ReportUnsafeIfNotAllowed(syntax, diagnostics, InUnsafeRegion, disallowedUnder: MemorySafetyRulesVersion.Version1))
             {
                 return true;
             }
@@ -3774,7 +3804,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             ReportDiagnosticsIfObsolete(diagnostics, selectedMethod, syntax, hasBaseReceiver: false);
             ReportDisallowedExtensionBlockMethod(selectedMethod, syntax, diagnostics);
-            ReportDiagnosticsIfUnsafeMemberAccess(diagnostics, selectedMethod, syntax);
+            ReportDiagnosticsIfUnsafeMemberAccess(diagnostics, selectedMethod, syntax, InUnsafeRegion);
 
             // No use site errors, but there could be use site warnings.
             // If there are use site warnings, they were reported during the overload resolution process

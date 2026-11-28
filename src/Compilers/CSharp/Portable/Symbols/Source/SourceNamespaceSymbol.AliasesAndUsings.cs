@@ -1017,7 +1017,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                         if (alias.UsingDirective.UnsafeKeyword == default)
                         {
-                            compilation.GetBinder(alias.UsingDirective.NamespaceOrType).ReportDiagnosticsIfUnsafeMemberAccess(diagnostics.DiagnosticBag, alias.Alias.Target, alias.Alias.GetFirstLocation());
+                            var binder = compilation.GetBinder(alias.UsingDirective.NamespaceOrType);
+                            binder.ReportDiagnosticsIfUnsafeMemberAccess(diagnostics.DiagnosticBag, alias.Alias.Target, alias.Alias.GetFirstLocation(), binder.InUnsafeRegion);
                         }
 
                         semanticDiagnostics.AddRange(diagnostics.DiagnosticBag);
@@ -1051,7 +1052,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                         if (usingDirective.UnsafeKeyword == default)
                         {
-                            compilation.GetBinder(usingDirective.NamespaceOrType).ReportDiagnosticsIfUnsafeMemberAccess(diagnostics, typeSymbol, usingDirective.NamespaceOrType);
+                            var binder = compilation.GetBinder(usingDirective.NamespaceOrType);
+                            binder.ReportDiagnosticsIfUnsafeMemberAccess(diagnostics, typeSymbol, usingDirective.NamespaceOrType, binder.InUnsafeRegion);
                         }
                     }
 

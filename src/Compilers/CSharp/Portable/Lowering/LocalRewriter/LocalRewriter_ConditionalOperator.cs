@@ -61,6 +61,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 return new BoundConditionalOperator(
                     syntax,
+                    isInUnsafeRegion: false,
                     isRef,
                     rewrittenCondition,
                     rewrittenConsequence,

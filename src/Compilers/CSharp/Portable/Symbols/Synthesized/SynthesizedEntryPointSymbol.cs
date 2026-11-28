@@ -296,6 +296,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             return new BoundCall(
                 syntax,
+                isInUnsafeRegion: false,
                 receiver,
                 initialBindingReceiverIsSubjectToCloning: receiverIsSubjectToCloning,
                 method,
@@ -359,11 +360,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 var binder = compilation.GetBinder(_userMainReturnTypeSyntax);
                 _parameters = SynthesizedParameterSymbol.DeriveParameters(userMain, this);
 
-                var arguments = Parameters.SelectAsArray((p, s) => (BoundExpression)new BoundParameter(s, p, p.Type), _userMainReturnTypeSyntax);
+                var arguments = Parameters.SelectAsArray((p, s) => (BoundExpression)new BoundParameter(s, isInUnsafeRegion: false, p, p.Type), _userMainReturnTypeSyntax);
 
                 // Main(args) or Main()
                 BoundCall userMainInvocation = new BoundCall(
                         syntax: _userMainReturnTypeSyntax,
+                        isInUnsafeRegion: false,
                         receiverOpt: null,
                         initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown,
                         method: userMain,
@@ -390,6 +392,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     // Use the new HandleAsyncEntryPoint API
                     _userEntryPointInvocation = new BoundCall(
                             syntax: _userMainReturnTypeSyntax,
+                            isInUnsafeRegion: false,
                             receiverOpt: null,
                             initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown,
                             method: handleAsyncEntryPointMethod,
@@ -521,6 +524,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 var scriptLocal = new BoundLocal(
                     syntax,
+                    isInUnsafeRegion: binder.InUnsafeRegion,
                     new SynthesizedLocal(this, TypeWithAnnotations.Create(_containingType), SynthesizedLocalKind.LoweringTemp),
                     null,
                     _containingType)
@@ -547,9 +551,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             syntax,
                             new BoundAssignmentOperator(
                                 syntax,
+                                isInUnsafeRegion: binder.InUnsafeRegion,
                                 scriptLocal,
                                 new BoundObjectCreationExpression(
                                     syntax,
+                                    isInUnsafeRegion: binder.InUnsafeRegion,
                                     ctor)
                                 { WasCompilerGenerated = true },
                                 _containingType)
@@ -611,9 +617,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 var initializer = _containingType.GetScriptInitializer();
                 Debug.Assert(initializer.ParameterCount == 0);
 
-                var submissionArrayParameter = new BoundParameter(syntax, _parameters[0]) { WasCompilerGenerated = true };
+                var submissionArrayParameter = new BoundParameter(syntax, isInUnsafeRegion: false, _parameters[0]) { WasCompilerGenerated = true };
                 var submissionLocal = new BoundLocal(
                     syntax,
+                    isInUnsafeRegion: false,
                     new SynthesizedLocal(this, TypeWithAnnotations.Create(_containingType), SynthesizedLocalKind.LoweringTemp),
                     null,
                     _containingType)
@@ -624,9 +631,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     syntax,
                     new BoundAssignmentOperator(
                         syntax,
+                        isInUnsafeRegion: false,
                         submissionLocal,
                         new BoundObjectCreationExpression(
                             syntax,
+                            isInUnsafeRegion: false,
                             ctor,
                             ImmutableArray.Create<BoundExpression>(submissionArrayParameter),
                             argumentNamesOpt: default(ImmutableArray<string>),

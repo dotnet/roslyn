@@ -251,12 +251,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                             if (isRef)
                             {
                                 Debug.Assert(rewrittenRight.Type is not null);
-                                return new BoundRefAccess(syntax, RefKindExtensions.StrictIn, rewrittenRight, rewrittenRight.Type);
+                                return new BoundRefAccess(syntax, isInUnsafeRegion: false, RefKindExtensions.StrictIn, rewrittenRight, rewrittenRight.Type);
                             }
                             else if (CodeGen.CodeGenerator.IsRef(rewrittenRight))
                             {
                                 // Preserve the fact that it was a value
-                                return new BoundPassByCopy(syntax, rewrittenRight, rewrittenRight.Type);
+                                return new BoundPassByCopy(syntax, isInUnsafeRegion: false, rewrittenRight, rewrittenRight.Type);
                             }
                         }
 
@@ -419,16 +419,18 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 LocalSymbol rhsTemp = _factory.SynthesizedLocal(exprType);
 
-                BoundExpression boundRhs = new BoundLocal(syntax, rhsTemp, null, exprType);
+                BoundExpression boundRhs = new BoundLocal(syntax, isInUnsafeRegion: false, rhsTemp, null, exprType);
 
                 BoundExpression rhsAssignment = new BoundAssignmentOperator(
                     syntax,
+                    isInUnsafeRegion: false,
                     boundRhs,
                     rewrittenRight,
                     exprType);
 
                 BoundExpression setterCall = BoundCall.Synthesized(
                     syntax,
+                    isInUnsafeRegion: false,
                     rewrittenReceiver,
                     initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown,
                     setMethod,
@@ -436,6 +438,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 return new BoundSequence(
                     syntax,
+                    isInUnsafeRegion: false,
                     AppendToPossibleNull(argTemps, rhsTemp),
                     sideEffects.Add(setterCall), // https://github.com/dotnet/roslyn/issues/78829 - there is no test coverage for 'sideEffects' on this code path
                     boundRhs,
@@ -445,6 +448,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 BoundCall setterCall = BoundCall.Synthesized(
                     syntax,
+                    isInUnsafeRegion: false,
                     rewrittenReceiver,
                     initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown,
                     setMethod,
@@ -459,6 +463,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     return new BoundSequence(
                         syntax,
+                        isInUnsafeRegion: false,
                         argTemps,
                         sideEffects,
                         setterCall,

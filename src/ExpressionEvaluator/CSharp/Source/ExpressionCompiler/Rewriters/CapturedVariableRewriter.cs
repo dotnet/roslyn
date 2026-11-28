@@ -96,6 +96,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             // introduce a bunch of new overloads to accommodate isBaseConversion.
             return new BoundConversion(
                 syntax,
+                isInUnsafeRegion: false,
                 rewrittenThis,
                 conversion,
                 isBaseConversion: true,

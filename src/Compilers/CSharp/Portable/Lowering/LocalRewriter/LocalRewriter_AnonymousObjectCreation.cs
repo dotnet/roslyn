@@ -22,6 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return new BoundObjectCreationExpression(
                 syntax: node.Syntax,
+                isInUnsafeRegion: node.IsInUnsafeRegion,
                 constructor: node.Constructor,
                 arguments: rewrittenArguments,
                 argumentNamesOpt: default(ImmutableArray<string?>),

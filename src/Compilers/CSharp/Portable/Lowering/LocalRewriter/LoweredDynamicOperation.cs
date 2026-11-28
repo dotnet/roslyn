@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public static LoweredDynamicOperation Bad(TypeSymbol resultType, ImmutableArray<BoundExpression> children)
         {
             Debug.Assert(children.Length > 0);
-            var bad = new BoundBadExpression(children[0].Syntax, LookupResultKind.Empty, ImmutableArray<Symbol?>.Empty, children, resultType);
+            var bad = new BoundBadExpression(children[0].Syntax, isInUnsafeRegion: false, LookupResultKind.Empty, ImmutableArray<Symbol?>.Empty, children, resultType);
             return new LoweredDynamicOperation(null, null, bad, resultType, default(ImmutableArray<LocalSymbol>));
         }
 
@@ -72,7 +72,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                return new BoundSequence(_factory.Syntax, _temps, ImmutableArray.Create(SiteInitialization), SiteInvocation, _resultType) { WasCompilerGenerated = true };
+                return new BoundSequence(_factory.Syntax, isInUnsafeRegion: false, _temps, ImmutableArray.Create(SiteInitialization), SiteInvocation, _resultType) { WasCompilerGenerated = true };
             }
         }
     }

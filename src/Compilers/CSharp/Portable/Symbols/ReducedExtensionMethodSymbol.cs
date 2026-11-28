@@ -142,9 +142,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             // Create an argument value for the "this" argument of specific type,
             // and pass the same bad argument value for all other arguments.
-            var thisArgumentValue = new BoundLiteral(syntax, ConstantValue.Bad, thisType) { WasCompilerGenerated = true };
+            var thisArgumentValue = new BoundLiteral(syntax, isInUnsafeRegion: false, ConstantValue.Bad, thisType) { WasCompilerGenerated = true };
             var otherArgumentType = new ExtendedErrorTypeSymbol(errorNamespace, name: string.Empty, arity: 0, errorInfo: null, unreported: false);
-            var otherArgumentValue = new BoundLiteral(syntax, ConstantValue.Bad, otherArgumentType) { WasCompilerGenerated = true };
+            var otherArgumentValue = new BoundLiteral(syntax, isInUnsafeRegion: false, ConstantValue.Bad, otherArgumentType) { WasCompilerGenerated = true };
 
             var paramCount = method.ParameterCount;
             var arguments = new BoundExpression[paramCount];

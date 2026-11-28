@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // We do not care if the type is bad or missing though.
             // Note, we have to cheat with BoundParameter.Type below to force ldind.u1 instruction in IL.
 
-            return f.ExpressionStatement(new BoundParameter(f.Syntax, inlineArrayParameter, f.Compilation.GetSpecialType(SpecialType.System_Byte)) { WasCompilerGenerated = true });
+            return f.ExpressionStatement(new BoundParameter(f.Syntax, isInUnsafeRegion: false, inlineArrayParameter, f.Compilation.GetSpecialType(SpecialType.System_Byte)) { WasCompilerGenerated = true });
         }
     }
 }

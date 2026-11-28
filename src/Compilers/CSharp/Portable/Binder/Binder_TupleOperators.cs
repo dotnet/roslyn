@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             TypeSymbol resultType = GetSpecialType(SpecialType.System_Boolean, diagnostics, node);
 
-            return new BoundTupleBinaryOperator(node, convertedLeft, convertedRight, kind, operators, resultType);
+            return new BoundTupleBinaryOperator(node, isInUnsafeRegion: InUnsafeRegion, convertedLeft, convertedRight, kind, operators, resultType);
         }
 
         private BoundExpression ApplyConvertedTypes(BoundExpression expr, TupleBinaryOperatorInfo @operator, bool isRight, BindingDiagnosticBag diagnostics)
@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
 
                     return new BoundConvertedTupleLiteral(
-                        tuple.Syntax, tuple, wasTargetTyped: false, builder.ToImmutableAndFree(), tuple.ArgumentNamesOpt, tuple.InferredNamesOpt, tuple.Type, tuple.HasErrors);
+                        tuple.Syntax, isInUnsafeRegion: InUnsafeRegion, tuple, wasTargetTyped: false, builder.ToImmutableAndFree(), tuple.ArgumentNamesOpt, tuple.InferredNamesOpt, tuple.Type, tuple.HasErrors);
                 }
 
                 // This element isn't getting a converted type
@@ -135,7 +135,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (conversion.IsImplicit)
             {
-                conversionForBoolPlaceholder = new BoundValuePlaceholder(node, type).MakeCompilerGenerated();
+                conversionForBoolPlaceholder = new BoundValuePlaceholder(node, isInUnsafeRegion: InUnsafeRegion, type).MakeCompilerGenerated();
                 conversionForBool = CreateConversion(node, conversionForBoolPlaceholder, conversion, isCast: false, conversionGroupOpt: null, InConversionGroupFlags.Unspecified, boolean, diagnostics);
                 boolOperator = default;
                 return;
@@ -158,14 +158,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             LookupResultKind resultKind;
             ImmutableArray<MethodSymbol> originalUserDefinedOperators;
-            BoundExpression comparisonResult = new BoundTupleOperandPlaceholder(node, type);
+            BoundExpression comparisonResult = new BoundTupleOperandPlaceholder(node, isInUnsafeRegion: InUnsafeRegion, type);
             OperatorResolutionForReporting discardedOperatorResolutionForReporting = default;
             UnaryOperatorAnalysisResult best = this.UnaryOperatorOverloadResolution(boolOpKind, comparisonResult, node, diagnostics, ref discardedOperatorResolutionForReporting, out resultKind, out originalUserDefinedOperators);
             discardedOperatorResolutionForReporting.Free();
 
             if (best.HasValue)
             {
-                conversionForBoolPlaceholder = new BoundValuePlaceholder(node, type).MakeCompilerGenerated();
+                conversionForBoolPlaceholder = new BoundValuePlaceholder(node, isInUnsafeRegion: InUnsafeRegion, type).MakeCompilerGenerated();
                 conversionForBool = CreateConversion(node, conversionForBoolPlaceholder, best.Conversion, isCast: false, conversionGroupOpt: null, InConversionGroupFlags.Unspecified, best.Signature.OperandType, diagnostics);
                 boolOperator = best.Signature;
                 return;
@@ -336,7 +336,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             Debug.Assert(targetType.StrippedType().IsTupleType);
-            return new BoundDefaultExpression(expr.Syntax, targetType);
+            return new BoundDefaultExpression(expr.Syntax, isInUnsafeRegion: expr.IsInUnsafeRegion, targetType);
         }
 
         private static bool IsTupleBinaryOperation(BoundExpression left, BoundExpression right)
@@ -388,7 +388,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // placeholder bound nodes with the proper types are sufficient to bind the element-wise binary operators
             TypeSymbol tupleType = expr.Type.StrippedType();
             ImmutableArray<BoundExpression> placeholders = tupleType.TupleElementTypesWithAnnotations
-                .SelectAsArray((t, s) => (BoundExpression)new BoundTupleOperandPlaceholder(s, t.Type), expr.Syntax);
+                .SelectAsArray((t, e) => (BoundExpression)new BoundTupleOperandPlaceholder(e.Syntax, isInUnsafeRegion: e.IsInUnsafeRegion, t.Type), expr);
 
             return (placeholders, tupleType.TupleElementNames);
         }

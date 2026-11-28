@@ -8,8 +8,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     internal sealed partial class BoundExpressionWithNullability : BoundExpression
     {
-        public BoundExpressionWithNullability(SyntaxNode syntax, BoundExpression expression, NullableAnnotation nullableAnnotation, TypeSymbol? type)
-            : this(syntax, expression, nullableAnnotation, type, hasErrors: false)
+        public BoundExpressionWithNullability(SyntaxNode syntax, bool isInUnsafeRegion, BoundExpression expression, NullableAnnotation nullableAnnotation, TypeSymbol? type)
+            : this(syntax, isInUnsafeRegion, expression, nullableAnnotation, type, hasErrors: false)
         {
             IsSuppressed = expression.IsSuppressed;
         }

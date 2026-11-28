@@ -193,7 +193,7 @@ fallbackStrings:
 
                     var method = UnsafeGetSpecialTypeMethod(originalSyntax, concatMember);
                     Debug.Assert(method is not null);
-                    return BoundCall.Synthesized(originalSyntax, receiverOpt: null, initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown, method, finalArguments);
+                    return BoundCall.Synthesized(originalSyntax, isInUnsafeRegion: false, receiverOpt: null, initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown, method, finalArguments);
 
                 default:
                     throw ExceptionUtilities.UnexpectedValue(concatKind);
@@ -529,6 +529,7 @@ fallbackStrings:
 
                     var wrappedChar = new BoundObjectCreationExpression(
                         arg.Syntax,
+                        isInUnsafeRegion: arg.IsInUnsafeRegion,
                         readOnlySpanCtorRefParamChar,
                         [temp],
                         argumentNamesOpt: default,
@@ -542,6 +543,7 @@ fallbackStrings:
 
                     args[i] = new BoundSequence(
                         arg.Syntax,
+                        isInUnsafeRegion: arg.IsInUnsafeRegion,
                         [],
                         [tempAssignment],
                         wrappedChar,
@@ -551,11 +553,11 @@ fallbackStrings:
                 {
                     Debug.Assert(arg.HasAnyErrors || arg.Type.SpecialType == SpecialType.System_String);
                     Debug.Assert(stringImplicitConversionToReadOnlySpan is not null);
-                    args[i] = BoundCall.Synthesized(arg.Syntax, receiverOpt: null, initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown, stringImplicitConversionToReadOnlySpan, arg);
+                    args[i] = BoundCall.Synthesized(arg.Syntax, isInUnsafeRegion: false, receiverOpt: null, initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown, stringImplicitConversionToReadOnlySpan, arg);
                 }
             }
 
-            var concatCall = BoundCall.Synthesized(syntax, receiverOpt: null, initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown, spanConcat, args.ToImmutableAndFree());
+            var concatCall = BoundCall.Synthesized(syntax, isInUnsafeRegion: false, receiverOpt: null, initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown, spanConcat, args.ToImmutableAndFree());
 
             var oldSyntax = factory.Syntax;
             factory.Syntax = syntax;
@@ -607,7 +609,7 @@ fallbackStrings:
                 var method = UnsafeGetSpecialTypeMethod(current.Syntax, member);
                 Debug.Assert(method is not null);
 
-                currentResult = new BoundBinaryOperator(current.Syntax, current.OperatorKind, constantValueOpt: null, method, constrainedToTypeOpt: null, default(LookupResultKind), currentResult, right, current.Type);
+                currentResult = new BoundBinaryOperator(current.Syntax, isInUnsafeRegion: current.IsInUnsafeRegion, current.OperatorKind, constantValueOpt: null, method, constrainedToTypeOpt: null, default(LookupResultKind), currentResult, right, current.Type);
             }
 
             stack.Free();
@@ -690,7 +692,7 @@ fallbackStrings:
                 expr.Type.SpecialType.CanOptimizeBehavior() &&
                 !isFieldOfMarshalByRef(expr, _compilation))
             {
-                return BoundCall.Synthesized(syntax, expr, initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown, structToStringMethod);
+                return BoundCall.Synthesized(syntax, isInUnsafeRegion: false, expr, initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown, structToStringMethod);
             }
 
             // - It's a reference type (excluding unconstrained generics): no copy
@@ -713,9 +715,9 @@ fallbackStrings:
             {
                 if (!callWithoutCopy)
                 {
-                    expr = new BoundPassByCopy(syntax, expr, expr.Type);
+                    expr = new BoundPassByCopy(syntax, isInUnsafeRegion: false, expr, expr.Type);
                 }
-                return BoundCall.Synthesized(syntax, expr, initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown, objectToStringMethod);
+                return BoundCall.Synthesized(syntax, isInUnsafeRegion: false, expr, initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown, objectToStringMethod);
             }
 
             if (callWithoutCopy)
@@ -741,11 +743,13 @@ fallbackStrings:
 
                 return new BoundLoweredConditionalAccess(
                     syntax,
+                    isInUnsafeRegion: false,
                     receiver,
                     hasValueMethodOpt: null,
                     whenNotNull: BoundCall.Synthesized(
                         syntax,
-                        new BoundConditionalReceiver(syntax, currentConditionalAccessID, expr.Type),
+                        isInUnsafeRegion: false,
+                        new BoundConditionalReceiver(syntax, isInUnsafeRegion: false, currentConditionalAccessID, expr.Type),
                         initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown,
                         objectToStringMethod),
                     whenNullOpt: null,

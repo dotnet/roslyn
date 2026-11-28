@@ -1769,7 +1769,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var syntaxNode = new LiteralExpressionSyntax(greenNode, null, 0);
 
             TypeSymbol expectedAttributeType = corLibrary.GetSpecialType(SpecialType.System_Int32);
-            BoundLiteral intMaxValueLiteral = new BoundLiteral(syntaxNode, ConstantValue.Create(int.MaxValue), expectedAttributeType);
+            BoundLiteral intMaxValueLiteral = new BoundLiteral(syntaxNode, isInUnsafeRegion: false, ConstantValue.Create(int.MaxValue), expectedAttributeType);
 
             // Below is a duplication of relevant parts of ClassifyStandardImplicitConversion method.
             // It needs a compilation instance, but we don't have it and the relevant parts actually do not depend on

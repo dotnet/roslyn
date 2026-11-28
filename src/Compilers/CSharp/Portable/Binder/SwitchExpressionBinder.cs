@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return new BoundUnconvertedSwitchExpression(
-                node, boundInputExpression, switchArms, decisionDag,
+                node, isInUnsafeRegion: InUnsafeRegion, boundInputExpression, switchArms, decisionDag,
                 defaultLabel: defaultLabel, reportedNotExhaustive: reportedNotExhaustive, type: naturalType);
         }
 

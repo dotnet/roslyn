@@ -83,6 +83,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ConditionalAccessLoweringKind.LoweredConditionalAccess:
                     _currentConditionalAccessTarget = new BoundConditionalReceiver(
                         loweredReceiver.Syntax,
+                        isInUnsafeRegion: false,
                         currentConditionalAccessID,
                         receiverType);
 
@@ -149,6 +150,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     Debug.Assert(loweredReceiver.Type is { });
                     result = new BoundLoweredConditionalAccess(
                         node.Syntax,
+                        isInUnsafeRegion: node.IsInUnsafeRegion,
                         loweredReceiver,
                         receiverType.IsNullableType() ?
                                  UnsafeGetNullableMethod(node.Syntax, loweredReceiver.Type, SpecialMember.System_Nullable_T_get_HasValue) :

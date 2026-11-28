@@ -21,14 +21,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (NullableNeverHasValue(operand))
             {
-                operand = new BoundDefaultExpression(operand.Syntax, operand.Type!.GetNullableUnderlyingType());
+                operand = new BoundDefaultExpression(operand.Syntax, isInUnsafeRegion: operand.IsInUnsafeRegion, operand.Type!.GetNullableUnderlyingType());
             }
 
             operand = NullableAlwaysHasValue(operand) ?? operand;
 
             if (!node.Type.IsNullableType())
             {
-                return new BoundObjectCreationExpression(node.Syntax, node.MethodOpt, operand, fromEnd);
+                return new BoundObjectCreationExpression(node.Syntax, isInUnsafeRegion: node.IsInUnsafeRegion, node.MethodOpt, operand, fromEnd);
             }
 
             ArrayBuilder<BoundExpression> sideeffects = ArrayBuilder<BoundExpression>.GetInstance();
@@ -40,13 +40,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // new Index(operand, fromEnd: true)
             BoundExpression boundOperandGetValueOrDefault = MakeOptimizedGetValueOrDefault(operand.Syntax, operand);
-            BoundExpression indexCreation = new BoundObjectCreationExpression(node.Syntax, node.MethodOpt, boundOperandGetValueOrDefault, fromEnd);
+            BoundExpression indexCreation = new BoundObjectCreationExpression(node.Syntax, isInUnsafeRegion: node.IsInUnsafeRegion, node.MethodOpt, boundOperandGetValueOrDefault, fromEnd);
 
             // new Nullable(new Index(operand, fromEnd: true))
             BoundExpression consequence = ConvertToNullable(node.Syntax, node.Type, indexCreation);
 
             // default
-            BoundExpression alternative = new BoundDefaultExpression(node.Syntax, node.Type);
+            BoundExpression alternative = new BoundDefaultExpression(node.Syntax, isInUnsafeRegion: node.IsInUnsafeRegion, node.Type);
 
             // operand.HasValue ? new Nullable(new Index(operand, fromEnd: true)) : default
             BoundExpression conditionalExpression = RewriteConditionalOperator(
@@ -60,6 +60,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return new BoundSequence(
                 syntax: node.Syntax,
+                isInUnsafeRegion: node.IsInUnsafeRegion,
                 locals: locals.ToImmutableAndFree(),
                 sideEffects: sideeffects.ToImmutableAndFree(),
                 value: conditionalExpression,
@@ -76,7 +77,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return BadExpression(syntax, targetNullableType, underlyingValue);
             }
 
-            return new BoundObjectCreationExpression(syntax, nullableCtor, underlyingValue);
+            return new BoundObjectCreationExpression(syntax, isInUnsafeRegion: false, nullableCtor, underlyingValue);
         }
     }
 }

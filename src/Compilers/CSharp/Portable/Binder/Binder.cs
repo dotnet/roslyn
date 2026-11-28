@@ -919,7 +919,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var locals = this.GetDeclaredLocalsForScope(scopeDesignator);
             return (locals.IsEmpty)
                 ? expression
-                : new BoundSequence(scopeDesignator, locals, ImmutableArray<BoundExpression>.Empty, expression, getType()) { WasCompilerGenerated = true };
+                : new BoundSequence(scopeDesignator, isInUnsafeRegion: InUnsafeRegion, locals, ImmutableArray<BoundExpression>.Empty, expression, getType()) { WasCompilerGenerated = true };
 
             TypeSymbol getType()
             {

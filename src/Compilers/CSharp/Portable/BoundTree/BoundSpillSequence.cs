@@ -14,12 +14,13 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         public BoundSpillSequence(
             SyntaxNode syntax,
+            bool isInUnsafeRegion,
             ImmutableArray<LocalSymbol> locals,
             ImmutableArray<BoundExpression> sideEffects,
             BoundExpression value,
             TypeSymbol type,
             bool hasErrors = false)
-            : this(syntax, locals, MakeStatements(sideEffects), value, type, hasErrors)
+            : this(syntax, isInUnsafeRegion, locals, MakeStatements(sideEffects), value, type, hasErrors)
         {
         }
 

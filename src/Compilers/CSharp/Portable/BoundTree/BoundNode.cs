@@ -60,7 +60,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             /// </summary>
             WasPropertyBackingFieldAccessChecked = 1 << 10,
 
-            AttributesPreservedInClone = HasErrors | CompilerGenerated | IsSuppressed | WasConverted | ParamsArrayOrCollection,
+            InUnsafeRegion = 1 << 11,
+
+            AttributesPreservedInClone = HasErrors | CompilerGenerated | IsSuppressed | WasConverted | ParamsArrayOrCollection | InUnsafeRegion,
         }
 
         protected new BoundNode MemberwiseClone()
@@ -90,6 +92,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                 _attributes = BoundNodeAttributes.HasErrors;
             }
         }
+
+        protected BoundNode(BoundKind kind, SyntaxNode syntax, bool isInUnsafeRegion, bool hasErrors)
+            : this(kind, syntax, hasErrors)
+        {
+            if (isInUnsafeRegion)
+            {
+                _attributes |= BoundNodeAttributes.InUnsafeRegion;
+            }
+        }
+
+        protected bool IsInUnsafeRegion => (_attributes & BoundNodeAttributes.InUnsafeRegion) != 0;
 
         /// <summary>
         /// Determines if a bound node, or associated syntax or type has an error (not a warning) 

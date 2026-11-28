@@ -1062,7 +1062,7 @@ start:
                 {
                     return recursivePattern.Update(
                         recursivePattern.DeclaredType ??
-                            new BoundTypeExpression(recursivePattern.Syntax, aliasOpt: null, recursivePattern.InputType.StrippedType()),
+                            new BoundTypeExpression(recursivePattern.Syntax, isInUnsafeRegion: false, aliasOpt: null, recursivePattern.InputType.StrippedType()),
                         recursivePattern.DeconstructMethod, recursivePattern.Deconstruction,
                         recursivePattern.Properties, recursivePattern.IsExplicitNotNullTest,
                         isUnionMatching: false, recursivePattern.Variable, recursivePattern.VariableAccess,
@@ -1104,7 +1104,7 @@ start:
                 // Produce `PatternInputType and pattern` given a new input type
 
                 BoundPattern typePattern = new BoundTypePattern(pattern.Syntax,
-                    new BoundTypeExpression(pattern.Syntax, aliasOpt: null, pattern.InputType),
+                    new BoundTypeExpression(pattern.Syntax, isInUnsafeRegion: false, aliasOpt: null, pattern.InputType),
                     isExplicitNotNullTest: false, isUnionMatching: false, inputType, narrowedType: pattern.InputType).MakeCompilerGenerated();
 
                 var result = new BoundBinaryPattern(pattern.Syntax, disjunction: false, left: typePattern, right: pattern, inputType, pattern.NarrowedType);
@@ -1165,7 +1165,7 @@ start:
                 {
                     // `not null`
                     var nullCheck = new BoundConstantPattern(node.Syntax,
-                        new BoundLiteral(node.Syntax, constantValueOpt: ConstantValue.Null, type: node.InputType, hasErrors: false),
+                        new BoundLiteral(node.Syntax, isInUnsafeRegion: false, constantValueOpt: ConstantValue.Null, type: node.InputType, hasErrors: false),
                         ConstantValue.Null, unionMatchingMode: UnionMatchingMode.None, node.InputType, node.InputType, hasErrors: false);
                     initialCheck = new BoundNegatedPattern(node.Syntax, nullCheck, node.InputType, narrowedType: node.InputType);
                 }

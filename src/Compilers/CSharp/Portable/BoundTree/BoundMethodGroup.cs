@@ -12,6 +12,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         public BoundMethodGroup(
             SyntaxNode syntax,
+            bool isInUnsafeRegion,
             ImmutableArray<TypeWithAnnotations> typeArgumentsOpt,
             BoundExpression? receiverOpt,
             string name,
@@ -20,7 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundMethodGroupFlags flags,
             Binder binder,
             bool hasErrors = false)
-            : this(syntax, typeArgumentsOpt, name, methods, lookupResult.SingleSymbolOrDefault, lookupResult.Error, flags, functionType: GetFunctionType(binder, syntax), receiverOpt, lookupResult.Kind, hasErrors)
+            : this(syntax, isInUnsafeRegion, typeArgumentsOpt, name, methods, lookupResult.SingleSymbolOrDefault, lookupResult.Error, flags, functionType: GetFunctionType(binder, syntax), receiverOpt, lookupResult.Kind, hasErrors)
         {
             FunctionType?.SetExpression(this);
         }

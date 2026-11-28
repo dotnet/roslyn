@@ -873,6 +873,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     return new BoundBadExpression(
                         expr.Syntax,
+                        isInUnsafeRegion: expr.IsInUnsafeRegion,
                         methodGroup.ResultKind,
                         (object)otherSymbol == null ? ImmutableArray<Symbol>.Empty : ImmutableArray.Create(otherSymbol),
                         receiver == null ? ImmutableArray<BoundExpression>.Empty : ImmutableArray.Create(AdjustBadExpressionChild(receiver)),
@@ -1850,7 +1851,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             else
             {
                 // Unsafe member access for compound assignment is checked against the accessors elsewhere.
-                ReportDiagnosticsIfUnsafeMemberAccess(diagnostics, eventSymbol, eventSyntax);
+                ReportDiagnosticsIfUnsafeMemberAccess(diagnostics, eventSymbol, eventSyntax, boundEvent.IsInUnsafeRegion);
 
                 if (!boundEvent.IsUsableAsField)
                 {
@@ -2065,7 +2066,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
 
                     ReportDiagnosticsIfObsolete(diagnostics, setMethod, node, receiver?.Kind == BoundKind.BaseReference);
-                    ReportDiagnosticsIfUnsafeMemberAccess(diagnostics, setMethod, node);
+                    ReportDiagnosticsIfUnsafeMemberAccess(diagnostics, setMethod, node, expr.IsInUnsafeRegion);
 
                     var setValueKind = setMethod.IsEffectivelyReadOnly ? BindValueKind.RValue : BindValueKind.Assignable;
                     if (RequiresVariableReceiver(receiver, setMethod) && !CheckIsValidReceiverForVariable(node, receiver, setValueKind, diagnostics))
@@ -2116,7 +2117,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     CheckImplicitThisCopyInReadOnlyMember(receiver, getMethod, diagnostics);
                     ReportDiagnosticsIfObsolete(diagnostics, getMethod, node, receiver?.Kind == BoundKind.BaseReference);
-                    ReportDiagnosticsIfUnsafeMemberAccess(diagnostics, getMethod, node);
+                    ReportDiagnosticsIfUnsafeMemberAccess(diagnostics, getMethod, node, expr.IsInUnsafeRegion);
 
                     if (IsBadBaseAccess(node, receiver, getMethod, diagnostics, propertySymbol) ||
                         reportUseSite(getMethod))
@@ -2660,7 +2661,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     AssertVisited(receiver);
 #endif
                     // Equivalent to a non-ref local with the underlying receiver as an initializer provided at declaration 
-                    receiver = new BoundCapturedReceiverPlaceholder(receiver.Syntax, receiver, receiver.Type).MakeCompilerGenerated();
+                    receiver = new BoundCapturedReceiverPlaceholder(receiver.Syntax, isInUnsafeRegion: receiver.IsInUnsafeRegion, receiver, receiver.Type).MakeCompilerGenerated();
                 }
 
                 var tuple = getReceiver(methodInvocationInfo.MethodInfo, receiver);
