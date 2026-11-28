@@ -63,8 +63,8 @@ internal sealed class TraceLog(string name, IEditAndContinueLogReporter? logServ
             Debug.Assert(document.FilePath != null);
             Debug.Assert(document.Project.FilePath != null);
 
-            var projectDir = PathUtilities.GetDirectoryName(document.Project.FilePath)!;
-            var documentDir = PathUtilities.GetDirectoryName(document.FilePath)!;
+            var projectDir = PathUtilities.GetDirectoryName(document.Project.FilePath);
+            var documentDir = PathUtilities.GetDirectoryName(document.FilePath);
             var extension = PathUtilities.GetExtension(document.FilePath);
             var fileName = PathUtilities.GetFileName(document.FilePath, includeExtension: false);
 

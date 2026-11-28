@@ -2889,7 +2889,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private void RecordImportInternal(CSharpSyntaxNode syntax)
         {
             // Note: the suppression will be unnecessary once LazyInitializer is properly annotated
-            LazyInitializer.EnsureInitialized(ref _lazyImportInfos)!.
+            LazyInitializer.EnsureInitialized(ref _lazyImportInfos).
                 TryAdd(new ImportInfo(syntax.SyntaxTree, syntax.Kind(), syntax.Span), default);
         }
 
@@ -4778,7 +4778,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(loc1.IsInSource);
             Debug.Assert(loc2.IsInSource);
 
-            var comparison = CompareSyntaxTreeOrdering(loc1.SourceTree!, loc2.SourceTree!);
+            var comparison = CompareSyntaxTreeOrdering(loc1.SourceTree, loc2.SourceTree);
             if (comparison != 0)
             {
                 return comparison;

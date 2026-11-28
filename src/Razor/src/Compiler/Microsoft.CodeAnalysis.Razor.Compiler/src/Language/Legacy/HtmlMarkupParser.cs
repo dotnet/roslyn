@@ -68,7 +68,7 @@ internal class HtmlMarkupParser : TokenizerBackedParser<HtmlTokenizer>
         {
             // Note: Circular reference with HtmlMarkupParser means we can't set this in the constructor
             Debug.Assert(_codeParser != null, "CodeParser should have been set during initialization");
-            return _codeParser!;
+            return _codeParser;
         }
         set => _codeParser = value;
     }
@@ -2381,7 +2381,7 @@ internal class HtmlMarkupParser : TokenizerBackedParser<HtmlTokenizer>
             return false;
         }
 
-        if (tagName!.StartsWith("!", StringComparison.Ordinal))
+        if (tagName.StartsWith("!", StringComparison.Ordinal))
         {
             tagName = tagName.Substring(1);
         }

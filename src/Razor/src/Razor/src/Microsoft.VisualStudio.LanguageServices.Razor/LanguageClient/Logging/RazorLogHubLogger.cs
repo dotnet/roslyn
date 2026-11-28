@@ -39,7 +39,7 @@ internal sealed class RazorLogHubLogger(string categoryName, RazorLogHubTracePro
                 break;
             case LogLevel.Error:
             case LogLevel.Critical:
-                traceSource.TraceEvent(TraceEventType.Error, id: 0, "[{0}] {1} {2}", _categoryName, message, exception!);
+                traceSource.TraceEvent(TraceEventType.Error, id: 0, "[{0}] {1} {2}", _categoryName, message, exception);
                 break;
         }
     }

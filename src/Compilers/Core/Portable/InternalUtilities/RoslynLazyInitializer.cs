@@ -12,11 +12,11 @@ namespace Roslyn.Utilities
     {
         /// <inheritdoc cref="LazyInitializer.EnsureInitialized{T}(ref T)"/>
         public static T EnsureInitialized<T>([NotNull] ref T? target) where T : class
-            => LazyInitializer.EnsureInitialized<T>(ref target!);
+            => LazyInitializer.EnsureInitialized<T>(ref target);
 
         /// <inheritdoc cref="LazyInitializer.EnsureInitialized{T}(ref T, Func{T})"/>
         public static T EnsureInitialized<T>([NotNull] ref T? target, Func<T> valueFactory) where T : class
-            => LazyInitializer.EnsureInitialized<T>(ref target!, valueFactory);
+            => LazyInitializer.EnsureInitialized<T>(ref target, valueFactory);
 
         /// <inheritdoc cref="LazyInitializer.EnsureInitialized{T}(ref T, ref bool, ref object)"/>
         public static T EnsureInitialized<T>([NotNull] ref T? target, ref bool initialized, [NotNullIfNotNull(nameof(syncLock))] ref object? syncLock)

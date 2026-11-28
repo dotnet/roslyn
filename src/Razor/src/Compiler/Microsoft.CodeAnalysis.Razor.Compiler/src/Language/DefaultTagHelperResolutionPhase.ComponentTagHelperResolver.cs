@@ -6,6 +6,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using Microsoft.AspNetCore.Razor.Language.Components;
@@ -1046,7 +1047,8 @@ internal partial class DefaultTagHelperResolutionPhase
             // The Source on HtmlAttributeIntermediateNode includes leading whitespace.
             // The Prefix is " name=\"" -- find where the actual attribute name starts.
             var prefix = htmlAttr.Prefix ?? string.Empty;
-            var nameIndex = prefix.IndexOf(htmlAttr.AttributeName!, StringComparison.Ordinal);
+            Debug.Assert(htmlAttr.AttributeName is not null);
+            var nameIndex = prefix.IndexOf(htmlAttr.AttributeName, StringComparison.Ordinal);
             if (nameIndex < 0)
             {
                 nameIndex = 0;

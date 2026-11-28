@@ -82,7 +82,7 @@ public static class UserFolderCachePath
 		string? envOverride = Environment.GetEnvironmentVariable(CacheBaseDirectoryEnvVar);
 		if (!string.IsNullOrWhiteSpace(envOverride))
 		{
-			return envOverride!;
+			return envOverride;
 		}
 
 		if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
@@ -106,7 +106,7 @@ public static class UserFolderCachePath
 			string? xdgCacheHome = Environment.GetEnvironmentVariable(XdgCacheHomeEnvVar);
 			if (!string.IsNullOrWhiteSpace(xdgCacheHome))
 			{
-				return Path.Combine(xdgCacheHome!, CacheDirectoryName);
+				return Path.Combine(xdgCacheHome, CacheDirectoryName);
 			}
 
 			string home = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);

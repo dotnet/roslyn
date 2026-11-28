@@ -111,7 +111,8 @@ internal static partial class SyntaxNodeExtensions
 
         while (nodes.Count > 0)
         {
-            var currentNode = nodes.First!.Value;
+            RoslynDebug.Assert(nodes.First is not null);
+            var currentNode = nodes.First.Value;
             nodes.RemoveFirst();
 
             if (currentNode != null && searchSpan.Contains(currentNode.FullSpan) && predicate(currentNode))

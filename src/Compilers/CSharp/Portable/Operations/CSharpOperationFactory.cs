@@ -3006,7 +3006,7 @@ namespace Microsoft.CodeAnalysis.Operations
                 return new PropertySubpatternOperation(reference, pattern, _semanticModel, syntaxForPropertySubpattern, isImplicit: !isSingle);
 
                 IOperation? createReceiver()
-                    => symbol?.IsStatic == false ? new InstanceReferenceOperation(InstanceReferenceKind.PatternInput, _semanticModel, nameSyntax!, receiverType, isImplicit: true) : null;
+                    => symbol?.IsStatic == false ? new InstanceReferenceOperation(InstanceReferenceKind.PatternInput, _semanticModel, nameSyntax, receiverType, isImplicit: true) : null;
             }
 
             static ITypeSymbol getInputType(BoundPropertySubpatternMember member, ITypeSymbol matchedType)

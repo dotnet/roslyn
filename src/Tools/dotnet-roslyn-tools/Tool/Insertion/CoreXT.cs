@@ -165,7 +165,7 @@ internal sealed class CoreXT
             return null;
         }
 
-        var attributeOrElement = GetVersionAttributeOrElementInPropsFile(textAndDocument.document!, packageInfo);
+        var attributeOrElement = GetVersionAttributeOrElementInPropsFile(textAndDocument.document, packageInfo);
         if (attributeOrElement is null)
             return null;
 
@@ -540,10 +540,10 @@ internal sealed class CoreXT
 
                 if (!string.IsNullOrEmpty(name))
                 {
-                    if (!s_packageToPropFilesMap.TryGetValue(name!, out var value))
+                    if (!s_packageToPropFilesMap.TryGetValue(name, out var value))
                     {
                         value = [];
-                        s_packageToPropFilesMap[name!] = value;
+                        s_packageToPropFilesMap[name] = value;
                     }
 
                     value.Add(propFileName);

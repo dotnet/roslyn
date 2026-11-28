@@ -87,7 +87,8 @@ public sealed partial class CodeWriter : IDisposable
         }
         else
         {
-            lastPage = _pages.Last!.Value;
+            Debug.Assert(_pages.Last is not null);
+            lastPage = _pages.Last.Value;
         }
 
         // Add our chunk of text (the ReadOnlyMemory<char>) and increment the offset.

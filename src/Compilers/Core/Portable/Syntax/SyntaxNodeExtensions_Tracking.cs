@@ -201,7 +201,7 @@ namespace Microsoft.CodeAnalysis
                 // same node injected multiple times.
                 var map = new SegmentedDictionary<SyntaxAnnotation, List<SyntaxNode>>();
 
-                foreach (var node in root.GetAnnotatedNodesAndTokens(IdAnnotationKind).Select(n => n.AsNode()!))
+                foreach (var node in root.GetAnnotatedNodesAndTokens(IdAnnotationKind).Select(n => n.AsNode()))
                 {
                     Debug.Assert(node is object);
                     foreach (var id in node.GetAnnotations(IdAnnotationKind))

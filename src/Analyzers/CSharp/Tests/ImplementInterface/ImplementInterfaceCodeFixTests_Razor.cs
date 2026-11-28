@@ -237,7 +237,7 @@ public sealed class ImplementInterfaceCodeFixTests_Razor(ITestOutputHelper logge
         Assert.NotNull(newSourceGeneratedDocument);
         AssertEx.EqualOrDiff(
             expectedGeneratedCode,
-            (await newSourceGeneratedDocument!.GetTextAsync(CancellationToken.None)).ToString());
+            (await newSourceGeneratedDocument.GetTextAsync(CancellationToken.None)).ToString());
     }
 
     private static async Task<ImmutableArray<CodeAction>> GetCodeActionsAsync(Project project, Document requestDocument, CancellationToken cancellationToken)
@@ -248,7 +248,7 @@ public sealed class ImplementInterfaceCodeFixTests_Razor(ITestOutputHelper logge
         Assert.NotNull(compilation);
 
         var diagnostic = Assert.Single(
-            compilation!.GetDiagnostics(cancellationToken).Where(
+            compilation.GetDiagnostics(cancellationToken).Where(
                 diagnostic => diagnostic.Id == CS0535 &&
                     diagnostic.Severity == DiagnosticSeverity.Error &&
                     diagnostic.Location.SourceTree == requestTree));

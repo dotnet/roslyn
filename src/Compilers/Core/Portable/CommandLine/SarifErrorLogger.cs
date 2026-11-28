@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis
         protected SarifErrorLogger(Stream stream, CultureInfo culture)
         {
             Debug.Assert(stream != null);
-            Debug.Assert(stream!.Position == 0);
+            Debug.Assert(stream.Position == 0);
 
             _writer = new JsonWriter(new StreamWriter(stream));
             _culture = culture;

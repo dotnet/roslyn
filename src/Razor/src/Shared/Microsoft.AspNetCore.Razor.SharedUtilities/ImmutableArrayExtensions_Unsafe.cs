@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Runtime.InteropServices;
 using Microsoft.AspNetCore.Razor.Utilities;
 
@@ -158,7 +159,8 @@ internal static partial class ImmutableArrayExtensions
         /// </summary>
         public void Reverse()
         {
-            var innerArray = ImmutableCollectionsMarshal.AsArray(array)!;
+            var innerArray = ImmutableCollectionsMarshal.AsArray(array);
+            Debug.Assert(innerArray is not null);
             Array.Reverse(innerArray);
         }
     }
@@ -176,7 +178,8 @@ internal static partial class ImmutableArrayExtensions
             return array;
         }
 
-        var innerArray = ImmutableCollectionsMarshal.AsArray(array)!;
+        var innerArray = ImmutableCollectionsMarshal.AsArray(array);
+        Debug.Assert(innerArray is not null);
         var items = innerArray.AsSpan();
         var length = items.Length;
 

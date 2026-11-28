@@ -198,7 +198,7 @@ internal abstract partial class AbstractImplementInterfaceService<TTypeDeclarati
                         g.Argument(DisposingName, RefKind.None, g.TrueLiteralExpression())))));
 
             // GC.SuppressFinalize(this);
-            var gcType = compilation.GetTypeByMetadataName(typeof(GC).FullName!);
+            var gcType = compilation.GetTypeByMetadataName(typeof(GC).FullName);
             if (gcType != null)
             {
                 statements.Add(g.ExpressionStatement(

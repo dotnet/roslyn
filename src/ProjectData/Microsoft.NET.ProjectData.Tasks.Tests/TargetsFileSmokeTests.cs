@@ -3991,7 +3991,7 @@ $@"<Project Sdk=""Microsoft.NET.Sdk"">
 	{
 		var psi = new ProcessStartInfo("dotnet")
 		{
-			WorkingDirectory = Path.GetDirectoryName(projectFile)!,
+			WorkingDirectory = Path.GetDirectoryName(projectFile),
 			RedirectStandardOutput = true,
 			RedirectStandardError = true,
 			UseShellExecute = false,

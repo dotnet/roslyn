@@ -29,7 +29,7 @@ internal static class SdkKnownPackResolver
 		if (string.IsNullOrWhiteSpace(sdkPath) || string.IsNullOrWhiteSpace(packName) || string.IsNullOrWhiteSpace(targetFramework))
 			return false;
 
-		return GetReferenceSet(sdkPath!).TryGetTargetingPackVersion(packName, targetFramework, out targetingPackVersion);
+		return GetReferenceSet(sdkPath).TryGetTargetingPackVersion(packName, targetFramework, out targetingPackVersion);
 	}
 
 	public static bool TryGetSdkAnalyzerPackVersionForSdk(
@@ -46,7 +46,7 @@ internal static class SdkKnownPackResolver
 			return false;
 		}
 
-		return GetReferenceSet(sdkPath!).TryGetSdkAnalyzerPackVersion(packageId, targetFramework, out packageVersion);
+		return GetReferenceSet(sdkPath).TryGetSdkAnalyzerPackVersion(packageId, targetFramework, out packageVersion);
 	}
 
 	private static SdkKnownPackSet GetReferenceSet(string sdkPath)
@@ -96,7 +96,7 @@ internal static class SdkKnownPackResolver
 					continue;
 				}
 
-				references.Add(new KnownFrameworkReference(targetFramework!, targetingPackName!, targetingPackVersion!));
+				references.Add(new KnownFrameworkReference(targetFramework, targetingPackName, targetingPackVersion));
 				continue;
 			}
 
@@ -112,7 +112,7 @@ internal static class SdkKnownPackResolver
 					continue;
 				}
 
-				analyzerPacks.Add(new KnownSdkAnalyzerPack(targetFramework!, packageId!, packageVersion!));
+				analyzerPacks.Add(new KnownSdkAnalyzerPack(targetFramework, packageId, packageVersion));
 			}
 		}
 

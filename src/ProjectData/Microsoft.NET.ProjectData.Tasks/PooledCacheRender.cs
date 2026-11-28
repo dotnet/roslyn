@@ -66,7 +66,7 @@ internal sealed class PooledCacheRender : TextWriter
 		if (string.IsNullOrEmpty(value))
 			return;
 
-		this.EnsureCapacity(this._charLength + value!.Length);
+		this.EnsureCapacity(this._charLength + value.Length);
 		value.CopyTo(0, this._chars, this._charLength, value.Length);
 		this._charLength += value.Length;
 	}

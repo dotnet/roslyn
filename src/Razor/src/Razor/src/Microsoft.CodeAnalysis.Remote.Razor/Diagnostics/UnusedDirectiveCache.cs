@@ -1,6 +1,7 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.CodeAnalysis.Text;
@@ -24,8 +25,8 @@ internal static class UnusedDirectiveCache
 #endif
     }
 
-    public static bool TryGet(RazorCodeDocument codeDocument, out TextSpan[] spans)
+    public static bool TryGet(RazorCodeDocument codeDocument, [NotNullWhen(true)] out TextSpan[]? spans)
     {
-        return s_cache.TryGetValue(codeDocument, out spans!);
+        return s_cache.TryGetValue(codeDocument, out spans);
     }
 }

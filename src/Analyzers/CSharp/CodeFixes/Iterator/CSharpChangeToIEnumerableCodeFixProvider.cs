@@ -112,8 +112,8 @@ internal sealed class CSharpChangeToIEnumerableCodeFixProvider() : AbstractItera
         [NotNullWhen(true)] out INamedTypeSymbol? ienumerableSymbol,
         [NotNullWhen(true)] out INamedTypeSymbol? ienumerableGenericSymbol)
     {
-        ienumerableSymbol = model.Compilation.GetTypeByMetadataName(typeof(IEnumerable).FullName!);
-        ienumerableGenericSymbol = model.Compilation.GetTypeByMetadataName(typeof(IEnumerable<>).FullName!);
+        ienumerableSymbol = model.Compilation.GetTypeByMetadataName(typeof(IEnumerable).FullName);
+        ienumerableGenericSymbol = model.Compilation.GetTypeByMetadataName(typeof(IEnumerable<>).FullName);
 
         return ienumerableGenericSymbol != null && ienumerableSymbol != null;
     }

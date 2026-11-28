@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.SimplifyInterpolation;
 
@@ -95,11 +96,11 @@ internal abstract class AbstractSimplifyInterpolationCodeFixProvider<
                 (TInterpolationAlignmentClause)generator.InterpolationAlignmentClause(alignment));
         }
 
-        if (!string.IsNullOrEmpty(formatString))
+        if (!RoslynString.IsNullOrEmpty(formatString))
         {
             result = WithFormatClause(
                 result,
-                (TInterpolationFormatClause?)generator.InterpolationFormatClause(Escape(interpolatedString, formatString!)));
+                (TInterpolationFormatClause?)generator.InterpolationFormatClause(Escape(interpolatedString, formatString)));
         }
 
         return result;

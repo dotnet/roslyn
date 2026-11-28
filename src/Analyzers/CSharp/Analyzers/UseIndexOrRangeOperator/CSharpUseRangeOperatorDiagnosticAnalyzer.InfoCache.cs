@@ -64,7 +64,7 @@ internal sealed partial class CSharpUseRangeOperatorDiagnosticAnalyzer
 
         public static bool TryCreate(Compilation compilation, [NotNullWhen(true)] out InfoCache? infoCache)
         {
-            var rangeType = compilation.GetBestTypeByMetadataName(typeof(Range).FullName!);
+            var rangeType = compilation.GetBestTypeByMetadataName(typeof(Range).FullName);
             if (rangeType == null || !rangeType.IsAccessibleWithin(compilation.Assembly))
             {
                 infoCache = null;

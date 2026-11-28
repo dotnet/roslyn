@@ -69,7 +69,7 @@ public sealed class RazorSourceGeneratorCshtmlTests : RazorSourceGeneratorTestsB
         });
 
         // Act
-        var result = RunGenerator(compilation!, ref driver, out compilation);
+        var result = RunGenerator(compilation, ref driver, out compilation);
 
         // Assert
         Assert.Empty(result.Diagnostics);
@@ -112,7 +112,7 @@ public sealed class RazorSourceGeneratorCshtmlTests : RazorSourceGeneratorTestsB
         var driver = await GetDriverAsync(project);
 
         // Act
-        var result = RunGenerator(compilation!, ref driver, out compilation);
+        var result = RunGenerator(compilation, ref driver, out compilation);
 
         // Assert
         Assert.Empty(result.Diagnostics);
@@ -137,7 +137,7 @@ public sealed class RazorSourceGeneratorCshtmlTests : RazorSourceGeneratorTestsB
         var driver = await GetDriverAsync(project);
 
         // Act
-        var result = RunGenerator(compilation!, ref driver, out compilation);
+        var result = RunGenerator(compilation, ref driver, out compilation);
 
         // Assert
         result.Diagnostics.Verify();
@@ -161,7 +161,7 @@ public sealed class RazorSourceGeneratorCshtmlTests : RazorSourceGeneratorTestsB
         var driver = await GetDriverAsync(project);
 
         // Act
-        var result = RunGenerator(compilation!, ref driver, out compilation);
+        var result = RunGenerator(compilation, ref driver, out compilation);
 
         // Assert
         result.Diagnostics.Verify();
@@ -206,7 +206,7 @@ public sealed class RazorSourceGeneratorCshtmlTests : RazorSourceGeneratorTestsB
         var driver = await GetDriverAsync(project);
 
         // Act
-        var result = RunGenerator(compilation!, ref driver, out _);
+        var result = RunGenerator(compilation, ref driver, out _);
 
         // Assert
         Assert.Empty(result.Diagnostics);
@@ -242,7 +242,7 @@ public sealed class RazorSourceGeneratorCshtmlTests : RazorSourceGeneratorTestsB
         var driver = await GetDriverAsync(project);
 
         // Act
-        var result = RunGenerator(compilation!, ref driver, out _);
+        var result = RunGenerator(compilation, ref driver, out _);
 
         // Assert
         Assert.Empty(result.Diagnostics);
@@ -294,7 +294,7 @@ public sealed class RazorSourceGeneratorCshtmlTests : RazorSourceGeneratorTestsB
         var driver = await GetDriverAsync(project);
 
         // Act
-        var result = RunGenerator(compilation!, ref driver, out _);
+        var result = RunGenerator(compilation, ref driver, out _);
 
         // Assert
         Assert.Empty(result.Diagnostics);
@@ -334,7 +334,7 @@ public sealed class RazorSourceGeneratorCshtmlTests : RazorSourceGeneratorTestsB
         var driver = await GetDriverAsync(project);
 
         // Act 1 - verify string literals are used
-        var result = RunGenerator(compilation!, ref driver, out _);
+        var result = RunGenerator(compilation, ref driver, out _);
 
         Assert.Empty(result.Diagnostics);
         Assert.Single(result.GeneratedSources);
@@ -358,7 +358,7 @@ public sealed class RazorSourceGeneratorCshtmlTests : RazorSourceGeneratorTestsB
 
         compilation = await project.GetCompilationAsync();
         driver = await GetDriverAsync(project);
-        result = RunGenerator(compilation!, ref driver, out _, _ => { });
+        result = RunGenerator(compilation, ref driver, out _, _ => { });
 
         // Assert - should now use UTF-8 literals
         Assert.Empty(result.Diagnostics);
@@ -378,7 +378,7 @@ public sealed class RazorSourceGeneratorCshtmlTests : RazorSourceGeneratorTestsB
 
         compilation = await project.GetCompilationAsync();
         driver = await GetDriverAsync(project);
-        result = RunGenerator(compilation!, ref driver, out _, _ => { });
+        result = RunGenerator(compilation, ref driver, out _, _ => { });
 
         // Assert - should switch back to string literals
         Assert.Empty(result.Diagnostics);
@@ -428,7 +428,7 @@ public sealed class RazorSourceGeneratorCshtmlTests : RazorSourceGeneratorTestsB
         var compilation = await project.GetCompilationAsync();
         var driver = await GetDriverAsync(project);
 
-        var result = RunGenerator(compilation!, ref driver);
+        var result = RunGenerator(compilation, ref driver);
         var originalComponentSource = result.GeneratedSources
             .Single(s => s.HintName.EndsWith("Page_razor.g.cs", StringComparison.Ordinal))
             .SourceText;
@@ -450,7 +450,7 @@ public sealed class RazorSourceGeneratorCshtmlTests : RazorSourceGeneratorTestsB
                 """, Encoding.UTF8)).Project;
 
         compilation = await project.GetCompilationAsync();
-        result = RunGenerator(compilation!, ref driver);
+        result = RunGenerator(compilation, ref driver);
 
         var updatedComponentSource = result.GeneratedSources
             .Single(s => s.HintName.EndsWith("Page_razor.g.cs", StringComparison.Ordinal))
@@ -507,7 +507,7 @@ public sealed class RazorSourceGeneratorCshtmlTests : RazorSourceGeneratorTestsB
         var compilation = await project.GetCompilationAsync();
         var driver = await GetDriverAsync(project);
 
-        var result = RunGenerator(compilation!, ref driver);
+        var result = RunGenerator(compilation, ref driver);
         var originalComponentSource = result.GeneratedSources
             .Single(s => s.HintName.EndsWith("Page_razor.g.cs", StringComparison.Ordinal))
             .SourceText;
@@ -530,7 +530,7 @@ public sealed class RazorSourceGeneratorCshtmlTests : RazorSourceGeneratorTestsB
                 """, Encoding.UTF8)).Project;
 
         compilation = await project.GetCompilationAsync();
-        result = RunGenerator(compilation!, ref driver);
+        result = RunGenerator(compilation, ref driver);
 
         var updatedComponentSource = result.GeneratedSources
             .Single(s => s.HintName.EndsWith("Page_razor.g.cs", StringComparison.Ordinal))
@@ -574,7 +574,7 @@ public sealed class RazorSourceGeneratorCshtmlTests : RazorSourceGeneratorTestsB
         var compilation = await project.GetCompilationAsync();
         var driver = await GetDriverAsync(project);
 
-        var result = RunGenerator(compilation!, ref driver, out _, _ => { });
+        var result = RunGenerator(compilation, ref driver, out _, _ => { });
         var originalBystanderSource = result.GeneratedSources
             .Single(s => s.HintName.Contains("Bystander"))
             .SourceText.ToString();
@@ -597,7 +597,7 @@ public sealed class RazorSourceGeneratorCshtmlTests : RazorSourceGeneratorTestsB
                 """, Encoding.UTF8)).Project;
 
         compilation = await project.GetCompilationAsync();
-        result = RunGenerator(compilation!, ref driver, out _, _ => { });
+        result = RunGenerator(compilation, ref driver, out _, _ => { });
 
         var updatedBystanderSource = result.GeneratedSources
             .Single(s => s.HintName.Contains("Bystander"))
@@ -651,7 +651,7 @@ public sealed class RazorSourceGeneratorCshtmlTests : RazorSourceGeneratorTestsB
         var compilation = await project.GetCompilationAsync();
         var driver = await GetDriverAsync(project);
 
-        var result = RunGenerator(compilation!, ref driver, out _, _ => { });
+        var result = RunGenerator(compilation, ref driver, out _, _ => { });
         Assert.Contains("u8)", result.GeneratedSources.Single(s => s.HintName.Contains("Index")).SourceText.ToString());
 
         var baseClassDocument = project.Documents.Single(d => d.Name == "MyPageBase.cs");
@@ -666,7 +666,7 @@ public sealed class RazorSourceGeneratorCshtmlTests : RazorSourceGeneratorTestsB
                 """, Encoding.UTF8)).Project;
 
         compilation = await project.GetCompilationAsync();
-        result = RunGenerator(compilation!, ref driver, out _, _ => { });
+        result = RunGenerator(compilation, ref driver, out _, _ => { });
 
         Assert.DoesNotContain("u8)", result.GeneratedSources.Single(s => s.HintName.Contains("Index")).SourceText.ToString());
     }
@@ -702,7 +702,7 @@ public sealed class RazorSourceGeneratorCshtmlTests : RazorSourceGeneratorTestsB
         var compilation = await project.GetCompilationAsync();
         var (driver, _, _) = await GetDriverWithAdditionalTextAndProviderAsync(project, trackSteps: true);
 
-        var result = RunGenerator(compilation!, ref driver, out _, _ => { });
+        var result = RunGenerator(compilation, ref driver, out _, _ => { });
         Assert.DoesNotContain("u8)", result.GeneratedSources.Single(s => s.HintName.Contains("Index")).SourceText.ToString());
 
         var baseClassDocument = project.Documents.Single(d => d.Name == "MyPageBase.cs");
@@ -722,7 +722,7 @@ public sealed class RazorSourceGeneratorCshtmlTests : RazorSourceGeneratorTestsB
                 """, Encoding.UTF8)).Project;
 
         compilation = await project.GetCompilationAsync();
-        result = RunGenerator(compilation!, ref driver, out _, _ => { });
+        result = RunGenerator(compilation, ref driver, out _, _ => { });
         Assert.Contains("u8)", result.GeneratedSources.Single(s => s.HintName.Contains("Index")).SourceText.ToString());
 
         // The optimized intermediate tree is reused; the UTF-8 decision flips, so only C# emission
@@ -777,7 +777,7 @@ public sealed class RazorSourceGeneratorCshtmlTests : RazorSourceGeneratorTestsB
         var compilation = await project.GetCompilationAsync();
         var (driver, _, _) = await GetDriverWithAdditionalTextAndProviderAsync(project, trackSteps: true);
 
-        RunGenerator(compilation!, ref driver, out _, _ => { });
+        RunGenerator(compilation, ref driver, out _, _ => { });
 
         var baseClassDocument = project.Documents.Single(d => d.Name == "MyPageBase.cs");
         project = baseClassDocument.WithText(SourceText.From("""
@@ -796,7 +796,7 @@ public sealed class RazorSourceGeneratorCshtmlTests : RazorSourceGeneratorTestsB
                 """, Encoding.UTF8)).Project;
 
         compilation = await project.GetCompilationAsync();
-        var result = RunGenerator(compilation!, ref driver, out _, _ => { });
+        var result = RunGenerator(compilation, ref driver, out _, _ => { });
 
         // The .cshtml re-emits (its UTF-8 decision flipped); the unrelated component stays cached.
         // Key the run reason by source file path so we verify *which* document re-emitted -- the
@@ -805,7 +805,7 @@ public sealed class RazorSourceGeneratorCshtmlTests : RazorSourceGeneratorTestsB
         var reasonsByFile = result.TrackedSteps["GeneratedCode"]
             .SelectMany(step => step.Outputs)
             .ToDictionary(
-                output => (string)((System.Runtime.CompilerServices.ITuple)output.Value)[0]!,
+                output => (string)((System.Runtime.CompilerServices.ITuple)output.Value)[0],
                 output => output.Reason);
 
         Assert.Equal(2, reasonsByFile.Count);
@@ -831,7 +831,7 @@ public sealed class RazorSourceGeneratorCshtmlTests : RazorSourceGeneratorTestsB
         var driver = await GetDriverAsync(project);
 
         // Act
-        var result = RunGenerator(compilation!, ref driver, out _);
+        var result = RunGenerator(compilation, ref driver, out _);
 
         // Assert - default base classes don't support UTF-8 WriteLiteral
         Assert.Empty(result.Diagnostics);
@@ -874,7 +874,7 @@ public sealed class RazorSourceGeneratorCshtmlTests : RazorSourceGeneratorTestsB
         var driver = await GetDriverAsync(project);
 
         // Act
-        var result = RunGenerator(compilation!, ref driver, out _);
+        var result = RunGenerator(compilation, ref driver, out _);
 
         // Assert - fully-qualified name resolves correctly
         Assert.Empty(result.Diagnostics);
@@ -920,7 +920,7 @@ public sealed class RazorSourceGeneratorCshtmlTests : RazorSourceGeneratorTestsB
         var driver = await GetDriverAsync(project);
 
         // Act
-        var result = RunGenerator(compilation!, ref driver, out _);
+        var result = RunGenerator(compilation, ref driver, out _);
 
         // Assert - short name resolves via augmented compilation with the @using directives
         Assert.Empty(result.Diagnostics);
@@ -965,7 +965,7 @@ public sealed class RazorSourceGeneratorCshtmlTests : RazorSourceGeneratorTestsB
         var driver = await GetDriverAsync(project);
 
         // Act
-        var result = RunGenerator(compilation!, ref driver, out _, _ => { });
+        var result = RunGenerator(compilation, ref driver, out _, _ => { });
 
         // Assert - partially-qualified name won't match the metadata name.
         Assert.Empty(result.Diagnostics);
@@ -1011,7 +1011,7 @@ public sealed class RazorSourceGeneratorCshtmlTests : RazorSourceGeneratorTestsB
         var driver = await GetDriverAsync(project);
 
         // Act
-        var result = RunGenerator(compilation!, ref driver, out _);
+        var result = RunGenerator(compilation, ref driver, out _);
 
         // Assert - alias resolves via augmented compilation
         Assert.Empty(result.Diagnostics);
@@ -1069,7 +1069,7 @@ public sealed class RazorSourceGeneratorCshtmlTests : RazorSourceGeneratorTestsB
         var driver = await GetDriverAsync(project);
 
         // Act
-        var result = RunGenerator(compilation!, ref driver, out _);
+        var result = RunGenerator(compilation, ref driver, out _);
 
         // Assert - no generator crash. The alias conflicts with the global type (CS0576),
         // so both files fall back to string literals. This is correct behavior since the
@@ -1118,7 +1118,7 @@ public sealed class RazorSourceGeneratorCshtmlTests : RazorSourceGeneratorTestsB
         var (driver, additionalTexts, optionsProvider) = await GetDriverWithAdditionalTextAndProviderAsync(project);
 
         // Act 1 - short name doesn't resolve, falls back to string literals
-        var result = RunGenerator(compilation!, ref driver, out _, _ => { });
+        var result = RunGenerator(compilation, ref driver, out _, _ => { });
 
         Assert.Empty(result.Diagnostics);
         Assert.Single(result.GeneratedSources);
@@ -1134,7 +1134,7 @@ public sealed class RazorSourceGeneratorCshtmlTests : RazorSourceGeneratorTestsB
         };
         driver = driver.WithUpdatedAnalyzerConfigOptions(optionsProvider);
 
-        result = RunGenerator(compilation!, ref driver, out _, _ => { });
+        result = RunGenerator(compilation, ref driver, out _, _ => { });
 
         // Assert - now the short name resolves and UTF-8 is used
         Assert.Empty(result.Diagnostics);
@@ -1176,7 +1176,7 @@ public sealed class RazorSourceGeneratorCshtmlTests : RazorSourceGeneratorTestsB
         var driver = await GetDriverAsync(project);
 
         // Act
-        var result = RunGenerator(compilation!, ref driver, out _);
+        var result = RunGenerator(compilation, ref driver, out _);
 
         // Assert - @inherits from _ViewImports should be detected and UTF-8 used
         Assert.Empty(result.Diagnostics);
@@ -1223,7 +1223,7 @@ public sealed class RazorSourceGeneratorCshtmlTests : RazorSourceGeneratorTestsB
         var driver = await GetDriverAsync(project);
 
         // Act
-        var result = RunGenerator(compilation!, ref driver, out _);
+        var result = RunGenerator(compilation, ref driver, out _);
 
         // Assert - short name resolved via @using in _ViewImports should enable UTF-8
         Assert.Empty(result.Diagnostics);
@@ -1281,7 +1281,7 @@ public sealed class RazorSourceGeneratorCshtmlTests : RazorSourceGeneratorTestsB
         var driver = await GetDriverAsync(project);
 
         // Act
-        var result = RunGenerator(compilation!, ref driver, out _);
+        var result = RunGenerator(compilation, ref driver, out _);
 
         // Assert
         Assert.Empty(result.Diagnostics);
@@ -1333,7 +1333,7 @@ public sealed class RazorSourceGeneratorCshtmlTests : RazorSourceGeneratorTestsB
         var driver = await GetDriverAsync(project);
 
         // Act
-        var result = RunGenerator(compilation!, ref driver, out _);
+        var result = RunGenerator(compilation, ref driver, out _);
 
         // Assert - generic base class with UTF-8 overload should be detected
         Assert.Empty(result.Diagnostics);
@@ -1380,7 +1380,7 @@ public sealed class RazorSourceGeneratorCshtmlTests : RazorSourceGeneratorTestsB
         var driver = await GetDriverAsync(project);
 
         // Act
-        var result = RunGenerator(compilation!, ref driver, out _);
+        var result = RunGenerator(compilation, ref driver, out _);
 
         // Assert - should detect UTF-8 even though the using comes from C# not Razor
         Assert.Empty(result.Diagnostics);
@@ -1429,7 +1429,7 @@ public sealed class RazorSourceGeneratorCshtmlTests : RazorSourceGeneratorTestsB
         var driver = await GetDriverAsync(project);
 
         // Act
-        var result = RunGenerator(compilation!, ref driver, out _);
+        var result = RunGenerator(compilation, ref driver, out _);
 
         // Assert
         Assert.Empty(result.Diagnostics);
@@ -1481,7 +1481,7 @@ public sealed class RazorSourceGeneratorCshtmlTests : RazorSourceGeneratorTestsB
         var driver = await GetDriverAsync(project);
 
         // Act
-        var result = RunGenerator(compilation!, ref driver, out _);
+        var result = RunGenerator(compilation, ref driver, out _);
 
         // Assert
         Assert.Empty(result.Diagnostics);
@@ -1521,7 +1521,7 @@ public sealed class RazorSourceGeneratorCshtmlTests : RazorSourceGeneratorTestsB
         var driver = await GetDriverAsync(project);
 
         // Act
-        var result = RunGenerator(compilation!, ref driver, out _);
+        var result = RunGenerator(compilation, ref driver, out _);
 
         // Assert
         Assert.Empty(result.Diagnostics);
@@ -1555,7 +1555,7 @@ public sealed class RazorSourceGeneratorCshtmlTests : RazorSourceGeneratorTestsB
 
         var baseCompilation = await baseProject.GetCompilationAsync();
         using var peStream = new MemoryStream();
-        var emitResult = baseCompilation!.Emit(peStream);
+        var emitResult = baseCompilation.Emit(peStream);
         Assert.True(emitResult.Success);
         peStream.Position = 0;
         var metadataRef = MetadataReference.CreateFromStream(peStream);
@@ -1579,7 +1579,7 @@ public sealed class RazorSourceGeneratorCshtmlTests : RazorSourceGeneratorTestsB
         var driver = await GetDriverAsync(project);
 
         // Act
-        var result = RunGenerator(compilation!, ref driver, out _);
+        var result = RunGenerator(compilation, ref driver, out _);
 
         // Assert
         Assert.Empty(result.Diagnostics);
@@ -1629,7 +1629,7 @@ public sealed class RazorSourceGeneratorCshtmlTests : RazorSourceGeneratorTestsB
         var driver = await GetDriverAsync(project);
 
         // Act
-        var result = RunGenerator(compilation!, ref driver, out _);
+        var result = RunGenerator(compilation, ref driver, out _);
 
         // Assert - even though the raw @inherits text contains the unresolved `TModel`,
         // the probe should still resolve the open generic and detect the UTF-8 overload.
@@ -1673,7 +1673,7 @@ public sealed class RazorSourceGeneratorCshtmlTests : RazorSourceGeneratorTestsB
         var driver = await GetDriverAsync(project);
 
         // Act
-        var result = RunGenerator(compilation!, ref driver, out _);
+        var result = RunGenerator(compilation, ref driver, out _);
 
         // Assert
         Assert.Empty(result.Diagnostics);
@@ -1708,7 +1708,7 @@ public sealed class RazorSourceGeneratorCshtmlTests : RazorSourceGeneratorTestsB
 
         var baseCompilation = await baseProject.GetCompilationAsync();
         using var peStream = new MemoryStream();
-        var emitResult = baseCompilation!.Emit(peStream);
+        var emitResult = baseCompilation.Emit(peStream);
         Assert.True(emitResult.Success);
         peStream.Position = 0;
         var metadataRef = MetadataReference.CreateFromStream(peStream);
@@ -1727,7 +1727,7 @@ public sealed class RazorSourceGeneratorCshtmlTests : RazorSourceGeneratorTestsB
         var driver = await GetDriverAsync(project);
 
         // Act
-        var result = RunGenerator(compilation!, ref driver, out _);
+        var result = RunGenerator(compilation, ref driver, out _);
 
         // Assert
         Assert.Empty(result.Diagnostics);
@@ -1761,7 +1761,7 @@ public sealed class RazorSourceGeneratorCshtmlTests : RazorSourceGeneratorTestsB
 
         var baseCompilation = await baseProject.GetCompilationAsync();
         using var peStream = new MemoryStream();
-        var emitResult = baseCompilation!.Emit(peStream);
+        var emitResult = baseCompilation.Emit(peStream);
         Assert.True(emitResult.Success);
         peStream.Position = 0;
         var metadataRef = MetadataReference.CreateFromStream(peStream);
@@ -1780,7 +1780,7 @@ public sealed class RazorSourceGeneratorCshtmlTests : RazorSourceGeneratorTestsB
         var driver = await GetDriverAsync(project);
 
         // Act
-        var result = RunGenerator(compilation!, ref driver, out _);
+        var result = RunGenerator(compilation, ref driver, out _);
 
         // Assert
         Assert.Empty(result.Diagnostics);
@@ -1813,7 +1813,7 @@ public sealed class RazorSourceGeneratorCshtmlTests : RazorSourceGeneratorTestsB
 
         var baseCompilation = await baseProject.GetCompilationAsync();
         using var peStream = new MemoryStream();
-        var emitResult = baseCompilation!.Emit(peStream);
+        var emitResult = baseCompilation.Emit(peStream);
         Assert.True(emitResult.Success);
         peStream.Position = 0;
         var metadataRef = MetadataReference.CreateFromStream(peStream);
@@ -1832,7 +1832,7 @@ public sealed class RazorSourceGeneratorCshtmlTests : RazorSourceGeneratorTestsB
         var driver = await GetDriverAsync(project);
 
         // Act
-        var result = RunGenerator(compilation!, ref driver, out _);
+        var result = RunGenerator(compilation, ref driver, out _);
 
         // Assert
         Assert.Empty(result.Diagnostics);
@@ -1879,7 +1879,7 @@ public sealed class RazorSourceGeneratorCshtmlTests : RazorSourceGeneratorTestsB
         var driver = await GetDriverAsync(project);
 
         // Act
-        var result = RunGenerator(compilation!, ref driver, out _);
+        var result = RunGenerator(compilation, ref driver, out _);
 
         // Assert
         Assert.Empty(result.Diagnostics);

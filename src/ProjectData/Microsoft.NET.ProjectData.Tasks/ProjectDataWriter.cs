@@ -558,13 +558,13 @@ internal static class ProjectDataWriter
 	/// </summary>
 	private static string ResolveTempDirectory(string? tempDirectory, string? outputDir)
 	{
-		string fallback = string.IsNullOrEmpty(outputDir) ? "." : outputDir!;
+		string fallback = string.IsNullOrEmpty(outputDir) ? "." : outputDir;
 		if (string.IsNullOrEmpty(tempDirectory))
 			return fallback;
 
 		try
 		{
-			string full = Path.GetFullPath(tempDirectory!);
+			string full = Path.GetFullPath(tempDirectory);
 			if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows) &&
 				!string.Equals(Path.GetPathRoot(full), Path.GetPathRoot(Path.GetFullPath(fallback)), StringComparison.OrdinalIgnoreCase))
 			{
@@ -1245,14 +1245,14 @@ internal static class ProjectDataWriter
 			string netFxRelative = portablePath.Substring(NetFxRefPrefix.Length);
 			int netFxVersionEnd = netFxRelative.IndexOf('/');
 			string netFxVersion = netFxVersionEnd >= 0 ? netFxRelative.Substring(0, netFxVersionEnd) : netFxRelative;
-			return IsSameNetFrameworkVersion(netFxVersion, targetFramework.VersionString!) && IsNetFrameworkReferenceAssemblyPath(netFxRelative)
+			return IsSameNetFrameworkVersion(netFxVersion, targetFramework.VersionString) && IsNetFrameworkReferenceAssemblyPath(netFxRelative)
 				? "v" + targetFramework.VersionString + netFxRelative.Substring(netFxVersion.Length)
 				: null;
 		}
 
 		if (!portablePath.StartsWith(NuGetPrefix, StringComparison.OrdinalIgnoreCase))
 		{
-			return TryExtractNetFrameworkReferenceAssemblyFromFrameworkRootPath(portablePath, targetFramework.VersionString!);
+			return TryExtractNetFrameworkReferenceAssemblyFromFrameworkRootPath(portablePath, targetFramework.VersionString);
 		}
 
 		int packageStart = NuGetPrefix.Length;
@@ -1291,7 +1291,7 @@ internal static class ProjectDataWriter
 
 		string packageFrameworkVersion = pathUnderPackage.Substring(frameworkVersionStart, frameworkVersionEnd - frameworkVersionStart);
 		string packageRelativePath = pathUnderPackage.Substring(frameworkVersionStart);
-		return IsSameNetFrameworkVersion(packageFrameworkVersion, targetFramework.VersionString!) && IsNetFrameworkReferenceAssemblyPath(packageRelativePath)
+		return IsSameNetFrameworkVersion(packageFrameworkVersion, targetFramework.VersionString) && IsNetFrameworkReferenceAssemblyPath(packageRelativePath)
 			? "v" + targetFramework.VersionString + packageRelativePath.Substring(packageFrameworkVersion.Length)
 			: null;
 	}
@@ -1750,7 +1750,7 @@ internal static class ProjectDataWriter
 
 			if (!string.IsNullOrWhiteSpace(version))
 			{
-				this.VersionString = version!.StartsWith("v", StringComparison.OrdinalIgnoreCase) ? version.Substring(1) : version;
+				this.VersionString = version.StartsWith("v", StringComparison.OrdinalIgnoreCase) ? version.Substring(1) : version;
 				this.Version = Version.TryParse(this.VersionString, out Version? v) ? v : null;
 			}
 		}

@@ -393,7 +393,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 hasErrors |= !BindLengthAndIndexerForListPattern(node, narrowedType, diagnostics, out indexerAccess, out lengthAccess, out receiverPlaceholder, out argumentPlaceholder);
 
-                Debug.Assert(indexerAccess!.Type is not null);
+                Debug.Assert(indexerAccess.Type is not null);
                 elementType = indexerAccess.Type;
             }
 

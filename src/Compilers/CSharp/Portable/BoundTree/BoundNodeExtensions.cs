@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public static bool IsConstructorInitializer(this BoundStatement statement)
         {
             Debug.Assert(statement != null);
-            if (statement!.Kind == BoundKind.ExpressionStatement)
+            if (statement.Kind == BoundKind.ExpressionStatement)
             {
                 BoundExpression expression = ((BoundExpressionStatement)statement).Expression;
                 if (expression.Kind == BoundKind.Sequence && ((BoundSequence)expression).SideEffects.IsDefaultOrEmpty)
@@ -57,8 +57,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         public static bool IsConstructorInitializer(this BoundCall call)
         {
             Debug.Assert(call != null);
-            MethodSymbol method = call!.Method;
-            BoundExpression? receiverOpt = call!.ReceiverOpt;
+            MethodSymbol method = call.Method;
+            BoundExpression? receiverOpt = call.ReceiverOpt;
             return method.MethodKind == MethodKind.Constructor &&
                 receiverOpt != null &&
                 (receiverOpt.Kind == BoundKind.ThisReference || receiverOpt.Kind == BoundKind.BaseReference);

@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Concurrent;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Internal.Log;
 
@@ -41,5 +42,9 @@ internal static class TelemetryNaming
         => eventName.Replace('/', '.') + "." + tagName.ToLowerInvariant();
 
     private static string GetTelemetryName(FunctionId id, char separator)
-        => Enum.GetName(typeof(FunctionId), id)!.Replace('_', separator).ToLowerInvariant();
+    {
+        var name = Enum.GetName(typeof(FunctionId), id);
+        RoslynDebug.Assert(name is not null);
+        return name.Replace('_', separator).ToLowerInvariant();
+    }
 }

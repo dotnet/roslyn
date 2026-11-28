@@ -4509,7 +4509,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         for (int i = leftToRewrite - 1; i >= 0; i--)
                         {
-                            testsToRewrite.Push((leftToRewriteBuilder![i], SkipRewrite: false));
+                            testsToRewrite.Push((leftToRewriteBuilder[i], SkipRewrite: false));
                         }
 
                         testsToRewrite.Push((rewriteResult.TempsUpdatedResult, SkipRewrite: true));
@@ -4526,7 +4526,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         for (int i = leftToRewrite - 1; i >= 0; i--)
                         {
-                            testsToRewrite.Push((leftToRewriteBuilder![i], SkipRewrite: false));
+                            testsToRewrite.Push((leftToRewriteBuilder[i], SkipRewrite: false));
                         }
 
                         testsToRewrite.Push((rewriteResult.FinalResult, SkipRewrite: true));

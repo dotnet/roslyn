@@ -305,7 +305,7 @@ internal sealed class CachePathResolver
 		void Add(string? candidate)
 		{
 			if (string.IsNullOrEmpty(candidate) || !Directory.Exists(candidate)) return;
-			string norm = NormalizeFolderPath(candidate!);
+			string norm = NormalizeFolderPath(candidate);
 			foreach (var existing in list)
 				if (string.Equals(existing, norm, StringComparison.OrdinalIgnoreCase)) return;
 			list.Add(norm);

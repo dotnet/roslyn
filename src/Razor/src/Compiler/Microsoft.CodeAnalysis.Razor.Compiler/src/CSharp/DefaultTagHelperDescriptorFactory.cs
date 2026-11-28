@@ -59,7 +59,7 @@ internal sealed class DefaultTagHelperDescriptorFactory(Compilation compilation,
             return false;
         }
 
-        if (!symbol.TryGetAttribute(typeof(EditorBrowsableAttribute).FullName!, out var editorBrowsableAttribute))
+        if (!symbol.TryGetAttribute(typeof(EditorBrowsableAttribute).FullName, out var editorBrowsableAttribute))
         {
             return false;
         }

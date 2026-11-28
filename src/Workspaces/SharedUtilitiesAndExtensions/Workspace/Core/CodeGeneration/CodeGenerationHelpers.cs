@@ -116,7 +116,7 @@ internal static class CodeGenerationHelpers
         ISymbol symbol, string commentToken, [NotNullWhen(true)] out string? comment, CancellationToken cancellationToken = default)
     {
         var xml = symbol.GetDocumentationCommentXml(cancellationToken: cancellationToken);
-        if (string.IsNullOrEmpty(xml))
+        if (RoslynString.IsNullOrEmpty(xml))
         {
             comment = null;
             return false;
@@ -126,7 +126,7 @@ internal static class CodeGenerationHelpers
         var newLineStarter = string.Concat("\n", commentStarter);
 
         // Start the comment with an empty line for visual clarity.
-        comment = string.Concat(commentStarter, "\r\n", commentStarter, xml!.Replace("\n", newLineStarter));
+        comment = string.Concat(commentStarter, "\r\n", commentStarter, xml.Replace("\n", newLineStarter));
         return true;
     }
 

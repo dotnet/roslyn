@@ -70,7 +70,9 @@ internal struct FixedSizeArrayBuilder<T>(int capacity)
     public void AddRange(ImmutableArray<T> values)
     {
         ThrowIfTrue(_index + values.Length > _values.Length);
-        Array.Copy(ImmutableCollectionsMarshal.AsArray(values)!, 0, _values, _index, values.Length);
+        var array = ImmutableCollectionsMarshal.AsArray(values);
+        Debug.Assert(array is not null);
+        Array.Copy(array, 0, _values, _index, values.Length);
         _index += values.Length;
     }
 

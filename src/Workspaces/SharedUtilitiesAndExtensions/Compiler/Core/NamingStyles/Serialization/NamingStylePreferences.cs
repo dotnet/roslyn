@@ -351,10 +351,17 @@ internal sealed class NamingStylePreferences : IEquatable<NamingStylePreferences
     {
         element = GetUpgradedSerializationIfNecessary(element);
 
+        var symbolSpecifications = element.Element("SymbolSpecifications");
+        var namingStyles = element.Element("NamingStyles");
+        var namingRules = element.Element("NamingRules");
+        RoslynDebug.Assert(symbolSpecifications is not null);
+        RoslynDebug.Assert(namingStyles is not null);
+        RoslynDebug.Assert(namingRules is not null);
+
         return new NamingStylePreferences(
-            [.. element.Element("SymbolSpecifications")!.Elements(nameof(SymbolSpecification)).Select(SymbolSpecification.FromXElement)],
-            [.. element.Element("NamingStyles")!.Elements(nameof(NamingStyle)).Select(NamingStyle.FromXElement)],
-            [.. element.Element("NamingRules")!.Elements(nameof(SerializableNamingRule)).Select(SerializableNamingRule.FromXElement)]);
+            [.. symbolSpecifications.Elements(nameof(SymbolSpecification)).Select(SymbolSpecification.FromXElement)],
+            [.. namingStyles.Elements(nameof(NamingStyle)).Select(NamingStyle.FromXElement)],
+            [.. namingRules.Elements(nameof(SerializableNamingRule)).Select(SerializableNamingRule.FromXElement)]);
     }
 
     public override bool Equals(object? obj)
@@ -396,7 +403,9 @@ internal sealed class NamingStylePreferences : IEquatable<NamingStylePreferences
 
     private static XElement GetUpgradedSerializationIfNecessary(XElement rootElement)
     {
-        var serializationVersion = int.Parse(rootElement.Attribute("SerializationVersion")!.Value);
+        var serializationVersionAttribute = rootElement.Attribute("SerializationVersion");
+        RoslynDebug.Assert(serializationVersionAttribute is not null);
+        var serializationVersion = int.Parse(serializationVersionAttribute.Value);
 
         if (serializationVersion == 4)
         {

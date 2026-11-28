@@ -15,21 +15,21 @@ public sealed partial class BoundAttributeDescriptorBuilder : TagHelperObjectBui
     // This should never be mutated.
     private static readonly Dictionary<string, string> s_primitiveDisplayTypeNameLookups = new(StringComparer.Ordinal)
     {
-        { typeof(byte).FullName!, "byte" },
-        { typeof(sbyte).FullName!, "sbyte" },
-        { typeof(int).FullName!, "int" },
-        { typeof(uint).FullName!, "uint" },
-        { typeof(short).FullName!, "short" },
-        { typeof(ushort).FullName!, "ushort" },
-        { typeof(long).FullName!, "long" },
-        { typeof(ulong).FullName!, "ulong" },
-        { typeof(float).FullName!, "float" },
-        { typeof(double).FullName!, "double" },
-        { typeof(char).FullName!, "char" },
-        { typeof(bool).FullName!, "bool" },
-        { typeof(object).FullName!, "object" },
-        { typeof(string).FullName!, "string" },
-        { typeof(decimal).FullName!, "decimal" }
+        { typeof(byte).FullName, "byte" },
+        { typeof(sbyte).FullName, "sbyte" },
+        { typeof(int).FullName, "int" },
+        { typeof(uint).FullName, "uint" },
+        { typeof(short).FullName, "short" },
+        { typeof(ushort).FullName, "ushort" },
+        { typeof(long).FullName, "long" },
+        { typeof(ulong).FullName, "ulong" },
+        { typeof(float).FullName, "float" },
+        { typeof(double).FullName, "double" },
+        { typeof(char).FullName, "char" },
+        { typeof(bool).FullName, "bool" },
+        { typeof(object).FullName, "object" },
+        { typeof(string).FullName, "string" },
+        { typeof(decimal).FullName, "decimal" }
     };
 
     [AllowNull]

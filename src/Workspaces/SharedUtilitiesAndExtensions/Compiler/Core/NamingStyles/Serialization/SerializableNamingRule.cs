@@ -33,11 +33,18 @@ internal sealed record class SerializableNamingRule
 
     internal static SerializableNamingRule FromXElement(XElement namingRuleElement)
     {
+        var enforcementLevel = namingRuleElement.Attribute(nameof(EnforcementLevel));
+        var namingStyleID = namingRuleElement.Attribute(nameof(NamingStyleID));
+        var symbolSpecificationID = namingRuleElement.Attribute(nameof(SymbolSpecificationID));
+        RoslynDebug.Assert(enforcementLevel is not null);
+        RoslynDebug.Assert(namingStyleID is not null);
+        RoslynDebug.Assert(symbolSpecificationID is not null);
+
         return new SerializableNamingRule()
         {
-            EnforcementLevel = ((DiagnosticSeverity)Enum.Parse(typeof(DiagnosticSeverity), namingRuleElement.Attribute(nameof(EnforcementLevel))!.Value)).ToReportDiagnostic(),
-            NamingStyleID = Guid.Parse(namingRuleElement.Attribute(nameof(NamingStyleID))!.Value),
-            SymbolSpecificationID = Guid.Parse(namingRuleElement.Attribute(nameof(SymbolSpecificationID))!.Value)
+            EnforcementLevel = ((DiagnosticSeverity)Enum.Parse(typeof(DiagnosticSeverity), enforcementLevel.Value)).ToReportDiagnostic(),
+            NamingStyleID = Guid.Parse(namingStyleID.Value),
+            SymbolSpecificationID = Guid.Parse(symbolSpecificationID.Value)
         };
     }
 

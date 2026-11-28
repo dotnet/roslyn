@@ -57,7 +57,7 @@ internal sealed class ReferenceEqualityComparer : IEqualityComparer<object?>, IE
         // Depending on target framework, RuntimeHelpers.GetHashCode might not be annotated
         // with the proper nullability attribute. We'll suppress any warning that might
         // result.
-        return RuntimeHelpers.GetHashCode(obj!);
+        return RuntimeHelpers.GetHashCode(obj);
     }
 }
 

@@ -538,7 +538,7 @@ internal static class Extensions
         var baselineDirectory = Path.Join(
             _testProjectRoot,
             "TestFiles",
-            Path.GetFileNameWithoutExtension(testPath)!,
+            Path.GetFileNameWithoutExtension(testPath),
             testName,
             suffix);
         Directory.CreateDirectory(baselineDirectory);

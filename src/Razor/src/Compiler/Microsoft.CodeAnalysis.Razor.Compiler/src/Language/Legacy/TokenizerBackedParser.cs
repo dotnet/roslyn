@@ -432,7 +432,7 @@ internal abstract class TokenizerBackedParser<TTokenizer> : ParserBase, IDisposa
         Debug.Assert(!EndOfFile && CurrentToken != null);
         var token = CurrentToken;
         NextToken();
-        return token!;
+        return token;
     }
 
     protected SyntaxToken EatExpectedToken(SyntaxKind kind)
@@ -440,7 +440,7 @@ internal abstract class TokenizerBackedParser<TTokenizer> : ParserBase, IDisposa
         Debug.Assert(!EndOfFile && CurrentToken != null && kind == CurrentToken.Kind);
         var token = CurrentToken;
         NextToken();
-        return token!;
+        return token;
     }
 
     protected SyntaxToken? GetOptionalToken(SyntaxKind kind)

@@ -89,7 +89,7 @@ internal sealed class CSharpReplaceDefaultLiteralCodeFixProvider() : CodeFixProv
             {
                 return GenerateMemberAccess("None");
             }
-            else if (type.Equals(semanticModel.Compilation.GetTypeByMetadataName(typeof(CancellationToken).FullName!)))
+            else if (type.Equals(semanticModel.Compilation.GetTypeByMetadataName(typeof(CancellationToken).FullName)))
             {
                 return GenerateMemberAccess(nameof(CancellationToken.None));
             }
@@ -120,7 +120,7 @@ internal sealed class CSharpReplaceDefaultLiteralCodeFixProvider() : CodeFixProv
 
     private static bool IsFlagsEnum(ITypeSymbol type, Compilation compilation)
     {
-        var flagsAttribute = compilation.GetTypeByMetadataName(typeof(FlagsAttribute).FullName!);
+        var flagsAttribute = compilation.GetTypeByMetadataName(typeof(FlagsAttribute).FullName);
         return type.TypeKind == TypeKind.Enum &&
                flagsAttribute != null &&
                type.HasAttribute(flagsAttribute);

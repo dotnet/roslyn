@@ -58,8 +58,10 @@ internal abstract class AbstractRemoveUnnecessaryInlineSuppressionsDiagnosticAna
             // without updating the below code.
 
             var (assembly, compilerAnalyzerTypeName) = GetCompilerDiagnosticAnalyzerInfo();
-            var compilerAnalyzerType = assembly.GetType(compilerAnalyzerTypeName)!;
-            var methodInfo = compilerAnalyzerType.GetMethod("GetSupportedErrorCodes", BindingFlags.Instance | BindingFlags.NonPublic)!;
+            var compilerAnalyzerType = assembly.GetType(compilerAnalyzerTypeName);
+            RoslynDebug.Assert(compilerAnalyzerType is not null);
+            var methodInfo = compilerAnalyzerType.GetMethod("GetSupportedErrorCodes", BindingFlags.Instance | BindingFlags.NonPublic);
+            RoslynDebug.Assert(methodInfo is not null);
             var compilerAnalyzerInstance = Activator.CreateInstance(compilerAnalyzerType);
             var supportedCodes = methodInfo.Invoke(compilerAnalyzerInstance, []) as IEnumerable<int>;
             return supportedCodes?.ToImmutableHashSet() ?? [];

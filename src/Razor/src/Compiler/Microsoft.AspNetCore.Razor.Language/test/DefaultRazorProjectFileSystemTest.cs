@@ -24,7 +24,7 @@ public class DefaultRazorProjectFileSystemTest
         var fileSystem = new TestRazorProjectFileSystem("C:/some/test/path/root");
 
         // Act and Assert
-        Assert.Throws<ArgumentNullException>(paramName: "path", () => fileSystem.NormalizeAndEnsureValidPath(null!));
+        Assert.Throws<ArgumentNullException>(paramName: "path", () => fileSystem.NormalizeAndEnsureValidPath(null));
     }
 
     [Fact]

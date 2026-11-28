@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis
                     from reference in _availableReferences
                     let identity = TryGetIdentity(reference)
                     where identity != null
-                    select identity!));
+                    select identity));
             }
 
             public override ImmutableArray<PortableExecutableReference> ResolveReference(string reference, string? baseFilePath, MetadataReferenceProperties properties)

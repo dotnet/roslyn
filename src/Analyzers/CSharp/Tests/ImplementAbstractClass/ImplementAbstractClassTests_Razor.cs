@@ -74,7 +74,7 @@ public sealed partial class ImplementAbstractClassTests
         Assert.NotNull(compilation);
 
         var diagnostic = Assert.Single(
-            compilation!.GetDiagnostics(CancellationToken.None).Where(
+            compilation.GetDiagnostics(CancellationToken.None).Where(
                 diagnostic => diagnostic.Id == "CS0534" && diagnostic.Location.SourceTree == requestTree));
 
         var codeActions = new List<CodeAction>();
@@ -95,7 +95,7 @@ public sealed partial class ImplementAbstractClassTests
         Assert.NotNull(newSourceGeneratedDocument);
         AssertEx.EqualOrDiff(
             expectedGeneratedCode,
-            (await newSourceGeneratedDocument!.GetTextAsync(CancellationToken.None)).ToString());
+            (await newSourceGeneratedDocument.GetTextAsync(CancellationToken.None)).ToString());
     }
 
     [Fact]

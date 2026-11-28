@@ -81,7 +81,7 @@ internal class AutoCompleteEditHandler : SpanEditHandler
             {
                 // Throw if the value is not set.
                 Debug.Assert(canCompleteBrace is not null);
-                return canCompleteBrace!.Value;
+                return canCompleteBrace.Value;
             }
             set
             {

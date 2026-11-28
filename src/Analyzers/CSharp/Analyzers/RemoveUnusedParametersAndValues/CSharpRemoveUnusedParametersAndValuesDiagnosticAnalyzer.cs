@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Diagnostics;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
@@ -12,6 +11,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.RemoveUnusedParametersAndValues;
 
@@ -89,12 +89,12 @@ internal sealed class CSharpRemoveUnusedParametersAndValuesDiagnosticAnalyzer : 
                 return declarationPattern.Designation.GetLocation();
 
             case RecursivePatternSyntax recursivePattern:
-                Debug.Assert(recursivePattern.Designation is not null, "If we got to this point variable designation cannot be null");
-                return recursivePattern.Designation!.GetLocation();
+                RoslynDebug.Assert(recursivePattern.Designation is not null, "If we got to this point variable designation cannot be null");
+                return recursivePattern.Designation.GetLocation();
 
             case ListPatternSyntax listPattern:
-                Debug.Assert(listPattern.Designation is not null, "If we got to this point variable designation cannot be null");
-                return listPattern.Designation!.GetLocation();
+                RoslynDebug.Assert(listPattern.Designation is not null, "If we got to this point variable designation cannot be null");
+                return listPattern.Designation.GetLocation();
 
             default:
                 // C# syntax node for foreach statement has no syntax node for the loop control variable declaration,

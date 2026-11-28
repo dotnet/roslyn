@@ -438,7 +438,7 @@ internal static partial class SyntaxGeneratorExtensions
 
     private static SyntaxNode CreateNewArgumentNullException(SyntaxGenerator factory, Compilation compilation, IParameterSymbol parameter)
     {
-        var type = compilation.GetTypeByMetadataName(typeof(ArgumentNullException).FullName!);
+        var type = compilation.GetTypeByMetadataName(typeof(ArgumentNullException).FullName);
         Contract.ThrowIfNull(type);
         return factory.ObjectCreationExpression(type,
             factory.NameOfExpression(

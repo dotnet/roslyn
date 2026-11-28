@@ -96,7 +96,7 @@ namespace Microsoft.CodeAnalysis.Testing
                 generator.Emit(OpCodes.Ret);
             }
 
-            return typeBuilder.CreateTypeInfo()!.AsType();
+            return typeBuilder.CreateTypeInfo().AsType();
         }
 
         private static ModuleBuilder CreateModuleBuilder()
@@ -155,7 +155,7 @@ namespace Microsoft.CodeAnalysis.Testing
             il.Emit(OpCodes.Call, AttributeBaseClassCtor);
             il.Emit(OpCodes.Ret);
 
-            return tb.CreateTypeInfo()!;
+            return tb.CreateTypeInfo();
         }
 
         internal abstract class CustomAnalysisContext : AnalysisContext
