@@ -27,6 +27,7 @@ internal static class ProjectDataMerger
 		"commandLineArguments",
 		"sourceFiles",
 		"frameworkPacks",
+		"frameworkAnalyzerReferences",
 		"metadataReferences",
 		"sdkAnalyzerPacks",
 		"analyzerReferences",
@@ -267,6 +268,23 @@ internal static class ProjectDataMerger
 				: IntersectAllOrdered(allLists);
 		}
 
+		// The reader applies [frameworkAnalyzerReferences] only to packs expanded in the same
+		// slice, so the allow-list must never be split from its [frameworkPacks]. Hoist both
+		// only when every slice agrees on both; otherwise write both in full per slice.
+		bool hasFrameworkAnalyzerAllowList = slices.Any(static s => s.ListSections.ContainsKey(CacheFormat.Sections.FrameworkAnalyzerReferences));
+		bool hoistFrameworkPacks = !hasFrameworkAnalyzerAllowList
+			|| (AllSlicesHaveSameSection(slices, CacheFormat.Sections.FrameworkPacks)
+				&& AllSlicesHaveSameSection(slices, CacheFormat.Sections.FrameworkAnalyzerReferences));
+		if (hasFrameworkAnalyzerAllowList)
+		{
+			sharedSections[CacheFormat.Sections.FrameworkPacks] = hoistFrameworkPacks
+				? GetSection(slices[0], CacheFormat.Sections.FrameworkPacks) ?? []
+				: [];
+			sharedSections[CacheFormat.Sections.FrameworkAnalyzerReferences] = hoistFrameworkPacks
+				? GetSection(slices[0], CacheFormat.Sections.FrameworkAnalyzerReferences) ?? []
+				: [];
+		}
+
 		// Write shared [project] (no [sliceDimensions]).
 		writer.WriteLine();
 		WriteProjectSection(writer, sharedProjectLines);
@@ -394,6 +412,19 @@ internal static class ProjectDataMerger
 			writer.WriteLine(CacheFormat.PrimaryMarker);
 		foreach (string line in lines.Where(static l => !l.StartsWith(CacheFormat.ProjectHeaderPrefix, StringComparison.Ordinal)))
 			writer.WriteLine(line);
+	}
+
+	private static List<string>? GetSection(SliceData slice, string section)
+		=> slice.ListSections.TryGetValue(section, out List<string>? lines) ? lines : null;
+
+	private static bool AllSlicesHaveSameSection(List<SliceData> slices, string section)
+	{
+		List<string>? first = GetSection(slices[0], section);
+		return slices.All(slice =>
+		{
+			List<string>? lines = GetSection(slice, section);
+			return first is null ? lines is null : lines is not null && lines.SequenceEqual(first, StringComparer.Ordinal);
+		});
 	}
 
 	private static void StampPrimarySlice(List<SliceData> slices, string? targetFrameworks)
