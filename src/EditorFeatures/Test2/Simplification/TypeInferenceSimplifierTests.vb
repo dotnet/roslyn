@@ -245,6 +245,85 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Simplification
             Await TestAsync(input, expected)
         End Function
 
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/86512")>
+        Public Async Function TestDoNotSimplify_NameWouldBindToAnotherSymbol() As Task
+            Dim input =
+        <Workspace>
+            <Project Language="Visual Basic" CommonReferences="true">
+                <Document>
+                    Imports Microsoft.VisualBasic
+
+                    Public Class Icon
+                        Public Shared Function FromHandle(h As Integer) As Icon
+                            Return Nothing
+                        End Function
+                        Public Shared Function All() As Icon()
+                            Return {}
+                        End Function
+                    End Class
+
+                    Public Class C
+                        Private i As Integer
+                        Public Property Company As String
+                        Public Shared Companies As String() = {}
+
+                        Public Sub Test()
+                            For {|SimplifyParent:month As Integer|} = 1 To 12 : Next
+                            For {|SimplifyParent:i As Integer|} = 0 To 2 : Next
+                            Dim {|SimplifyParent:icon As Icon = Icon.FromHandle(1)|}
+                            For Each {|SimplifyParent:company As String|} In Companies : Next
+                            For Each {|SimplifyParent:icon2 As Icon|} In Icon.All() : Next
+                            Dim {|SimplifyParent:system As Integer = System.Math.Abs(-1)|}
+                            Dim {|SimplifyParent:count As Integer = count + 1|}
+                            Dim {|SimplifyParent:all As Icon() = Icon.All()|}
+                        End Sub
+
+                        Public Sub Test2()
+                            For Each {|SimplifyParent:icon As Icon|} In Icon.All() : Next
+                        End Sub
+                    End Class
+                </Document>
+            </Project>
+        </Workspace>
+
+            Dim expected =
+              <text>
+                    Imports Microsoft.VisualBasic
+
+                    Public Class Icon
+                        Public Shared Function FromHandle(h As Integer) As Icon
+                            Return Nothing
+                        End Function
+                        Public Shared Function All() As Icon()
+                            Return {}
+                        End Function
+                    End Class
+
+                    Public Class C
+                        Private i As Integer
+                        Public Property Company As String
+                        Public Shared Companies As String() = {}
+
+                        Public Sub Test()
+                            For month As Integer = 1 To 12 : Next
+                            For i As Integer = 0 To 2 : Next
+                            Dim icon As Icon = Icon.FromHandle(1)
+                            For Each company As String In Companies : Next
+                            For Each icon2 In Icon.All() : Next
+                            Dim system As Integer = System.Math.Abs(-1)
+                            Dim count As Integer = count + 1
+                            Dim all = Icon.All()
+                        End Sub
+
+                        Public Sub Test2()
+                            For Each icon As Icon In Icon.All() : Next
+                        End Sub
+                    End Class
+                </text>
+
+            Await TestAsync(input, expected)
+        End Function
+
         <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/734377")>
         Public Async Function TestSimplify1() As Task
             Dim input =

@@ -37,7 +37,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
             Dim issueSpan As TextSpan
 
             If Not TryReduceVariableDeclaratorWithoutType(
-                node, semanticModel, replacementNode, issueSpan) Then
+                node, semanticModel, replacementNode, issueSpan, cancellationToken) Then
                 Return node
             End If
 
@@ -49,7 +49,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
             variableDeclarator As VariableDeclaratorSyntax,
             semanticModel As SemanticModel,
             <Out> ByRef replacementNode As SyntaxNode,
-            <Out> ByRef issueSpan As TextSpan) As Boolean
+            <Out> ByRef issueSpan As TextSpan,
+            cancellationToken As CancellationToken) As Boolean
 
             replacementNode = Nothing
             issueSpan = Nothing
@@ -92,10 +93,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
                     ' Get type of the array literal in context without the target type
                     initializerType = semanticModel.GetSpeculativeTypeInfo(variableDeclarator.Initializer.Value.SpanStart, variableDeclarator.Initializer.Value, SpeculativeBindingOption.BindAsExpression).ConvertedType
                 Else
-                    initializerType = semanticModel.GetTypeInfo(variableDeclarator.Initializer.Value).Type
+                    initializerType = semanticModel.GetTypeInfo(variableDeclarator.Initializer.Value, cancellationToken).Type
                 End If
 
                 If Not declaredSymbolType.Equals(initializerType) Then
+                    Return False
+                End If
+
+                If ReferencesName(variableDeclarator.Initializer.Value, modifiedIdentifier) Then
                     Return False
                 End If
 
@@ -115,7 +120,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
                         Return False
                     End If
 
-                    Dim valueType = semanticModel.GetTypeInfo(DirectCast(parent, ForStatementSyntax).ToValue).Type
+                    Dim valueType = semanticModel.GetTypeInfo(DirectCast(parent, ForStatementSyntax).ToValue, cancellationToken).Type
 
                     If Not valueType.Equals(declaredSymbolType) Then
                         Return False
@@ -127,6 +132,22 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
                     If Not forEachStatementInfo.ElementConversion.IsIdentity Then
                         Return False
                     End If
+
+                    If ReferencesName(DirectCast(parent, ForEachStatementSyntax).Expression, modifiedIdentifier) Then
+                        Return False
+                    End If
+                End If
+
+                ' With Option Infer On and no As clause, the compiler only declares a new control variable when the name finds nothing
+                ' in the enclosing scope, or finds a type (see ForOrForEachBlockBinder.BuildLocals). If it finds anything
+                ' else, such as a field, property or method, the loop reuses that symbol instead. Do the same lookup here.
+                ' It is done from the member's header, because from inside the loop the name finds the loop's own local.
+                ' Locals and parameters of the member can be skipped, since they cannot share a name with this variable.
+                Dim memberBlock = variableDeclarator.FirstAncestorOrSelf(Of MethodBlockBaseSyntax)()
+                If memberBlock Is Nothing OrElse
+                   semanticModel.LookupSymbols(memberBlock.BlockStatement.Span.End, name:=modifiedIdentifier.Identifier.ValueText).Any(
+                       Function(s) s.Kind <> SymbolKind.NamedType AndAlso s.Kind <> SymbolKind.TypeParameter) Then
+                    Return False
                 End If
 
                 Dim newIdentifierName = SyntaxFactory.IdentifierName(modifiedIdentifier.Identifier) ' Leading Trivia is copied here
@@ -136,6 +157,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
             End If
 
             Return False
+        End Function
+
+        ' Without an As clause the variable's type is inferred from this expression, and the variable is in scope inside it.
+        ' So every simple name in the expression that matches the variable name would bind to the variable itself, whatever
+        ' it binds to now (for example a type or namespace with the same name), and the inference would refer to itself.
+        ' Names after a dot or bang, and argument names, are not looked up in scope, so they are not affected.
+        Private Shared Function ReferencesName(expression As ExpressionSyntax, modifiedIdentifier As ModifiedIdentifierSyntax) As Boolean
+            Return expression.DescendantNodesAndSelf().OfType(Of IdentifierNameSyntax)().Any(
+                Function(n) CaseInsensitiveComparison.Equals(n.Identifier.ValueText, modifiedIdentifier.Identifier.ValueText) AndAlso
+                            Not n.IsRightSideOfDotOrBang() AndAlso
+                            Not n.Parent.IsKind(SyntaxKind.NameColonEquals))
         End Function
 
         Private Shared Function HasValidDeclaredTypeSymbol(
