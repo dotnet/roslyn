@@ -504,6 +504,11 @@ internal abstract class AbstractChangeSignatureService : ILanguageService
         var expectedIndex = 0 + (isReducedExtensionMethod ? 1 : 0);
         var seenNamedArgument = false;
 
+        // A named argument in its own position can be followed by positional arguments (C# 7.2, VB 15.5). If the
+        // call already does that, the language version allows it, so such a named argument doesn't force names on
+        // the arguments after it. Otherwise, keep naming every argument after the first named one.
+        var callHasNonTrailingNamedArguments = HasNonTrailingNamedArguments(arguments);
+
         // Holds the params array argument so it can be
         // added at the end.
         IUnifiedArgumentSyntax paramsArrayArgument = null;
@@ -536,7 +541,11 @@ internal abstract class AbstractChangeSignatureService : ILanguageService
                 paramsArrayArgument = argument;
             }
 
-            seenNamedArgument |= argument.IsNamed;
+            if (argument.IsNamed)
+            {
+                seenNamedArgument |= !callHasNonTrailingNamedArguments || actualIndex != expectedIndex;
+            }
+
             expectedIndex++;
         }
 
@@ -571,6 +580,31 @@ internal abstract class AbstractChangeSignatureService : ILanguageService
         }
 
         return newArguments.ToImmutableAndFree();
+    }
+
+    private static bool HasNonTrailingNamedArguments(ImmutableArray<IUnifiedArgumentSyntax> arguments)
+        => HasNonTrailingNamedArguments(arguments, static argument => argument.IsNamed);
+
+    private bool HasNonTrailingNamedArguments<TArgumentSyntax>(SeparatedSyntaxList<TArgumentSyntax> arguments)
+        where TArgumentSyntax : SyntaxNode
+        => HasNonTrailingNamedArguments(arguments, SyntaxFacts.IsNamedArgument);
+
+    private static bool HasNonTrailingNamedArguments<TArgument>(IEnumerable<TArgument> arguments, Func<TArgument, bool> isNamed)
+    {
+        var seenNamedArgument = false;
+        foreach (var argument in arguments)
+        {
+            if (isNamed(argument))
+            {
+                seenNamedArgument = true;
+            }
+            else if (seenNamedArgument)
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /// <summary>
@@ -783,6 +817,7 @@ internal abstract class AbstractChangeSignatureService : ILanguageService
         var seenNamedArguments = false;
         var seenOmitted = false;
         var paramsHandled = false;
+        var callHasNonTrailingNamedArguments = HasNonTrailingNamedArguments(newArguments);
 
         for (var i = 0; i < updatedParameters.Length; i++)
         {
@@ -866,7 +901,11 @@ internal abstract class AbstractChangeSignatureService : ILanguageService
                     }
                     else if (indexInListOfPreexistingArguments < newArguments.Count)
                     {
-                        if (SyntaxFacts.IsNamedArgument(newArguments[indexInListOfPreexistingArguments]))
+                        // As in PermuteArguments, a named argument in its own position doesn't force names on the
+                        // arguments after it when the call already has positional arguments after named ones.
+                        if (SyntaxFacts.IsNamedArgument(newArguments[indexInListOfPreexistingArguments]) &&
+                            !(callHasNonTrailingNamedArguments &&
+                              SyntaxFacts.StringComparer.Equals(SyntaxFacts.GetNameForArgument(newArguments[indexInListOfPreexistingArguments]), updatedParameters[i].Name)))
                         {
                             seenNamedArguments = true;
                         }
