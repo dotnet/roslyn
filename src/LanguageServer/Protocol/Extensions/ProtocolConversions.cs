@@ -982,6 +982,13 @@ internal static partial class ProtocolConversions
         {
             switch (taggedText.Tag)
             {
+                case TextTags.Heading:
+                    if (!markdownBuilder.IsLineEmpty())
+                        markdownBuilder.AppendLine();
+
+                    markdownBuilder.AppendLine("## " + s_markdownEscapeRegex.Replace(taggedText.Text, @"\$1"));
+                    markdownBuilder.AppendLine();
+                    break;
                 case TextTags.CodeBlockStart:
                     if (markdownBuilder.IsLineEmpty())
                     {
@@ -1025,10 +1032,19 @@ internal static partial class ProtocolConversions
                     if (!markdownBuilder.IsLineEmpty())
                         AppendLineBreak(markdownBuilder);
 
-                    // The current line is empty, we can append a code block.
-                    markdownBuilder.AppendLine($"{BlockCodeFence}text");
+                    // Custom format literals and documentation can contain backticks themselves.
+                    var longestBacktickRun = 0;
+                    var backtickRun = 0;
+                    foreach (var character in taggedText.Text)
+                    {
+                        backtickRun = character == '`' ? backtickRun + 1 : 0;
+                        longestBacktickRun = Math.Max(longestBacktickRun, backtickRun);
+                    }
+
+                    var plainTextFence = new string('`', Math.Max(3, longestBacktickRun + 1));
+                    markdownBuilder.AppendLine($"{plainTextFence}text");
                     markdownBuilder.AppendLine(taggedText.Text);
-                    markdownBuilder.AppendLine(BlockCodeFence);
+                    markdownBuilder.AppendLine(plainTextFence);
 
                     break;
                 case TextTags.LineBreak:
