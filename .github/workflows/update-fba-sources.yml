@@ -14,6 +14,7 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       matrix: ${{ steps.branches.outputs.matrix }}
+      error: ${{ steps.branches.outputs.error }}
     steps:
       - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
         with:
@@ -27,9 +28,18 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ github.token }}
         run: dotnet run --file eng/update-fba-sources.cs -- discover
+      - name: Report SDK main without a matching Roslyn branch
+        if: steps.branches.outputs.error != ''
+        env:
+          ERROR: ${{ steps.branches.outputs.error }}
+        run: |
+          echo "::error::$ERROR"
+          exit 1
 
   update:
     needs: discover
+    # Run even if discovery reported an error for SDK main. Discovery leaves the matrix unset when every branch is skipped.
+    if: ${{ !cancelled() && needs.discover.outputs.matrix != '' }}
     runs-on: ubuntu-latest
     permissions:
       contents: write
