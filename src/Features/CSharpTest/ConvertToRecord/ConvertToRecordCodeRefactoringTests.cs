@@ -4068,8 +4068,8 @@ public sealed class ConvertToRecordCodeRefactoringTests
             """);
 
     [Fact]
-    public Task TestSelectMultipleMembersWithinClass()
-        => TestRefactoringAsync("""
+    public Task TestNotOfferedOnSelectedMembersWithinClass()
+        => TestNoRefactoringAsync("""
             namespace N
             {
                 public class C
@@ -4080,17 +4080,6 @@ public sealed class ConvertToRecordCodeRefactoringTests
                     {
                         return 0;
                     }|]
-                }
-            }
-            """, """
-            namespace N
-            {
-                public record C(int P)
-                {
-                    public int Foo()
-                    {
-                        return 0;
-                    }
                 }
             }
             """);
