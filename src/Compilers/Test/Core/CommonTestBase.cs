@@ -217,27 +217,8 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             out ImmutableArray<byte> pdbBytes,
             bool autoInherit = true)
         {
-            IlasmUtilities.IlasmTempAssembly(ilSource, appendDefaultHeader, includePdb, autoInherit, out var assemblyPath, out var pdbPath);
-
-            Assert.NotNull(assemblyPath);
-            Assert.Equal(pdbPath != null, includePdb);
-
-            using (new DisposableFile(assemblyPath))
-            {
-                assemblyBytes = ReadFromFile(assemblyPath);
-            }
-
-            if (pdbPath != null)
-            {
-                using (new DisposableFile(pdbPath))
-                {
-                    pdbBytes = ReadFromFile(pdbPath);
-                }
-            }
-            else
-            {
-                pdbBytes = default(ImmutableArray<byte>);
-            }
+            (assemblyBytes, pdbBytes) = IlasmUtilities.Assemble(ilSource, appendDefaultHeader, includePdb, autoInherit);
+            Assert.Equal(includePdb, !pdbBytes.IsDefault);
         }
 
         internal static MetadataReference CompileIL(string ilSource, bool prependDefaultHeader = true, bool embedInteropTypes = false, bool autoInherit = true)

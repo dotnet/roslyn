@@ -2,7 +2,6 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
-Imports System.IO
 Imports Basic.Reference.Assemblies
 Imports Microsoft.CodeAnalysis.CSharp
 Imports Microsoft.CodeAnalysis.Test.Utilities
@@ -206,9 +205,9 @@ End Module
   } // end of property Module1::Test3
 } // end of class Module1]]>
 
-            Using reference = IlasmUtilities.CreateTempAssembly(customIL.Value, prependDefaultHeader:=False)
+            Using reference = AssemblyMetadata.CreateFromImage(IlasmUtilities.Assemble(customIL.Value, appendDefaultHeader:=False, includePdb:=False, autoInherit:=True).Assembly)
 
-                Dim ILRef = MetadataReference.CreateFromImage(ReadFromFile(reference.Path))
+                Dim ILRef = reference.GetReference()
 
                 Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib40AndReferences(
         <compilation name="DetectingExtensionAttributeOnImport">
@@ -416,9 +415,9 @@ End Module
 } // end of class Module2
 ]]>
 
-            Using reference = IlasmUtilities.CreateTempAssembly(customIL.Value, prependDefaultHeader:=False)
+            Using reference = AssemblyMetadata.CreateFromImage(IlasmUtilities.Assemble(customIL.Value, appendDefaultHeader:=False, includePdb:=False, autoInherit:=True).Assembly)
 
-                Dim ILRef = MetadataReference.CreateFromImage(ReadFromFile(reference.Path))
+                Dim ILRef = reference.GetReference()
 
                 Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib40AndReferences(
         <compilation name="DetectingExtensionAttributeOnImport">
@@ -611,9 +610,9 @@ End Module
   } // end of property Module1::Test3
 } // end of class Module1]]>
 
-            Using reference = IlasmUtilities.CreateTempAssembly(customIL.Value, prependDefaultHeader:=False)
+            Using reference = AssemblyMetadata.CreateFromImage(IlasmUtilities.Assemble(customIL.Value, appendDefaultHeader:=False, includePdb:=False, autoInherit:=True).Assembly)
 
-                Dim ILRef = MetadataReference.CreateFromImage(ReadFromFile(reference.Path))
+                Dim ILRef = reference.GetReference()
 
                 Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib40AndReferences(
         <compilation name="DetectingExtensionAttributeOnImport">
@@ -805,9 +804,9 @@ End Module
   } // end of property Module1::Test3
 } // end of class Module1]]>
 
-            Using reference = IlasmUtilities.CreateTempAssembly(customIL.Value, prependDefaultHeader:=False)
+            Using reference = AssemblyMetadata.CreateFromImage(IlasmUtilities.Assemble(customIL.Value, appendDefaultHeader:=False, includePdb:=False, autoInherit:=True).Assembly)
 
-                Dim ILRef = MetadataReference.CreateFromImage(ReadFromFile(reference.Path))
+                Dim ILRef = reference.GetReference()
 
                 Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib40AndReferences(
         <compilation name="DetectingExtensionAttributeOnImport">
@@ -1001,9 +1000,9 @@ End Module
 .custom ([mscorlib]System.Runtime.CompilerServices.AssemblyAttributesGoHere) instance void [System.Core]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 ) 
 ]]>
 
-            Using reference = IlasmUtilities.CreateTempAssembly(customIL.Value, prependDefaultHeader:=False)
+            Using reference = ModuleMetadata.CreateFromImage(IlasmUtilities.Assemble(customIL.Value, appendDefaultHeader:=False, includePdb:=False, autoInherit:=True).Assembly)
 
-                Dim ILRef = ModuleMetadata.CreateFromImage(File.ReadAllBytes(reference.Path)).GetReference()
+                Dim ILRef = reference.GetReference()
 
                 Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib40AndReferences(
         <compilation name="DetectingExtensionAttributeOnImport">
@@ -2229,9 +2228,9 @@ BC42030: Variable 'x' is passed by reference before it has been assigned a value
 }
 ]]>
 
-            Using reference = IlasmUtilities.CreateTempAssembly(customIL.Value, prependDefaultHeader:=False)
+            Using reference = ModuleMetadata.CreateFromImage(IlasmUtilities.Assemble(customIL.Value, appendDefaultHeader:=False, includePdb:=False, autoInherit:=True).Assembly)
 
-                Dim ILRef = ModuleMetadata.CreateFromImage(File.ReadAllBytes(reference.Path)).GetReference()
+                Dim ILRef = reference.GetReference()
 
                 Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
         <compilation name="ExtensionMethodsDeclaredInTypesWithConflictingNamesAreNotVisible">

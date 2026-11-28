@@ -7154,13 +7154,7 @@ public static int AT = (new { field = 2 }).field;
 } // end of class ITest20
 ";
 
-            ImmutableArray<Byte> ilBytes;
-            using (var reference = IlasmUtilities.CreateTempAssembly(ilSource, prependDefaultHeader: false))
-            {
-                ilBytes = ReadFromFile(reference.Path);
-            }
-
-            var moduleRef = ModuleMetadata.CreateFromImage(ilBytes).GetReference();
+            var moduleRef = GetILModuleReference(ilSource, prependDefaultHeader: false);
 
             var source =
 @"
@@ -7223,13 +7217,7 @@ interface ITest20
 } 
 ";
 
-            ImmutableArray<Byte> ilBytes;
-            using (var reference = IlasmUtilities.CreateTempAssembly(ilSource, prependDefaultHeader: false))
-            {
-                ilBytes = ReadFromFile(reference.Path);
-            }
-
-            var moduleRef1 = ModuleMetadata.CreateFromImage(ilBytes).GetReference();
+            var moduleRef1 = GetILModuleReference(ilSource, prependDefaultHeader: false);
 
             var mod2Source =
 @"
@@ -20610,7 +20598,7 @@ internal abstract event System.EventHandler E;";
 {
 	.assembly extern Destination1
 }
-.class extern forwarder Destination.TestClass
+{|ILA0065:.class|} extern forwarder Destination.TestClass
 {
 	.assembly extern Destination2
 }
@@ -20683,7 +20671,7 @@ namespace ForwardingNamespace
 {
 	.assembly extern Destination1
 }
-.class extern forwarder Destination.TestClass
+{|ILA0065:.class|} extern forwarder Destination.TestClass
 {
 	.assembly extern Destination2
 }";
@@ -20725,27 +20713,27 @@ namespace ForwardingNamespace
 {
 	.assembly extern Destination1
 }
-.class extern forwarder Destination.TestClass
+{|ILA0065:.class|} extern forwarder Destination.TestClass
 {
 	.assembly extern Destination2
 }
-.class extern forwarder Destination.TestClass
+{|ILA0065:.class|} extern forwarder Destination.TestClass
 {
 	.assembly extern Destination3
 }
-.class extern forwarder Destination.TestClass
+{|ILA0065:.class|} extern forwarder Destination.TestClass
 {
 	.assembly extern Destination4
 }
-.class extern forwarder Destination.TestClass
+{|ILA0065:.class|} extern forwarder Destination.TestClass
 {
 	.assembly extern Destination5
 }
-.class extern forwarder Destination.TestClass
+{|ILA0065:.class|} extern forwarder Destination.TestClass
 {
 	.assembly extern Destination1
 }
-.class extern forwarder Destination.TestClass
+{|ILA0065:.class|} extern forwarder Destination.TestClass
 {
 	.assembly extern Destination2
 }";
@@ -20815,7 +20803,7 @@ namespace A
 {
 	.assembly extern D1
 }
-.class extern forwarder C.ClassC
+{|ILA0065:.class|} extern forwarder C.ClassC
 {
 	.assembly extern D2
 }";
@@ -20883,7 +20871,7 @@ namespace A
 {
 	.assembly extern D
 }
-.class extern forwarder C.ClassC
+{|ILA0065:.class|} extern forwarder C.ClassC
 {
 	.assembly extern D
 }";
@@ -20932,7 +20920,7 @@ namespace C
 {
 	.assembly extern D1
 }
-.class extern forwarder Testspace.TestType
+{|ILA0065:.class|} extern forwarder Testspace.TestType
 {
 	.assembly extern D2
 }";
@@ -20952,7 +20940,7 @@ namespace C
 {
 	.assembly extern D
 }
-.class extern forwarder Testspace.TestType
+{|ILA0065:.class|} extern forwarder Testspace.TestType
 {
 	.assembly extern D
 }";
@@ -20986,7 +20974,7 @@ namespace Testspace
 {
 	.assembly extern D1
 }
-.class extern forwarder Testspace.TestType
+{|ILA0065:.class|} extern forwarder Testspace.TestType
 {
 	.assembly extern D2
 }";
@@ -21035,7 +21023,7 @@ namespace UserSpace
 {
 	.assembly extern D1
 }
-.class extern forwarder Testspace.TestType
+{|ILA0065:.class|} extern forwarder Testspace.TestType
 {
 	.assembly extern D2
 }";
@@ -21050,7 +21038,7 @@ namespace UserSpace
 {
 	.assembly extern D3
 }
-.class extern forwarder Testspace.TestType
+{|ILA0065:.class|} extern forwarder Testspace.TestType
 {
 	.assembly extern D4
 }";
@@ -21127,7 +21115,7 @@ namespace B
 {
 	.assembly extern D
 }
-.class extern forwarder C.ClassC
+{|ILA0065:.class|} extern forwarder C.ClassC
 {
 	.assembly extern E
 }";

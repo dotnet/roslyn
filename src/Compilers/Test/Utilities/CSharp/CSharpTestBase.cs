@@ -2106,10 +2106,8 @@ class ExpressionPrinter : System.Linq.Expressions.ExpressionVisitor
 
         public static MetadataReference CreateMetadataReferenceFromIlSource(string ilSource, bool prependDefaultHeader = true)
         {
-            using (var tempAssembly = IlasmUtilities.CreateTempAssembly(ilSource, prependDefaultHeader))
-            {
-                return MetadataReference.CreateFromImage(ReadFromFile(tempAssembly.Path));
-            }
+            EmitILToArray(ilSource, prependDefaultHeader, includePdb: false, out var assemblyBytes, out _);
+            return MetadataReference.CreateFromImage(assemblyBytes);
         }
 
         /// <summary>

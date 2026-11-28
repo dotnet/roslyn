@@ -24007,7 +24007,7 @@ Friend MustOverride ReadOnly Property P
 {
 	.assembly extern Destination1
 }
-.class extern forwarder Destination.TestClass
+{|ILA0065:.class|} extern forwarder Destination.TestClass
 {
 	.assembly extern Destination2
 }
@@ -24083,7 +24083,7 @@ End Namespace
 {
 	.assembly extern Destination1
 }
-.class extern forwarder Destination.TestClass
+{|ILA0065:.class|} extern forwarder Destination.TestClass
 {
 	.assembly extern Destination2
 }"
@@ -24130,27 +24130,27 @@ End Namespace
 {
 	.assembly extern Destination1
 }
-.class extern forwarder Destination.TestClass
+{|ILA0065:.class|} extern forwarder Destination.TestClass
 {
 	.assembly extern Destination2
 }
-.class extern forwarder Destination.TestClass
+{|ILA0065:.class|} extern forwarder Destination.TestClass
 {
 	.assembly extern Destination3
 }
-.class extern forwarder Destination.TestClass
+{|ILA0065:.class|} extern forwarder Destination.TestClass
 {
 	.assembly extern Destination4
 }
-.class extern forwarder Destination.TestClass
+{|ILA0065:.class|} extern forwarder Destination.TestClass
 {
 	.assembly extern Destination5
 }
-.class extern forwarder Destination.TestClass
+{|ILA0065:.class|} extern forwarder Destination.TestClass
 {
 	.assembly extern Destination1
 }
-.class extern forwarder Destination.TestClass
+{|ILA0065:.class|} extern forwarder Destination.TestClass
 {
 	.assembly extern Destination2
 }"
@@ -24232,7 +24232,7 @@ End Namespace"
 {
 	.assembly extern D1
 }
-.class extern forwarder C.ClassC
+{|ILA0065:.class|} extern forwarder C.ClassC
 {
 	.assembly extern D2
 }"
@@ -24316,7 +24316,7 @@ End Namespace
 {
 	.assembly extern D
 }
-.class extern forwarder C.ClassC
+{|ILA0065:.class|} extern forwarder C.ClassC
 {
 	.assembly extern D
 }"
@@ -24371,7 +24371,7 @@ End Namespace"
 {
 	.assembly extern D1
 }
-.class extern forwarder Testspace.TestType
+{|ILA0065:.class|} extern forwarder Testspace.TestType
 {
 	.assembly extern D2
 }"
@@ -24397,7 +24397,7 @@ BC37208: Module 'ForwarderModule.dll' in assembly 'Forwarder, Version=0.0.0.0, C
 {
 	.assembly extern D
 }
-.class extern forwarder Testspace.TestType
+{|ILA0065:.class|} extern forwarder Testspace.TestType
 {
 	.assembly extern D
 }"
@@ -24439,7 +24439,7 @@ End Namespace"
 {
 	.assembly extern D1
 }
-.class extern forwarder Testspace.TestType
+{|ILA0065:.class|} extern forwarder Testspace.TestType
 {
 	.assembly extern D2
 }"
@@ -24486,7 +24486,7 @@ BC37208: Module 'ForwarderModule.dll' in assembly 'Forwarder, Version=0.0.0.0, C
 {
 	.assembly extern D1
 }
-.class extern forwarder Testspace.TestType
+{|ILA0065:.class|} extern forwarder Testspace.TestType
 {
 	.assembly extern D2
 }"
@@ -24501,7 +24501,7 @@ BC37208: Module 'ForwarderModule.dll' in assembly 'Forwarder, Version=0.0.0.0, C
 {
 	.assembly extern D3
 }
-.class extern forwarder Testspace.TestType
+{|ILA0065:.class|} extern forwarder Testspace.TestType
 {
 	.assembly extern D4
 }"
@@ -24580,7 +24580,7 @@ End Namespace"
 {
 	.assembly extern D
 }
-.class extern forwarder C.ClassC
+{|ILA0065:.class|} extern forwarder C.ClassC
 {
 	.assembly extern E
 }"

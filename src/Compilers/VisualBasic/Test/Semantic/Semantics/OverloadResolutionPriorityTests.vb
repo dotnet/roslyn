@@ -4039,7 +4039,8 @@ End Class
 
             Dim m = comp.GetTypeByMetadataName("C").GetMembers("M").OfType(Of MethodSymbol)().First()
             Assert.Equal("Sub C.M(o As System.Object)", m.ToTestDisplayString())
-            Assert.Equal(2, m.OverloadResolutionPriority)
+            ' ILAssembler preserves the order of duplicate custom attributes; Roslyn uses the first priority.
+            Assert.Equal(1, m.OverloadResolutionPriority)
         End Sub
 
         <Fact>
@@ -4134,7 +4135,8 @@ End Class
 
             Dim m = comp.GetTypeByMetadataName("C").GetMembers(".ctor").OfType(Of MethodSymbol)().First()
             Assert.Equal("Sub C..ctor(o As System.Object)", m.ToTestDisplayString())
-            Assert.Equal(2, m.OverloadResolutionPriority)
+            ' ILAssembler preserves the order of duplicate custom attributes; Roslyn uses the first priority.
+            Assert.Equal(1, m.OverloadResolutionPriority)
         End Sub
 
         <Fact>
@@ -4297,7 +4299,8 @@ End Class
 
             Dim m = comp.GetTypeByMetadataName("C").GetMembers("Item").OfType(Of PropertySymbol)().First()
             AssertEx.Equal("Property C.Item(o As System.Object) As System.Int32", m.ToTestDisplayString())
-            Assert.Equal(2, m.OverloadResolutionPriority)
+            ' ILAssembler preserves the order of duplicate custom attributes; Roslyn uses the first priority.
+            Assert.Equal(1, m.OverloadResolutionPriority)
         End Sub
 
         <Fact>

@@ -26,5 +26,4 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.VisualStudio.Debugger.Engine-implementation" />
   </ItemGroup>
-  <Import Project="$(RepositoryEngineeringDir)targets\ILAsm.targets" />
 </Project>

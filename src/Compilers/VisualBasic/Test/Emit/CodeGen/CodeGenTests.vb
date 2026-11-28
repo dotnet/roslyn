@@ -9822,7 +9822,7 @@ End Class
   .method private hidebysig specialname rtspecialname
         instance void  .ctor([opt] int32 a) cil managed
   {
-    .param [2] = int32(0x0000007B)
+    {|ILA0029:.param|} [2] = int32(0x0000007B)
     ret
   }
 }
