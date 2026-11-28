@@ -54,6 +54,135 @@ public sealed partial class InvertIfTests
             CompilerDiagnostics = CompilerDiagnostics.None,
         }.RunAsync();
 
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71424")]
+    public Task TestTopLevelWithElse()
+        => TestAsync(
+            """
+            bool b = System.Console.ReadLine() == null;
+            [||]if (b) { System.Console.WriteLine(1); } else { System.Console.WriteLine(2); }
+            """,
+            """
+            bool b = System.Console.ReadLine() == null;
+            if (!b) { System.Console.WriteLine(2); } else { System.Console.WriteLine(1); }
+            """);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71424")]
+    public Task TestTopLevelWithoutElse_SwapWithSubsequentStatements()
+        => TestAsync(
+            """
+            bool b = System.Console.ReadLine() == null;
+            [||]if (b)
+            {
+                return 1;
+            }
+
+            return 0;
+            """,
+            """
+            bool b = System.Console.ReadLine() == null;
+            if (!b)
+            {
+                return 0;
+            }
+
+            return 1;
+            """);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71424")]
+    public Task TestTopLevelWithoutElse_MoveSubsequentStatementsToIfBody()
+        => TestAsync(
+            """
+            bool b = System.Console.ReadLine() == null;
+            [||]if (b)
+            {
+                return;
+            }
+
+            System.Console.WriteLine(1);
+            System.Console.WriteLine(2);
+            """,
+            """
+            bool b = System.Console.ReadLine() == null;
+            if (!b)
+            {
+                System.Console.WriteLine(1);
+                System.Console.WriteLine(2);
+            }
+
+            """);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71424")]
+    public Task TestTopLevelWithoutElse_LastStatement()
+        => TestAsync(
+            """
+            bool b = System.Console.ReadLine() == null;
+            [||]if (b)
+            {
+                System.Console.WriteLine(1);
+            }
+            """,
+            """
+            bool b = System.Console.ReadLine() == null;
+            if (!b)
+            {
+                return;
+            }
+            System.Console.WriteLine(1);
+
+            """);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71424")]
+    public Task TestTopLevelWithoutElse_LastStatementBeforeTypeDeclaration()
+        => TestAsync(
+            """
+            bool b = System.Console.ReadLine() == null;
+            [||]if (b)
+            {
+                System.Console.WriteLine(1);
+            }
+
+            class C
+            {
+            }
+            """,
+            """
+            bool b = System.Console.ReadLine() == null;
+            if (!b)
+            {
+                return;
+            }
+            System.Console.WriteLine(1);
+
+            class C
+            {
+            }
+            """);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71424")]
+    public Task TestTopLevelWithoutElse_SubsequentStatementsReachable()
+        => TestAsync(
+            """
+            bool b = System.Console.ReadLine() == null;
+            [||]if (b)
+            {
+                System.Console.WriteLine(1);
+            }
+
+            System.Console.WriteLine(2);
+            """,
+            """
+            bool b = System.Console.ReadLine() == null;
+            if (!b)
+            {
+            }
+            else
+            {
+                System.Console.WriteLine(1);
+            }
+
+            System.Console.WriteLine(2);
+            """);
+
     [Fact]
     public Task TestSingleLine_Identifier()
         => TestInsideMethodAsync(

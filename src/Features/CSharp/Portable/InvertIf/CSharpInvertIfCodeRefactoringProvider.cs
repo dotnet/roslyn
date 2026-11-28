@@ -9,6 +9,8 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
+using Microsoft.CodeAnalysis.CSharp.ExtractMethod;
+using Microsoft.CodeAnalysis.CSharp.LanguageService;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host.Mef;
@@ -39,7 +41,7 @@ internal sealed class CSharpInvertIfCodeRefactoringProvider() : AbstractInvertIf
         => ifNode.Else == null;
 
     protected override bool CanInvert(IfStatementSyntax ifNode)
-        => ifNode?.Parent is (kind: SyntaxKind.Block or SyntaxKind.SwitchSection);
+        => ifNode.Parent.IsStatementContainerNode();
 
     protected override SyntaxNode GetCondition(IfStatementSyntax ifNode)
         => ifNode.Condition;
@@ -51,7 +53,12 @@ internal sealed class CSharpInvertIfCodeRefactoringProvider() : AbstractInvertIf
         => new(ifNode.Statement, ifNode.Statement);
 
     protected override bool IsStatementContainer(SyntaxNode node)
-        => node.Kind() is SyntaxKind.Block or SyntaxKind.SwitchSection;
+        => CSharpBlockFacts.Instance.IsExecutableBlock(node);
+
+    // An embedded statement (like the body of an 'if') is not in a statement list.  Return its parent, for which
+    // IsStatementContainer is false.
+    protected override SyntaxNode GetStatementContainer(StatementSyntax statement)
+        => CSharpBlockFacts.Instance.GetImmediateParentExecutableBlockForStatement(statement) ?? statement.GetRequiredParent();
 
     protected override bool IsNoOpSyntaxNode(SyntaxNode node)
         => node.Kind() is SyntaxKind.Block or SyntaxKind.EmptyStatement;
@@ -75,6 +82,11 @@ internal sealed class CSharpInvertIfCodeRefactoringProvider() : AbstractInvertIf
     {
         switch (node)
         {
+            // Control flows from one top-level statement to the next.
+            case GlobalStatementSyntax:
+                return true;
+
+            case CompilationUnitSyntax:
             case SwitchSectionSyntax:
             case LocalFunctionStatementSyntax:
             case AccessorDeclarationSyntax:
@@ -90,13 +102,8 @@ internal sealed class CSharpInvertIfCodeRefactoringProvider() : AbstractInvertIf
         return true;
     }
 
-    protected override SyntaxList<StatementSyntax> GetStatements(SyntaxNode node)
-        => node switch
-        {
-            BlockSyntax n => n.Statements,
-            SwitchSectionSyntax n => n.Statements,
-            _ => throw ExceptionUtilities.UnexpectedValue(node),
-        };
+    protected override IReadOnlyList<StatementSyntax> GetStatements(SyntaxNode node)
+        => CSharpBlockFacts.Instance.GetExecutableBlockStatements(node);
 
     protected override SyntaxKind? GetJumpStatementKind(SyntaxNode node)
         => node switch
@@ -233,8 +240,22 @@ internal sealed class CSharpInvertIfCodeRefactoringProvider() : AbstractInvertIf
         {
             BlockSyntax n => n.WithStatements([.. statements]),
             SwitchSectionSyntax n => n.WithStatements([.. statements]),
+            CompilationUnitSyntax n => WithGlobalStatements(n, statements),
             _ => throw ExceptionUtilities.UnexpectedValue(node),
         };
+
+    private static CompilationUnitSyntax WithGlobalStatements(CompilationUnitSyntax compilationUnit, IEnumerable<StatementSyntax> statements)
+    {
+        // The new statements replace all the existing global statements.  Put them where the first global statement
+        // was, and keep every other member (types, namespaces) in its original order around them.
+        var members = compilationUnit.Members;
+        var firstGlobalStatementIndex = members.IndexOf(static m => m is GlobalStatementSyntax);
+        var otherMembers = members.Where(static m => m is not GlobalStatementSyntax);
+        return compilationUnit.WithMembers([
+            .. otherMembers.Take(firstGlobalStatementIndex),
+            .. statements.Select(GlobalStatement),
+            .. otherMembers.Skip(firstGlobalStatementIndex)]);
+    }
 
     protected override IEnumerable<StatementSyntax> UnwrapBlock(StatementSyntax ifBody)
     {
