@@ -1184,7 +1184,7 @@
       </trans-unit>
       <trans-unit id="ERR_IllegalUnsafeModifier">
         <source>Unsafe or safe declaration modifiers may only appear if compiling with /unsafe.</source>
-        <target state="new">Unsafe or safe declaration modifiers may only appear if compiling with /unsafe.</target>
+        <target state="translated">Güvenli olmayan veya güvenli bildirim değiştiricileri yalnızca /unsafe ile derleniyorsa görüntülenebilir.</target>
         <note>'Unsafe', 'safe', and '/unsafe' refer to C# keywords and a compiler option.</note>
       </trans-unit>
       <trans-unit id="ERR_ImplicitConversionOperatorCantBeChecked">
@@ -1544,7 +1544,7 @@
       </trans-unit>
       <trans-unit id="ERR_LayoutFieldRequiresUnsafeOrSafe">
         <source>Field in a type with explicit or extended layout, nonzero packing size, or nonzero size must be marked 'unsafe' or 'safe'.</source>
-        <target state="new">Field in a type with explicit or extended layout, nonzero packing size, or nonzero size must be marked 'unsafe' or 'safe'.</target>
+        <target state="translated">Açık veya genişletilmiş düzene sahip, paketleme boyutu sıfır olmayan ya da boyutu sıfır olmayan bir türdeki alan 'unsafe' veya 'safe' olarak işaretlenmelidir.</target>
         <note>'unsafe' and 'safe' should not be localized.</note>
       </trans-unit>
       <trans-unit id="ERR_MemberProviderInUnionDeclaration">
@@ -2864,7 +2864,7 @@
       </trans-unit>
       <trans-unit id="ERR_UnsafeUnassignedAddressOf">
         <source>The operand of an address-of expression is not definitely assigned. Ensure the operand is assigned or use an unsafe context.</source>
-        <target state="new">The operand of an address-of expression is not definitely assigned. Ensure the operand is assigned or use an unsafe context.</target>
+        <target state="translated">Address-of ifadesinin işleneni kesin olarak atanmış değil. İşlenenin atandığından emin olun veya güvenli olmayan bir bağlam kullanın.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnsafeUninitializedStackAlloc">
@@ -3269,7 +3269,7 @@
       </trans-unit>
       <trans-unit id="IDS_FeatureTypeParameterInferenceFromConstraints">
         <source>type parameter inference from constraints</source>
-        <target state="new">type parameter inference from constraints</target>
+        <target state="translated">kısıtlamalardan tür parametresi çıkarımı</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureUnboundGenericTypesInNameof">
@@ -3589,12 +3589,12 @@
       </trans-unit>
       <trans-unit id="WRN_DeprecatedFeatureFlag">
         <source>Feature flag '{0}' is deprecated and will be removed in a future version. Use MSBuild property '{1}' or compiler option '{2}' instead.</source>
-        <target state="new">Feature flag '{0}' is deprecated and will be removed in a future version. Use MSBuild property '{1}' or compiler option '{2}' instead.</target>
+        <target state="translated">Özellik bayrağı '{0}' kullanım dışı bırakıldı ve gelecekteki bir sürümde kaldırılacak. Bunun yerine MSBuild özellik '{1}' veya derleyici seçeneği '{2}' kullanın.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_DeprecatedFeatureFlag_Title">
         <source>Feature flag is deprecated</source>
-        <target state="new">Feature flag is deprecated</target>
+        <target state="translated">Özellik bayrağı artık kullanılmamaktadır</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_DoNotCompareFunctionPointers">
@@ -4376,7 +4376,7 @@
                               assembly by all dependencies, and annotate foreign assembly
                               accessibility errors with what assembly they came from.
 </source>
-        <target state="needs-review-translation">
+        <target state="translated">
                              Visual C# Derleyicisi Seçenekleri
 
                        - ÇIKIŞ DOSYALARI -
@@ -4392,7 +4392,7 @@
 -target:appcontainerexe       Appcontainer yürütülebilir dosyası oluşturur (Kısa biçimi:
                               -t:appcontainerexe)
 -target:winmdobj              WinMDExp kullanan Windows Çalışma Zamanı
-                              ara dosyası oluşturur (Kısa biçimi: -t:winmdobj) tarafından
+                              ara dosyası oluşturur (Kısa biçimi: -t:winmdobj)
 -doc:&lt;file&gt;                   oluşturulacak XML belgeleri dosyası
 -refout:&lt;file&gt;                    Oluşturulacak başvuru derlemesi çıkışı
 -platform:&lt;string&gt;                Bu kodun çalışabileceği platformları sınırlar: x86,
@@ -4422,7 +4422,7 @@
 -win32res:&lt;file&gt;              Win32 kaynak dosyasını (.res) belirtir
 -win32icon:&lt;file&gt;             Çıkış dosyası için bu simgeyi kullanır
 -win32manifest:&lt;file&gt;         Win32 bildirim dosyasını (.xml) belirtir
--nowin32manifest              Varsayılan Win32 bildirimini ekler
+-nowin32manifest              Varsayılan Win32 bildirimini eklemez
 -resource:&lt;resinfo&gt;           Belirtilen kaynağı ekler (Kısa biçimi: -res)
 -linkresource:&lt;resinfo&gt;       Belirtilen kaynağı bu derlemeye bağlar
                               (Kısa biçimi: -linkres) Resinfo biçimi
@@ -4436,7 +4436,7 @@
                               'embedded', platformlar arası biçimdir ve hedef
                               .dll veya .exe dosyasına eklenir)
 -optimize[+|-]                İyileştirmeleri etkinleştirir (Kısa biçimi: -O)
--deterministic                    Belirlenimci bir derleme üretir
+-deterministic                    Belirleyici bir derleme üretir
                               (modül sürümü GUID'si ve zaman damgası dahil)
 -refonly                          Ana çıkış yerine bir başvuru derlemesi üretir
 -instrument:TestCoverage          Kapsam bilgilerini toplamak için işaretlenmiş
@@ -4462,8 +4462,8 @@
 -skipanalyzers[+|-]               Tanılama çözümleyicilerinin yürütülmesini atlar.
 
                        - DİL - 
--checked[+|-]                 Taşma denetimleri oluştur
--unsafe[+|-]                  'Güvenli olmayan' koda izin ver
+-checked[+|-]                 Taşma denetimleri oluşturur
+-unsafe[+|-] 'unsafe' koduna ve 'safe' değiştiricilerine izin verir
 -define:&lt;symbol list&gt;         Koşullu derleme sembollerini tanımlar (Kısa
                               biçimi: -d)
 -langversion:?                Dil sürümü için izin verilen değerleri görüntüler
@@ -4476,10 +4476,13 @@
 -nullable[+|-]                Null atanabilir bağlam seçeneğini (enable|disable) belirtir.
 -nullable:{enable|disable|warnings|annotations}
                               Null atanabilir bağlam seçeneğini (enable|disable|warnings|annotations) belirtir.
+-memorysafetyrulesversion:&lt;n&gt;  Bellek güvenliği kurallarının sürümünü olarak ayarlar
+                              `1` (eski),
+                              `2` (güncelleştirildi: güvenli olmayan üyeler, kulanım konumunda güvenli olmayan bağlam gerektirir)
 
                        - GÜVENLİK -
 -delaysign[+|-]                   Tanımlayıcı ad anahtarının ortak bölümünü kullanarak
-                              derlemeyi gecikmeli imzalar
+                              derlemeyi genel imzalar
 -publicsign[+|-]                   Tanımlayıcı ad anahtarının ortak bölümünü kullanarak
                               derlemeyi genel imzalar
 -keyfile:&lt;file&gt;                   Tanımlayıcı ad anahtarı dosyasını belirtir
@@ -4502,7 +4505,7 @@
 -codepage:&lt;n&gt;                 Kaynak açılırken kullanılacak kod sayfasını belirtir
                               Dosyalar
 -utf8output                   UTF-8 kodlama kümesinde -utf8output Çıkış derleyicisi
--main:&lt;type&gt;                  Giriş noktasını içeren türü belirtir
+-main:&lt;type&gt;                  Giriş noktası türünü içeren türü
                               (diğer tüm olası giriş noktalarını yoksay) (Kısa
                               biçimi: -m)
 -fullpaths                    Derleyici mutlak yollar oluşturur
@@ -4522,7 +4525,7 @@
 -subsystemversion:&lt;string&gt;       Bu derlemenin alt sistem sürümünü belirtir
 -lib:&lt;file list&gt;              Başvurular için aranacak ek dizinleri
                               belirtir
--errorreport:&lt;string&gt;             İç derleyici hatalarının nasıl işleneceğini belirtir:
+-errorreport:&lt;string&gt;             İç derleyici hatalarının nasıl işleneceğini belirtir;
                               istem, gönderme, kuyruğa alma veya hiçbiri. Varsayılan:
                               kuyruğa alma.
 -appconfig:&lt;file&gt;             Derleme bağlama ayarlarını içeren

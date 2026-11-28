@@ -1184,7 +1184,7 @@
       </trans-unit>
       <trans-unit id="ERR_IllegalUnsafeModifier">
         <source>Unsafe or safe declaration modifiers may only appear if compiling with /unsafe.</source>
-        <target state="new">Unsafe or safe declaration modifiers may only appear if compiling with /unsafe.</target>
+        <target state="translated">Modyfikatory deklaracji typu „unsafe” lub „safe” mogą pojawiać się wyłącznie w przypadku kompilacji z opcją /unsafe.</target>
         <note>'Unsafe', 'safe', and '/unsafe' refer to C# keywords and a compiler option.</note>
       </trans-unit>
       <trans-unit id="ERR_ImplicitConversionOperatorCantBeChecked">
@@ -1544,7 +1544,7 @@
       </trans-unit>
       <trans-unit id="ERR_LayoutFieldRequiresUnsafeOrSafe">
         <source>Field in a type with explicit or extended layout, nonzero packing size, or nonzero size must be marked 'unsafe' or 'safe'.</source>
-        <target state="new">Field in a type with explicit or extended layout, nonzero packing size, or nonzero size must be marked 'unsafe' or 'safe'.</target>
+        <target state="translated">Pole w typie o układzie jawnym lub rozszerzonym, o rozmiarze upakowania innym od zera lub o rozmiarze innym od zera musi być oznaczone jako „unsafe” lub „safe”.</target>
         <note>'unsafe' and 'safe' should not be localized.</note>
       </trans-unit>
       <trans-unit id="ERR_MemberProviderInUnionDeclaration">
@@ -2864,7 +2864,7 @@
       </trans-unit>
       <trans-unit id="ERR_UnsafeUnassignedAddressOf">
         <source>The operand of an address-of expression is not definitely assigned. Ensure the operand is assigned or use an unsafe context.</source>
-        <target state="new">The operand of an address-of expression is not definitely assigned. Ensure the operand is assigned or use an unsafe context.</target>
+        <target state="translated">Operand wyrażenia address-of nie jest zdecydowanie przypisany. Upewnij się, że operand jest przypisany, lub użyj niebezpiecznego kontekstu.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnsafeUninitializedStackAlloc">
@@ -3269,7 +3269,7 @@
       </trans-unit>
       <trans-unit id="IDS_FeatureTypeParameterInferenceFromConstraints">
         <source>type parameter inference from constraints</source>
-        <target state="new">type parameter inference from constraints</target>
+        <target state="translated">wnioskowanie parametru typu na podstawie ograniczeń</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureUnboundGenericTypesInNameof">
@@ -3589,12 +3589,12 @@
       </trans-unit>
       <trans-unit id="WRN_DeprecatedFeatureFlag">
         <source>Feature flag '{0}' is deprecated and will be removed in a future version. Use MSBuild property '{1}' or compiler option '{2}' instead.</source>
-        <target state="new">Feature flag '{0}' is deprecated and will be removed in a future version. Use MSBuild property '{1}' or compiler option '{2}' instead.</target>
+        <target state="translated">Flaga funkcji '{0}' jest przestarzała i zostanie usunięta w przyszłej wersji. Zamiast tego użyj '{1}' właściwości programu MSBuild lub opcji kompilatora '{2}'.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_DeprecatedFeatureFlag_Title">
         <source>Feature flag is deprecated</source>
-        <target state="new">Feature flag is deprecated</target>
+        <target state="translated">Flaga funkcji jest przestarzała</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_DoNotCompareFunctionPointers">
@@ -4376,30 +4376,30 @@
                               assembly by all dependencies, and annotate foreign assembly
                               accessibility errors with what assembly they came from.
 </source>
-        <target state="needs-review-translation">
+        <target state="translated">
                              Opcje kompilatora języka Visual C#
 
-                       - PLIKI WYJŚCIOWE - 
--out:&lt;file&gt;                   Określanie nazwy pliku wyjściowego (domyślnie: nazwa podstawowa
+                       - PLIKI DANYCH WYJŚCIOWYCH — 
+-out:&lt;file&gt;                   Określanie nazwy pliku danych wyjściowych (domyślnie: nazwa podstawowa 
                               pliku z klasą główną lub pierwszym plikiem)
--target:exe                   Kompiluj plik wykonywalny konsoli (domyślnie) (skrócona
+-target:exe                   Kompilowanie pliku wykonywalnego konsoli (domyślnie) (skrócona
                               postać: -t:exe)
--target:winexe                   Kompiluj plik wykonywalny systemu Windows (skrócona postać:
+-target:winexe                   Kompilowanie pliku wykonywalnego systemu Windows (skrócona postać:
                               -t:winexe)
--target:library               Utwórz bibliotekę (skrócona postać: -t:library)
+-target:library               Tworzenie biblioteki (skrócona postać: -t:library)
 -target:module                Tworzenie modułu, który można będzie dodać do innego
                               zestawu (skrócona postać: -t:module)
--target:appcontainerexe       Tworzenie pliku wykonywalnego Appcontainer (skrócona postać:
+-target:appcontainerexe       Kompilowanie pliku wykonywalnego Appcontainer (skrócona postać:
                               -t:appcontainerexe)
--target:winmdobj              Tworzenie pośredniego pliku środowiska uruchomieniowego systemu Windows, który
-                              jest używany przez WinMDExp (skrócona postać: -t:winmdobj)
+-target:winmdobj              Kompilowanie pośredniego pliku środowiska wykonawczego systemu Windows, który
+                              jest zużywany przez WinMDExp (skrócona postać: -t:winmdobj)
 -doc:&lt;file&gt;                       Plik dokumentacji XML do wygenerowania
 -refout:&lt;file&gt;                    Odwołanie do danych wyjściowych zestawu do wygenerowania
--platform:&lt;string&gt;                Ograniczanie platformy, na których można uruchomić ten kod: x86,
+-platform:&lt;string&gt;                Ograniczanie platformy, na których można uruchamiać ten kod: x86,
                               Itanium, x64, arm, arm64, anycpu32bitpreferred lub
-                              anycpu. Domyślną jest anycpu.
+                              anycpu. Domyślną opcją jest anycpu.
 
-                       - PLIKI WEJŚCIOWE -
+                       - PLIKI DANYCH WEJŚCIOWYCH -
 -recurse:&lt;wildcard&gt;               Uwzględnianie wszystkie plików w bieżącym katalogu oraz
                               podkatalogach zgodnie ze specyfikacjami
                               symbolu wieloznacznego
@@ -4408,7 +4408,7 @@
 -reference:&lt;file list&gt;            Odwołanie do metadanych z określonych plików
                               zestawu (skrócona postać: -r)
 -addmodule:&lt;file list&gt;        Łączenie określonych modułów w tym zestawie
--link:&lt;file_list&gt;                 Osadzone metadane z określonych plików zestawu
+-link:&lt;file_list&gt;                 Osadzanie metadanych z określonych plików zestawu
                               międzyoperacyjności (skrócona postać: -l)
 -analyzer:&lt;file_list&gt;             Uruchamianie analizatorów z tego zestawu
                               (skrócona postać: -a)
@@ -4421,12 +4421,12 @@
                        - ZASOBY -
 -win32res:&lt;file&gt;              Określanie plik zasobów Win32 (.res)
 -win32icon:&lt;file&gt;             Używanie tej ikony dla danych wyjściowych
--win32manifest:&lt;file&gt;             Określanie plik manifestu Win32 (xml)
+-win32manifest:&lt;file&gt;             Określanie pliku manifestu Win32 (xml)
 -nowin32manifest              Nie dołączaj domyślnego manifestu Win32
 -resource:&lt;resinfo&gt;           Osadzanie określonego zasobu (skrócona postać: -res)
--linkresource:&lt;resinfo&gt;       Łączenie określonego zasobu z tym zestawem
+-linkresource:&lt;resinfo&gt;      Łączenie określonego zasobu z tym zestawem
                               (skrócona postać: -linkres) Gdzie format resinfo
-                              to &lt;file&gt;[,&lt;name&gt;[,public|private]]
+                              ma postać &lt;file&gt;[,&lt;name&gt;[,public|private]]
 
                        - GENEROWANIE KODU -
 -debug[+|-]                       Emitowanie informacji o debugowaniu
@@ -4440,7 +4440,7 @@
                               (w tym identyfikatora GUID i sygnatury czasowej wersji modułu)
 -refonly                          Tworzenie zestawu odwołania zamiast wyjścia głównego
 -instrument:TestCoverage          Generowanie zestawu instrumentowanego do zbierania
-                              informacji o pokryciach
+                              informacji o pokryciu
 -sourcelink:&lt;file&gt;                Informacje o linku źródłowym do osadzenia w pliku PDB.
 
                        - BŁĘDY I OSTRZEŻENIA -
@@ -4462,11 +4462,11 @@
 -skipanalyzers[+|-]               Pomijanie wykonywanie analizatorów diagnostycznych.
 
                        - JĘZYK -
--checked[+|-]                 Generowanie testów przepełnienia
--unsafe[+|-]                  Zezwalanie na kod „unsafe”
+-checked[+|-]                 Generowanie kontroli przepełnienia
+-unsafe[+|-]                  Zezwól na kod „unsafe” i modyfikatory „safe”
 -define:&lt;symbol list&gt;             Definiowanie symboli kompilacji warunkowej (skrócona
                               postać: -d)
--langversion:?                Wyświetlanie dozwolone wartości dla wersji językowej
+-langversion:?                Wyświetlanie dozwolonych wartości dla wersji języka
 -langversion:&lt;string&gt;             Określanie wersji języka, na przykład
                               `latest` (najnowsza wersja, w tym wersje pomocnicze),
                               `default` (tak samo jak `latest`),
@@ -4476,6 +4476,9 @@
 -nullable[+|-]                Określanie włączenia|wyłączenia opcji kontekstu dopuszczania wartości null.
 -nullable:{enable|disable|warnings|annotations}
                               Określanie opcji kontekstu dopuszczania wartości null enable|disable|warnings|annotations.
+-memorysafetyrulesversion:&lt;n&gt; Ustawianie wersji reguł bezpieczeństwa pamięci jako
+                              `1` (starsza wersja),
+                              `2` (zaktualizowano: niebezpieczne elementy członkowskie wymagają niebezpiecznego kontekstu w używanej lokacji)
 
                        - ZABEZPIECZENIA -
 -delaysign[+|-]                   Podpisywanie z opóźnieniem zestawu tylko przy użyciu publicznego
@@ -4486,7 +4489,7 @@
 -keycontainer:&lt;string&gt;            Określanie kontenera silnych kluczy nazw
 -highentropyva[+|-]               Włączanie funkcji ASLR o wysokiej entropii
 
-                       - RÓŻNE -
+                       — RÓŻNE —
 @&lt;file&gt;                       Odczytywanie pliku odpowiedzi w celu uzyskania dodatkowych opcji
 -help                         Wyświetlanie tego komunikatu o użyciu (skrócona postać: -?)
 -nologo                       Wstrzymywanie komunikatu kompilatora o prawach autorskich
@@ -4496,7 +4499,7 @@
 
                        - ZAAWANSOWANE -
 -baseaddress:&lt;address&gt;        Adres podstawowy dla bibiloteki, która ma być utworzona
--checksumalgorithm:&lt;alg&gt;          Określanie algorytmu obliczania pliku źródłowego
+-checksumalgorithm:&lt;alg&gt;          Określanie algorytmu obliczania sumy kontrolnej
                               pliku źródłowego przechowywanego w pliku PDB. Obsługiwane wartości to:
                               SHA1, SHA256 (domyślne), SHA384 lub SHA512.
 -codepage:&lt;n&gt;                 Określanie strony kodowej do używania podczas otwierania plików
@@ -4507,12 +4510,12 @@
                               postać: -m)
 -fullpaths                    Kompilator generuje w pełni kwalifikowane ścieżki
 -filealign:&lt;n&gt;               Określanie wyrównania używanego dla sekcji
-                              pliku wyjściowego
+                              pliku danych wyjściowych
 -pathmap:&lt;K1&gt;=&lt;V1&gt;,&lt;K2&gt;=&lt;V2&gt;,...
                               Określanie mapowania dla danych wyjściowych nazw ścieżek źródłowych przez
-                              kompilator.
+                              kompilatora.
 -pdb:&lt;file&gt;                   Określanie nazwy pliku z informacjami o debugowaniu (domyślnie:
-                              nazwa pliku wyjściowego z rozszerzeniem .pdb)
+                              nazwa pliku daych wyjściowych z rozszerzeniem .pdb)
 -errorendlocation             wiersz i kolumna danych wyjściowych lokalizacji końcowej
                               każdego błędu
 -preferreduilang                  Określanie preferowanej nazwy języka danych wyjściowych.
@@ -4523,14 +4526,14 @@
 -lib:&lt;file list&gt;              Określanie dodatkowych katalogów do wyszukania
                               odwołań
 -errorreport:&lt;string&gt;             Określanie sposobu obsługi wewnętrznych błędów kompilatora:
-                              monit, wysyłanie, kolejka lub brak. Wartością domyślną to
+                              monit, wysyłanie, kolejka lub brak. Wartością domyślną jest
                               kolejka.
 -appconfig:&lt;file&gt;             Określanie pliku konfiguracji aplikacji
                               zawierającego ustawienia powiązania zestawu
 -moduleassemblyname:&lt;string&gt;  Nazwa zestawu, którego częścią będzie
                               ten moduł
 -modulename:&lt;string&gt;          Określanie nazwy modułu źródłowego
--generatedfilesout:&lt;dir&gt;          Umieszczanie plików wygenerowane podczas kompilacji w
+-generatedfilesout:&lt;dir&gt;          Umieszczanie plików wygenerowanych podczas kompilacji w
                               określonym katalogu.
 -reportivts[+|-]                  Informacje dotyczące danych wyjściowych o wszystkich plikach IVT przyznanych temu
                               zestawowi przez wszystkie zależności i adnotowanie błędów

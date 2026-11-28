@@ -2276,12 +2276,12 @@
       </trans-unit>
       <trans-unit id="ERR_IndexedNotArrayOrProc">
         <source>Expression is not an array or a method, and cannot have an argument list.</source>
-        <target state="translated">Expressão não é matriz ou método, e não pode ser lista de argumentos.</target>
+        <target state="translated">Expressão não é matriz ou método, e não pode ter uma lista de argumentos.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_EventSourceIsArray">
         <source>'WithEvents' variables cannot be typed as arrays.</source>
-        <target state="translated">'Variáveis 'WithEvents' não podem ser digitadas como matrizes.</target>
+        <target state="translated">'Variáveis 'WithEvents' não podem ser tipadas como matrizes.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_SharedConstructorWithParams">
@@ -2508,7 +2508,7 @@
       </trans-unit>
       <trans-unit id="ERR_ArrayInitializerTooFewDimensions">
         <source>Array initializer has too few dimensions.</source>
-        <target state="translated">O inicializador de matriz tem muitas dimensões.</target>
+        <target state="translated">O inicializador de matriz tem poucas dimensões.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ArrayInitializerTooManyDimensions">
@@ -2523,7 +2523,7 @@
       </trans-unit>
       <trans-unit id="ERR_InitializerTooManyElements1">
         <source>Array initializer has {0} too many elements.</source>
-        <target state="translated">Inicializador de matriz tem {0} muitos elementos.</target>
+        <target state="translated">Inicializador de matriz tem {0} elementos a mais.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NewOnAbstractClass">
@@ -4701,7 +4701,7 @@
       </trans-unit>
       <trans-unit id="ERR_NoConstituentArraySizes">
         <source>Bounds can be specified only for the top-level array when initializing an array of arrays.</source>
-        <target state="translated">Limites podem ser especificados somente para matrizes de alto nível durante a inicialização de uma matriz de matrizes.</target>
+        <target state="translated">Limites podem ser especificados somente para a matriz de nível superior durante a inicialização de uma matriz de matrizes.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_FileAttributeNotAssemblyOrModule">
@@ -4791,7 +4791,7 @@
       </trans-unit>
       <trans-unit id="ERR_ForCtlVarArraySizesSpecified">
         <source>Array declared as for loop control variable cannot be declared with an initial size.</source>
-        <target state="translated">Não é possível declarar matriz declarada como variável de controle de loop com um valor inicial.</target>
+        <target state="translated">Não é possível declarar matriz declarada como variável de controle de loop com um tamanho inicial.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadFlagsOnNewOverloads">
@@ -6219,7 +6219,7 @@
       </trans-unit>
       <trans-unit id="ERR_TypeInferenceArrayRankMismatch1">
         <source>Cannot infer a data type for '{0}' because the array dimensions do not match.</source>
-        <target state="translated">Não é possível inferir um tipo de dados "{0}" porque as dimensões de matriz não coincidem.</target>
+        <target state="translated">Não é possível inferir um tipo de dados para "{0}" porque as dimensões de matriz não coincidem.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_QueryStrictDisallowImplicitObject">
