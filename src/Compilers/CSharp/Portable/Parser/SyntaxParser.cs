@@ -296,6 +296,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
             // remember result
             var result = CurrentNode.Green;
+            _prevTokenTrailingTrivia = result.GetLastTerminal().GetTrailingTriviaCore();
 
             // store possible non-token in token sequence 
             if (_tokenOffset >= _blendedTokens.Length)
