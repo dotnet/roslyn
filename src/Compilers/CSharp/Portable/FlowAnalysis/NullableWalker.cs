@@ -3781,10 +3781,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             TypeWithAnnotations type = local.TypeWithAnnotations;
             TypeWithState valueType;
+            TypeWithAnnotations refTargetType = default;
             bool inferredType = node.InferredType;
             if (local.IsRef)
             {
                 valueType = VisitRefExpression(initializer, type);
+                refTargetType = LvalueResultType;
             }
             else
             {
@@ -3800,7 +3802,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     valueType = type.ToTypeWithState();
                 }
 
-                type = valueType.ToAnnotatedTypeWithAnnotations(compilation);
+                // A ref local is an alias for its target, so it takes the target's declared nullability
+                // rather than the annotated type inferred for other 'var' locals.
+                type = refTargetType.HasType
+                    ? refTargetType
+                    : valueType.ToAnnotatedTypeWithAnnotations(compilation);
                 _variables.SetType(local, type);
 
                 if (node.DeclaredTypeOpt != null)

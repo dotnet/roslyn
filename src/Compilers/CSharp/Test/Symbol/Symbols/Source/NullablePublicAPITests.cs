@@ -1295,7 +1295,7 @@ class C : System.IDisposable
         using (var /*T:C?*/ y6 = x2) { }
         
         ref var/*T:C?*/ y7 = ref x;
-        ref var/*T:C?*/ y8 = ref x2;
+        ref var/*T:C!*/ y8 = ref x2;
         
         if (x == null) 
             return;
@@ -1311,7 +1311,7 @@ class C : System.IDisposable
         x2 = null; // 1
         var /*T:C?*/ y15 = x2;
         using var /*T:C?*/ y16 = x2;
-        ref var /*T:C?*/ y17 = ref x2;
+        ref var /*T:C!*/ y17 = ref x2;
     }
     
     void M2(List<C?> l1, List<C> l2)
