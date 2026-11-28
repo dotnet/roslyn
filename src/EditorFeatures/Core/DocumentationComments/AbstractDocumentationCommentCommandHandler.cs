@@ -7,6 +7,7 @@ using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.DocumentationComments;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -21,7 +22,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.DocumentationComments;
 
-internal abstract class AbstractDocumentationCommentCommandHandler :
+internal abstract partial class AbstractDocumentationCommentCommandHandler :
     IChainedCommandHandler<TypeCharCommandArgs>,
     ICommandHandler<ReturnKeyCommandArgs>,
     ICommandHandler<InsertCommentCommandArgs>,
