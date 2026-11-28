@@ -127,13 +127,13 @@
     <value>Surround With</value>
   </data>
   <data name="Automatically_format_block_on_close_brace" xml:space="preserve">
-    <value>Automatically format _block on }</value>
+    <value>Automatically format block on }</value>
   </data>
   <data name="Automatically_format_on_paste" xml:space="preserve">
-    <value>Automatically format on _paste</value>
+    <value>Automatically format on paste</value>
   </data>
   <data name="Automatically_format_statement_on_semicolon" xml:space="preserve">
-    <value>Automatically format _statement on ;</value>
+    <value>Automatically format statement on ;</value>
   </data>
   <data name="Place_members_in_anonymous_types_on_new_line" xml:space="preserve">
     <value>Place members in anonymous types on new line</value>
@@ -173,6 +173,9 @@
   </data>
   <data name="Label_Indentation" xml:space="preserve">
     <value>Label Indentation</value>
+  </data>
+  <data name="On_type_formatting" xml:space="preserve">
+    <value>On-type Formatting</value>
   </data>
   <data name="Place_members_in_object_initializers_on_new_line" xml:space="preserve">
     <value>Place members in object initializers on new line</value>
@@ -311,19 +314,19 @@
     <value>New line options for keywords</value>
   </data>
   <data name="Enter_outlining_mode_when_files_open" xml:space="preserve">
-    <value>Enter _outlining mode when files open</value>
+    <value>Enter outlining mode when files open</value>
   </data>
   <data name="Generate_XML_documentation_comments_for" xml:space="preserve">
-    <value>_Generate XML documentation comments for ///</value>
+    <value>Generate XML documentation comments for ///</value>
   </data>
   <data name="Insert_at_the_start_of_new_lines_when_writing_comments" xml:space="preserve">
-    <value>_Insert * at the start of new lines when writing /* */ comments</value>
+    <value>Insert * at the start of new lines when writing /* */ comments</value>
   </data>
   <data name="Using_Directives" xml:space="preserve">
     <value>Using Directives</value>
   </data>
   <data name="Place_System_directives_first_when_sorting_usings" xml:space="preserve">
-    <value>_Place 'System' directives first when sorting usings</value>
+    <value>Place 'System' directives first when sorting usings</value>
   </data>
   <data name="Place_keywords_in_completion_lists" xml:space="preserve">
     <value>Place _keywords in completion lists</value>
@@ -347,7 +350,7 @@
     <value>Suggest usings for types in .NET Framework assemblies</value>
   </data>
   <data name="Suggest_usings_for_types_in_NuGet_packages" xml:space="preserve">
-    <value>Suggest usings for types in _NuGet packages</value>
+    <value>Suggest usings for types in NuGet packages</value>
   </data>
   <data name="For_built_in_types" xml:space="preserve">
     <value>For built-in types</value>
@@ -392,7 +395,7 @@
     <value>predefined type preferences:</value>
   </data>
   <data name="Split_string_literals_on_enter" xml:space="preserve">
-    <value>Split string literals on _enter</value>
+    <value>Split string literals on enter</value>
   </data>
   <data name="Always_include_snippets" xml:space="preserve">
     <value>Always include snippets</value>
@@ -476,10 +479,6 @@
   <data name="using_preferences_colon" xml:space="preserve">
     <value>'using' preferences:</value>
     <comment>'using' is a C# keyword and should not be localized</comment>
-  </data>
-  <data name="General" xml:space="preserve">
-    <value>General</value>
-    <comment>Title of the control group on the General Formatting options page</comment>
   </data>
   <data name="Prefer_switch_expression" xml:space="preserve">
     <value>Prefer switch expression</value>

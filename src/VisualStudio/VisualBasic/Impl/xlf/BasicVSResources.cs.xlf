@@ -2,15 +2,35 @@
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="cs" original="../BasicVSResources.resx">
     <body>
+      <trans-unit id="A_utomatic_insertion_of_end_constructs">
+        <source>Automatic insertion of end constructs</source>
+        <target state="translated">Automatické vkládání koncových konstruktorů</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Add_missing_imports_on_paste">
         <source>Add missing imports on paste</source>
         <target state="translated">Při vložení přidat chybějící direktivy import</target>
         <note>'import' is a Visual Basic keyword and should not be localized</note>
       </trans-unit>
+      <trans-unit id="Automatic_insertion_of_Interface_and_MustOverride_members">
+        <source>Automatic insertion of Interface and MustOverride members</source>
+        <target state="translated">Automatické vkládání členů Interface a MustOverride</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Collapse_imports_on_file_open">
         <source>Collapse Imports on file open</source>
         <target state="translated">Při otevření souboru sbalit importy</target>
         <note />
+      </trans-unit>
+      <trans-unit id="Enter_outlining_mode_when_files_open">
+        <source>Enter outlining mode when files open</source>
+        <target state="translated">Po otevření souborů přejít do režimu osnovy</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Generate_XML_documentation_comments_for">
+        <source>Generate XML documentation comments for '''</source>
+        <target state="translated">Generovat komentáře dokumentace XML pro '''</target>
+        <note>{Locked="'''"} "'''" is a VB keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="In_relational_binary_operators">
         <source>In relational operators:  =   &lt;&gt;   &lt;   &gt;   &lt;=   &gt;=   Like   Is</source>
@@ -27,9 +47,14 @@
         <target state="translated">Microsoft Visual Basic</target>
         <note />
       </trans-unit>
-      <trans-unit id="Automatic_insertion_of_Interface_and_MustOverride_members">
-        <source>Automatic _insertion of Interface and MustOverride members</source>
-        <target state="translated">Automatické _vkládání členů Interface a MustOverride</target>
+      <trans-unit id="Navigate_to_Object_Browser_for_symbols_defined_in_metadata">
+        <source>Navigate to Object Browser for symbols defined in metadata</source>
+        <target state="translated">Přejít do Prohlížeče objektů pro symboly definované v metadatech</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Place_System_directives_first_when_sorting_imports">
+        <source>Place 'System' directives first when sorting imports</source>
+        <target state="translated">Při řazení importů umístit jako první direktivy System</target>
         <note />
       </trans-unit>
       <trans-unit id="Prefer_IsNot_expression">
@@ -47,34 +72,14 @@
         <target state="translated">Upřednostňovat zjednodušené vytváření objektů</target>
         <note />
       </trans-unit>
+      <trans-unit id="Pretty_listing_reformatting_of_code">
+        <source>Pretty listing (reformatting) of code</source>
+        <target state="translated">Přehledný výpis (přeformátování) kódu</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Show_hints_for_New_expressions">
         <source>Show hints for 'New' expressions</source>
         <target state="translated">Zobrazit nápovědy pro výrazy New</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="A_utomatic_insertion_of_end_constructs">
-        <source>A_utomatic insertion of end constructs</source>
-        <target state="translated">A_utomatické vkládání koncových konstruktorů</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Pretty_listing_reformatting_of_code">
-        <source>_Pretty listing (reformatting) of code</source>
-        <target state="translated">_Přehledný výpis (přeformátování) kódu</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Enter_outlining_mode_when_files_open">
-        <source>_Enter outlining mode when files open</source>
-        <target state="translated">P_o otevření souborů přejít do režimu osnovy</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Generate_XML_documentation_comments_for">
-        <source>_Generate XML documentation comments for '''</source>
-        <target state="translated">_Generovat komentáře dokumentace XML pro '''</target>
-        <note>{Locked="'''"} "'''" is a VB keyword and should not be localized.</note>
-      </trans-unit>
-      <trans-unit id="Navigate_to_Object_Browser_for_symbols_defined_in_metadata">
-        <source>_Navigate to Object Browser for symbols defined in metadata</source>
-        <target state="translated">_Přejít do Prohlížeče objektů pro symboly definované v metadatech</target>
         <note />
       </trans-unit>
       <trans-unit id="Import_Directives">
@@ -83,18 +88,8 @@
         <note />
       </trans-unit>
       <trans-unit id="Suggest_imports_for_types_in_NuGet_packages">
-        <source>Suggest imports for types in _NuGet packages</source>
-        <target state="translated">Navrhovat importy pro typy v balíčcích _NuGet</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Suggest_imports_for_types_in_reference_assemblies">
-        <source>Suggest imports for types in _reference assemblies</source>
-        <target state="translated">Navrhovat importy pro typy v _referenčních sestaveních</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Place_System_directives_first_when_sorting_imports">
-        <source>_Place 'System' directives first when sorting imports</source>
-        <target state="translated">_Při řazení importů umístit jako první direktivy System</target>
+        <source>Suggest imports for types in NuGet packages</source>
+        <target state="translated">Navrhovat importy pro typy v balíčcích NuGet</target>
         <note />
       </trans-unit>
       <trans-unit id="Qualify_event_access_with_Me">
@@ -140,6 +135,11 @@
       <trans-unit id="Completion_Lists">
         <source>Completion Lists</source>
         <target state="translated">Seznamy dokončení</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Suggest_imports_for_types_in_reference_assemblies">
+        <source>Suggest imports for types in reference assemblies</source>
+        <target state="translated">Navrhovat importy pro typy v referenčních sestaveních</target>
         <note />
       </trans-unit>
       <trans-unit id="nothing_checking_colon">
