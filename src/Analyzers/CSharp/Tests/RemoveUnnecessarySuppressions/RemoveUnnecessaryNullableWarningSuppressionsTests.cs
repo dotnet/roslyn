@@ -204,4 +204,209 @@ public sealed class RemoveUnnecessaryNullableWarningSuppressionsTests
             LanguageVersion = LanguageVersion.CSharp14,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net90,
         }.RunAsync();
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/86573")]
+    public Task KeepWhenNeeded_FieldKeywordInGetter()
+        => new VerifyCS.Test
+        {
+            TestCode = """
+                #nullable enable
+
+                class C
+                {
+                    public string Name { get => field!; set => field = value; }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp14,
+        }.RunAsync();
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/86573")]
+    public Task KeepWhenNeeded_FieldKeywordInGetter_WithConstructor()
+        => new VerifyCS.Test
+        {
+            TestCode = """
+                #nullable enable
+
+                class C
+                {
+                    public C() { }
+                    public string Name { get { return field!; } set; }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp14,
+        }.RunAsync();
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/86573")]
+    public Task KeepWhenNeeded_FieldKeywordInExpressionBodiedProperty_WithConstructor()
+        => new VerifyCS.Test
+        {
+            TestCode = """
+                #nullable enable
+
+                class C
+                {
+                    public C() { }
+                    public string Name => field!;
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp14,
+        }.RunAsync();
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/86573")]
+    public Task KeepWhenNeeded_FieldKeywordInGetter_EarlyReturnInConstructor()
+        => new VerifyCS.Test
+        {
+            TestCode = """
+                #nullable enable
+
+                class C
+                {
+                    public C(bool b)
+                    {
+                        if (b)
+                            return;
+
+                        Name = "";
+                    }
+
+                    public string Name { get => field!; set => field = value; }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp14,
+        }.RunAsync();
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/86573")]
+    public Task KeepWhenNeeded_FieldKeywordInGetter_ConstructorInOtherPartialDeclaration()
+        => new VerifyCS.Test
+        {
+            TestState =
+            {
+                Sources =
+                {
+                    """
+                    #nullable enable
+
+                    partial class C
+                    {
+                        public string Name { get => field!; set => field = value; }
+                    }
+                    """,
+                    """
+                    #nullable enable
+
+                    partial class C
+                    {
+                        public C() { }
+                    }
+                    """,
+                },
+            },
+            LanguageVersion = LanguageVersion.CSharp14,
+        }.RunAsync();
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/86573")]
+    public Task KeepWhenNeeded_FieldKeywordInGetter_OneOfSeveralConstructorsInOtherPartialDeclarationDoesNotInitialize()
+        => new VerifyCS.Test
+        {
+            TestState =
+            {
+                Sources =
+                {
+                    """
+                    #nullable enable
+
+                    partial class C
+                    {
+                        public string Name { get => field!; set => field = value; }
+                    }
+                    """,
+                    """
+                    #nullable enable
+
+                    partial class C
+                    {
+                        public C() { Name = ""; }
+                        public C(int i) { }
+                    }
+                    """,
+                },
+            },
+            LanguageVersion = LanguageVersion.CSharp14,
+        }.RunAsync();
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/86573")]
+    public Task RemoveWhenNotNeeded_FieldKeywordInGetter_ConstructorInOtherPartialDeclarationInitializes()
+        => new VerifyCS.Test
+        {
+            TestState =
+            {
+                Sources =
+                {
+                    """
+                    #nullable enable
+
+                    partial class C
+                    {
+                        public string Name { get => field[|!|]; set => field = value; }
+                    }
+                    """,
+                    """
+                    #nullable enable
+
+                    partial class C
+                    {
+                        public C() { Name = ""; }
+                    }
+                    """,
+                },
+            },
+            FixedState =
+            {
+                Sources =
+                {
+                    """
+                    #nullable enable
+
+                    partial class C
+                    {
+                        public string Name { get => field; set => field = value; }
+                    }
+                    """,
+                    """
+                    #nullable enable
+
+                    partial class C
+                    {
+                        public C() { Name = ""; }
+                    }
+                    """,
+                },
+            },
+            LanguageVersion = LanguageVersion.CSharp14,
+        }.RunAsync();
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/86573")]
+    public Task RemoveWhenNotNeeded_FieldKeywordInGetterOfNullableProperty()
+        => new VerifyCS.Test
+        {
+            TestCode = """
+                #nullable enable
+
+                class C
+                {
+                    public C() { }
+                    public string? Name { get => field[|!|]; set => field = value; }
+                }
+                """,
+            FixedCode = """
+                #nullable enable
+
+                class C
+                {
+                    public C() { }
+                    public string? Name { get => field; set => field = value; }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp14,
+        }.RunAsync();
 }

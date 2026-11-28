@@ -95,6 +95,8 @@ internal static class UnnecessaryNullableWarningSuppressionsUtilities
         using var _1 = ArrayBuilder<(PostfixUnaryExpressionSyntax suppression, SyntaxNode rewrittenAncestor)>.GetInstance(out var inGlobalStatements);
         using var _2 = ArrayBuilder<(PostfixUnaryExpressionSyntax suppression, SyntaxNode rewrittenAncestor)>.GetInstance(out var inFieldsOrProperties);
         using var _3 = ArrayBuilder<(PostfixUnaryExpressionSyntax suppression, SyntaxNode rewrittenAncestor)>.GetInstance(out var remainder);
+        using var _4 = ArrayBuilder<(PostfixUnaryExpressionSyntax suppression, SyntaxNode rewrittenAncestor)>.GetInstance(out var inFieldBackedGetters);
+        using var _5 = PooledDictionary<SyntaxTree, SemanticModel>.GetInstance(out var semanticModels);
 
         foreach (var (suppression, annotation) in nodeToAnnotation)
         {
@@ -104,6 +106,10 @@ internal static class UnnecessaryNullableWarningSuppressionsUtilities
             if (nodeToCheck is GlobalStatementSyntax globalStatement)
             {
                 inGlobalStatements.Add((suppression, globalStatement));
+            }
+            else if (GetFieldBackedPropertyOfGetter(nodeToCheck) != null)
+            {
+                inFieldBackedGetters.Add((suppression, nodeToCheck!));
             }
             else if (nodeToCheck is BaseFieldDeclarationSyntax or BasePropertyDeclarationSyntax)
             {
@@ -122,9 +128,14 @@ internal static class UnnecessaryNullableWarningSuppressionsUtilities
         //    for a field/property initializer directly.  The compiler will not return accurate nullable warnings for
         //    these if they are impacted by a constructor in the type.  To workaround this, we ask for diagnostics for
         //    the entire type, and filter to the spans of the field/property.
-        // 3. Any remaining nodes not covered by the above.
+        // 3. Analysis of the getters of properties that use the `field` keyword.  A suppression there can decide
+        //    whether the property is null-resilient, and so whether the compiler reports CS9264 for it.  That warning
+        //    is reported at the property or at a constructor's exit points, not in the getter, so check the whole type
+        //    for warnings about the property.
+        // 4. Any remaining nodes not covered by the above.
         CheckGlobalStatements();
         CheckFieldsAndProperties();
+        CheckFieldBackedGetters();
         CheckRemainder();
 
         void CheckGlobalStatements()
@@ -154,6 +165,56 @@ internal static class UnnecessaryNullableWarningSuppressionsUtilities
                 var typeDeclarationDiagnostics = updatedSemanticModel.GetDiagnostics(typeDeclaration.Span, cancellationToken);
                 CheckDiagnostics(typeDeclarationGroup, _ => typeDeclarationDiagnostics);
             }
+        }
+
+        void CheckFieldBackedGetters()
+        {
+            foreach (var getterGroup in inFieldBackedGetters.GroupBy(t => t.rewrittenAncestor))
+            {
+                var getter = getterGroup.Key;
+                var property = GetFieldBackedPropertyOfGetter(getter)!;
+                if (property.FirstAncestorOrSelf<TypeDeclarationSyntax>() is not { } typeDeclaration ||
+                    updatedSemanticModel.GetDeclaredSymbol(typeDeclaration, cancellationToken) is not { } type)
+                {
+                    continue;
+                }
+
+                var propertyNameSpan = property.Identifier.Span;
+                bool IsAboutProperty(Diagnostic diagnostic)
+                    => diagnostic.AdditionalLocations.Any(l => l.SourceTree == updatedTree && l.SourceSpan == propertyNameSpan);
+
+                using var _ = ArrayBuilder<Diagnostic>.GetInstance(out var diagnostics);
+                diagnostics.AddRange(updatedSemanticModel.GetDiagnostics(typeDeclaration.Span, cancellationToken).Where(d =>
+                    d.Location.SourceSpan.IntersectsWith(getter.Span) || IsAboutProperty(d)));
+
+                // Constructors in other declarations of a partial type report their warnings there, so check those too.
+                // Constructors in this declaration were already checked by the call above.
+                var otherConstructorReferences = type.Constructors
+                    .SelectMany(c => c.DeclaringSyntaxReferences)
+                    .Where(r => r.SyntaxTree != updatedTree || !typeDeclaration.Span.Contains(r.Span));
+                foreach (var referencesInTree in otherConstructorReferences.GroupBy(r => r.SyntaxTree))
+                {
+                    var treeSemanticModel = GetSemanticModel(referencesInTree.Key);
+                    foreach (var reference in referencesInTree)
+                        diagnostics.AddRange(treeSemanticModel.GetDiagnostics(reference.Span, cancellationToken).Where(IsAboutProperty));
+                }
+
+                AddNodesIfNoErrorsOrWarnings(getterGroup, diagnostics);
+            }
+        }
+
+        SemanticModel GetSemanticModel(SyntaxTree tree)
+        {
+            if (tree == updatedTree)
+                return updatedSemanticModel;
+
+            if (!semanticModels.TryGetValue(tree, out var treeSemanticModel))
+            {
+                treeSemanticModel = updatedCompilation.GetSemanticModel(tree);
+                semanticModels.Add(tree, treeSemanticModel);
+            }
+
+            return treeSemanticModel;
         }
 
         void CheckRemainder()
@@ -186,6 +247,25 @@ internal static class UnnecessaryNullableWarningSuppressionsUtilities
             foreach (var (suppressionNode, _) in group)
                 result.Add(suppressionNode);
         }
+    }
+
+    /// <summary>
+    /// If <paramref name="nodeToCheck"/> is the <c>get</c> accessor, or the expression body, of a property that uses the
+    /// <c>field</c> keyword, returns that property.
+    /// </summary>
+    private static PropertyDeclarationSyntax? GetFieldBackedPropertyOfGetter(SyntaxNode? nodeToCheck)
+    {
+        var property = nodeToCheck switch
+        {
+            AccessorDeclarationSyntax { Parent.Parent: PropertyDeclarationSyntax accessorProperty } accessor
+                when accessor.IsKind(SyntaxKind.GetAccessorDeclaration) => accessorProperty,
+            PropertyDeclarationSyntax { ExpressionBody: not null } expressionBodiedProperty => expressionBodiedProperty,
+            _ => null,
+        };
+
+        return property != null && property.DescendantNodes().Any(n => n.IsKind(SyntaxKind.FieldExpression))
+            ? property
+            : null;
     }
 
     private static SyntaxNode? GetNodeToCheck(SyntaxNode updatedNode)
