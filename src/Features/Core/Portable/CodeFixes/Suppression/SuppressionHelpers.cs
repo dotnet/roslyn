@@ -68,6 +68,9 @@ internal static class SuppressionHelpers
     public static bool IsNotConfigurableDiagnostic(Diagnostic diagnostic)
         => HasCustomTag(diagnostic.Descriptor.ImmutableCustomTags(), WellKnownDiagnosticTags.NotConfigurable);
 
+    public static bool RequiresUnconditionalSuppressMessageAttribute(Diagnostic diagnostic)
+        => HasCustomTag(diagnostic.Descriptor.ImmutableCustomTags(), WellKnownDiagnosticTags.RequiresUnconditionalSuppressMessageAttribute);
+
     public static bool IsCompilerDiagnostic(DiagnosticData diagnostic)
         => HasCustomTag(diagnostic.CustomTags, WellKnownDiagnosticTags.Compiler);
 
