@@ -1585,4 +1585,54 @@ public sealed partial class UseAutoPropertyTests
                 }
             }
             """, new TestParameters(parseOptions: CSharp14));
+
+    [Fact]
+    public Task TestNotWhenWrittenFromNestedTypeWithNonTrivialSetter()
+        => TestMissingInRegularAndScriptAsync(
+            """
+            class Class
+            {
+                [|int i|];
+
+                int P
+                {
+                    get => i;
+                    set
+                    {
+                        i = value;
+                        Changed();
+                    }
+                }
+
+                void Changed() { }
+
+                class Nested
+                {
+                    void Reset(Class c)
+                    {
+                        c.i = 0;
+                    }
+                }
+            }
+            """, new(parseOptions: CSharp14));
+
+    [Fact]
+    public Task TestNotWhenReadFromNestedTypeWithNonTrivialGetter()
+        => TestMissingInRegularAndScriptAsync(
+            """
+            class Class
+            {
+                [|string s|];
+
+                string P => s.Trim();
+
+                class Nested
+                {
+                    string M(Class c)
+                    {
+                        return c.s;
+                    }
+                }
+            }
+            """, new(parseOptions: CSharp14));
 }
