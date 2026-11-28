@@ -22,6 +22,16 @@ public sealed class TagHelperIntermediateNode : IntermediateNode
     public override void Accept(IntermediateNodeVisitor visitor)
         => visitor.VisitTagHelper(this);
 
+    protected override IntermediateNode CloneNode()
+        => new TagHelperIntermediateNode
+        {
+            TagMode = TagMode,
+            TagName = TagName,
+            StartTagSpan = StartTagSpan,
+            TagHelpers = TagHelpers,
+            IsSynthesizedHelper = IsSynthesizedHelper,
+        };
+
     public override void FormatNode(IntermediateNodeFormatter formatter)
     {
         formatter.WriteContent(TagName);

@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Text;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.AspNetCore.Razor.Language.Intermediate;
@@ -89,10 +90,103 @@ public class IntermediateNodeCloneTest
         AssertClone(source, RazorFileKind.Legacy);
     }
 
+    [Fact]
+    [WorkItem("https://dev.azure.com/devdiv/DevDiv/_workitems/edit/3000157")]
+    public void Clone_ResolvedComponentTagHelper_ProducesFaithfulDeepCopy()
+    {
+        var component = TagHelperDescriptorBuilder.CreateComponent("SomeProject.Counter", "TestAssembly")
+            .TypeName("SomeProject.Counter", "SomeProject", "Counter")
+            .BoundAttributeDescriptor(attribute => attribute
+                .Name("Title")
+                .TypeName("System.String")
+                .PropertyName("Title"))
+            .BoundAttributeDescriptor(attribute =>
+            {
+                attribute.Name = "@bind-Value";
+                attribute.TypeName = "System.String";
+                attribute.PropertyName = "Value";
+                attribute.IsDirectiveAttribute = true;
+                attribute.BindAttributeParameter(parameter =>
+                {
+                    parameter.Name = "event";
+                    parameter.TypeName = "System.String";
+                });
+            })
+            .TagMatchingRuleDescriptor(rule => rule.RequireTagName("Counter"))
+            .Build();
+        var source = """
+            @using SomeProject
+            <Counter Title="title" data-extra="value" @bind-Value="value" @bind-Value:event="oninput">child content</Counter>
+            """;
+
+        var documentNode = LowerAndResolve(source, RazorFileKind.Component, @"C:\SomeProject\Index.razor", component);
+        var kinds = CollectKinds(documentNode);
+
+        // These are the resolved node kinds that the source-generator's optimization-input clone must preserve.
+        Assert.Contains(nameof(TagHelperIntermediateNode), kinds);
+        Assert.Contains(nameof(TagHelperBodyIntermediateNode), kinds);
+        Assert.Contains(nameof(TagHelperPropertyIntermediateNode), kinds);
+        Assert.Contains(nameof(TagHelperHtmlAttributeIntermediateNode), kinds);
+        Assert.Contains(nameof(TagHelperDirectiveAttributeIntermediateNode), kinds);
+        Assert.Contains(nameof(TagHelperDirectiveAttributeParameterIntermediateNode), kinds);
+
+        AssertClone(documentNode);
+    }
+
+    [Fact]
+    [WorkItem("https://dev.azure.com/devdiv/DevDiv/_workitems/edit/3000157")]
+    public void Clone_TagHelperHtmlAttributeWithDirectiveCandidate_PreservesFlag()
+    {
+        var original = new TagHelperHtmlAttributeIntermediateNode
+        {
+            AttributeName = "unknown",
+            AttributeStructure = AttributeStructure.DoubleQuotes,
+            IsDirectiveAttributeCandidate = true,
+        };
+
+        var clone = (TagHelperHtmlAttributeIntermediateNode)original.Clone();
+
+        Assert.True(clone.IsDirectiveAttributeCandidate);
+        Assert.Equal(Dump(original), Dump(clone));
+    }
+
+    [Fact]
+    [WorkItem("https://dev.azure.com/devdiv/DevDiv/_workitems/edit/3000157")]
+    public void Clone_ResolvedLegacyTagHelper_ProducesFaithfulDeepCopy()
+    {
+        var tagHelper = TagHelperDescriptorBuilder.CreateTagHelper("TestTagHelper", "TestAssembly")
+            .TypeName("TestTagHelper")
+            .BoundAttributeDescriptor(attribute => attribute
+                .Name("title")
+                .TypeName("System.String")
+                .PropertyName("Title"))
+            .TagMatchingRuleDescriptor(rule => rule.RequireTagName("mytag"))
+            .Build();
+        var source = """
+            @addTagHelper *, TestAssembly
+            <mytag title="title" data-extra="value" minimized>legacy body</mytag>
+            """;
+
+        var documentNode = LowerAndResolve(source, RazorFileKind.Legacy, "test.cshtml", tagHelper);
+        var kinds = CollectKinds(documentNode);
+
+        Assert.Contains(nameof(TagHelperIntermediateNode), kinds);
+        Assert.Contains(nameof(TagHelperBodyIntermediateNode), kinds);
+        Assert.Contains(nameof(TagHelperPropertyIntermediateNode), kinds);
+        Assert.Contains(nameof(TagHelperHtmlAttributeIntermediateNode), kinds);
+
+        AssertClone(documentNode);
+    }
+
     private int AssertClone(string content, RazorFileKind fileKind)
     {
         var documentNode = Lower(content, fileKind);
 
+        return AssertClone(documentNode);
+    }
+
+    private int AssertClone(DocumentIntermediateNode documentNode)
+    {
         var clone = (DocumentIntermediateNode)documentNode.Clone();
 
         Assert.Equal(Dump(documentNode), Dump(clone));
@@ -104,6 +198,29 @@ public class IntermediateNodeCloneTest
         Assert.Same(documentNode.Target, clone.Target);
 
         return AssertAliasesPreserved(documentNode, clone);
+    }
+
+    // Resolves tag helpers so clone fidelity is checked for node types that are absent from an unresolved tree.
+    private DocumentIntermediateNode LowerAndResolve(
+        string content,
+        RazorFileKind fileKind,
+        string filePath,
+        params TagHelperDescriptor[] tagHelpers)
+    {
+        var source = RazorSourceDocument.Create(content, filePath);
+        var codeDocument = _projectEngine.CreateCodeDocument(source, fileKind).WithTagHelpers([.. tagHelpers]);
+
+        foreach (var phase in _projectEngine.Engine.Phases)
+        {
+            codeDocument = phase.Execute(codeDocument);
+
+            if (phase is DefaultRazorTagHelperRewritePhase)
+            {
+                break;
+            }
+        }
+
+        return codeDocument.GetRequiredDocumentNode();
     }
 
     // A node-typed property that holds one of the node's own Children is an alias (e.g.

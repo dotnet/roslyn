@@ -1967,6 +1967,73 @@ public class SurveyPrompt : ComponentBase
             Assert.Contains("<h1>Hello world</h1>", result.ImplGeneratedSources().Single().SourceText.ToString());
         }
 
+        [Fact, WorkItem("https://dev.azure.com/devdiv/DevDiv/_workitems/edit/3000157")]
+        public async Task IncrementalCompilation_RazorFiles_CssScope_TagHelpersAddedThenRemoved()
+        {
+            // The element has a dynamic attribute so it stays as a markup element in the IR, rather than
+            // being collapsed into a static markup block, which is what the CSS scope pass looks at.
+            var project = CreateTestProject(new()
+            {
+                ["Pages/Index.razor"] = """
+                    <h1 title="@("hi")">Hello world</h1>
+                    <SurveyPrompt />
+                    """,
+            });
+            var compilation = await project.GetCompilationAsync();
+            var (driver, _, _) = await GetDriverWithAdditionalTextAndProviderAsync(project, static options =>
+            {
+                options.AdditionalTextOptions["Pages/Index.razor"]["build_metadata.AdditionalFiles.CssScope"] = "test-css-scope";
+            });
+
+            // First run, SurveyPrompt isn't a known component yet.
+            var result = RunGenerator(compilation!, ref driver);
+            result.Diagnostics.Verify(
+                // Pages/Index.razor(2,1): warning RZ10012: Found markup element with unexpected name 'SurveyPrompt'. If this is intended to be a component, add a @using directive for its namespace.
+                Diagnostic("RZ10012").WithLocation(2, 1));
+
+            // Add a reference that makes SurveyPrompt a component, which forces Index to be re-written.
+            var surveyPromptAssembly = GetSurveyPromptMetadataReference(compilation!);
+            result = RunGenerator(compilation!.AddReferences(surveyPromptAssembly), ref driver);
+            result.Diagnostics.Verify();
+
+            // Go back to the original compilation. Index doesn't need a re-write compared to its first run,
+            // so the generator falls back to the document from the first run.
+            result = RunGenerator(compilation!, ref driver);
+            result.Diagnostics.Verify(
+                // Pages/Index.razor(2,1): warning RZ10012: Found markup element with unexpected name 'SurveyPrompt'. If this is intended to be a component, add a @using directive for its namespace.
+                Diagnostic("RZ10012").WithLocation(2, 1));
+
+            var generatedText = result.ImplGeneratedSources().Single(s => s.HintName.Contains("Index")).SourceText.ToString();
+            // Both elements receive the scope, so check the first element separately.
+            var firstElementEnd = generatedText.IndexOf("__builder.CloseElement();", StringComparison.Ordinal);
+            Assert.NotEqual(-1, firstElementEnd);
+            var firstElementText = generatedText[..firstElementEnd];
+            var firstScopeIndex = firstElementText.IndexOf("\"test-css-scope\"", StringComparison.Ordinal);
+            Assert.NotEqual(-1, firstScopeIndex);
+            Assert.Equal(-1, firstElementText.IndexOf("\"test-css-scope\"", firstScopeIndex + 1, StringComparison.Ordinal));
+
+            static MetadataReference GetSurveyPromptMetadataReference(Compilation currentCompilation)
+            {
+                var updatedCompilation = currentCompilation.RemoveAllSyntaxTrees()
+                    .WithAssemblyName("SurveyPromptAssembly")
+                    .AddSyntaxTrees(CSharpSyntaxTree.ParseText(Microsoft.CodeAnalysis.Text.SourceText.From("""
+                        using Microsoft.AspNetCore.Components;
+                        using Microsoft.AspNetCore.Components.Rendering;
+                        namespace MyApp.Pages;
+                        public class SurveyPrompt : ComponentBase
+                        {
+                            protected override void BuildRenderTree(RenderTreeBuilder builder) {}
+                        }
+                        """, System.Text.Encoding.UTF8)));
+                var stream = new MemoryStream();
+                var emitResult = updatedCompilation.Emit(stream);
+                Assert.True(emitResult.Success);
+
+                stream.Position = 0;
+                return MetadataReference.CreateFromStream(stream);
+            }
+        }
+
         [Fact]
         public async Task SourceGenerator_CshtmlFiles_Works()
         {

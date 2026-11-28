@@ -32,6 +32,16 @@ public sealed class TagHelperDirectiveAttributeIntermediateNode : IntermediateNo
     public override void Accept(IntermediateNodeVisitor visitor)
         => visitor.VisitTagHelperDirectiveAttribute(this);
 
+    protected override IntermediateNode CloneNode()
+        => new TagHelperDirectiveAttributeIntermediateNode(_match)
+        {
+            AttributeName = AttributeName,
+            OriginalAttributeName = OriginalAttributeName,
+            AttributeStructure = AttributeStructure,
+            OriginalAttributeSpan = OriginalAttributeSpan,
+            IsSynthesizedHelper = IsSynthesizedHelper,
+        };
+
     public override void FormatNode(IntermediateNodeFormatter formatter)
     {
         formatter.WriteContent(AttributeName);

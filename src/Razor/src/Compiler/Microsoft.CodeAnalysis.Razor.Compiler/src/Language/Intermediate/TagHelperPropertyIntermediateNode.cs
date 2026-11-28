@@ -27,6 +27,15 @@ public sealed class TagHelperPropertyIntermediateNode : IntermediateNode
     public override void Accept(IntermediateNodeVisitor visitor)
         => visitor.VisitTagHelperProperty(this);
 
+    protected override IntermediateNode CloneNode()
+        => new TagHelperPropertyIntermediateNode(_match)
+        {
+            AttributeName = AttributeName,
+            AttributeStructure = AttributeStructure,
+            OriginalAttributeSpan = OriginalAttributeSpan,
+            IsSynthesizedHelper = IsSynthesizedHelper,
+        };
+
     public override void FormatNode(IntermediateNodeFormatter formatter)
     {
         formatter.WriteContent(AttributeName);
