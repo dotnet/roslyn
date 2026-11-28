@@ -2240,6 +2240,101 @@ End Class
             Debug.Assert(lastToken.Kind = SyntaxKind.EndOfFileToken)
         End Sub
 
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72861")>
+        Public Sub TestGetNextAndPreviousTokenWithZeroWidthListElements()
+            Dim tree = VisualBasicSyntaxTree.ParseText("
+Class C
+    Dim a As Integer() = {1, , 2, , }
+    Dim b As Integer() = {1, 2, 3, 4, 5, 6, , , 7, 8, 9, 10, 11, 12, , }
+    Sub M()
+        M(, , )
+        N(a, b, )
+        M(1, 2, 3, 4, 5, 6, , , , 7, 8, 9, 10, 11, , )
+    End Sub
+    Sub P(x As Integer, , )
+    End Sub
+    Sub Q(
+")
+            Dim root = tree.GetRoot()
+            Dim tokens = root.DescendantTokens().ToList()
+            Assert.Contains(tokens, Function(t) t.Width = 0 AndAlso t.Kind <> SyntaxKind.EndOfFileToken)
+            Assert.Contains(root.DescendantNodes(), Function(n) n.Width = 0)
+
+            VerifyNextAndPreviousTokens(tokens, includeZeroWidth:=True)
+            VerifyNextAndPreviousTokens(tokens.Where(Function(t) t.Width > 0).ToList(), includeZeroWidth:=False)
+        End Sub
+
+        Private Shared Sub VerifyNextAndPreviousTokens(tokens As List(Of SyntaxToken), includeZeroWidth As Boolean)
+            For i = 0 To tokens.Count - 1
+                Dim [next] = tokens(i).GetNextToken(includeZeroWidth)
+                Assert.Equal(If(i + 1 < tokens.Count, tokens(i + 1), Nothing), [next])
+
+                Dim previous = tokens(i).GetPreviousToken(includeZeroWidth)
+                Assert.Equal(If(i > 0, tokens(i - 1), Nothing), previous)
+            Next
+        End Sub
+
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72861")>
+        Public Sub TestGetNextAndPreviousTokenIntoStructuredTrivia()
+            Dim tree = VisualBasicSyntaxTree.ParseText("
+#Const A = True
+Imports Goo.Bar
+''' <summary>Doc <see cref=""C""/>.</summary>
+Class C
+#If A Then
+    Dim a As Integer() = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12}
+#Else
+    Dim a As Integer() = {1, 2}
+#End If
+    Sub M()
+        M(, )
+    End Sub
+End Class
+")
+            Dim tokens = tree.GetRoot().DescendantTokens(descendIntoTrivia:=True).Where(Function(t) t.Width > 0).ToList()
+            Assert.Contains(tokens, Function(t) t.Kind = SyntaxKind.HashToken)
+            Assert.Contains(tokens, Function(t) t.Kind = SyntaxKind.XmlTextLiteralToken)
+
+            For i = 0 To tokens.Count - 1
+                Dim [next] = tokens(i).GetNextToken(includeSkipped:=True, includeDirectives:=True, includeDocumentationComments:=True)
+                Assert.Equal(If(i + 1 < tokens.Count, tokens(i + 1), Nothing), [next])
+
+                Dim previous = tokens(i).GetPreviousToken(includeSkipped:=True, includeDirectives:=True, includeDocumentationComments:=True)
+                Assert.Equal(If(i > 0, tokens(i - 1), Nothing), previous)
+            Next
+        End Sub
+
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72861")>
+        Public Sub TestGetNextAndPreviousTokenInLargeList()
+            Const ElementCount As Integer = 50_000
+            Dim text = New StringBuilder("Class C : Dim a As Integer() = { ")
+            For i = 0 To ElementCount - 1
+                text.Append(i).Append(", ")
+            Next
+
+            text.Append("0 } : End Class")
+            Dim root = VisualBasicSyntaxTree.ParseText(text.ToString()).GetRoot()
+            Dim expectedCount = root.DescendantTokens().Count(Function(t) t.Width > 0)
+
+            Dim count = 0
+            Dim token = root.GetFirstToken()
+            While token.RawKind <> 0
+                count += 1
+                token = token.GetNextToken()
+            End While
+
+            Assert.Equal(expectedCount, count)
+
+            count = 0
+            token = root.GetLastToken()
+            While token.RawKind <> 0
+                count += 1
+                token = token.GetPreviousToken()
+            End While
+
+            Assert.Equal(expectedCount, count)
+        End Sub
+
         <WorkItem(755236, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/755236")>
         <WorkItem(9896, "https://github.com/dotnet/roslyn/issues/9896")>
         <Fact>

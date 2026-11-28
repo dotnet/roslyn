@@ -1367,6 +1367,154 @@ using goo.bar;
             }
         }
 
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72861")]
+        public void TestGetNextAndPreviousTokenWithZeroWidthListElements()
+        {
+            // Missing nodes and tokens are zero-width and share their position with their neighbors. Lists with ten or
+            // more elements also find elements by offset differently from short lists, so cover both.
+            SyntaxTree tree = SyntaxFactory.ParseSyntaxTree("""
+                class C
+                {
+                    int[] a = { 1, , 2, , };
+                    int[] b = { 1, 2, 3, 4, 5, 6, , , 7, 8, 9, 10, 11, 12, , };
+                    void M() { M(, , ); N(a, b,); M(1, 2, 3, 4, 5, 6, , , , 7, 8, 9, 10, 11, , ) }
+                    void P(int x, , ) { }
+                    void Q(
+                """);
+            CompilationUnitSyntax root = tree.GetCompilationUnitRoot();
+            List<SyntaxToken> tokens = root.DescendantTokens().ToList();
+            Assert.Contains(tokens, t => t.Width == 0 && t.Kind() != SyntaxKind.EndOfFileToken);
+            Assert.Contains(root.DescendantNodes(), n => n.Width == 0);
+
+            verifyNextAndPreviousTokens(includeZeroWidth: true);
+            verifyNextAndPreviousTokens(includeZeroWidth: false);
+
+            void verifyNextAndPreviousTokens(bool includeZeroWidth)
+            {
+                List<SyntaxToken> expected = tokens.Where(t => includeZeroWidth || t.Width > 0).ToList();
+                for (int i = 0; i < expected.Count; i++)
+                {
+                    SyntaxToken next = expected[i].GetNextToken(includeZeroWidth);
+                    Assert.Equal(i + 1 < expected.Count ? expected[i + 1] : default, next);
+
+                    SyntaxToken previous = expected[i].GetPreviousToken(includeZeroWidth);
+                    Assert.Equal(i > 0 ? expected[i - 1] : default, previous);
+                }
+
+                // Going from token to token reaches the SyntaxNode overloads only through the parent of a token. Also
+                // start from every node, zero-width ones included, as LookupPosition does.
+                Func<SyntaxToken, bool> predicate = includeZeroWidth ? SyntaxToken.Any : SyntaxToken.NonZeroWidth;
+                foreach (SyntaxNode node in root.DescendantNodes())
+                {
+                    int first = tokens.IndexOf(node.GetFirstToken(includeZeroWidth: true));
+                    int last = tokens.IndexOf(node.GetLastToken(includeZeroWidth: true));
+                    Assert.Equal(expected.FirstOrDefault(t => tokens.IndexOf(t) > last), SyntaxNavigator.Instance.GetNextToken(node, predicate, stepInto: null));
+                    Assert.Equal(expected.LastOrDefault(t => tokens.IndexOf(t) < first), SyntaxNavigator.Instance.GetPreviousToken(node, predicate, stepInto: null));
+                }
+            }
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72861")]
+        public void TestGetNextAndPreviousTokenIntoStructuredTrivia()
+        {
+            SyntaxTree tree = SyntaxFactory.ParseSyntaxTree("""
+                #define A
+                using goo.bar;
+                /// <summary>Doc <see cref="C"/>.</summary>
+                class C
+                {
+                #if A
+                    int[] a = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12 };
+                #else
+                    int[] a = { 1, 2 };
+                #endif
+                    void M() { M(, ); }
+                }
+                """);
+            List<SyntaxToken> tokens = tree.GetCompilationUnitRoot().DescendantTokens(descendIntoTrivia: true).Where(t => t.Width > 0).ToList();
+            Assert.Contains(tokens, t => t.Kind() == SyntaxKind.HashToken);
+            Assert.Contains(tokens, t => t.Kind() == SyntaxKind.XmlTextLiteralToken);
+
+            for (int i = 0; i < tokens.Count; i++)
+            {
+                SyntaxToken next = tokens[i].GetNextToken(includeSkipped: true, includeDirectives: true, includeDocumentationComments: true);
+                Assert.Equal(i + 1 < tokens.Count ? tokens[i + 1] : default, next);
+
+                SyntaxToken previous = tokens[i].GetPreviousToken(includeSkipped: true, includeDirectives: true, includeDocumentationComments: true);
+                Assert.Equal(i > 0 ? tokens[i - 1] : default, previous);
+            }
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72861")]
+        public void TestGetNextAndPreviousTokenInLargeList()
+        {
+            // Finding the next or previous token used to walk every earlier sibling, which made walking the tokens of a
+            // long list quadratic.
+            const int ElementCount = 50_000;
+            StringBuilder text = new StringBuilder("class C { int[] a = { ");
+            for (int i = 0; i < ElementCount; i++)
+            {
+                text.Append(i).Append(", ");
+            }
+
+            text.Append("}; }");
+            CompilationUnitSyntax root = SyntaxFactory.ParseCompilationUnit(text.ToString());
+            int expectedCount = root.DescendantTokens().Count(t => t.Width > 0);
+
+            int count = 0;
+            for (SyntaxToken token = root.GetFirstToken(); token.RawKind != 0; token = token.GetNextToken())
+            {
+                count++;
+            }
+
+            Assert.Equal(expectedCount, count);
+
+            count = 0;
+            for (SyntaxToken token = root.GetLastToken(); token.RawKind != 0; token = token.GetPreviousToken())
+            {
+                count++;
+            }
+
+            Assert.Equal(expectedCount, count);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72861")]
+        public void TestGetNextAndPreviousTokenOnShebangContent()
+        {
+            SyntaxTree tree = SyntaxFactory.ParseSyntaxTree("""
+                #!xyz
+                class C { }
+                """);
+            ShebangDirectiveTriviaSyntax shebang = (ShebangDirectiveTriviaSyntax)tree.GetCompilationUnitRoot()
+                .DescendantTrivia()
+                .Single(t => t.IsKind(SyntaxKind.ShebangDirectiveTrivia))
+                .GetStructure();
+
+            // ShebangDirectiveTriviaSyntax.Content creates a token with the Parent and Index of EndOfDirectiveToken,
+            // which is not among the directive's children (https://github.com/dotnet/roslyn/issues/86561). Until that
+            // is fixed, GetNextToken and GetPreviousToken return default for it.
+            SyntaxToken content = shebang.Content;
+            Assert.Same(shebang, content.Parent);
+            Assert.DoesNotContain((SyntaxNodeOrToken)content, shebang.ChildNodesAndTokens());
+
+            Assert.Equal(default, content.GetPreviousToken(includeZeroWidth: true, includeDirectives: true));
+            Assert.Equal(default, content.GetNextToken(includeZeroWidth: true, includeDirectives: true));
+
+            SyntaxTree disabledTree = SyntaxFactory.ParseSyntaxTree("""
+                #if false
+                #!xyz
+                #endif
+                """);
+            ShebangDirectiveTriviaSyntax disabledShebang = (ShebangDirectiveTriviaSyntax)disabledTree.GetCompilationUnitRoot()
+                .DescendantTrivia()
+                .Single(t => t.IsKind(SyntaxKind.ShebangDirectiveTrivia))
+                .GetStructure();
+            SyntaxToken disabledContent = disabledShebang.Content;
+
+            Assert.Equal(default, disabledContent.GetPreviousToken(includeDirectives: true));
+            Assert.Equal(default, disabledContent.GetNextToken(includeDirectives: true));
+        }
+
         [Fact]
         public void TestGetNextSibling()
         {
