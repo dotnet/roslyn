@@ -2273,6 +2273,34 @@ public sealed class SolutionTests : TestBase
         Assert.Throws<InvalidOperationException>(() => solution.RemoveAnalyzerReference(ProjectId.CreateNewId(), analyzerRef1));
     }
 
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/86613")]
+    public async Task ProjectChecksum_UnresolvedAnalyzerReference()
+    {
+        using var workspace = CreateWorkspaceWithProjectAndDocuments();
+        var solution = workspace.CurrentSolution;
+        var projectId = solution.Projects.Single().Id;
+        var missingPath = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString("N"), "Missing.dll");
+
+        async Task<Checksum> GetProjectChecksumAsync(AnalyzerReference? analyzerReference)
+        {
+            var project = analyzerReference is null
+                ? solution.GetProject(projectId)!
+                : solution.AddAnalyzerReference(projectId, analyzerReference).GetProject(projectId)!;
+            return await project.State.GetChecksumAsync(CancellationToken.None);
+        }
+
+        var withoutReference = await GetProjectChecksumAsync(null);
+        var unresolved = await GetProjectChecksumAsync(new UnresolvedAnalyzerReference(missingPath));
+        var unresolvedSamePath = await GetProjectChecksumAsync(new UnresolvedAnalyzerReference(missingPath));
+        var unresolvedOtherPath = await GetProjectChecksumAsync(new UnresolvedAnalyzerReference(missingPath + ".other"));
+        var fileReferenceSamePath = await GetProjectChecksumAsync(new AnalyzerFileReference(missingPath, TestAnalyzerAssemblyLoader.LoadNotImplemented));
+
+        Assert.NotEqual(withoutReference, unresolved);
+        Assert.Equal(unresolved, unresolvedSamePath);
+        Assert.NotEqual(unresolved, unresolvedOtherPath);
+        Assert.NotEqual(unresolved, fileReferenceSamePath);
+    }
+
     [Fact]
     public void WithAnalyzerReferences()
     {
