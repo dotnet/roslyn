@@ -112,7 +112,7 @@ void goo()
             AssertCompleteSubmission("interface goo {}");
             AssertCompleteSubmission("interface goo : {}");
 
-            AssertCompleteSubmission("partial");
+            AssertIncompleteSubmission("partial");
             AssertIncompleteSubmission("partial class");
 
             AssertIncompleteSubmission("int x = 1");
