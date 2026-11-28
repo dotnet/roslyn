@@ -172,7 +172,8 @@ internal class CompletionItem
     }
 
     /// <summary>
-    /// The format of the insert text. If omitted, defaults to <see cref="InsertTextFormat.Plaintext"/>
+    /// The format of the insert text. If omitted, uses <see cref="CompletionListItemDefaults.InsertTextFormat"/>
+    /// when provided, otherwise defaults to <see cref="InsertTextFormat.Plaintext"/>.
     /// <para>
     /// The format applies to both <see cref="InsertText"/> and the
     /// <see cref="TextEdit.NewText"/> property on <see cref="TextEdit"/>.
@@ -185,12 +186,11 @@ internal class CompletionItem
     [SuppressMessage("Microsoft.StyleCop.CSharp.LayoutRules", "SA1513:ClosingCurlyBracketMustBeFollowedByBlankLine", Justification = "There are no issues with this code")]
     [SuppressMessage("Microsoft.StyleCop.CSharp.LayoutRules", "SA1500:BracesForMultiLineStatementsShouldNotShareLine", Justification = "There are no issues with this code")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
-    [DefaultValue(InsertTextFormat.Plaintext)]
-    public InsertTextFormat InsertTextFormat
+    public InsertTextFormat? InsertTextFormat
     {
         get;
         set;
-    } = InsertTextFormat.Plaintext;
+    }
 
     /// <summary>
     /// How whitespace and indentation is handled during completion

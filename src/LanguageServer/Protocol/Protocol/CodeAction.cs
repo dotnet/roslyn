@@ -59,7 +59,7 @@ internal class CodeAction
     /// </para>
     /// </summary>
     /// <remarks>Since LSP 3.15</remarks>
-    [JsonPropertyName("preferred")]
+    [JsonPropertyName("isPreferred")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
     public bool IsPreferred { get; init; }
 
