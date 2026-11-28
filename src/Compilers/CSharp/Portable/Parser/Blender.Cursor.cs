@@ -181,6 +181,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 {
                     for (var node = cursor.CurrentNodeOrToken; node.Kind() != SyntaxKind.None && !SyntaxFacts.IsAnyToken(node.Kind()); node = cursor.CurrentNodeOrToken)
                     {
+                        if (node.Kind() == SyntaxKind.InterpolatedStringExpression)
+                        {
+                            break;
+                        }
+
                         cursor = cursor.MoveToFirstChild();
                     }
                 }

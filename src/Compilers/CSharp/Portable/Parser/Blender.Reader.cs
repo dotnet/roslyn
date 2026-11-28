@@ -89,7 +89,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
                         // Couldn't take the current node or token.  Figure out the next node or
                         // token to reconsider and try again.
-                        if (_oldTreeCursor.CurrentNodeOrToken.IsNode)
+                        if (_oldTreeCursor.CurrentNodeOrToken.IsNode && _oldTreeCursor.CurrentNodeOrToken.Kind() != SyntaxKind.InterpolatedStringExpression)
                         {
                             // It was a node.  Just move to its first token and try again.
                             _oldTreeCursor = _oldTreeCursor.MoveToFirstChild();
@@ -114,7 +114,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
                 // Now, skip past it.
                 _changeDelta += node.FullWidth;
-                _oldDirectives = node.ApplyDirectives(_oldDirectives);
+                if (node.ContainsDirectives)
+                {
+                    _oldDirectives = SyntaxToken.ApplyDirectivesToTrivia(node.GetLeadingTrivia().Node, _oldDirectives);
+                    _oldDirectives = SyntaxToken.ApplyDirectivesToTrivia(node.GetTrailingTrivia().Node, _oldDirectives);
+                }
                 _oldTreeCursor = Cursor.MoveToNextSibling(_oldTreeCursor);
 
                 // If our cursor is now after any changes, then just skip past them while upping
@@ -198,6 +202,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     return false;
                 }
 
+                if (asToken && currentNodeOrToken.IsNode)
+                {
+                    _oldTreeCursor = _oldTreeCursor.MoveToFirstChild();
+                    currentNodeOrToken = _oldTreeCursor.CurrentNodeOrToken;
+                    if (!CanReuse(currentNodeOrToken, canReuseInterpolatedString: true))
+                    {
+                        blendedNode = default(BlendedNode);
+                        return false;
+                    }
+                }
+
                 // We can reuse this node or token.  Move us forward in the new text, and move to the
                 // next sibling.
                 _newPosition += currentNodeOrToken.FullWidth;
@@ -212,7 +227,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 return true;
             }
 
-            private bool CanReuse(SyntaxNodeOrToken nodeOrToken)
+            private bool CanReuse(SyntaxNodeOrToken nodeOrToken, bool canReuseInterpolatedString = false)
             {
                 // Zero width nodes and tokens always indicate that the parser had to do
                 // something tricky, so don't reuse them.
@@ -233,6 +248,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
                 // We can't reuse a node or token if it intersects a changed text range.
                 if (this.IntersectsNextChange(nodeOrToken))
+                {
+                    return false;
+                }
+
+                // An interpolated string expression can be converted back to this token
+                // by Cursor.MoveToFirstChild. RescanInterpolatedString does not copy
+                // lexical diagnostics, so the token must be lexed from the new text.
+                if (nodeOrToken.Kind() == SyntaxKind.InterpolatedStringToken && !canReuseInterpolatedString)
                 {
                     return false;
                 }

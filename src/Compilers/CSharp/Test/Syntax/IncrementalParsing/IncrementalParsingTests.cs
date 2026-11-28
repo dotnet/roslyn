@@ -3552,6 +3552,20 @@ class D { }
             Assert.Equal(0, newTree.GetCompilationUnitRoot().Errors().Length);
         }
 
+        [Fact, WorkItem(86577, "https://github.com/dotnet/roslyn/issues/86577")]
+        public void InterpolatedStringDiagnosticWhenTokenBecomesSkippedText()
+        {
+            SourceText oldText = SourceText.From("""class C { string M() => $"{1 }}"; }""");
+            var startTree = SyntaxFactory.ParseSyntaxTree(oldText);
+
+            var newText = oldText.WithChanges(new TextChange(new TextSpan(21, 2), ";"));
+            var reparsedTree = startTree.WithChangedText(newText);
+
+            reparsedTree.GetDiagnostics()
+                .Where(d => d.Code == (int)ErrorCode.ERR_UnescapedCurly)
+                .Verify(Diagnostic(ErrorCode.ERR_UnescapedCurly, "}").WithArguments("}").WithLocation(1, 30));
+        }
+
         [Fact]
         public void Goo()
         {
