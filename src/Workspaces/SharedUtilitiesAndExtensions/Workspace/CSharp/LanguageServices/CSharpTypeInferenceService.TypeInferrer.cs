@@ -16,7 +16,6 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
@@ -536,6 +535,12 @@ internal partial class CSharpTypeInferenceService
                     {
                         var index = GetArgumentListIndex(argumentList, previousToken);
                         return InferTypeInConstructorInitializer(constructorInitializer, index);
+                    }
+
+                case PrimaryConstructorBaseTypeSyntax baseTypePrimaryConstructor:
+                    {
+                        var index = GetArgumentListIndex(argumentList, previousToken);
+                        return InferTypeInPrimaryConstructorBaseType(baseTypePrimaryConstructor, index);
                     }
             }
 
