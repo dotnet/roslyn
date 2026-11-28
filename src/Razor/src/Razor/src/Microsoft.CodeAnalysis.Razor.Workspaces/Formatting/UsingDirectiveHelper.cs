@@ -306,16 +306,5 @@ internal static class UsingDirectiveHelper
     /// Otherwise, only the directive span is removed.
     /// </summary>
     public static TextEdit GetRemoveDirectiveEdit(SourceText sourceText, TextSpan directiveSpan)
-    {
-        var directiveLineNumber = sourceText.GetLinePosition(directiveSpan.Start).Line;
-        var lineSpan = sourceText.Lines[directiveLineNumber].SpanIncludingLineBreak;
-
-        // If the non-whitespace content of the line and the directive match, then the directive is the only thing on the line
-        // so we remove the whole line. Otherwise, just remove the directive.
-        var removeSpan = sourceText.NonWhitespaceContentEquals(sourceText, lineSpan.Start, lineSpan.End, directiveSpan.Start, directiveSpan.End)
-            ? lineSpan
-            : directiveSpan;
-
-        return LspFactory.CreateTextEdit(sourceText.GetRange(removeSpan), string.Empty);
-    }
+        => LspFactory.CreateTextEdit(sourceText.GetRange(sourceText.GetDirectiveRemovalSpan(directiveSpan)), string.Empty);
 }
