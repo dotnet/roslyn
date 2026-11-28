@@ -4340,6 +4340,39 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
     }
 
     [Fact]
+    public Task FormatsHtmlEndTagOnSameLineInsideCSharp()
+        => RunFormattingTestAsync(
+            input: """
+                @if (true)
+                {
+                <html>
+                <body>
+                </body></html>
+                <p>after</p>
+                }
+                """,
+            htmlFormatted: """
+                @if (true)
+                {
+                <html>
+                <body>
+                </body>
+                </html>
+                <p>after</p>
+                }
+                """,
+            expected: """
+                @if (true)
+                {
+                    <html>
+                    <body>
+                    </body>
+                    </html>
+                    <p>after</p>
+                }
+                """);
+
+    [Fact]
     public Task FormatsNestedTagsOnSameLine()
         => RunFormattingTestAsync(
             input: """
