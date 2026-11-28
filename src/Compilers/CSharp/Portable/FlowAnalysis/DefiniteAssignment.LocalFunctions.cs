@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(!IsConditionalState);
             if ((object)symbol != null)
             {
-                NoteRead(symbol);
+                NoteRead(symbol, rangeVariableUnderlyingParameter: null, readSyntax: null);
 
                 if (this.State.Reachable)
                 {

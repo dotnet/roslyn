@@ -2255,7 +2255,6 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
     [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/86179")]
     public void Pointer_AddressOf_CapturedInlineArray_Assigned(bool updatedRules)
     {
-        // https://github.com/dotnet/roslyn/issues/86179: captured inline-array element address-taking should be an error
         var source = """
             class C
             {
@@ -2277,6 +2276,9 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             targetFramework: TargetFramework.Net100,
             options: TestOptions.ReleaseDll.WithUpdatedMemorySafetyRules(updatedRules))
             .VerifyEmitDiagnostics(
+            // (6,24): error CS1686: Local 'b' or its members cannot have their address taken and be used inside an anonymous method or lambda expression
+            //         void F() { _ = &b[0]; }
+            Diagnostic(ErrorCode.ERR_LocalCantBeFixedAndHoisted, "&b[0]").WithArguments("b").WithLocation(6, 24),
             // (6,24): error CS9403: The operand of an address-of expression is not definitely assigned. Ensure the operand is assigned or use an unsafe context.
             //         void F() { _ = &b[0]; }
             Diagnostic(ErrorCode.ERR_UnsafeUnassignedAddressOf, "&b[0]").WithLocation(6, 24));

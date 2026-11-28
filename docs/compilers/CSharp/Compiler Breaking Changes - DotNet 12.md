@@ -166,3 +166,36 @@ To preserve the previous behavior, specify the type arguments explicitly:
 ```cs
 M<int, B>(t: 0, u: new B(), f: x => x, g: x => (I<A>)null, h: y => y);
 ```
+
+## Taking the address of an element of a captured inline array is disallowed
+
+***Introduced in Visual Studio 2026 version 18.15***
+
+The compiler now reports CS1686 when the address of an inline-array element is taken
+and the containing local or parameter is captured by a lambda expression, anonymous method, or local function.
+Previously, such code was accepted even though the same restriction already applied
+to taking the address of the captured variable itself or one of its struct fields.
+
+For example, the following code previously compiled but now reports an error:
+
+```cs
+unsafe
+{
+    Buffer b = default;
+    void F()
+    {
+        _ = &b[0]; // CS1686: Local 'b' or its members cannot have their address taken and be used inside an anonymous method or lambda expression
+    }
+    F();
+}
+
+[System.Runtime.CompilerServices.InlineArray(2)]
+struct Buffer
+{
+    private int _element;
+}
+```
+
+If affected, restructure the code so that the inline-array storage whose address is taken is not captured.
+
+See also https://github.com/dotnet/roslyn/issues/86179.
