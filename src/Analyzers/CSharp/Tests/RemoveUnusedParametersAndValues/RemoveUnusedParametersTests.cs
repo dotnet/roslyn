@@ -1867,4 +1867,161 @@ public sealed class RemoveUnusedParametersTests : AbstractCSharpDiagnosticProvid
         yield return ["object"];
         yield return ["string"];
     }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/62077")]
+    public Task TestInterpolatedStringHandlerArgument_SingleArgument()
+        => TestDiagnosticMissingAsync("""
+            using System;
+            using System.Runtime.CompilerServices;
+
+            [InterpolatedStringHandler]
+            public struct DebugMarkerInterpolatedStringHandler
+            {
+                public DebugMarkerInterpolatedStringHandler(int literalLength, int formattedCount, IFormatProvider provider)
+                {
+                    _ = provider;
+                }
+
+                public string GetString() => "";
+            }
+
+            public class C
+            {
+                public void AppendLine(IFormatProvider provider, [InterpolatedStringHandlerArgument("provider")] ref DebugMarkerInterpolatedStringHandler name)
+                {
+                    Console.WriteLine(name.GetString());
+                }
+            }
+            """);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/62077")]
+    public Task TestInterpolatedStringHandlerArgument_MultipleArguments()
+        => TestDiagnosticMissingAsync("""
+            using System;
+            using System.Runtime.CompilerServices;
+
+            [InterpolatedStringHandler]
+            public struct CustomHandler
+            {
+                public CustomHandler(int literalLength, int formattedCount, int x, string y)
+                {
+                    _ = x;
+                    _ = y;
+                }
+            }
+
+            public class C
+            {
+                public void M(int x, string y, [InterpolatedStringHandlerArgument("x", "y")] ref CustomHandler handler)
+                {
+                    _ = handler;
+                }
+            }
+            """);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/62077")]
+    public Task TestInterpolatedStringHandlerArgument_OtherParameterIsUnused()
+        => TestDiagnosticsAsync("""
+            using System;
+            using System.Runtime.CompilerServices;
+
+            [InterpolatedStringHandler]
+            public struct CustomHandler
+            {
+                public CustomHandler(int literalLength, int formattedCount, int x)
+                {
+                    _ = x;
+                }
+            }
+
+            public class C
+            {
+                public void M(int x, int {|IDE0060:y|}, [InterpolatedStringHandlerArgument("x")] ref CustomHandler handler)
+                {
+                    _ = handler;
+                }
+            }
+            """);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/62077")]
+    public Task TestInterpolatedStringHandlerArgument_ExtensionMethod()
+        => TestDiagnosticMissingAsync("""
+            using System;
+            using System.Runtime.CompilerServices;
+
+            [InterpolatedStringHandler]
+            public struct CustomHandler
+            {
+                public CustomHandler(int literalLength, int formattedCount, C receiver)
+                {
+                    _ = receiver;
+                }
+            }
+
+            public class C
+            {
+            }
+
+            public static class Extensions
+            {
+                public static void M(this C c, [InterpolatedStringHandlerArgument("c")] ref CustomHandler handler)
+                {
+                    _ = handler;
+                }
+            }
+            """);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/62077")]
+    public Task TestInterpolatedStringHandlerArgument_Constructor()
+        => TestDiagnosticMissingAsync("""
+            using System;
+            using System.Runtime.CompilerServices;
+
+            [InterpolatedStringHandler]
+            public struct CustomHandler
+            {
+                public CustomHandler(int literalLength, int formattedCount, int x)
+                {
+                    _ = x;
+                }
+            }
+
+            public class C
+            {
+                public C(int x, [InterpolatedStringHandlerArgument("x")] ref CustomHandler handler)
+                {
+                    _ = handler;
+                }
+            }
+            """);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/62077")]
+    public Task TestInterpolatedStringHandlerArgument_LocalFunction()
+        => TestDiagnosticMissingAsync("""
+            using System;
+            using System.Runtime.CompilerServices;
+
+            [InterpolatedStringHandler]
+            public struct CustomHandler
+            {
+                public CustomHandler(int literalLength, int formattedCount, int x)
+                {
+                    _ = x;
+                }
+            }
+
+            public class C
+            {
+                public void M()
+                {
+                    void Local(int x, [InterpolatedStringHandlerArgument("x")] ref CustomHandler handler)
+                    {
+                        _ = handler;
+                    }
+
+                    CustomHandler h = default;
+                    Local(1, ref h);
+                }
+            }
+            """);
 }
