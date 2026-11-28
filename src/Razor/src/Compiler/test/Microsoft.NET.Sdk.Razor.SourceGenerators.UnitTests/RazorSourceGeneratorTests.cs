@@ -11,6 +11,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
+using Microsoft.AspNetCore.Razor.Language.TagHelpers.Producers;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -748,6 +749,290 @@ namespace MyApp.Pages
             // The decl is byte-identical across the markup edit, so slow discovery does not re-run.
             result.VerifyIncrementalSteps("FallbackDeclTrees", IncrementalStepRunReason.Cached);
             result.VerifyIncrementalSteps("SlowTagHelpers", IncrementalStepRunReason.Cached);
+        }
+
+        [Fact]
+        public async Task SlowDiscovery_OwnsFallbackComponentsAndTheirDependentsOnly()
+        {
+            // Derived inherits from a fallback component, so fast discovery sees it through Base's bodiless
+            // stub and slow discovery must own it. Unrelated doesn't touch the stub and stays on the fast path.
+            var project = CreateTestProject(new()
+            {
+                ["Base.razor"] = "@code {\n    public Microsoft.AspNetCore.Components.RenderFragment Frag => @<span>frag</span>;\n}\n<h1>Base</h1>",
+                ["Derived.razor"] = "@inherits Base\n<h1>Derived</h1>",
+                ["Unrelated.razor"] = "<h1>Unrelated</h1>",
+            });
+            var compilation = await project.GetCompilationAsync();
+            var (driver, _, _) = await GetDriverWithAdditionalTextAndProviderAsync(project, trackSteps: true);
+
+            var result = RunGenerator(compilation!, ref driver);
+
+            Assert.Empty(result.Diagnostics);
+            var slowDiscoveryTypeNames = Assert.IsAssignableFrom<IEnumerable<string>>(
+                Assert.Single(Assert.Single(result.TrackedSteps["SlowDiscoveryTypeNames"]).Outputs).Value);
+            Assert.Equal(["MyApp.Base", "MyApp.Derived"], slowDiscoveryTypeNames.OrderBy(static name => name, StringComparer.Ordinal));
+        }
+
+        [Fact]
+        public async Task SlowDiscovery_SkipsNestedTypesInNonPublicContainers()
+        {
+            var project = CreateTestProject(new()
+            {
+                ["Fallback.razor"] = """
+                    @code {
+                        public Microsoft.AspNetCore.Components.RenderFragment Fragment => @<span>fragment</span>;
+                    }
+                    """,
+            }, new()
+            {
+                ["Hidden.cs"] = """
+                    using Microsoft.AspNetCore.Components;
+
+                    namespace MyApp;
+
+                    internal class Hidden
+                    {
+                        public class Fallback : ComponentBase { }
+                    }
+
+                    public class Visible
+                    {
+                        public class Fallback : ComponentBase { }
+
+                        internal class Nested
+                        {
+                            public class Fallback : ComponentBase { }
+                        }
+                    }
+                    """,
+            });
+            var compilation = await project.GetCompilationAsync();
+            var (driver, _, _) = await GetDriverWithAdditionalTextAndProviderAsync(project, trackSteps: true);
+
+            var result = RunGenerator(compilation!, ref driver);
+
+            var descriptors = Assert.IsAssignableFrom<IEnumerable<TagHelperDescriptor>>(
+                Assert.Single(Assert.Single(result.TrackedSteps["SlowTagHelpers"]).Outputs).Value);
+            Assert.Contains(descriptors, descriptor => descriptor.TypeName == "MyApp.Fallback");
+            Assert.Contains(descriptors, descriptor => descriptor.TypeName == "MyApp.Visible.Fallback");
+            Assert.DoesNotContain(descriptors, descriptor => descriptor.TypeName.Contains("Hidden.Fallback", StringComparison.Ordinal));
+            Assert.DoesNotContain(descriptors, descriptor => descriptor.TypeName.Contains("Visible.Nested.Fallback", StringComparison.Ordinal));
+        }
+
+        [Fact]
+        public async Task SlowDiscoveryTypeNames_StaysCachedWhenDependenciesAreUnchanged()
+        {
+            // Fast discovery and the stub-dependency facts share one walk but are compared separately. A C# edit
+            // reruns the walk; when neither the descriptors nor the facts change, the ownership set must stay
+            // cached rather than being recomputed.
+            var project = CreateTestProject(new()
+            {
+                ["Base.razor"] = "@code {\n    public Microsoft.AspNetCore.Components.RenderFragment Frag => @<span>frag</span>;\n}\n<h1>Base</h1>",
+                ["Derived.razor"] = "@inherits Base\n<h1>Derived</h1>",
+            }, new()
+            {
+                ["Person.cs"] = "public class Person { public int Id { get; set; } }",
+                ["StableTagHelper.cs"] = """
+                    using Microsoft.AspNetCore.Razor.TagHelpers;
+                    public class StableTagHelper : TagHelper { }
+                    """,
+            });
+            var compilation = await project.GetCompilationAsync();
+            var (driver, _, _) = await GetDriverWithAdditionalTextAndProviderAsync(project, trackSteps: true);
+
+            var result = RunGenerator(compilation!, ref driver);
+            Assert.Empty(result.Diagnostics);
+            var slowNames = Assert.IsAssignableFrom<IEnumerable<string>>(
+                Assert.Single(Assert.Single(result.TrackedSteps["SlowDiscoveryTypeNames"]).Outputs).Value);
+            Assert.Contains("StableTagHelper", slowNames);
+
+            project = project.Documents.Single(static document => document.Name == "Person.cs").WithText(SourceText.From("public class Person { public int Id { get; set; } public int Age { get; set; } }", Encoding.UTF8)).Project;
+            compilation = await project.GetCompilationAsync();
+
+            result = RunGenerator(compilation!, ref driver);
+            Assert.Empty(result.Diagnostics);
+
+            result.VerifyIncrementalSteps("SourceDiscovery", IncrementalStepRunReason.Modified);
+            result.VerifyIncrementalSteps("FastTagHelpers", IncrementalStepRunReason.Unchanged);
+            result.VerifyIncrementalSteps("SourceTypeDependencies", IncrementalStepRunReason.Unchanged);
+            result.VerifyIncrementalSteps("SlowDiscoveryTypeNames", IncrementalStepRunReason.Cached);
+        }
+
+        [Theory]
+        [InlineData(false)]
+        [InlineData(true)]
+        public async Task PartialDiscovery_DoesNotPolluteOrReadAssemblyCache(bool fullDiscoveryFirst)
+        {
+            var project = CreateTestProject(new()
+            {
+                ["Index.razor"] = "<h1>Index</h1>",
+            }, new()
+            {
+                ["LocalTagHelper.cs"] = """
+                    using Microsoft.AspNetCore.Razor.TagHelpers;
+                    namespace MyApp;
+                    public class LocalTagHelper : TagHelper { }
+                    """,
+            });
+            var compilation = (await project.GetCompilationAsync())!;
+            var engine = RazorProjectEngine.CreateEmpty(builder =>
+            {
+                builder.Features.Add(new TagHelperDiscoveryService());
+                builder.Features.Add(new DefaultTagHelperProducer.Factory());
+            });
+            var service = engine.Engine.GetFeatures<ITagHelperDiscoveryService>().Single();
+            Assert.True(service.TryGetDiscoverer(compilation, out var discoverer));
+            const string typeName = "MyApp.LocalTagHelper";
+
+            if (fullDiscoveryFirst)
+            {
+                Assert.Contains(discoverer.GetTagHelpers(compilation.Assembly), descriptor => descriptor.TypeName == typeName);
+            }
+
+            var candidates = new List<string>();
+            var partial = discoverer.GetTagHelpers(
+                compilation.Assembly,
+                (type, isNonComponentCandidate) =>
+                {
+                    if (isNonComponentCandidate)
+                    {
+                        candidates.Add(type.Name);
+                    }
+                },
+                excludeNonComponentCandidates: true);
+
+            Assert.Contains("LocalTagHelper", candidates);
+            Assert.DoesNotContain(partial, descriptor => descriptor.TypeName == typeName);
+            Assert.Contains(discoverer.GetTagHelpers(compilation.Assembly), descriptor => descriptor.TypeName == typeName);
+        }
+
+        [Fact]
+        public async Task SourceDiscovery_CollectsDependenciesOnlyWhenFallbackExists()
+        {
+            const string split = """
+                @code {
+                    [Microsoft.AspNetCore.Components.Parameter] public int Value { get; set; }
+                }
+                """;
+            const string fallback = """
+                @code {
+                    [Microsoft.AspNetCore.Components.Parameter] public int Value { get; set; }
+                    public Microsoft.AspNetCore.Components.RenderFragment Fragment => @<span>fragment</span>;
+                }
+                """;
+            const string changedFallback = """
+                @code {
+                    [Microsoft.AspNetCore.Components.Parameter] public long Value { get; set; }
+                    public Microsoft.AspNetCore.Components.RenderFragment Fragment => @<span>fragment</span>;
+                }
+                """;
+            var project = CreateTestProject(new()
+            {
+                ["Base.razor"] = split,
+                ["Derived.razor"] = "@inherits Base",
+                ["Index.razor"] = "<Derived Value=\"42\" />",
+                ["Unrelated.razor"] = "<h1>Unrelated</h1>",
+            }, new()
+            {
+                ["MvcTypes.cs"] = """
+                    using Microsoft.AspNetCore.Razor.TagHelpers;
+
+                    namespace MyApp;
+
+                    public class IndependentTagHelper : TagHelper { }
+                    public class IndependentViewComponent
+                    {
+                        public string Invoke() => "ok";
+                    }
+                    """,
+            });
+            var compilation = await project.GetCompilationAsync();
+            var (driver, additionalTexts, _) = await GetDriverWithAdditionalTextAndProviderAsync(project, trackSteps: true);
+            var original = additionalTexts.Single(text => text.Path == "Base.razor");
+
+            var result = RunGenerator(compilation!, ref driver);
+            Assert.Empty(GetDependencies(result));
+
+            var fallbackText = new TestAdditionalText(original.Path, SourceText.From(fallback, Encoding.UTF8));
+            driver = driver.ReplaceAdditionalText(original, fallbackText);
+            result = RunGenerator(compilation!, ref driver);
+
+            Assert.Contains(GetDependencies(result), dependency => dependency.TypeName == "MyApp.Derived");
+            var slowNames = Assert.IsAssignableFrom<IEnumerable<string>>(
+                Assert.Single(Assert.Single(result.TrackedSteps["SlowDiscoveryTypeNames"]).Outputs).Value);
+            Assert.Equal(
+                ["MyApp.Base", "MyApp.Derived", "MyApp.IndependentTagHelper", "MyApp.IndependentViewComponent"],
+                slowNames.OrderBy(static name => name, StringComparer.Ordinal));
+
+            var changedFallbackText = new TestAdditionalText(original.Path, SourceText.From(changedFallback, Encoding.UTF8));
+            driver = driver.ReplaceAdditionalText(fallbackText, changedFallbackText);
+            result = RunGenerator(compilation!, ref driver);
+
+            result.VerifyIncrementalSteps("SourceDiscovery", IncrementalStepRunReason.Cached);
+            result.VerifyIncrementalSteps("SourceTypeDependencies", IncrementalStepRunReason.Cached);
+            result.VerifyIncrementalSteps("SlowTagHelpers", IncrementalStepRunReason.Modified);
+
+            driver = driver.ReplaceAdditionalText(changedFallbackText, original);
+            result = RunGenerator(compilation!, ref driver);
+            Assert.Empty(GetDependencies(result));
+
+            static ImmutableArray<RazorSourceGenerator.SourceTypeDependency> GetDependencies(GeneratorRunResult result)
+                => Assert.IsType<ImmutableArray<RazorSourceGenerator.SourceTypeDependency>>(
+                    Assert.Single(Assert.Single(result.TrackedSteps["SourceTypeDependencies"]).Outputs).Value);
+        }
+
+        [Fact]
+        public async Task SlowDiscovery_IgnoresShadowedErrorTypedParameters()
+        {
+            var project = CreateTestProject(new()
+            {
+                ["Fallback.razor"] = """
+                    @code {
+                        public enum Choice { First }
+                        public Microsoft.AspNetCore.Components.RenderFragment Fragment => @<span>fragment</span>;
+                    }
+                    """,
+                ["Index.razor"] = """
+                    @using MyApp
+                    <Hidden Value="42" />
+                    <Overriding Value="@Fallback.Choice.First" />
+                    """,
+            }, new()
+            {
+                ["Components.cs"] = """
+                    using Microsoft.AspNetCore.Components;
+
+                    namespace MyApp;
+
+                    public abstract class Base : ComponentBase
+                    {
+                        [Parameter] public virtual Fallback.Choice Value { get; set; }
+                    }
+
+                    public class Hidden : Base
+                    {
+                        [Parameter] public new int Value { get; set; }
+                    }
+
+                    public class HiddenByNonParameter : Base
+                    {
+                        public new int Value { get; set; }
+                    }
+
+                    public class Overriding : Base
+                    {
+                        public override Fallback.Choice Value { get; set; }
+                    }
+                    """,
+            });
+            var compilation = await project.GetCompilationAsync();
+            var (driver, _, _) = await GetDriverWithAdditionalTextAndProviderAsync(project, trackSteps: true);
+
+            var result = RunGenerator(compilation!, ref driver);
+
+            var slowNames = Assert.IsAssignableFrom<IEnumerable<string>>(
+                Assert.Single(Assert.Single(result.TrackedSteps["SlowDiscoveryTypeNames"]).Outputs).Value);
+            Assert.Equal(["MyApp.Fallback", "MyApp.Overriding"], slowNames.OrderBy(static name => name, StringComparer.Ordinal));
         }
 
         [ConditionalFact(typeof(IsEnglishLocal))]

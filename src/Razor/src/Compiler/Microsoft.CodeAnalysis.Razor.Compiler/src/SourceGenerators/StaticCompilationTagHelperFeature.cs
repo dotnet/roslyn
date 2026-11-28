@@ -1,6 +1,7 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -16,6 +17,9 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
         private TagHelperDiscoverer? _discoverer;
 
         public TagHelperCollection GetTagHelpers(IAssemblySymbol assembly, CancellationToken cancellationToken)
+            => GetTagHelpers(assembly, typeVisitor: null, excludeNonComponentCandidates: false, cancellationToken);
+
+        public TagHelperCollection GetTagHelpers(IAssemblySymbol assembly, Action<INamedTypeSymbol, bool>? typeVisitor, bool excludeNonComponentCandidates, CancellationToken cancellationToken)
         {
             if (_discoveryService is null)
             {
@@ -28,7 +32,7 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
                 return [];
             }
 
-            return _discoverer.GetTagHelpers(assembly, cancellationToken);
+            return _discoverer.GetTagHelpers(assembly, typeVisitor, excludeNonComponentCandidates, cancellationToken);
         }
 
         public TagHelperCollection GetTagHelpers(ImmutableArray<INamedTypeSymbol> types, CancellationToken cancellationToken)
