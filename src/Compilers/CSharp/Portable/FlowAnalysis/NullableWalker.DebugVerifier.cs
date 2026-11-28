@@ -127,12 +127,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Visit(node.CollectionCreation);
 
                 bool hasElementType = node.CollectionTypeKind is not CollectionExpressionTypeKind.None;
+                node.HasSpreadElements(out _, out bool hasKnownLength);
                 foreach (var element in node.Elements)
                 {
                     if (element is BoundCollectionExpressionSpreadElement spread)
                     {
-                        Visit(spread.Expression);
-                        Visit(spread.Conversion);
+                        Debug.Assert(!hasKnownLength || spread.LengthOrCount is { });
+                        VisitCollectionExpressionSpreadElement(spread, hasKnownLength);
                         if (spread.EnumeratorInfoOpt != null)
                         {
                             VisitForEachEnumeratorInfo(spread.EnumeratorInfoOpt);
@@ -157,6 +158,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (node.Conversion is BoundConversion conversion)
                 {
                     Visit(conversion);
+                }
+
+                return null;
+            }
+
+            private BoundNode? VisitCollectionExpressionSpreadElement(BoundCollectionExpressionSpreadElement node, bool hasKnownLength)
+            {
+                VisitCollectionExpressionSpreadElement(node);
+
+                if (hasKnownLength && node.LengthOrCount is { } lengthOrCount)
+                {
+                    Visit(lengthOrCount);
                 }
 
                 return null;
