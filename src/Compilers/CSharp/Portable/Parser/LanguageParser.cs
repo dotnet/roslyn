@@ -2527,12 +2527,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 case SyntaxKind.OperatorDeclaration:
                 case SyntaxKind.ConversionOperatorDeclaration:
                 case SyntaxKind.DestructorDeclaration:
-                case SyntaxKind.ConstructorDeclaration:
                 case SyntaxKind.NamespaceDeclaration:
                 case SyntaxKind.FileScopedNamespaceDeclaration:
                 case SyntaxKind.RecordDeclaration:
                 case SyntaxKind.RecordStructDeclaration:
                     return true;
+                case SyntaxKind.ConstructorDeclaration:
+                    return !isGlobal;
                 case SyntaxKind.FieldDeclaration:
                 case SyntaxKind.MethodDeclaration:
                     if (!isGlobal || IsScript)
