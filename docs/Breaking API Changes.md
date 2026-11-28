@@ -134,3 +134,18 @@ Console.WriteLine(conv.IsExplicit); // Previously was 'True', now 'False'
 ```
 
 PR: https://github.com/dotnet/roslyn/pull/84628
+
+# Version 5.15.0
+
+### Shebang directive content is now a structural token
+
+`ShebangDirectiveTriviaSyntax.Content` is now a structural child between `ExclamationToken` and `EndOfDirectiveToken`.
+The token is therefore returned by `ChildNodesAndTokens()` and `DescendantTokens()`.
+`GetPreviousToken` and `GetNextToken` navigate between the adjacent tokens in the shebang directive.
+
+For parsed syntax trees, the content is no longer stored as `PreprocessingMessageTrivia` in the leading trivia of `EndOfDirectiveToken`.
+Consumers should use `ShebangDirectiveTriviaSyntax.Content` to access the shebang content.
+
+The existing `SyntaxFactory.ShebangDirectiveTrivia` and `ShebangDirectiveTriviaSyntax.Update` overloads remain available.
+The legacy overloads interpret leading trivia on `EndOfDirectiveToken` as the old encoded content and translate it to the structural representation.
+The new overloads that accept `Content` separately preserve leading trivia on `EndOfDirectiveToken`.

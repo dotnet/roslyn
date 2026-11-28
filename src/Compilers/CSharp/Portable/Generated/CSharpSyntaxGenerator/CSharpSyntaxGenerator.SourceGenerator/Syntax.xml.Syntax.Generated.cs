@@ -16916,7 +16916,9 @@ public sealed partial class ShebangDirectiveTriviaSyntax : DirectiveTriviaSyntax
 
     public SyntaxToken ExclamationToken => new SyntaxToken(this, ((InternalSyntax.ShebangDirectiveTriviaSyntax)this.Green).exclamationToken, GetChildPosition(1), GetChildIndex(1));
 
-    public override SyntaxToken EndOfDirectiveToken => new SyntaxToken(this, ((InternalSyntax.ShebangDirectiveTriviaSyntax)this.Green).endOfDirectiveToken, GetChildPosition(2), GetChildIndex(2));
+    public SyntaxToken Content => new SyntaxToken(this, ((InternalSyntax.ShebangDirectiveTriviaSyntax)this.Green).content, GetChildPosition(2), GetChildIndex(2));
+
+    public override SyntaxToken EndOfDirectiveToken => new SyntaxToken(this, ((InternalSyntax.ShebangDirectiveTriviaSyntax)this.Green).endOfDirectiveToken, GetChildPosition(3), GetChildIndex(3));
 
     public override bool IsActive => ((InternalSyntax.ShebangDirectiveTriviaSyntax)this.Green).IsActive;
 
@@ -16927,11 +16929,11 @@ public sealed partial class ShebangDirectiveTriviaSyntax : DirectiveTriviaSyntax
     public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitShebangDirectiveTrivia(this);
     public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitShebangDirectiveTrivia(this);
 
-    public ShebangDirectiveTriviaSyntax Update(SyntaxToken hashToken, SyntaxToken exclamationToken, SyntaxToken endOfDirectiveToken, bool isActive)
+    public ShebangDirectiveTriviaSyntax Update(SyntaxToken hashToken, SyntaxToken exclamationToken, SyntaxToken content, SyntaxToken endOfDirectiveToken, bool isActive)
     {
-        if (hashToken != this.HashToken || exclamationToken != this.ExclamationToken || endOfDirectiveToken != this.EndOfDirectiveToken)
+        if (hashToken != this.HashToken || exclamationToken != this.ExclamationToken || content != this.Content || endOfDirectiveToken != this.EndOfDirectiveToken)
         {
-            var newNode = SyntaxFactory.ShebangDirectiveTrivia(hashToken, exclamationToken, endOfDirectiveToken, isActive);
+            var newNode = SyntaxFactory.ShebangDirectiveTrivia(hashToken, exclamationToken, content, endOfDirectiveToken, isActive);
             var annotations = GetAnnotations();
             return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
         }
@@ -16940,11 +16942,12 @@ public sealed partial class ShebangDirectiveTriviaSyntax : DirectiveTriviaSyntax
     }
 
     internal override DirectiveTriviaSyntax WithHashTokenCore(SyntaxToken hashToken) => WithHashToken(hashToken);
-    public new ShebangDirectiveTriviaSyntax WithHashToken(SyntaxToken hashToken) => Update(hashToken, this.ExclamationToken, this.EndOfDirectiveToken, this.IsActive);
-    public ShebangDirectiveTriviaSyntax WithExclamationToken(SyntaxToken exclamationToken) => Update(this.HashToken, exclamationToken, this.EndOfDirectiveToken, this.IsActive);
+    public new ShebangDirectiveTriviaSyntax WithHashToken(SyntaxToken hashToken) => Update(hashToken, this.ExclamationToken, this.Content, this.EndOfDirectiveToken, this.IsActive);
+    public ShebangDirectiveTriviaSyntax WithExclamationToken(SyntaxToken exclamationToken) => Update(this.HashToken, exclamationToken, this.Content, this.EndOfDirectiveToken, this.IsActive);
+    public ShebangDirectiveTriviaSyntax WithContent(SyntaxToken content) => Update(this.HashToken, this.ExclamationToken, content, this.EndOfDirectiveToken, this.IsActive);
     internal override DirectiveTriviaSyntax WithEndOfDirectiveTokenCore(SyntaxToken endOfDirectiveToken) => WithEndOfDirectiveToken(endOfDirectiveToken);
-    public new ShebangDirectiveTriviaSyntax WithEndOfDirectiveToken(SyntaxToken endOfDirectiveToken) => Update(this.HashToken, this.ExclamationToken, endOfDirectiveToken, this.IsActive);
-    public ShebangDirectiveTriviaSyntax WithIsActive(bool isActive) => Update(this.HashToken, this.ExclamationToken, this.EndOfDirectiveToken, isActive);
+    public new ShebangDirectiveTriviaSyntax WithEndOfDirectiveToken(SyntaxToken endOfDirectiveToken) => Update(this.HashToken, this.ExclamationToken, this.Content, endOfDirectiveToken, this.IsActive);
+    public ShebangDirectiveTriviaSyntax WithIsActive(bool isActive) => Update(this.HashToken, this.ExclamationToken, this.Content, this.EndOfDirectiveToken, isActive);
 }
 
 /// <remarks>

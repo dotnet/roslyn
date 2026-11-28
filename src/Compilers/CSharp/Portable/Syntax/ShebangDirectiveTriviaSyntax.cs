@@ -2,56 +2,54 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace Microsoft.CodeAnalysis.CSharp.Syntax
 {
     partial class ShebangDirectiveTriviaSyntax
     {
-        public SyntaxToken Content
+        public ShebangDirectiveTriviaSyntax Update(
+            SyntaxToken hashToken,
+            SyntaxToken exclamationToken,
+            SyntaxToken endOfDirectiveToken,
+            bool isActive)
         {
-            get
+            if (endOfDirectiveToken.LeadingTrivia.Node != this.EndOfDirectiveToken.LeadingTrivia.Node)
             {
-                var token = InternalSyntax.SyntaxToken.StringLiteral(this.EndOfDirectiveToken.LeadingTrivia.ToString());
-                return token != null ? new SyntaxToken(this, token, GetChildPosition(2), GetChildIndex(2)) : default;
-            }
-        }
-
-        public ShebangDirectiveTriviaSyntax WithContent(SyntaxToken content)
-        {
-            if (content != this.Content)
-            {
-                return (ShebangDirectiveTriviaSyntax)((InternalSyntax.ShebangDirectiveTriviaSyntax)this.Green)
-                    .WithContent((InternalSyntax.SyntaxToken)content.Node!).CreateRed();
+                var newNode = SyntaxFactory.ShebangDirectiveTrivia(hashToken, exclamationToken, endOfDirectiveToken, isActive);
+                var annotations = GetAnnotations();
+                return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
             }
 
-            return this;
+            return Update(hashToken, exclamationToken, this.Content, endOfDirectiveToken, isActive);
         }
     }
 }
 
-namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
+namespace Microsoft.CodeAnalysis.CSharp
 {
-    partial class ShebangDirectiveTriviaSyntax
+    public static partial class SyntaxFactory
     {
-        public ShebangDirectiveTriviaSyntax WithContent(SyntaxToken content)
+        public static ShebangDirectiveTriviaSyntax ShebangDirectiveTrivia(
+            SyntaxToken hashToken,
+            SyntaxToken exclamationToken,
+            SyntaxToken endOfDirectiveToken,
+            bool isActive)
         {
-            SyntaxToken endOfDirectiveToken = this.EndOfDirectiveToken;
-
-            if (content.Kind is SyntaxKind.StringLiteralToken)
-            {
-                endOfDirectiveToken = endOfDirectiveToken.TokenWithLeadingTrivia(SyntaxFactory.PreprocessingMessage(content.ToString()));
-            }
-            else if (content.Kind is not SyntaxKind.None)
-            {
-                throw new ArgumentException(nameof(content));
-            }
-
-            return Update(
-                this.HashToken,
-                this.ExclamationToken,
-                endOfDirectiveToken,
-                this.IsActive);
+            var content = endOfDirectiveToken.LeadingTrivia.ToString();
+            return ShebangDirectiveTrivia(
+                hashToken,
+                exclamationToken,
+                Token(default, SyntaxKind.StringLiteralToken, content, content, default),
+                endOfDirectiveToken.WithLeadingTrivia(),
+                isActive);
         }
+
+        public static ShebangDirectiveTriviaSyntax ShebangDirectiveTrivia(bool isActive)
+            => ShebangDirectiveTrivia(
+                Token(SyntaxKind.HashToken),
+                Token(SyntaxKind.ExclamationToken),
+                Token(SyntaxKind.EndOfDirectiveToken),
+                isActive);
     }
 }

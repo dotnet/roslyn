@@ -691,7 +691,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 exclamation = this.AddError(exclamation, ErrorCode.ERR_PPShebangInProjectBasedProgram);
             }
 
-            return SyntaxFactory.ShebangDirectiveTrivia(hash, exclamation, this.ParseEndOfDirectiveWithOptionalPreprocessingMessage(), isActive);
+            var endOfDirective = this.lexer.LexEndOfDirectiveWithOptionalContent(out SyntaxToken content);
+            return SyntaxFactory.ShebangDirectiveTrivia(
+                hash,
+                exclamation,
+                content ?? SyntaxToken.StringLiteral(string.Empty),
+                endOfDirective,
+                isActive);
         }
 
         private DirectiveTriviaSyntax ParseIgnoredDirective(SyntaxToken hash, SyntaxToken colon, bool isActive, bool isFollowingToken)
