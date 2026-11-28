@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections.Concurrent;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
@@ -13,6 +15,7 @@ using Microsoft.CodeAnalysis.CSharp.Shared.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Utilities;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -45,14 +48,59 @@ internal sealed class CSharpRemoveUnnecessaryLambdaExpressionDiagnosticAnalyzer(
                 var expressionType = context.Compilation.ExpressionOfTType();
                 var conditionalAttributeType = context.Compilation.ConditionalAttribute();
 
+                // Lambdas in top level statements live in the compiler generated Program type. The symbol start action
+                // below skips implicitly declared types, as no user code can be found for them to write to a field, so
+                // those lambdas are analyzed here directly instead. A null containing type is handled the same way, so
+                // a lambda never falls through both registrations without being analyzed.
                 context.RegisterSyntaxNodeAction(
-                    context => AnalyzeSyntax(context, expressionType, conditionalAttributeType),
+                    context =>
+                    {
+                        if (context.ContainingSymbol?.ContainingType is null or { IsImplicitlyDeclared: true })
+                            AnalyzeSyntax(context, expressionType, conditionalAttributeType, containingType: null, deferredDiagnostics: null);
+                    },
                     SyntaxKind.SimpleLambdaExpression, SyntaxKind.ParenthesizedLambdaExpression, SyntaxKind.AnonymousMethodExpression);
+
+                context.RegisterSymbolStartAction(context =>
+                {
+                    var containingType = (INamedTypeSymbol)context.Symbol;
+                    if (containingType.IsImplicitlyDeclared)
+                        return;
+
+                    // A lambda that calls through a private field can only be reported once every part of the type has
+                    // been seen, as any of them can write to that field.
+                    var writtenFields = new ConcurrentSet<IFieldSymbol>();
+                    var deferredDiagnostics = new ConcurrentQueue<(Diagnostic diagnostic, IFieldSymbol field)>();
+
+                    context.RegisterSyntaxNodeAction(
+                        context => AnalyzeSyntax(context, expressionType, conditionalAttributeType, containingType, deferredDiagnostics),
+                        SyntaxKind.SimpleLambdaExpression, SyntaxKind.ParenthesizedLambdaExpression, SyntaxKind.AnonymousMethodExpression);
+
+                    context.RegisterOperationAction(context =>
+                    {
+                        var fieldReference = (IFieldReferenceOperation)context.Operation;
+                        if (IsFieldWrite(fieldReference, context.ContainingSymbol))
+                            writtenFields.Add(fieldReference.Field.OriginalDefinition);
+                    }, OperationKind.FieldReference);
+
+                    context.RegisterSymbolEndAction(context =>
+                    {
+                        foreach (var (diagnostic, field) in deferredDiagnostics)
+                        {
+                            if (!writtenFields.Contains(field))
+                                context.ReportDiagnostic(diagnostic);
+                        }
+                    });
+                }, SymbolKind.NamedType);
             }
         });
     }
 
-    private void AnalyzeSyntax(SyntaxNodeAnalysisContext context, INamedTypeSymbol? expressionType, INamedTypeSymbol? conditionalAttributeType)
+    private void AnalyzeSyntax(
+        SyntaxNodeAnalysisContext context,
+        INamedTypeSymbol? expressionType,
+        INamedTypeSymbol? conditionalAttributeType,
+        INamedTypeSymbol? containingType,
+        ConcurrentQueue<(Diagnostic diagnostic, IFieldSymbol field)>? deferredDiagnostics)
     {
         var cancellationToken = context.CancellationToken;
         var semanticModel = context.SemanticModel;
@@ -109,6 +157,15 @@ internal sealed class CSharpRemoveUnnecessaryLambdaExpressionDiagnosticAnalyzer(
         // if we have `() => new C().X()` then converting to `new C().X` very much changes the meaning.
         if (MayHaveSideEffects(invokedExpression))
             return;
+
+        // A lambda calling through a private field of its own type is only reported once the whole type has been
+        // seen, as any part of it can write to that field.
+        var privateField = containingType != null &&
+            invokedExpression is MemberAccessExpressionSyntax { Expression: var receiver } &&
+            semanticModel.GetSymbolInfo(receiver, cancellationToken).Symbol is IFieldSymbol { DeclaredAccessibility: Accessibility.Private, IsReadOnly: false } field &&
+            field.ContainingType.OriginalDefinition.Equals(containingType)
+                ? field.OriginalDefinition
+                : null;
 
         // Looks like a reasonable candidate to simplify.  Now switch to semantics to check for sure.
 
@@ -229,13 +286,18 @@ internal sealed class CSharpRemoveUnnecessaryLambdaExpressionDiagnosticAnalyzer(
         var startReportSpan = TextSpan.FromBounds(anonymousFunction.SpanStart, invokedExpression.SpanStart);
         var endReportSpan = TextSpan.FromBounds(invokedExpression.Span.End, anonymousFunction.Span.End);
 
-        context.ReportDiagnostic(DiagnosticHelper.CreateWithLocationTags(
+        var diagnostic = DiagnosticHelper.CreateWithLocationTags(
             Descriptor,
             syntaxTree.GetLocation(startReportSpan),
             preference.Notification,
             context.Options,
             additionalLocations: [anonymousFunction.GetLocation()],
-            additionalUnnecessaryLocations: [syntaxTree.GetLocation(startReportSpan), syntaxTree.GetLocation(endReportSpan)]));
+            additionalUnnecessaryLocations: [syntaxTree.GetLocation(startReportSpan), syntaxTree.GetLocation(endReportSpan)]);
+
+        if (privateField != null && deferredDiagnostics != null)
+            deferredDiagnostics.Enqueue((diagnostic, privateField));
+        else
+            context.ReportDiagnostic(diagnostic);
     }
 
     private static bool OverloadsChanged(
@@ -353,5 +415,58 @@ internal sealed class CSharpRemoveUnnecessaryLambdaExpressionDiagnosticAnalyzer(
 
         invocation = expression as InvocationExpressionSyntax;
         return invocation != null;
+    }
+
+    private static bool IsWrittenTo(IOperation? operation, ISymbol owningSymbol)
+    {
+        if (operation is null)
+            return false;
+
+        var result = operation.GetValueUsageInfo(owningSymbol);
+        if (result.IsWrittenTo())
+            return true;
+
+        // Accessing an indexer/property off of a value type will read/write the value type depending on how the
+        // indexer/property itself is used.
+        return operation is { Type.IsValueType: true, Parent: IPropertyReferenceOperation }
+            ? IsWrittenTo(operation.Parent, owningSymbol)
+            : false;
+    }
+
+    /// <summary>
+    /// Whether this is a write to the field that can happen after a lambda calling through it was created. Writes that
+    /// initialize the field in a constructor of its own type are not, so they don't stop the lambda being simplified.
+    /// </summary>
+    private static bool IsFieldWrite(IFieldReferenceOperation fieldReference, ISymbol owningSymbol)
+    {
+        if (!IsWrittenTo(fieldReference, owningSymbol))
+            return false;
+
+        var isInInstanceConstructor = owningSymbol.IsConstructor();
+        var isInStaticConstructor = owningSymbol.IsStaticConstructor();
+        if (!isInInstanceConstructor && !isInStaticConstructor)
+            return true;
+
+        var field = fieldReference.Field;
+        if (!field.ContainingType.Equals(owningSymbol.ContainingType))
+            return true;
+
+        if (isInStaticConstructor)
+        {
+            if (!field.IsStatic)
+                return true;
+        }
+        else
+        {
+            Debug.Assert(isInInstanceConstructor);
+            if (fieldReference.Instance?.Kind != OperationKind.InstanceReference ||
+                fieldReference.IsTargetOfObjectMemberInitializer())
+            {
+                return true;
+            }
+        }
+
+        // A write inside a lambda or local function in the constructor can run at any later time.
+        return fieldReference.TryGetContainingAnonymousFunctionOrLocalFunction() is not null;
     }
 }
