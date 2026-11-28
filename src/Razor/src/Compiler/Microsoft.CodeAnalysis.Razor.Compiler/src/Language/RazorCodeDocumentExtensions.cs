@@ -177,6 +177,8 @@ public static class RazorCodeDocumentExtensions
             return true;
         }
 
+        // Contributions are the descriptors each directive made available, not necessarily ones
+        // used in the document. The same descriptor can be contributed by an alias and an ordinary using.
         var contributions = codeDocument.GetDirectiveTagHelperContributions();
         // No contributions, means no directives contributed, so no directives are used
         if (contributions.IsDefaultOrEmpty)
@@ -194,11 +196,125 @@ public static class RazorCodeDocumentExtensions
         {
             if (contribution.DirectiveSpanStart == directive.SpanStart)
             {
-                return AnyContributedTagHelperIsReferenced(contribution.ContributedTagHelpers, referencedTagHelpers);
+                // The context contains the ordinary and alias candidates available for binding,
+                // including those from imports. Without alias candidates, descriptor overlap is enough.
+                if (!codeDocument.TryGetTagHelperContext(out var context) || !context.HasAliases)
+                {
+                    return AnyContributedTagHelperIsReferenced(contribution.ContributedTagHelpers, referencedTagHelpers);
+                }
+
+                // If none of the descriptors made available by this directive are referenced,
+                // the directive is unused regardless of tag spelling. Avoid walking the tree in that case.
+                if (!AnyContributedTagHelperIsReferenced(contribution.ContributedTagHelpers, referencedTagHelpers))
+                {
+                    return false;
+                }
+
+                // Only check the requested directive. Alias and ordinary directives take separate
+                // paths below, so each call walks the rewritten tree at most once.
+                if (TryGetUsingAlias(directive, out var alias))
+                {
+                    // For an alias directive, a contributed descriptor must appear on a tag using
+                    // this alias's spelling. Referencing that descriptor as <Button> doesn't prove
+                    // that UI = Library was used; referencing it as <UI.Button> does.
+                    foreach (var node in codeDocument.GetRequiredTagHelperRewrittenSyntaxTree().Root.DescendantNodes())
+                    {
+                        if (node is not MarkupTagHelperElementSyntax { TagHelperInfo.BindingResult: var binding })
+                        {
+                            continue;
+                        }
+
+                        var tagName = binding.TagName.AsSpan();
+                        foreach (var descriptor in binding.TagHelpers)
+                        {
+                            // Child-content elements take precedence over component matches.
+                            // Their name can coincide with an alias, but only the parent uses that alias.
+                            if (descriptor.Kind == TagHelperKind.ChildContent)
+                            {
+                                tagName = binding.ParentTagName.AsSpan();
+                                break;
+                            }
+                        }
+
+                        if (!tagName.Equals(alias, StringComparison.Ordinal) &&
+                            !(tagName.Length > alias.Length &&
+                              tagName.StartsWith(alias, StringComparison.Ordinal) &&
+                              tagName[alias.Length] == '.'))
+                        {
+                            continue;
+                        }
+
+                        if (AnyContributedTagHelperIsReferenced(contribution.ContributedTagHelpers, binding.TagHelpers))
+                        {
+                            return true;
+                        }
+                    }
+
+                    return false;
+                }
+
+                // Prefer aliases for component names, but not for unrelated helpers on the same tag.
+                // For example, <UI.Button @oncustom="..."> can still need an event-handler namespace.
+                foreach (var node in codeDocument.GetRequiredTagHelperRewrittenSyntaxTree().Root.DescendantNodes())
+                {
+                    if (node is not MarkupTagHelperElementSyntax { TagHelperInfo.BindingResult: var binding })
+                    {
+                        continue;
+                    }
+
+                    foreach (var descriptor in binding.TagHelpers)
+                    {
+                        if (!contribution.ContributedTagHelpers.Contains(descriptor))
+                        {
+                            continue;
+                        }
+
+                        // Child-content names belong to the parent component. <ChildContent> under
+                        // <UI.Button> doesn't make an ordinary import of Button's namespace necessary.
+                        var componentTagName = descriptor.Kind == TagHelperKind.ChildContent
+                            ? binding.ParentTagName
+                            : binding.TagName;
+                        var usesComponentName = descriptor.Kind == TagHelperKind.Component ||
+                            descriptor.Kind == TagHelperKind.ChildContent ||
+                            descriptor is { Kind: TagHelperKind.Bind, ClassifyAttributesOnly: false };
+                        if (!usesComponentName || componentTagName is null || !context.IsAliasTagName(componentTagName))
+                        {
+                            return true;
+                        }
+                    }
+                }
+
+                return false;
             }
         }
 
         return false;
+
+        static bool TryGetUsingAlias(BaseRazorDirectiveSyntax directive, out ReadOnlySpan<char> alias)
+        {
+            alias = default;
+            foreach (var child in directive.DescendantNodes())
+            {
+                if (child is CSharpStatementLiteralSyntax { ChunkGenerator: AddImportChunkGenerator { IsStatic: false } addImport })
+                {
+                    var equalsIndex = addImport.ParsedNamespace.IndexOf('=');
+                    if (equalsIndex <= 0)
+                    {
+                        continue;
+                    }
+
+                    alias = addImport.ParsedNamespace.AsSpan(0, equalsIndex).Trim();
+                    if (alias.StartsWith('@'))
+                    {
+                        alias = alias[1..];
+                    }
+
+                    return !alias.IsEmpty;
+                }
+            }
+
+            return false;
+        }
 
         static bool AnyContributedTagHelperIsReferenced(
             TagHelperCollection contributedTagHelpers,

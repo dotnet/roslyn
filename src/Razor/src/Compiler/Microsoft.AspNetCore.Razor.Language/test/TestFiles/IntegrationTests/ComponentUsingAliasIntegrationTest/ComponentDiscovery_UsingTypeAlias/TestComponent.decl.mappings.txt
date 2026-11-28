@@ -1,0 +1,14 @@
+﻿Source Location: (1:0,1 [42] x:\dir\subdir\Test\TestComponent.cshtml)
+|using Button = Components.Library.MyButton|
+Generated Location: (372:12,0 [42] )
+|using Button = Components.Library.MyButton|
+
+Source Location: (148:4,7 [39] x:\dir\subdir\Test\TestComponent.cshtml)
+|
+    private string title = "Hello";
+|
+Generated Location: (710:24,0 [39] )
+|
+    private string title = "Hello";
+|
+

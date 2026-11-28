@@ -76,31 +76,37 @@ internal sealed class SourceGeneratorProjectEngine
     ///  Runs tag-helper discovery, resolution and rewrite for a document. The generator calls this twice per
     ///  document: first with <paramref name="checkForIdempotency"/> <see langword="false"/> to do the initial
     ///  pass, then again with <see langword="true"/>. The second call is an incremental gate -- its inputs
-    ///  include the project-wide tag-helper set, so it re-runs whenever that set changes, but it returns the
-    ///  document unchanged unless the change actually affects this document (a used descriptor was added or
-    ///  removed). Only then does it replay resolution. The first call's inputs deliberately exclude the
-    ///  tag-helper set, so it re-runs only when the document itself changes.
+    ///  include the project-wide tag-helper set and alias-target results, so it re-runs whenever either
+    ///  changes, but it returns the document unchanged unless its bindings are affected. Only then does it
+    ///  replay resolution. The first call's inputs deliberately ignore those project-wide changes, so it
+    ///  re-runs only when the document itself changes.
     /// </summary>
     public SourceGeneratorRazorCodeDocument ProcessTagHelpers(
-        SourceGeneratorRazorCodeDocument sgDocument, 
-        TagHelperCollection tagHelpers, 
-        bool checkForIdempotency, 
+        SourceGeneratorRazorCodeDocument sgDocument,
+        TagHelperCollection tagHelpers,
+        bool checkForIdempotency,
+        ComponentAliasTargetMap aliasTargets,
         CancellationToken cancellationToken)
     {
         Debug.Assert(sgDocument.CodeDocument.GetSyntaxTree() is not null);
 
         var codeDocument = sgDocument.CodeDocument;
+        var previousAliasTargets = codeDocument.GetComponentAliasTargets();
+        var aliasTargetsChanged = !ReferenceEquals(aliasTargets, previousAliasTargets) &&
+            (previousAliasTargets is null || !aliasTargets.EqualsForDocument(codeDocument, previousAliasTargets));
+        codeDocument = codeDocument.WithComponentAliasTargets(aliasTargets);
 
         if (checkForIdempotency && codeDocument.TryGetTagHelpers(out var previousTagHelpers))
         {
             // compare the tag helpers with the ones the document last used
-            if (tagHelpers.Equals(previousTagHelpers))
+            if (!aliasTargetsChanged && tagHelpers.Equals(previousTagHelpers))
             {
-                // tag helpers are the same, nothing to do!
+                // Neither descriptors nor compilation-backed alias lookup changed.
                 return sgDocument;
             }
 
-            // tag helpers have changed, figure out if we need to re-write
+            // Inputs changed; determine whether this document needs to be rebound.
+            var previousAliasChecksum = codeDocument.GetRequiredTagHelperContext().AliasChecksum;
             var previousTagHelpersInScope = codeDocument.GetRequiredTagHelperContext().TagHelpers;
             var previousUsedTagHelpers = codeDocument.GetRequiredReferencedTagHelpers();
 
@@ -109,9 +115,11 @@ internal sealed class SourceGeneratorProjectEngine
             codeDocument = _discoveryPhase.Execute(codeDocument, cancellationToken);
 
             var newTagHelpersInScope = codeDocument.GetRequiredTagHelperContext().TagHelpers;
+            var aliasesChanged = !previousAliasChecksum.Equals(codeDocument.GetRequiredTagHelperContext().AliasChecksum);
 
-            // Check if any new tag helpers were added or ones we previously used were removed
-            if (!RequiresRewrite(newTagHelpersInScope, previousTagHelpersInScope, previousUsedTagHelpers))
+            // Alias candidates can change even if an ordinary import keeps its descriptor in scope.
+            // Only reuse the previous bindings when alias targets, candidates, and descriptors are unchanged.
+            if (!aliasTargetsChanged && !aliasesChanged && !RequiresRewrite(newTagHelpersInScope, previousTagHelpersInScope, previousUsedTagHelpers))
             {
                 // No newly visible tag helpers, and any that got removed weren't used by this document anyway
                 return sgDocument;

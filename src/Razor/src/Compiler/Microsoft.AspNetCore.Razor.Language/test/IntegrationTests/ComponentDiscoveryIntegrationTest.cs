@@ -5,6 +5,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.AspNetCore.Razor.Language.Components;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.AspNetCore.Razor.Language.IntegrationTests;
@@ -188,6 +189,400 @@ namespace Test.AnotherNamespace
 
         Assert.Empty(result.RazorDiagnostics);
         AssertCSharpDocumentMatchesBaseline(result.CodeDocument);
+        CompileToAssembly(result);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/85411")]
+    public void ComponentDiscovery_Razor11_DoesNotSelectAmbiguousNamespaceScopedComponent()
+    {
+        AdditionalSyntaxTrees.Add(Parse("""
+            using Microsoft.AspNetCore.Components;
+
+            namespace Components.Library
+            {
+                public class Widget : ComponentBase
+                {
+                }
+
+                public class Widget<TItem> : ComponentBase
+                {
+                }
+            }
+            """));
+
+        var result = CompileToCSharp(
+            """
+            @namespace Components.Library
+
+            <Widget />
+            """,
+            configuration: Configuration with { LanguageVersion = RazorLanguageVersion.Version_11_0 });
+
+        // Before Razor 12, an ambiguous match without an explicit import was not lowered as a component.
+        Assert.Empty(result.RazorDiagnostics);
+        Assert.DoesNotContain("OpenComponent<global::Components.Library.Widget>", result.Code);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/85411")]
+    public void ComponentDiscovery_Razor12_ResolvesAmbiguousNamespaceScopedComponent()
+    {
+        AdditionalSyntaxTrees.Add(Parse("""
+            using Microsoft.AspNetCore.Components;
+
+            namespace Components.Library
+            {
+                public class Widget : ComponentBase
+                {
+                }
+
+                public class Widget<TItem> : ComponentBase
+                {
+                }
+            }
+            """));
+
+        var result = CompileToCSharp(
+            """
+            @namespace Components.Library
+
+            <Widget />
+            """,
+            configuration: Configuration with { LanguageVersion = RazorLanguageVersion.Version_12_0 });
+
+        Assert.Empty(result.RazorDiagnostics);
+        Assert.Contains("OpenComponent<global::Components.Library.Widget>", result.Code);
+        CompileToAssembly(result);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/85411")]
+    public void ComponentDiscovery_Razor12_ReportsAmbiguousNamespaceScopedComponents()
+    {
+        AdditionalSyntaxTrees.Add(Parse("""
+            using Microsoft.AspNetCore.Components;
+
+            namespace Components.Library
+            {
+                public class Widget : ComponentBase
+                {
+                }
+            }
+
+            namespace Components.Library.Nested
+            {
+                public class Widget : ComponentBase
+                {
+                }
+            }
+            """));
+
+        var result = CompileToCSharp(
+            """
+            @namespace Components.Library.Nested
+
+            <Widget />
+            """,
+            configuration: Configuration with { LanguageVersion = RazorLanguageVersion.Version_12_0 });
+
+        var diagnostic = Assert.Single(result.RazorDiagnostics);
+        Assert.Equal(ComponentDiagnosticFactory.MultipleComponents.Id, diagnostic.Id);
+        Assert.DoesNotContain("OpenComponent<global::Components.Library.Nested.Widget>", result.Code);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/85411")]
+    public void ComponentDiscovery_Razor12_ReportsAmbiguousGenericNamespaceScopedComponents()
+    {
+        AdditionalSyntaxTrees.Add(Parse("""
+            using Microsoft.AspNetCore.Components;
+
+            namespace Components.Library
+            {
+                public class Widget<TItem> : ComponentBase { }
+            }
+
+            namespace Components.Library.Nested
+            {
+                public class Widget<TItem> : ComponentBase { }
+                public class Subsequent : ComponentBase { }
+            }
+            """));
+
+        var result = CompileToCSharp(
+            """
+            @namespace Components.Library.Nested
+            <Widget TItem="string" />
+            <Subsequent />
+            """,
+            configuration: Configuration with { LanguageVersion = RazorLanguageVersion.Version_12_0 });
+
+        Assert.Contains(result.RazorDiagnostics, diagnostic => diagnostic.Id == ComponentDiagnosticFactory.MultipleComponents.Id);
+        Assert.DoesNotContain("OpenComponent<global::Components.Library.Widget<", result.Code);
+        Assert.DoesNotContain("OpenComponent<global::Components.Library.Nested.Widget<", result.Code);
+        Assert.Contains("OpenComponent<global::Components.Library.Nested.Subsequent>", result.Code);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/85411")]
+    public void ComponentDiscovery_Razor12_ReportsAmbiguousGenericImportedComponents()
+    {
+        AdditionalSyntaxTrees.Add(Parse("""
+            using Microsoft.AspNetCore.Components;
+
+            namespace First
+            {
+                public class Widget<TItem> : ComponentBase { }
+            }
+
+            namespace Second
+            {
+                public class Widget<TItem> : ComponentBase { }
+            }
+            """));
+
+        var result = CompileToCSharp(
+            """
+            @using First
+            @using Second
+            <Widget TItem="string" />
+            """,
+            configuration: Configuration with { LanguageVersion = RazorLanguageVersion.Version_12_0 });
+
+        Assert.Contains(result.RazorDiagnostics, diagnostic => diagnostic.Id == ComponentDiagnosticFactory.MultipleComponents.Id);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/85411")]
+    public void ComponentDiscovery_Razor11_PreservesGenericImportedComponentSelection()
+    {
+        AdditionalSyntaxTrees.Add(Parse("""
+            using Microsoft.AspNetCore.Components;
+
+            namespace First
+            {
+                public class Widget<TItem> : ComponentBase { }
+            }
+
+            namespace Second
+            {
+                public class Widget<TItem> : ComponentBase { }
+            }
+            """));
+
+        var result = CompileToCSharp(
+            """
+            @using First
+            @using Second
+            <Widget TItem="string" />
+            """,
+            configuration: Configuration with { LanguageVersion = RazorLanguageVersion.Version_11_0 });
+
+        Assert.Empty(result.RazorDiagnostics);
+        Assert.Contains("OpenComponent<global::First.Widget<", result.Code);
+        CompileToAssembly(result);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/85411")]
+    public void ComponentDiscovery_Razor12_ExactGenericMatchWinsOverPartialMatches()
+    {
+        AdditionalSyntaxTrees.Add(Parse("""
+            using Microsoft.AspNetCore.Components;
+
+            namespace Components
+            {
+                public class Widget<TItem, TOther> : ComponentBase { }
+            }
+
+            namespace Components.Library
+            {
+                public class Widget<TItem, TOther, TExtra> : ComponentBase { }
+            }
+
+            namespace Components.Library.Nested
+            {
+                public class Widget<TItem> : ComponentBase { }
+            }
+            """));
+
+        var result = CompileToCSharp(
+            """
+            @namespace Components.Library.Nested
+            <Widget TItem="string" />
+            """,
+            configuration: Configuration with { LanguageVersion = RazorLanguageVersion.Version_12_0 });
+
+        Assert.Empty(result.RazorDiagnostics);
+        Assert.Contains("OpenComponent<global::Components.Library.Nested.Widget<", result.Code);
+        CompileToAssembly(result);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/85411")]
+    public void ComponentDiscovery_Razor12_ReportsAmbiguousPartialGenericMatches()
+    {
+        AdditionalSyntaxTrees.Add(Parse("""
+            using Microsoft.AspNetCore.Components;
+
+            namespace First
+            {
+                public class Widget<TItem, TOther> : ComponentBase { }
+            }
+
+            namespace Second
+            {
+                public class Widget<TItem, TExtra> : ComponentBase { }
+            }
+            """));
+
+        var result = CompileToCSharp(
+            """
+            @using First
+            @using Second
+            <Widget TItem="string" />
+            """,
+            configuration: Configuration with { LanguageVersion = RazorLanguageVersion.Version_12_0 });
+
+        Assert.Contains(result.RazorDiagnostics, diagnostic => diagnostic.Id == ComponentDiagnosticFactory.MultipleComponents.Id);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/85411")]
+    public void ComponentDiscovery_Razor12_SelectsUniquePartialGenericMatch()
+    {
+        AdditionalSyntaxTrees.Add(Parse("""
+            using Microsoft.AspNetCore.Components;
+
+            namespace First
+            {
+                public class Widget<TItem, TOther> : ComponentBase { }
+            }
+
+            namespace Second
+            {
+                public class Widget<TValue> : ComponentBase { }
+            }
+            """));
+
+        var result = CompileToCSharp(
+            """
+            @using First
+            @using Second
+            <Widget TItem="string" />
+            """,
+            configuration: Configuration with { LanguageVersion = RazorLanguageVersion.Version_12_0 });
+
+        // The match is unique, but the selected component still needs its other type argument.
+        Assert.Equal(ComponentDiagnosticFactory.GenericComponentMissingTypeArgument.Id, Assert.Single(result.RazorDiagnostics).Id);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/85411")]
+    public void ComponentDiscovery_Razor12_TypeAliasUsesFullyQualifiedNameWhenCurrentNamespaceHasSameType()
+    {
+        AdditionalSyntaxTrees.Add(Parse("""
+            using Microsoft.AspNetCore.Components;
+
+            namespace Library
+            {
+                public class Button : ComponentBase
+                {
+                }
+            }
+
+            namespace Test
+            {
+                public class Button : ComponentBase
+                {
+                }
+            }
+            """));
+
+        var result = CompileToCSharp(
+            """
+            @namespace Test
+            @using Button = global::Library.Button
+
+            <Button />
+            """,
+            configuration: Configuration with { LanguageVersion = RazorLanguageVersion.Version_12_0 });
+
+        Assert.Empty(result.RazorDiagnostics);
+        CompileToAssembly(result);
+        Assert.Contains("OpenComponent<global::Library.Button>", result.Code);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/85411")]
+    public void ComponentDiscovery_Razor12_TypeAliasAvoidsCurrentNamespaceTypeConflict()
+    {
+        AdditionalSyntaxTrees.Add(Parse("""
+            using Microsoft.AspNetCore.Components;
+
+            namespace Library
+            {
+                public class Button : ComponentBase
+                {
+                }
+            }
+
+            namespace Test
+            {
+                public class Button
+                {
+                }
+            }
+            """));
+
+        var result = CompileToCSharp(
+            """
+            @namespace Test
+            @using Button = global::Library.Button
+
+            <Button />
+            """,
+            configuration: Configuration with { LanguageVersion = RazorLanguageVersion.Version_12_0 });
+
+        Assert.Empty(result.RazorDiagnostics);
+        CompileToAssembly(result);
+        Assert.Contains("OpenComponent<global::Library.Button>", result.Code);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/85411")]
+    public void ComponentDiscovery_Razor12_TypeAliasAvoidsCurrentNamespaceConflict()
+    {
+        AdditionalSyntaxTrees.Add(Parse("""
+            using Microsoft.AspNetCore.Components;
+
+            namespace Library
+            {
+                public class Button : ComponentBase
+                {
+                }
+            }
+
+            namespace Test.Button
+            {
+                public class Helper
+                {
+                }
+            }
+            """));
+
+        var result = CompileToCSharp(
+            """
+            @namespace Test
+            @using Button = global::Library.Button
+
+            <Button />
+            """,
+            configuration: Configuration with { LanguageVersion = RazorLanguageVersion.Version_12_0 });
+
+        Assert.Empty(result.RazorDiagnostics);
+        Assert.Contains("OpenComponent<global::Library.Button>", result.Code);
         CompileToAssembly(result);
     }
 

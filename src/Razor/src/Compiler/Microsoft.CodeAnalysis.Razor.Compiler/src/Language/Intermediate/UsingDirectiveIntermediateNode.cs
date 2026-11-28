@@ -15,6 +15,8 @@ public sealed class UsingDirectiveIntermediateNode : IntermediateNode
 
     public string Content { get; set; }
 
+    internal ReadOnlyMemory<char> Alias { get; init; }
+
     public bool HasExplicitSemicolon { get; set; }
 
     public override void Accept(IntermediateNodeVisitor visitor)
@@ -33,6 +35,7 @@ public sealed class UsingDirectiveIntermediateNode : IntermediateNode
         {
             AppendLineDefaultAndHidden = AppendLineDefaultAndHidden,
             Content = Content,
+            Alias = Alias,
             HasExplicitSemicolon = HasExplicitSemicolon,
             IsSynthesizedHelper = IsSynthesizedHelper,
         };

@@ -8,6 +8,8 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.Text;
 using Xunit;
 
 namespace Microsoft.NET.Sdk.Razor.SourceGenerators;
@@ -135,6 +137,70 @@ public sealed class RazorSourceGeneratorVirtualDocumentTests : RazorSourceGenera
         Assert.Equal(secondUri, secondDocument.Source.FilePath);
         Assert.Equal(firstDocument.Source.RelativePath, secondDocument.Source.RelativePath);
         Assert.Equal(result.GeneratedSources.Length, result.GeneratedSources.Select(source => source.HintName).Distinct().Count());
+    }
+
+    [Fact]
+    public async Task HostOutput_UpdatesAliasBindingWhenGeneratedSourceIsUnchanged()
+    {
+        var project = CreateTestProject(new()
+        {
+            ["Index.razor"] = """
+                @namespace MyApp
+                @using UI = Library
+                <div />
+                """,
+            ["Other.razor"] = """
+                @namespace OtherApp
+                @using UI = Library
+                <div />
+                """,
+        }, new()
+        {
+            ["Components.cs"] = """
+                namespace Library { public class Button : Microsoft.AspNetCore.Components.ComponentBase { } }
+                """,
+        });
+        var compilation = await project.GetCompilationAsync();
+        Assert.NotNull(compilation);
+        var (driver, _, _) = await GetDriverWithAdditionalTextAndProviderAsync(
+            project,
+            configureGlobalOptions: options => options.TestGlobalOptions["build_property.RazorLangVersion"] = "12.0",
+            hostOutputs: true,
+            trackSteps: true);
+
+        var original = RunGenerator(compilation, ref driver);
+        var originalDocument = GetCodeDocument(original, "Index.razor");
+        var originalOtherDocument = GetCodeDocument(original, "Other.razor");
+        Assert.NotNull(originalDocument.GetRequiredTagHelperContext().GetBinder().GetBinding("UI.Button", [], parentTagName: null, parentIsTagHelper: false));
+
+        // The new namespace changes alias lookup but not the generated C# for either document.
+        var shadow = CSharpSyntaxTree.ParseText(SourceText.From("namespace MyApp.Library { public class Helper { } }"), (CSharpParseOptions)project.ParseOptions!);
+        var updatedCompilation = compilation.AddSyntaxTrees(shadow);
+        var updated = RunGenerator(updatedCompilation, ref driver);
+        var (freshDriver, _, _) = await GetDriverWithAdditionalTextAndProviderAsync(
+            project,
+            configureGlobalOptions: options => options.TestGlobalOptions["build_property.RazorLangVersion"] = "12.0",
+            hostOutputs: true);
+        var fresh = RunGenerator(updatedCompilation, ref freshDriver);
+
+        Assert.Equal(
+            original.GeneratedSources.Select(source => source.SourceText.ToString()),
+            updated.GeneratedSources.Select(source => source.SourceText.ToString()));
+        Assert.Equal(
+            fresh.GeneratedSources.Select(source => source.SourceText.ToString()),
+            updated.GeneratedSources.Select(source => source.SourceText.ToString()));
+        Assert.Null(GetCodeDocument(fresh, "Index.razor").GetRequiredTagHelperContext().GetBinder().GetBinding("UI.Button", [], parentTagName: null, parentIsTagHelper: false));
+        Assert.Null(GetCodeDocument(updated, "Index.razor").GetRequiredTagHelperContext().GetBinder().GetBinding("UI.Button", [], parentTagName: null, parentIsTagHelper: false));
+        Assert.Same(originalOtherDocument, GetCodeDocument(updated, "Other.razor"));
+        Assert.NotNull(GetCodeDocument(updated, "Other.razor").GetRequiredTagHelperContext().GetBinder().GetBinding("UI.Button", [], parentTagName: null, parentIsTagHelper: false));
+
+        var reasons = updated.TrackedSteps["CSharpDocuments"].SelectMany(step => step.Outputs).Select(output => output.Reason).ToArray();
+        Assert.Equal(1, reasons.Count(reason => reason == IncrementalStepRunReason.Unchanged));
+        Assert.Equal(1, reasons.Count(reason => reason == IncrementalStepRunReason.Cached));
+
+        var restored = RunGenerator(compilation, ref driver);
+        Assert.NotNull(GetCodeDocument(restored, "Index.razor").GetRequiredTagHelperContext().GetBinder().GetBinding("UI.Button", [], parentTagName: null, parentIsTagHelper: false));
+        Assert.Same(originalOtherDocument, GetCodeDocument(restored, "Other.razor"));
     }
 
     private static async Task<(GeneratorDriver, Compilation)> CreateDriverAsync(string filePath, string content, bool targetPath = false)
