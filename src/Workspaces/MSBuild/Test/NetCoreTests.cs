@@ -549,6 +549,45 @@ public sealed class NetCoreTests : MSBuildWorkspaceTestBase, IClassFixture<Proje
     [ConditionalTheory(typeof(DotNetSdkMSBuildInstalled))]
     [Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
     [Trait(Traits.Feature, Traits.Features.NetCore)]
+    [InlineData("net8.0; net10.0", new[] { "net8.0", "net10.0" })]
+    [InlineData("net8.0;\r\n    net10.0", new[] { "net8.0", "net10.0" })]
+    [InlineData("net8.0;net10.0;", new[] { "net8.0", "net10.0" })]
+    [InlineData("  net10.0\r\n  ", new[] { "net10.0" })]
+    public async Task TestOpenProject_TargetFrameworksWhitespaceAndSeparators(string targetFrameworks, string[] expectedTfms)
+    {
+        var files = new FileSet(
+            ("Project.csproj", $"""
+                                <Project Sdk="Microsoft.NET.Sdk">
+                                  <PropertyGroup>
+                                    <OutputType>Exe</OutputType>
+                                    <TargetFrameworks>{targetFrameworks}</TargetFrameworks>
+                                  </PropertyGroup>
+                                </Project>
+                                """),
+            ("Program.cs", """
+                           System.Console.WriteLine("ok");
+                           """));
+
+        CreateFiles(files);
+
+        var projectFilePath = GetSolutionFileName("Project.csproj");
+        DotNetRestore("Project.csproj");
+
+        using var workspace = CreateMSBuildWorkspace();
+        await workspace.OpenProjectAsync(projectFilePath);
+
+        Assert.Empty(workspace.Diagnostics);
+        Assert.Equal(expectedTfms.Length, workspace.CurrentSolution.ProjectIds.Count);
+
+        foreach (var project in workspace.CurrentSolution.Projects)
+        {
+            Assert.NotEmpty(project.MetadataReferences);
+        }
+    }
+
+    [ConditionalTheory(typeof(DotNetSdkMSBuildInstalled))]
+    [Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
+    [Trait(Traits.Feature, Traits.Features.NetCore)]
     [CombinatorialData]
     public async Task TestOpenSolution_NetCoreMultiTFMWithProjectReferenceToFSharp(bool build)
     {
