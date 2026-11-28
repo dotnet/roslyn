@@ -16,12 +16,14 @@ internal interface ICodeFixService
 {
     IAsyncEnumerable<CodeFixCollection> StreamFixesAsync(TextDocument document, TextSpan textSpan, CodeActionRequestPriority? priority, CancellationToken cancellationToken);
 
+    IAsyncEnumerable<CodeFixCollection> StreamFixesAsync(TextDocument document, TextSpan range, TextSpan? selection, CodeActionRequestPriority? priority, CancellationToken cancellationToken);
+
     /// <summary>
-    /// Similar to <see cref="StreamFixesAsync"/> except that instead of streaming all results, this ends with the
-    /// first.  This will also attempt to return a fix for an error first, but will fall back to any fix if that
-    /// does not succeed.
+    /// Returns the first available fix, preferring fixes for errors.
     /// </summary>
     Task<CodeFixCollection?> GetMostSevereFixAsync(TextDocument document, TextSpan range, CodeActionRequestPriority? priority, CancellationToken cancellationToken);
+
+    Task<CodeFixCollection?> GetMostSevereFixAsync(TextDocument document, TextSpan range, TextSpan? selection, CodeActionRequestPriority? priority, CancellationToken cancellationToken);
 
     Task<CodeFixCollection?> GetDocumentFixAllForIdInSpanAsync(Document document, TextSpan? textSpan, string diagnosticId, DiagnosticSeverity severity, CancellationToken cancellationToken);
     Task<Document> ApplyCodeFixesForSpecificDiagnosticIdAsync(Document document, TextSpan? textSpan, string diagnosticId, DiagnosticSeverity severity, IProgress<CodeAnalysisProgress> progressTracker, CancellationToken cancellationToken);
@@ -39,4 +41,7 @@ internal static class ICodeFixServiceExtensions
 
     public static Task<ImmutableArray<CodeFixCollection>> GetFixesAsync(this ICodeFixService service, TextDocument document, TextSpan textSpan, CodeActionRequestPriority? priority, CancellationToken cancellationToken)
         => service.StreamFixesAsync(document, textSpan, priority, cancellationToken).ToImmutableArrayAsync(cancellationToken);
+
+    public static Task<ImmutableArray<CodeFixCollection>> GetFixesAsync(this ICodeFixService service, TextDocument document, TextSpan range, TextSpan? selection, CodeActionRequestPriority? priority, CancellationToken cancellationToken)
+        => service.StreamFixesAsync(document, range, selection, priority, cancellationToken).ToImmutableArrayAsync(cancellationToken);
 }

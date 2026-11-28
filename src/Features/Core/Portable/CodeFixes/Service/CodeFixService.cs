@@ -22,6 +22,7 @@ using Microsoft.CodeAnalysis.Extensions;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Internal.Log;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
@@ -91,10 +92,17 @@ internal sealed partial class CodeFixService : ICodeFixService
         return DiagnosticIdFilter.Include(set);
     }
 
-    public async Task<CodeFixCollection?> GetMostSevereFixAsync(
+    public Task<CodeFixCollection?> GetMostSevereFixAsync(
         TextDocument document, TextSpan range, CodeActionRequestPriority? priority, CancellationToken cancellationToken)
+        => GetMostSevereFixAsync(document, range, selection: null, priority, cancellationToken);
+
+    public async Task<CodeFixCollection?> GetMostSevereFixAsync(
+        TextDocument document, TextSpan range, TextSpan? selection, CodeActionRequestPriority? priority, CancellationToken cancellationToken)
     {
         using var _ = RoslynTelemetry.Current.RecordBlockTime(FunctionId.CodeFix_Summary, $"Pri{priority.GetPriorityInt()}.{nameof(GetMostSevereFixAsync)}");
+
+        if (await ShouldSuppressCodeFixesForRefactoringSelectionAsync(document, selection, cancellationToken).ConfigureAwait(false))
+            return null;
 
         ImmutableArray<DiagnosticData> allDiagnostics;
 
@@ -163,13 +171,24 @@ internal sealed partial class CodeFixService : ICodeFixService
         }
     }
 
+    public IAsyncEnumerable<CodeFixCollection> StreamFixesAsync(
+        TextDocument document,
+        TextSpan range,
+        CodeActionRequestPriority? priority,
+        CancellationToken cancellationToken)
+        => StreamFixesAsync(document, range, selection: null, priority, cancellationToken);
+
     public async IAsyncEnumerable<CodeFixCollection> StreamFixesAsync(
         TextDocument document,
         TextSpan range,
+        TextSpan? selection,
         CodeActionRequestPriority? priority,
         [EnumeratorCancellation] CancellationToken cancellationToken)
     {
         using var _ = RoslynTelemetry.Current.RecordBlockTime(FunctionId.CodeFix_Summary, $"Pri{priority.GetPriorityInt()}");
+
+        if (await ShouldSuppressCodeFixesForRefactoringSelectionAsync(document, selection, cancellationToken).ConfigureAwait(false))
+            yield break;
 
         // We only need to compute suppression/configuration fixes when request priority is
         // 'CodeActionPriorityRequest.Lowest' or no priority was provided at all (so all providers should run).
@@ -235,6 +254,46 @@ internal sealed partial class CodeFixService : ICodeFixService
                     yield return codeFixCollection;
                 }
             }
+        }
+    }
+
+    /// <summary>
+    /// Determines whether to hide code fixes because the selection indicates the user wants a refactoring.
+    /// </summary>
+    private static Task<bool> ShouldSuppressCodeFixesForRefactoringSelectionAsync(
+        TextDocument document, TextSpan? selection, CancellationToken cancellationToken)
+    {
+        // We can add more heuristics here to recognize when the user wants refactorings.
+        return IsMultipleMemberSelectionAsync(document, selection, cancellationToken);
+
+        // Selecting several members tells us the user wants to work with those members together.
+        // For example, selecting two fields to generate a constructor should produce parameters for both fields.
+        //
+        // In the future, code fixes could use member selections too. For example, selecting several fields
+        // with "Make field readonly" suggestions could offer to fix all of them. The code fix system does
+        // not support that today. It still offers fixes for individual fields and ignores which members
+        // were selected. Hiding those entries removes clutter without taking away an existing way to fix
+        // the selected members together.
+        //
+        // Keep fixes available for a single selected member. Selecting one field is a reasonable way to
+        // ask for fixes to issues on that field.
+        static async Task<bool> IsMultipleMemberSelectionAsync(
+            TextDocument document, TextSpan? selection, CancellationToken cancellationToken)
+        {
+            // Only count a nonempty user selection. Diagnostic queries can cover arbitrary ranges.
+            // A caret on 'int i, j;' can identify two fields without selecting both.
+            if (selection is null or { IsEmpty: true } || document is not Document sourceDocument)
+                return false;
+
+            // Leave fixes available for languages that cannot identify selected members.
+            var service = sourceDocument.GetLanguageService<ISelectedMembersService>();
+            if (service is null)
+                return false;
+
+            var tree = await sourceDocument.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+            var members = await service.GetSelectedMembersAsync(
+                tree, selection.Value, allowPartialSelection: true, cancellationToken).ConfigureAwait(false);
+            return members.Length >= 2;
         }
     }
 

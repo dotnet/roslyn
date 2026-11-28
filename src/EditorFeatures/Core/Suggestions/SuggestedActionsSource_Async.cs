@@ -229,7 +229,7 @@ internal sealed partial class SuggestedActionsSourceProvider
                 }
 
                 return await UnifiedSuggestedActionsSource.GetFilterAndOrderCodeFixesAsync(
-                    owner._codeFixService, document, range.Span.ToTextSpan(),
+                    owner._codeFixService, document, range.Span.ToTextSpan(), selection,
                     priority, cancellationToken).ConfigureAwait(false);
             }
 
