@@ -143,9 +143,9 @@
       <Uri>https://github.com/dotnet/arcade</Uri>
       <Sha>cbe6b2dfc62f4b98b04a87c4ec59ea823b7ca258</Sha>
     </Dependency>
-    <Dependency Name="Microsoft.DiaSymReader" Version="2.2.10">
-      <Uri>https://github.com/dotnet/symreader</Uri>
-      <Sha>8655fee9aae40ba74257255cbcd1f05edc2f48fa</Sha>
+    <Dependency Name="Microsoft.DiaSymReader" Version="12.0.0-alpha.1.26564.104">
+      <Uri>https://github.com/dotnet/dotnet</Uri>
+      <Sha>2bef9ab3a91a1c959dd5a6509cabab0a98abfeca</Sha>
     </Dependency>
     <Dependency Name="Microsoft.Net.Compilers.Toolset" Version="5.14.0-1.26565.1">
       <Uri>https://github.com/dotnet/roslyn</Uri>

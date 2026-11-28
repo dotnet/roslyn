@@ -2,11 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Composition;
 using System.IO;
 using System.IO.Pipelines;
 using System.Linq;
@@ -21,7 +20,9 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.EditAndContinue;
 using Microsoft.CodeAnalysis.EditAndContinue.UnitTests;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -42,38 +43,43 @@ public sealed class EditorManagedHotReloadLanguageServiceTests : EditAndContinue
     private sealed class TestServiceBroker(Func<ServiceRpcDescriptor, Type, object> createService) : IServiceBroker
     {
         public List<ServiceRpcDescriptor> RequestedDescriptors { get; } = [];
-        public HR.IHotReloadEventListener HotReloadEventListener { get; private set; }
-        public TestHotReloadEventSubscriber EventSubscriber { get; private set; }
-        public TestManagedHotReloadUpdatesProviderRegistration RegistrationService { get; private set; }
+        public HR.IHotReloadEventListener? HotReloadEventListener { get; private set; }
+        public TestHotReloadEventSubscriber? EventSubscriber { get; private set; }
+        public TestManagedHotReloadUpdatesProviderRegistration? RegistrationService { get; private set; }
         public List<string> Disposals { get; } = [];
 
-        public event EventHandler<BrokeredServicesChangedEventArgs> AvailabilityChanged
+        public event EventHandler<BrokeredServicesChangedEventArgs>? AvailabilityChanged
         {
             add { }
             remove { }
         }
 
-        public ValueTask<IDuplexPipe> GetPipeAsync(ServiceMoniker serviceMoniker, ServiceActivationOptions options = default, CancellationToken cancellationToken = default)
+        public ValueTask<IDuplexPipe?> GetPipeAsync(ServiceMoniker serviceMoniker, ServiceActivationOptions options = default, CancellationToken cancellationToken = default)
             => throw new NotImplementedException();
 
-        public ValueTask<T> GetProxyAsync<T>(ServiceRpcDescriptor serviceDescriptor, ServiceActivationOptions options = default, CancellationToken cancellationToken = default) where T : class
+        public ValueTask<T?> GetProxyAsync<T>(ServiceRpcDescriptor serviceDescriptor, ServiceActivationOptions options = default, CancellationToken cancellationToken = default) where T : class
         {
             RequestedDescriptors.Add(serviceDescriptor);
 
             if (typeof(T) == typeof(HR.IHotReloadEventSubscriber))
             {
-                HotReloadEventListener = (HR.IHotReloadEventListener)options.ClientRpcTarget;
-                EventSubscriber = new TestHotReloadEventSubscriber(Disposals);
-                return new ValueTask<T>((T)(object)EventSubscriber);
+                var clientRpcTarget = options.ClientRpcTarget;
+                Contract.ThrowIfNull(clientRpcTarget);
+                HotReloadEventListener = (HR.IHotReloadEventListener)clientRpcTarget;
+
+                var eventSubscriber = new TestHotReloadEventSubscriber(Disposals);
+                EventSubscriber = eventSubscriber;
+                return new ValueTask<T?>((T)(object)eventSubscriber);
             }
 
             if (typeof(T) == typeof(HR.IManagedHotReloadUpdatesProviderRegistration))
             {
-                RegistrationService = new TestManagedHotReloadUpdatesProviderRegistration(Disposals);
-                return new ValueTask<T>((T)(object)RegistrationService);
+                var registrationService = new TestManagedHotReloadUpdatesProviderRegistration(Disposals);
+                RegistrationService = registrationService;
+                return new ValueTask<T?>((T)(object)registrationService);
             }
 
-            return new ValueTask<T>((T)createService(serviceDescriptor, typeof(T)));
+            return new ValueTask<T?>((T)createService(serviceDescriptor, typeof(T)));
         }
     }
 
@@ -196,10 +202,10 @@ public sealed class EditorManagedHotReloadLanguageServiceTests : EditAndContinue
         return service;
     }
 
-    private static TestServiceBroker CreateServiceBroker()
+    private static TestServiceBroker CreateServiceBroker(DebuggerContracts.IHotReloadLogger? logger = null)
         => new((_, t) => t switch
         {
-            _ when t == typeof(DebuggerContracts.IHotReloadLogger) => new MockHotReloadLogger(),
+            _ when t == typeof(DebuggerContracts.IHotReloadLogger) => logger ?? new MockHotReloadLogger(),
             _ when t == typeof(HR.IManagedHotReloadState) => new TestManagedHotReloadService(["Baseline"]),
             _ => throw ExceptionUtilities.UnexpectedValue(t)
         });
@@ -219,7 +225,7 @@ public sealed class EditorManagedHotReloadLanguageServiceTests : EditAndContinue
         public HR.IHotReloadEventListener EventListener => eventListener;
         public PdbMatchingSourceTextProvider PdbMatchingSourceTextProvider => sourceTextProvider;
 
-        public static async Task<EditorTestContext> CreateAsync(EditorManagedHotReloadLanguageServiceTests test, Type[] additionalParts = null)
+        public static async Task<EditorTestContext> CreateAsync(EditorManagedHotReloadLanguageServiceTests test, Type[]? additionalParts = null)
         {
             var composition = EditorTestCompositions.EditorFeatures
                 .AddParts(
@@ -235,7 +241,7 @@ public sealed class EditorManagedHotReloadLanguageServiceTests : EditAndContinue
             var serviceBroker = CreateServiceBroker();
             var sourceTextProvider = new PdbMatchingSourceTextProvider(workspace);
             var brokeredService = await CreateServiceAsync(serviceBroker, workspace, sourceTextProvider);
-            var eventListener = serviceBroker.HotReloadEventListener;
+            var eventListener = serviceBroker.HotReloadEventListener ?? throw ExceptionUtilities.Unreachable();
 
             return new EditorTestContext(workspace, solution, workspaceService, brokeredService, eventListener, sourceTextProvider);
         }
@@ -259,7 +265,8 @@ public sealed class EditorManagedHotReloadLanguageServiceTests : EditAndContinue
 
         public TestWorkspace LocalWorkspace => workspace;
         public PdbMatchingSourceTextProvider PdbMatchingSourceTextProvider => sourceTextProvider;
-        public HR.IHotReloadEventListener EventListener => serviceBroker.HotReloadEventListener;
+        public HR.IHotReloadEventListener EventListener
+            => serviceBroker.HotReloadEventListener ?? throw ExceptionUtilities.Unreachable();
         public TestServiceBroker ServiceBroker => serviceBroker;
         public ManagedHotReloadLanguageService LocalService => brokeredService;
 
@@ -296,8 +303,12 @@ public sealed class EditorManagedHotReloadLanguageServiceTests : EditAndContinue
     {
         using var context = await TestContext.CreateAsync();
         var serviceBroker = context.ServiceBroker;
-        var subscription = serviceBroker.EventSubscriber.Subscription;
-        var registration = serviceBroker.RegistrationService.Registration;
+        var eventSubscriber = serviceBroker.EventSubscriber;
+        var registrationService = serviceBroker.RegistrationService;
+        Contract.ThrowIfNull(eventSubscriber);
+        Contract.ThrowIfNull(registrationService);
+        var subscription = eventSubscriber.Subscription;
+        var registration = registrationService.Registration;
 
         Assert.False(subscription.IsDisposed);
         Assert.False(registration.IsDisposed);
@@ -424,8 +435,11 @@ public sealed class EditorManagedHotReloadLanguageServiceTests : EditAndContinue
             };
         };
 
+        var projectFilePath = project.FilePath;
+        Assert.NotNull(projectFilePath);
+
         var runningProjectInfo = new DebuggerContracts.RunningProjectInfo(
-            new DebuggerContracts.ProjectInstanceId(project.FilePath, "net10.0"),
+            new DebuggerContracts.ProjectInstanceId(projectFilePath, "net10.0"),
             restartAutomatically: false);
 
         var updates = await localService.GetUpdatesAsync([runningProjectInfo], CancellationToken.None);
@@ -610,7 +624,7 @@ public sealed class EditorManagedHotReloadLanguageServiceTests : EditAndContinue
                 Assert.Same(updatedSolution, serviceImpl.PendingUpdatedSolution);
                 Assert.Same(initialSolution, serviceImpl.CommittedSolution);
 
-                if (commit.Value)
+                if (commit == true)
                 {
                     await localService.CommitUpdatesAsync(CancellationToken.None);
 
@@ -691,10 +705,133 @@ public sealed class EditorManagedHotReloadLanguageServiceTests : EditAndContinue
         // check committed document status:
         var debuggingSession = service.GetTestAccessor().GetActiveDebuggingSessions().Single();
         var (document, state) = await debuggingSession.LastCommittedSolution.GetDocumentAndStateAsync(document1, CancellationToken.None);
+        Contract.ThrowIfNull(document);
         var text = await document.GetTextAsync();
         Assert.Equal(CommittedSolution.DocumentState.MatchesBuildOutput, state);
         Assert.Equal(source1, document.GetTextSynchronously(CancellationToken.None).ToString());
 
         await eventListener.OnHotReloadDeactivatedAsync(CancellationToken.None);
+    }
+
+    /// <summary>
+    /// Remote startup that returns no debugging session logs an internal error, disables Hot Reload,
+    /// and makes a later update request return no updates instead of throwing because there is no session.
+    /// </summary>
+    [Fact]
+    public async Task OnHotReloadActivatedAsync_DisablesHotReloadWhenDebuggingSessionFailsToStart()
+    {
+        var composition = EditorTestCompositions.LanguageServerProtocolEditorFeatures
+            .AddExcludedPartTypes(typeof(EditAndContinueService.WorkspaceServiceFactory))
+            .AddParts(
+                typeof(NoCompilationLanguageService),
+                typeof(MockHostWorkspaceProvider),
+                typeof(MockServiceBrokerProvider),
+                typeof(MockEditAndContinueServiceFactory),
+                typeof(MockManagedHotReloadService),
+                typeof(FailingRemoteHostClientProvider));
+
+        var logger = new TestHotReloadLogger();
+        var serviceBroker = CreateServiceBroker(logger);
+
+        using var workspace = CreateWorkspace(composition);
+        using var sourceTextProvider = new PdbMatchingSourceTextProvider(workspace);
+        var service = await CreateServiceAsync(serviceBroker, workspace, sourceTextProvider);
+        try
+        {
+            var listener = serviceBroker.HotReloadEventListener;
+            Contract.ThrowIfNull(listener);
+            await listener.OnHotReloadActivatedAsync(CancellationToken.None);
+            await workspace.GetService<AsynchronousOperationListenerProvider>().GetWaiter(FeatureAttribute.EditAndContinue).ExpeditedWaitAsync();
+
+            AssertEx.Equal(
+            [
+                $"{DebuggerContracts.HotReloadDiagnosticErrorLevel.Error}: {FeaturesResources.Internal_error_Failed_to_start_a_debugging_session}",
+                $"{DebuggerContracts.HotReloadDiagnosticErrorLevel.Info}: {FeaturesResources.Hot_Reload_has_been_disabled}",
+            ], logger.Messages.Select(static message => $"{message.ErrorLevel}: {message.Message}"));
+
+            var updates = await service.GetUpdatesAsync([], CancellationToken.None);
+
+            Assert.Empty(updates.Updates);
+            Assert.Empty(updates.Diagnostics);
+            Assert.Empty(updates.ProjectInstancesToRebuild);
+            Assert.Empty(updates.ProjectInstancesToRestart);
+            Assert.False(updates.HasPendingUpdates);
+        }
+        finally
+        {
+            service.Dispose();
+        }
+    }
+
+    /// <summary>
+    /// Presents a remote host whose debugging-session call completes without a session id.
+    /// </summary>
+    [ExportWorkspaceService(typeof(IRemoteHostClientProvider), ServiceLayer.Test), Shared, PartNotDiscoverable]
+    [method: ImportingConstructor]
+    [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    internal sealed class FailingRemoteHostClientProvider() : IRemoteHostClientProvider
+    {
+        public Task<RemoteHostClient?> TryGetRemoteHostClientAsync(CancellationToken cancellationToken)
+            => Task.FromResult<RemoteHostClient?>(new FailingRemoteHostClient());
+
+        public Task WaitForClientCreationAsync(CancellationToken cancellationToken)
+            => Task.CompletedTask;
+
+        private sealed class FailingRemoteHostClient : RemoteHostClient
+        {
+            public override void Dispose()
+            {
+            }
+
+            public override RemoteServiceConnection<T> CreateConnection<T>(object? callbackTarget)
+                => new FailingRemoteServiceConnection<T>();
+        }
+
+        private sealed class FailingRemoteServiceConnection<TService> : RemoteServiceConnection<TService>
+            where TService : class
+        {
+            public override void Dispose()
+            {
+            }
+
+            public override ValueTask<bool> TryInvokeAsync(Func<TService, CancellationToken, ValueTask> invocation, CancellationToken cancellationToken)
+                => new(false);
+
+            public override ValueTask<Optional<TResult>> TryInvokeAsync<TResult>(Func<TService, CancellationToken, ValueTask<TResult>> invocation, CancellationToken cancellationToken)
+                => new(default(Optional<TResult>));
+
+            public override ValueTask<bool> TryInvokeAsync(Func<TService, RemoteServiceCallbackId, CancellationToken, ValueTask> invocation, CancellationToken cancellationToken)
+                => new(false);
+
+            public override ValueTask<Optional<TResult>> TryInvokeAsync<TResult>(Func<TService, RemoteServiceCallbackId, CancellationToken, ValueTask<TResult>> invocation, CancellationToken cancellationToken)
+                => new(default(Optional<TResult>));
+
+            public override ValueTask<bool> TryInvokeAsync(SolutionCompilationState compilationState, Func<TService, Checksum, CancellationToken, ValueTask> invocation, CancellationToken cancellationToken)
+                => new(false);
+
+            public override ValueTask<Optional<TResult>> TryInvokeAsync<TResult>(SolutionCompilationState compilationState, Func<TService, Checksum, CancellationToken, ValueTask<TResult>> invocation, CancellationToken cancellationToken)
+                => new(default(Optional<TResult>));
+
+            public override ValueTask<bool> TryInvokeAsync(SolutionCompilationState compilationState, ProjectId projectId, Func<TService, Checksum, CancellationToken, ValueTask> invocation, CancellationToken cancellationToken)
+                => new(false);
+
+            public override ValueTask<Optional<TResult>> TryInvokeAsync<TResult>(SolutionCompilationState compilationState, ProjectId projectId, Func<TService, Checksum, CancellationToken, ValueTask<TResult>> invocation, CancellationToken cancellationToken)
+                => new(default(Optional<TResult>));
+
+            public override ValueTask<bool> TryInvokeAsync(SolutionCompilationState compilationState, Func<TService, Checksum, RemoteServiceCallbackId, CancellationToken, ValueTask> invocation, CancellationToken cancellationToken)
+                => new(false);
+
+            public override ValueTask<Optional<TResult>> TryInvokeAsync<TResult>(SolutionCompilationState compilationState, Func<TService, Checksum, RemoteServiceCallbackId, CancellationToken, ValueTask<TResult>> invocation, CancellationToken cancellationToken)
+                => new(default(Optional<TResult>));
+
+            public override ValueTask<bool> TryInvokeAsync(SolutionCompilationState compilationState, ProjectId projectId, Func<TService, Checksum, RemoteServiceCallbackId, CancellationToken, ValueTask> invocation, CancellationToken cancellationToken)
+                => new(false);
+
+            public override ValueTask<Optional<TResult>> TryInvokeAsync<TResult>(SolutionCompilationState compilationState, ProjectId projectId, Func<TService, Checksum, RemoteServiceCallbackId, CancellationToken, ValueTask<TResult>> invocation, CancellationToken cancellationToken)
+                => new(default(Optional<TResult>));
+
+            public override ValueTask<bool> TryInvokeAsync(SolutionCompilationState compilationState1, SolutionCompilationState compilationState2, Func<TService, Checksum, Checksum, CancellationToken, ValueTask> invocation, CancellationToken cancellationToken)
+                => new(false);
+        }
     }
 }

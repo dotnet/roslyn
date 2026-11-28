@@ -66,10 +66,14 @@ internal sealed class ManagedHotReloadLanguageServiceImpl(
     private DebuggingSessionProxy GetDebuggingSession()
         => _debuggingSession ?? throw new NoSessionException();
 
-    internal void Disable(Exception e)
+    private void Disable(Exception e)
+        => Disable(e.ToString());
+
+    private void Disable(string message)
     {
         _disabled = true;
-        logReporter.Report(e.ToString(), LogMessageSeverity.Error);
+        logReporter.Report(message, LogMessageSeverity.Error);
+        logReporter.Report(FeaturesResources.Hot_Reload_has_been_disabled, LogMessageSeverity.Info);
     }
 
     private void UpdateApplyChangesDiagnostics(ImmutableArray<DiagnosticData> diagnostics)
@@ -104,12 +108,20 @@ internal sealed class ManagedHotReloadLanguageServiceImpl(
 
             var proxy = new RemoteEditAndContinueServiceProxy(currentSolution.Services);
 
-            _debuggingSession = await proxy.StartDebuggingSessionAsync(
+            var debuggingSession = await proxy.StartDebuggingSessionAsync(
                 currentSolution,
                 hotReloadState,
                 sourceTextProvider,
                 reportDiagnostics: true,
                 cancellationToken).ConfigureAwait(false);
+
+            if (debuggingSession == null)
+            {
+                Disable(FeaturesResources.Internal_error_Failed_to_start_a_debugging_session);
+                return;
+            }
+
+            _debuggingSession = debuggingSession;
         }
         catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
         {
