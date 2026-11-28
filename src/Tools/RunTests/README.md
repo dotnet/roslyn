@@ -84,6 +84,7 @@ Key options:
 | `--ci` | Apply CI behavior, including disabling HTML reports by default |
 | `--helix` | Submit test work items to Helix instead of running locally |
 | `--env:KEY=VALUE` | Set environment variable in test processes |
+| `--partition[:<path>]` | For local runs, split large assemblies into several processes using `eng/config/test-partitions.json`, or the given configuration file |
 
 `--testSet:compiler` selects compiler test assemblies when used alone. With
 `--include`, assemblies matching either the compiler patterns or any supplied
@@ -105,6 +106,29 @@ configuration, runtime, architecture, and the test kinds selected through
 Historical timing data for Helix partitioning can be selected with `--accessToken`,
 `--projectUri`, `--pipelineDefinitionId`, and `--targetBranchName`. When omitted,
 these use the corresponding Azure Pipelines environment variables.
+
+## Local partitioning
+
+By default, local (non-Helix) runs execute each assembly in its own process in name order.
+With `--partition`, they read `eng/config/test-partitions.json` (or the file passed as
+`--partition:<path>`) to schedule work items:
+
+- Work items run longest estimated duration first, so long assemblies don't form a
+  tail at the end of the run.
+- A .NET Core assembly with `partitions` runs as several processes. Each listed partition
+  runs the tests whose fully qualified name contains one of its namespace or class
+  `prefixes`. A final remainder process runs every other test, including tests added after
+  the configuration was generated.
+
+Even with `--partition`, partitioning is skipped with `--sequential` or `--testfilter`, for desktop
+assemblies, and for assemblies with a `doNotPartitionReason` (for example, tests that mostly
+wait on child processes). When the file is missing, assemblies run in a single process in
+name order.
+
+Regenerate the file from the latest CI timings with
+`dotnet run --file eng/rebalance-test-partitions.cs`. The
+[`rebalance-test-partitions`](../../../.github/skills/rebalance-test-partitions/SKILL.md)
+skill describes the full workflow.
 
 ## Exit Codes
 

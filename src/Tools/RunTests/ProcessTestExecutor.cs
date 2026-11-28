@@ -70,7 +70,6 @@ namespace RunTests
 
             if (filters.Length > 0 || !string.IsNullOrWhiteSpace(options.TestFilter))
             {
-                filterStringBuilder.Append("/TestCaseFilter:\"");
                 var any = false;
                 foreach (var filter in filters)
                 {
@@ -84,8 +83,6 @@ namespace RunTests
                     filterStringBuilder.Append(options.TestFilter);
                 }
 
-                filterStringBuilder.Append('"');
-
                 void MaybeAddSeparator(char separator = '|')
                 {
                     if (any)
@@ -97,7 +94,26 @@ namespace RunTests
                 }
             }
 
-            fileContentsBuilder.AppendLine(filterStringBuilder.ToString());
+            if (!string.IsNullOrEmpty(workItem.TestFilter))
+            {
+                if (filterStringBuilder.Length > 0)
+                {
+                    filterStringBuilder.Insert(0, '(');
+                    filterStringBuilder.Append(")&(");
+                    filterStringBuilder.Append(workItem.TestFilter);
+                    filterStringBuilder.Append(')');
+                }
+                else
+                {
+                    filterStringBuilder.Append(workItem.TestFilter);
+                }
+            }
+
+            if (filterStringBuilder.Length > 0)
+            {
+                fileContentsBuilder.AppendLine($"/TestCaseFilter:\"{filterStringBuilder}\"");
+            }
+
             return fileContentsBuilder.ToString();
         }
 

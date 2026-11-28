@@ -252,15 +252,24 @@ stages:
         testArguments: --testFramework:core --testSet:compiler --testKind:usedassemblies
         helixQueueName: $(HelixWindowsQueueName)
 
-  - ${{ if ne(variables['Build.Reason'], 'PullRequest') }}:
-    - template: eng/pipelines/test-windows-job-single-machine.yml
-      parameters:
-        testRunName: 'Test Windows CoreClr Debug Single Machine'
-        jobName: Test_Windows_CoreClr_Debug_Single_Machine
-        testArtifactName: $(testArtifactName)
-        configuration: Debug
-        poolParameters: ${{ parameters.vs2026PreviewPool }}
-        testArguments: --testFramework:core
+  # TEMPORARY: run single-machine jobs in PRs to measure partitioning. Revert before merge.
+  - template: eng/pipelines/test-windows-job-single-machine.yml
+    parameters:
+      testRunName: 'Test Windows CoreClr Debug Single Machine'
+      jobName: Test_Windows_CoreClr_Debug_Single_Machine
+      testArtifactName: $(testArtifactName)
+      configuration: Debug
+      poolParameters: ${{ parameters.vs2026PreviewPool }}
+      testArguments: --testFramework:core --partition
+
+  - template: eng/pipelines/test-windows-job-single-machine.yml
+    parameters:
+      testRunName: 'Test Windows CoreClr Debug Single Machine NoPartition'
+      jobName: Test_Windows_CoreClr_Debug_Single_Machine_NoPartition
+      testArtifactName: $(testArtifactName)
+      configuration: Debug
+      poolParameters: ${{ parameters.vs2026PreviewPool }}
+      testArguments: --testFramework:core
 
   - template: /eng/common/core-templates/job/helix-job-monitor.yml
     parameters:
@@ -319,6 +328,16 @@ stages:
       jobName: Test_Linux_Debug
       testArtifactName: $(testArtifactName)
       configuration: Debug
+      testArguments: --testFramework:core --partition
+      poolParameters: ${{ parameters.ubuntuPool }}
+
+  # TEMPORARY: unpartitioned baseline. Revert before merge.
+  - template: eng/pipelines/test-unix-job-single-machine.yml
+    parameters:
+      testRunName: 'Test Linux Debug NoPartition'
+      jobName: Test_Linux_Debug_NoPartition
+      testArtifactName: $(testArtifactName)
+      configuration: Debug
       testArguments: --testFramework:core
       poolParameters: ${{ parameters.ubuntuPool }}
 
@@ -328,7 +347,7 @@ stages:
       jobName: Test_Linux_Debug_Spanish_Single_Machine
       testArtifactName: $(testArtifactName)
       configuration: Debug
-      testArguments: --testFramework:core
+      testArguments: --testFramework:core --partition
       poolParameters: ${{ parameters.ubuntuPool }}
       locale: es_ES.UTF-8
 

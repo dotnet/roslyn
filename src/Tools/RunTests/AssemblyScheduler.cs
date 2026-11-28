@@ -359,7 +359,7 @@ namespace RunTests
         /// Looks for the assembly marker attribute <see cref="RunTestsInSinglePartitionAttribute"/>
         /// that signifies tests in the assembly must be run separately.
         /// </summary>
-        private static bool ShouldPartitionInSingleWorkItem(string assemblyFilePath)
+        internal static bool ShouldPartitionInSingleWorkItem(string assemblyFilePath)
         {
             using var stream = File.OpenRead(assemblyFilePath);
             using var peReader = new PEReader(stream);
