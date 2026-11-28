@@ -4803,6 +4803,53 @@ public struct S
             Await TestAsync(input, expected)
         End Function
 
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/86393")>
+        Public Async Function TestCSharp_Remove_CastInTargetTypedConditionalExpression_AndSimplifyNames() As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document><![CDATA[
+using Policies;
+
+namespace Policies
+{
+    public class Policy { }
+    public class KeyPolicy : Policy { }
+    public class TokenPolicy : Policy { }
+}
+
+public class Client
+{
+    public Client(Policy policy) { }
+    public Client(bool useKey) : {|Simplify:this(useKey ? (global::Policies.Policy)new global::Policies.KeyPolicy() : new global::Policies.TokenPolicy())|} { }
+}
+]]>
+        </Document>
+    </Project>
+</Workspace>
+
+            Dim expected =
+<code><![CDATA[
+using Policies;
+
+namespace Policies
+{
+    public class Policy { }
+    public class KeyPolicy : Policy { }
+    public class TokenPolicy : Policy { }
+}
+
+public class Client
+{
+    public Client(Policy policy) { }
+    public Client(bool useKey) : this(useKey ? new KeyPolicy() : new TokenPolicy()) { }
+}
+]]>
+</code>
+
+            Await TestAsync(input, expected)
+        End Function
+
         <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/4531")>
         Public Async Function TestCSharp_DoNotRemove_NecessaryCastFromShortToUShort() As Task
             Dim input =
