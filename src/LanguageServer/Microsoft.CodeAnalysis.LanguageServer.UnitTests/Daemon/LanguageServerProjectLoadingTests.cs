@@ -4,9 +4,9 @@
 
 using Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
 using Microsoft.CodeAnalysis.LanguageServer.Test.Utilities;
+using Xunit;
 using Roslyn.LanguageServer.Protocol;
 using Roslyn.Test.Utilities;
-using Xunit.Abstractions;
 using LSP = Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests;

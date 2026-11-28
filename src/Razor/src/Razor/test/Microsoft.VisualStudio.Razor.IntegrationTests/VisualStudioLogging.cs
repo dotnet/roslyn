@@ -178,7 +178,6 @@ internal static class VisualStudioLogging
         // Don't use ThreadHelper.JoinableTaskFactory in test methods, but it's correct here.
 #pragma warning disable VSTHRD103 // Call async methods when in an async method
         ThreadHelper.JoinableTaskFactory.Run(async () =>
-#pragma warning restore VSTHRD103 // Call async methods when in an async method
         {
             try
             {
@@ -191,6 +190,7 @@ internal static class VisualStudioLogging
                 // Eat any errors so we don't block further collection
             }
         });
+#pragma warning restore VSTHRD103
     }
 
     private static async Task CollectFeedbackItemsAsync(IEnumerable<string> files, string destination, string[] expectedFileParts)

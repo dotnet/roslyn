@@ -32,8 +32,6 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.DependencyModel;
-using Microsoft.Extensions.DependencyModel.Resolution;
 using Moq;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -286,70 +284,17 @@ public abstract class RazorSourceGeneratorTestsBase
         public IEnumerator<KeyValuePair<string, string>> GetEnumerator() => _inner.GetEnumerator();
     }
 
-    private sealed class AppLocalResolver : ICompilationAssemblyResolver
-    {
-        private readonly string _baseDirectory;
-
-        public AppLocalResolver(string baseDirectory)
-        {
-            _baseDirectory = baseDirectory;
-        }
-
-        public bool TryResolveAssemblyPaths(CompilationLibrary library, List<string>? assemblies)
-        {
-            return library.Assemblies.All(assembly =>
-            {
-                var dll = Path.Combine(_baseDirectory, "refs", Path.GetFileName(assembly));
-                if (File.Exists(dll))
-                {
-                    assemblies!.Add(dll);
-                    return true;
-                }
-
-                dll = Path.Combine(_baseDirectory, Path.GetFileName(assembly));
-                if (File.Exists(dll))
-                {
-                    assemblies!.Add(dll);
-                    return true;
-                }
-
-                return false;
-            });
-        }
-    }
-
     // Cache the entire base project (workspace, compilation options, parse options, and all
     // metadata references) so it is built once and shared across all tests. Project is
     // immutable, so every AddDocument/AddAdditionalDocument call returns a new fork.
     private static readonly Lazy<Project> s_cachedBaseProject = new(static () =>
     {
-        var references = new Dictionary<string, MetadataReference>(StringComparer.OrdinalIgnoreCase);
-
-        foreach (var defaultCompileLibrary in DependencyContext.Load(typeof(RazorSourceGeneratorTestsBase).Assembly)!.CompileLibraries)
-        {
-            foreach (var resolveReferencePath in defaultCompileLibrary.ResolveReferencePaths(new AppLocalResolver(AppContext.BaseDirectory)))
-            {
-                if (resolveReferencePath.Contains("Shim."))
-                {
-                    continue;
-                }
-
-                var name = Path.GetFileNameWithoutExtension(resolveReferencePath);
-                references.TryAdd(name, MetadataReference.CreateFromFile(resolveReferencePath));
-            }
-        }
-
-        // The deps file in the project is incorrect and does not contain "compile" nodes for some references.
-        // However these binaries are always present in the bin output. As a "temporary" workaround, we'll add
-        // every dll file that's present in the test's build output as a metadatareference.
-        foreach (var assembly in Directory.EnumerateFiles(AppContext.BaseDirectory, "*.dll"))
-        {
-            if (!assembly.Contains("Shim."))
-            {
-                var name = Path.GetFileNameWithoutExtension(assembly);
-                references.TryAdd(name, MetadataReference.CreateFromFile(assembly));
-            }
-        }
+        // This project sets the MSBuild property PreserveCompilationContext, which makes the build copy the reference
+        // assemblies it was compiled against (the .NET and ASP.NET Core reference packs) into refs/. Compile against
+        // those, as a real project would.
+        var references = Directory.EnumerateFiles(Path.Combine(AppContext.BaseDirectory, "refs"), "*.dll")
+            .Select(static path => MetadataReference.CreateFromFile(path))
+            .ToList();
 
         var projectId = ProjectId.CreateNewId(debugName: "TestProject");
 
@@ -369,7 +314,7 @@ public abstract class RazorSourceGeneratorTestsBase
                     new("CS8019", ReportDiagnostic.Suppress),
                 }))
             .WithParseOptions(CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview))
-            .AddMetadataReferences(references.Values);
+            .AddMetadataReferences(references);
     });
 
     private static Project CreateBaseProject(CSharpParseOptions? cSharpParseOptions)

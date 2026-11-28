@@ -6,7 +6,7 @@ using System.Text.Json;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.CodeLens;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.Testing;
 using Roslyn.Test.Utilities;
-using Xunit.Abstractions;
+using Xunit;
 using LSP = Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.ProcessHost.UnitTests.Testing;

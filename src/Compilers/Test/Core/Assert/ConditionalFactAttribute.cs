@@ -12,7 +12,6 @@ using System.Runtime.InteropServices;
 using System.Text;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Test.Utilities;
-using Microsoft.Win32;
 using Roslyn.Utilities;
 using Xunit;
 
@@ -80,7 +79,38 @@ namespace Roslyn.Test.Utilities
 
         public string Reason { get; set; }
 
-        public ConditionalFactAttribute(params Type[] skipConditions)
+        public ConditionalFactAttribute(
+            Type skipCondition,
+            [System.Runtime.CompilerServices.CallerFilePath] string sourceFilePath = null,
+            [System.Runtime.CompilerServices.CallerLineNumber] int sourceLineNumber = -1)
+            : this([skipCondition], sourceFilePath, sourceLineNumber)
+        {
+        }
+
+        public ConditionalFactAttribute(
+            Type skipCondition1,
+            Type skipCondition2,
+            [System.Runtime.CompilerServices.CallerFilePath] string sourceFilePath = null,
+            [System.Runtime.CompilerServices.CallerLineNumber] int sourceLineNumber = -1)
+            : this([skipCondition1, skipCondition2], sourceFilePath, sourceLineNumber)
+        {
+        }
+
+        public ConditionalFactAttribute(
+            Type skipCondition1,
+            Type skipCondition2,
+            Type skipCondition3,
+            [System.Runtime.CompilerServices.CallerFilePath] string sourceFilePath = null,
+            [System.Runtime.CompilerServices.CallerLineNumber] int sourceLineNumber = -1)
+            : this([skipCondition1, skipCondition2, skipCondition3], sourceFilePath, sourceLineNumber)
+        {
+        }
+
+        public ConditionalFactAttribute(
+            Type[] skipConditions,
+            [System.Runtime.CompilerServices.CallerFilePath] string sourceFilePath = null,
+            [System.Runtime.CompilerServices.CallerLineNumber] int sourceLineNumber = -1)
+            : base(sourceFilePath, sourceLineNumber)
         {
             foreach (var skipCondition in skipConditions)
             {
@@ -120,7 +150,28 @@ namespace Roslyn.Test.Utilities
 
         public string Reason { get; set; }
 
-        public ConditionalTheoryAttribute(params Type[] skipConditions)
+        public ConditionalTheoryAttribute(
+            Type skipCondition,
+            [System.Runtime.CompilerServices.CallerFilePath] string sourceFilePath = null,
+            [System.Runtime.CompilerServices.CallerLineNumber] int sourceLineNumber = -1)
+            : this([skipCondition], sourceFilePath, sourceLineNumber)
+        {
+        }
+
+        public ConditionalTheoryAttribute(
+            Type skipCondition1,
+            Type skipCondition2,
+            [System.Runtime.CompilerServices.CallerFilePath] string sourceFilePath = null,
+            [System.Runtime.CompilerServices.CallerLineNumber] int sourceLineNumber = -1)
+            : this([skipCondition1, skipCondition2], sourceFilePath, sourceLineNumber)
+        {
+        }
+
+        public ConditionalTheoryAttribute(
+            Type[] skipConditions,
+            [System.Runtime.CompilerServices.CallerFilePath] string sourceFilePath = null,
+            [System.Runtime.CompilerServices.CallerLineNumber] int sourceLineNumber = -1)
+            : base(sourceFilePath, sourceLineNumber)
         {
             foreach (var skipCondition in skipConditions)
             {

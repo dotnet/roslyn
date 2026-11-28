@@ -156,7 +156,7 @@ start:
             {
                 if (maxLength < 0)
                 {
-                    throw ExceptionUtilities.UnexpectedValue(nameof(maxLength));
+                    throw new ArgumentOutOfRangeException(nameof(maxLength));
                 }
 
                 wrote = Math.Min(maxLength, _value.Length);
@@ -210,7 +210,7 @@ start:
             {
                 if (maxLength < 0)
                 {
-                    throw ExceptionUtilities.UnexpectedValue(nameof(maxLength));
+                    throw new ArgumentOutOfRangeException(nameof(maxLength));
                 }
 
                 var psb = PooledStringBuilder.GetInstance();

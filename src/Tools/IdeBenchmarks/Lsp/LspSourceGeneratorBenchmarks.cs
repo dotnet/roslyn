@@ -55,7 +55,7 @@ namespace IdeBenchmarks.Lsp
 
         private async Task LoadSolutionAsync()
         {
-            _useExportProviderAttribute.Before(null);
+            _useExportProviderAttribute.Before(null, null!);
 
             // Typing extends the partial method name: partial void M() → Ma() → Maa() → ...
             // Each keystroke changes the method name, forcing the generator to update its output.
@@ -142,7 +142,7 @@ namespace IdeBenchmarks.Lsp
                 _testServer.DisposeAsync().AsTask().Wait();
             }
 
-            _useExportProviderAttribute.After(null);
+            _useExportProviderAttribute.After(null, null!);
         }
 
         /// <summary>

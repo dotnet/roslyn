@@ -4,14 +4,12 @@
 #nullable disable
 
 using System.Reflection;
-using Xunit;
-using Xunit.Sdk;
 
 namespace Microsoft.AspNetCore.Razor.Language.Legacy;
 
 public class InitializeTestFileAttribute : BeforeAfterTestAttribute
 {
-    public override void Before(MethodInfo methodUnderTest)
+    public override void Before(MethodInfo methodUnderTest, IXunitTest test)
     {
         if (typeof(IParserTest).GetTypeInfo().IsAssignableFrom(methodUnderTest.DeclaringType.GetTypeInfo()))
         {
@@ -26,7 +24,7 @@ public class InitializeTestFileAttribute : BeforeAfterTestAttribute
         }
     }
 
-    public override void After(MethodInfo methodUnderTest)
+    public override void After(MethodInfo methodUnderTest, IXunitTest test)
     {
         if (typeof(IParserTest).GetTypeInfo().IsAssignableFrom(methodUnderTest.DeclaringType.GetTypeInfo()))
         {

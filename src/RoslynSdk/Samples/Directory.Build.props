@@ -19,14 +19,13 @@
 
   <PropertyGroup>
     <Nullable>disable</Nullable>
-    <SkipRoslynTestTraceListener>true</SkipRoslynTestTraceListener>
     <UsingToolXliff>false</UsingToolXliff>
     <EnableXlfLocalization>false</EnableXlfLocalization>
   </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="System.Net.Http" PrivateAssets="all" ExcludeAssets="all" Condition="'$(TargetFrameworkIdentifier)' == '.NETFramework'" />
-    <PackageReference Include="xunit.assert" Condition="$(MSBuildProjectName.EndsWith('.UnitTests'))" />
+    <PackageReference Include="xunit.v3.assert" Condition="$(MSBuildProjectName.EndsWith('.UnitTests'))" />
   </ItemGroup>
 
 </Project>

@@ -38,7 +38,7 @@ internal sealed partial class WorkspaceInProcess
         AsynchronousOperationListenerProvider.Enable(true, diagnostics: true);
     }
 
-    protected override async Task InitializeCoreAsync()
+    protected override async ValueTask InitializeCoreAsync()
     {
         await base.InitializeCoreAsync();
 

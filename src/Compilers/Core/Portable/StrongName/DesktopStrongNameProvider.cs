@@ -33,6 +33,12 @@ namespace Microsoft.CodeAnalysis
         {
         }
 
+        /// <summary>
+        /// Passed to <see cref="Marshal.ThrowExceptionForHR(int, IntPtr)"/> so it ignores any COM error information left on the
+        /// thread by an earlier unrelated call; otherwise that unrelated error's message would be reported instead.
+        /// </summary>
+        private static readonly IntPtr s_ignoreIErrorInfo = new IntPtr(-1);
+
         private readonly ImmutableArray<string> _keyFileSearchPaths;
         internal override StrongNameFileSystem FileSystem { get; }
 
@@ -212,7 +218,7 @@ namespace Microsoft.CodeAnalysis
             IntPtr keyBlob;
             int keyBlobByteCount;
 
-            strongName.StrongNameGetPublicKey(keyContainer, pbKeyBlob: default, 0, out keyBlob, out keyBlobByteCount);
+            Marshal.ThrowExceptionForHR(strongName.StrongNameGetPublicKey(keyContainer, pbKeyBlob: default, 0, out keyBlob, out keyBlobByteCount), s_ignoreIErrorInfo);
 
             byte[] pubKey = new byte[keyBlobByteCount];
             Marshal.Copy(keyBlob, pubKey, 0, keyBlobByteCount);
@@ -227,7 +233,7 @@ namespace Microsoft.CodeAnalysis
             try
             {
                 IClrStrongName strongName = GetStrongNameInterface();
-                strongName.StrongNameSignatureGeneration(filePath, keyName, IntPtr.Zero, 0, null, pcbSignatureBlob: out _);
+                Marshal.ThrowExceptionForHR(strongName.StrongNameSignatureGeneration(filePath, keyName, IntPtr.Zero, 0, null, pcbSignatureBlob: out _), s_ignoreIErrorInfo);
             }
             catch (ClrStrongNameMissingException)
             {
@@ -248,7 +254,7 @@ namespace Microsoft.CodeAnalysis
 
                 fixed (byte* pinned = keyPair.ToArray())
                 {
-                    strongName.StrongNameSignatureGeneration(filePath, null, (IntPtr)pinned, keyPair.Length, null, pcbSignatureBlob: out _);
+                    Marshal.ThrowExceptionForHR(strongName.StrongNameSignatureGeneration(filePath, null, (IntPtr)pinned, keyPair.Length, null, pcbSignatureBlob: out _), s_ignoreIErrorInfo);
                 }
             }
             catch (ClrStrongNameMissingException)

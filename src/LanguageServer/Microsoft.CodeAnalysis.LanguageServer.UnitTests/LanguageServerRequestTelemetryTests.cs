@@ -7,7 +7,6 @@ using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Telemetry;
 using Roslyn.LanguageServer.Protocol;
 using Xunit;
-using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests;
 
@@ -29,11 +28,20 @@ public sealed class LanguageServerRequestTelemetryTests(ITestOutputHelper testOu
 
         var server = await CreateLanguageServerAsync();
 
-        // Measurements accumulate against instruments; nothing is posted until a flush.
-        Assert.Empty(poster.PostedEvents);
+        try
+        {
+            // Measurements accumulate against instruments; nothing is posted until a flush.
+            Assert.Empty(poster.PostedEvents);
 
-        // Shutting the server down disposes its RequestTelemetryLogger, whose Dispose flushes.
-        await server.DisposeAsync();
+            // A request after "initialized" waits for its notification handler to complete before shutdown flushes telemetry.
+            await server.ExecuteRequestAsync<WorkspaceSymbolParams, object>(
+                Methods.WorkspaceSymbolName, new WorkspaceSymbolParams { Query = "unlikely-to-match-test-symbol" }, default);
+        }
+        finally
+        {
+            // Shutting the server down disposes its RequestTelemetryLogger, whose Dispose flushes.
+            await server.DisposeAsync();
+        }
 
         // One event per instrument, and the method tag discriminates buckets: initialize and
         // initialized are separate instruments under the same event name.

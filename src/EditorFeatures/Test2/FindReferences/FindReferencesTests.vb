@@ -17,7 +17,7 @@ Imports Microsoft.CodeAnalysis.Remote.Testing
 Imports Microsoft.CodeAnalysis.Test.Utilities.FindUsages
 Imports Microsoft.CodeAnalysis.Text
 Imports Roslyn.Utilities
-Imports Xunit.Abstractions
+Imports Xunit
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
     <[UseExportProvider]>

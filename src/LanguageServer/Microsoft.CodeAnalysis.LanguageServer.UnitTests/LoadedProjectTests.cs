@@ -10,7 +10,7 @@ using Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
 using Microsoft.CodeAnalysis.ProjectSystem;
 using Microsoft.Extensions.Logging;
 using Roslyn.Test.Utilities;
-using Xunit.Abstractions;
+using Xunit;
 using DocumentFileInfo = MSBuildWorkspacesContracts::Microsoft.CodeAnalysis.MSBuild.DocumentFileInfo;
 using FileGlobs = MSBuildWorkspacesContracts::Microsoft.CodeAnalysis.MSBuild.FileGlobs;
 using MetadataReferenceItem = MSBuildWorkspacesContracts::Microsoft.CodeAnalysis.MSBuild.MetadataReferenceItem;

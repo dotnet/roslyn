@@ -5,6 +5,9 @@
 using System;
 using System.Collections.Immutable;
 using System.IO;
+using System.Runtime.CompilerServices;
+
+[assembly: InternalsVisibleTo("RunTests.UnitTests")]
 
 namespace RunTests;
 
@@ -24,7 +27,7 @@ public readonly record struct TypeInfo(string Name, string FullyQualifiedName, I
     public override string ToString() => $"[Type]{FullyQualifiedName}";
 }
 
-public readonly record struct TestMethodInfo(string Name, string FullyQualifiedName, TimeSpan ExecutionTime, bool HasAsyncLifetime)
+public readonly record struct TestMethodInfo(string Name, string FullyQualifiedName, TimeSpan ExecutionTime)
 {
     public override string ToString() => $"[Method]{FullyQualifiedName}";
 }

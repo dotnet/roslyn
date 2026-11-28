@@ -4,7 +4,7 @@
 
 using System.Collections.Concurrent;
 using Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
-using Xunit.Abstractions;
+using Xunit;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests;
 

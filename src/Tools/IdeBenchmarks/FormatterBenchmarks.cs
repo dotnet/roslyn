@@ -28,11 +28,11 @@ namespace IdeBenchmarks
 
         [IterationSetup]
         public void IterationSetup()
-            => _useExportProviderAttribute.Before(null);
+            => _useExportProviderAttribute.Before(null, null!);
 
         [IterationCleanup]
         public void IterationCleanup()
-            => _useExportProviderAttribute.After(null);
+            => _useExportProviderAttribute.After(null, null!);
 
         [Benchmark]
         public object FormatCSharp()
