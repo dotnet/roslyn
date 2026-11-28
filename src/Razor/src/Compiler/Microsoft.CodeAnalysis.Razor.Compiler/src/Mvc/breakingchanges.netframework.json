@@ -1,4 +1,4 @@
-﻿[
+[
   {
     "TypeId": "public static class Microsoft.AspNetCore.Mvc.Razor.Extensions.RazorExtensions",
     "MemberId": "public static System.Void Register(Microsoft.AspNetCore.Razor.Language.IRazorEngineBuilder builder)",

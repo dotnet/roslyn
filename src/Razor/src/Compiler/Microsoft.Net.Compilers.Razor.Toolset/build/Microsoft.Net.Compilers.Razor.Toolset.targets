@@ -1,4 +1,4 @@
-<Project>
+﻿<Project>
   <!-- Run after https://github.com/dotnet/sdk/blob/main/src/RazorSdk/Targets/Microsoft.NET.Sdk.Razor.SourceGenerators.targets#L15 -->
   <Target Name="_PrepareRazorSourceGeneratorsToolset"
     BeforeTargets="GenerateMSBuildEditorConfigFileShouldRun"

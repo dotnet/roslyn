@@ -14,9 +14,10 @@ Each check writes a log to `artifacts/log/<configuration>/BuildBoss`.  CI publis
 
 ## Options
 
-Most checks run unconditionally.  One check is opt in:
+Most checks run unconditionally.  Two checks are opt in:
 
 - `--check-package-install`: verifies our NuGet packages can be installed into a customer project.  See [NuGet Package Install](#nuget-package-install) below.  It is enabled only in the `Correctness_Build_Artifacts` job.
+- `--check-bom`: validates tracked-file BOM settings using Roslyn's EditorConfig parser and checks shebang placement. It writes `BOM.log` and is enabled only in the `Correctness_Build_Artifacts` job's `Validate Build Artifacts` step.
 
 ## Project Content Verified 
 
