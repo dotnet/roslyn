@@ -220,6 +220,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageService
                         modifiers = modifiers Or Modifiers.Static
                     Case SyntaxKind.AsyncKeyword
                         modifiers = modifiers Or Modifiers.Async
+                    Case SyntaxKind.IteratorKeyword
+                        modifiers = modifiers Or Modifiers.Iterator
                     Case SyntaxKind.ConstKeyword
                         modifiers = modifiers Or Modifiers.Const
                     Case SyntaxKind.ReadOnlyKeyword
