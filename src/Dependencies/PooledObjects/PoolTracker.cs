@@ -111,6 +111,7 @@ internal sealed class PoolTrackingContext
 {
     private readonly ConcurrentDictionary<object, AllocationInfo> _outstanding = new ConcurrentDictionary<object, AllocationInfo>(ReferenceEqualityComparer.Instance);
     private readonly bool _traceLeaks;
+    private volatile bool _isAcceptingAllocations = true;
 
     internal PoolTrackingContext(bool traceLeaks)
     {
@@ -119,6 +120,9 @@ internal sealed class PoolTrackingContext
 
     internal void OnAllocate(object obj, string? poolName, string filePath, int lineNumber)
     {
+        if (!_isAcceptingAllocations)
+            return;
+
         _outstanding.TryAdd(obj, new AllocationInfo(obj.GetType(), poolName, filePath, lineNumber, _traceLeaks ? Environment.StackTrace : null));
     }
 
@@ -138,6 +142,16 @@ internal sealed class PoolTrackingContext
     internal void ForgiveLeaks()
     {
         _outstanding.Clear();
+    }
+
+    /// <summary>
+    /// Stops recording new allocations while still recording frees of objects that are already outstanding.
+    /// Background work that outlives the tracked operation (and keeps flowing this context) can then no longer
+    /// race with the final leak check by allocating after <see cref="WaitForOutstandingObjectsToBeFreed"/> returns.
+    /// </summary>
+    internal void StopAcceptingAllocations()
+    {
+        _isAcceptingAllocations = false;
     }
 
     internal bool WaitForOutstandingObjectsToBeFreed(TimeSpan timeout)
