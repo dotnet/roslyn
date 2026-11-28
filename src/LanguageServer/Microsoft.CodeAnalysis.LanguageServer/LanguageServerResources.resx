@@ -179,6 +179,15 @@
     <value>Loaded {0} project(s)</value>
     <comment>The placeholder is the number of projects</comment>
   </data>
+  <data name="Workspace_structure_log" xml:space="preserve">
+    <value>Workspace structure log</value>
+  </data>
+  <data name="Generating_workspace_structure_log" xml:space="preserve">
+    <value>Generating workspace structure log...</value>
+  </data>
+  <data name="Workspace_structure_log_generated" xml:space="preserve">
+    <value>Workspace structure log generated</value>
+  </data>
   <data name="Message" xml:space="preserve">
     <value>Message</value>
   </data>

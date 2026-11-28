@@ -87,6 +87,11 @@
         <target state="translated">In {1} wurden {0} Tests gefunden.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Generating_workspace_structure_log">
+        <source>Generating workspace structure log...</source>
+        <target state="new">Generating workspace structure log...</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Loaded_0">
         <source>Loaded {0}</source>
         <target state="translated">„{0}“ geladen</target>
@@ -245,6 +250,16 @@
       <trans-unit id="Using_runsettings_file_at_0">
         <source>Using .runsettings file at {0}</source>
         <target state="translated">Verwenden der RUNSETTINGS-Datei unter {0}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Workspace_structure_log">
+        <source>Workspace structure log</source>
+        <target state="new">Workspace structure log</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Workspace_structure_log_generated">
+        <source>Workspace structure log generated</source>
+        <target state="new">Workspace structure log generated</target>
         <note />
       </trans-unit>
     </body>
