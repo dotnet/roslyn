@@ -67,11 +67,18 @@ internal sealed class DirectiveAttributeTransitionCompletionItemProvider(IClient
             return [];
         }
 
+        // Only tags can offer directive-attribute completions, so bail out before accessing the transition item.
+        if (owner.Parent?.Parent is not { } element ||
+            !TryGetElementInfo(element, out var containingTagName, out var attributes))
+        {
+            return [];
+        }
+
         var attribute = owner.Parent;
         if (attribute is MarkupMiscAttributeContentSyntax && attribute.ContainsOnlyWhitespace())
         {
             // This represents a tag when there's no attribute content <InputText | />.
-            return Completions;
+            return GetTransitionCompletions(context, containingTagName, attributes);
         }
 
         if (!TryGetAttributeInfo(owner, out var prefixLocation, out var attributeName, out var attributeNameLocation, out _, out _))
@@ -91,7 +98,27 @@ internal sealed class DirectiveAttributeTransitionCompletionItemProvider(IClient
             return [];
         }
 
-        // This represents a tag when there's no attribute content <InputText | />.
+        return GetTransitionCompletions(context, containingTagName, attributes);
+    }
+
+    private ImmutableArray<RazorCompletionItem> GetTransitionCompletions(
+        RazorCompletionContext context,
+        string containingTagName,
+        ImmutableArray<string> attributes)
+    {
+        // Only offer the transition if typing '@' would offer something. Use the same
+        // completion logic so tag matching, existing attributes, and parameters stay in sync.
+        var completionContext = new DirectiveAttributeCompletionContext()
+        {
+            SelectedAttributeName = "@",
+            ExistingAttributes = attributes,
+        };
+
+        if (!DirectiveAttributeCompletionItemProvider.HasAttributeCompletions(containingTagName, completionContext, context.TagHelperDocumentContext))
+        {
+            return [];
+        }
+
         return Completions;
     }
 

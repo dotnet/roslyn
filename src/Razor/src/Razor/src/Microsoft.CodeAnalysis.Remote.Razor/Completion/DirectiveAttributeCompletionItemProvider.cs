@@ -115,6 +115,24 @@ internal sealed partial class DirectiveAttributeCompletionItemProvider : Directi
         string containingTagName,
         DirectiveAttributeCompletionContext completionContext,
         TagHelperDocumentContext documentContext)
+        => CollectAttributeCompletions(containingTagName, completionContext, documentContext, stopAfterFirst: false);
+
+    internal static bool HasAttributeCompletions(
+        string containingTagName,
+        DirectiveAttributeCompletionContext completionContext,
+        TagHelperDocumentContext documentContext)
+    {
+        // We only need to know whether any completions are available, so stop after the first one to avoid building the full list.
+        // This method lets callers check for completions without constructing a list they would only discard.
+        var completions = CollectAttributeCompletions(containingTagName, completionContext, documentContext, stopAfterFirst: true);
+        return !completions.IsEmpty;
+    }
+
+    private static ImmutableArray<RazorCompletionItem> CollectAttributeCompletions(
+        string containingTagName,
+        DirectiveAttributeCompletionContext completionContext,
+        TagHelperDocumentContext documentContext,
+        bool stopAfterFirst)
     {
         var tagHelpersForTag = TagHelperFacts.GetTagHelpersGivenTag(documentContext, containingTagName, parentTag: null);
         if (tagHelpersForTag.IsEmpty)
@@ -135,6 +153,7 @@ internal sealed partial class DirectiveAttributeCompletionItemProvider : Directi
         {
             CollectIndexerDescriptors(tagHelpersForTag, completionContext, ref indexerAttributes);
 
+        outer:
             foreach (var tagHelper in tagHelpersForTag)
             {
                 foreach (var attribute in tagHelper.BoundAttributes)
@@ -143,12 +162,17 @@ internal sealed partial class DirectiveAttributeCompletionItemProvider : Directi
                     {
                         AddAttributeNameCompletions(attribute, completionContext, attributeCompletions);
                         AddParameterNameCompletions(attribute, indexerAttributes.AsMemory().Span, completionContext, attributeCompletions);
+
+                        if (stopAfterFirst && attributeCompletions.Count > 0)
+                        {
+                            break outer;
+                        }
                     }
                 }
             }
 
             // Use the mapping populated above to create completion items
-            return CreateCompletionItems(completionContext, attributeCompletions);
+            return CreateCompletionItems(completionContext, attributeCompletions, stopAfterFirst);
         }
         finally
         {
@@ -281,7 +305,8 @@ internal sealed partial class DirectiveAttributeCompletionItemProvider : Directi
 
     private static ImmutableArray<RazorCompletionItem> CreateCompletionItems(
         DirectiveAttributeCompletionContext completionContext,
-        Dictionary<string, AttributeCompletionDetails> attributeCompletions)
+        Dictionary<string, AttributeCompletionDetails> attributeCompletions,
+        bool stopAfterFirst)
     {
         using var completionItems = new PooledArrayBuilder<RazorCompletionItem>(capacity: attributeCompletions.Count);
 
@@ -307,6 +332,11 @@ internal sealed partial class DirectiveAttributeCompletionItemProvider : Directi
                 : RazorCompletionItem.CreateDirectiveAttributeParameter(displayText, insertText, descriptionInfo: new(descriptions), itemCommitCharacters, isSnippet, completionContext.ReplacementRange);
 
             completionItems.Add(razorCompletionItem);
+
+            if (stopAfterFirst)
+            {
+                break;
+            }
         }
 
         return completionItems.ToImmutableAndClear();
