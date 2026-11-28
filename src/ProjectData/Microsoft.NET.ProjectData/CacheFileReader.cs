@@ -429,6 +429,10 @@ public static class CacheFileReader
 		string? currentSection = null;
 		string? declaredProjectFilePath = null;
 
+		// Sections of the shared block that every per-target-framework slice inherits. See
+		// SliceBuilder.TakeTargetFrameworkResolvedSections for why they cannot be resolved in place.
+		TargetFrameworkResolvedSections? inheritedSections = null;
+
 		string? line;
 		while ((line = await reader.ReadLineAsync(cancellationToken).ConfigureAwait(false)) is not null)
 		{
@@ -443,7 +447,26 @@ public static class CacheFileReader
 			{
 				if (currentSlice is not null)
 				{
-					slices.Add(currentSlice.Build(declaredProjectFilePath ?? projectFilePath));
+					// A dimensionless block ahead of the first separator is the shared block of a
+					// multi-target cache (ProjectDataMerger writes it as the common prefix of every slice).
+					if (slices.Count == 0 && currentSlice.SliceDimensions.Count == 0)
+					{
+						TargetFrameworkResolvedSections taken = currentSlice.TakeTargetFrameworkResolvedSections();
+						CachedSliceData shared = currentSlice.Build(declaredProjectFilePath ?? projectFilePath);
+
+						// With the packs taken out, the shared slice holds only explicit references. They
+						// still take precedence over same-named pack entries, which each slice now resolves.
+						inheritedSections = taken with
+						{
+							ExplicitMetadataReferenceNames = BuildBasenameSet(shared.MetadataReferences.Select(static r => r.FilePath)),
+							ExplicitAnalyzerReferenceNames = BuildBasenameSet(shared.AnalyzerReferences),
+						};
+						slices.Add(shared);
+					}
+					else
+					{
+						slices.Add(currentSlice.Build(declaredProjectFilePath ?? projectFilePath));
+					}
 				}
 				currentSlice = null;
 				currentSection = null;
@@ -462,13 +485,13 @@ public static class CacheFileReader
 
 				if (currentSection == CacheFormat.Sections.Project)
 				{
-					currentSlice ??= new SliceBuilder(resolver, projectDirectory, stringPool, hasAuthoritativeProjectReferenceDefaults, cancellationToken);
+					currentSlice ??= StartSlice();
 				}
 
 				continue;
 			}
 
-			currentSlice ??= new SliceBuilder(resolver, projectDirectory, stringPool, hasAuthoritativeProjectReferenceDefaults, cancellationToken);
+			currentSlice ??= StartSlice();
 
 			switch (currentSection)
 			{
@@ -569,6 +592,17 @@ public static class CacheFileReader
 
 		cancellationToken.ThrowIfCancellationRequested();
 		return slices.ToImmutable();
+
+		SliceBuilder StartSlice()
+		{
+			SliceBuilder slice = new(resolver, projectDirectory, stringPool, hasAuthoritativeProjectReferenceDefaults, cancellationToken);
+			if (inheritedSections is not null)
+			{
+				slice.InheritTargetFrameworkResolvedSections(inheritedSections);
+			}
+
+			return slice;
+		}
 
 		static void ParseProjectLine(
 			SliceBuilder builder,
@@ -711,6 +745,28 @@ public static class CacheFileReader
 		return [.. portablePath[..lastSlash].Split('/')];
 	}
 
+	private sealed record TargetFrameworkResolvedSections(
+		List<string> FrameworkPacks,
+		List<string> SdkAnalyzerPacks,
+		List<string> SdkAnalyzerConfigPolicy)
+	{
+		/// <summary>File names of the shared block's explicit metadata references.</summary>
+		public HashSet<string> ExplicitMetadataReferenceNames { get; init; } = new(StringComparer.OrdinalIgnoreCase);
+
+		/// <summary>File names of the shared block's explicit analyzer references.</summary>
+		public HashSet<string> ExplicitAnalyzerReferenceNames { get; init; } = new(StringComparer.OrdinalIgnoreCase);
+	}
+
+	private static HashSet<string> BuildBasenameSet(IEnumerable<string> paths)
+	{
+		HashSet<string> set = new(StringComparer.OrdinalIgnoreCase);
+		foreach (string p in paths)
+		{
+			set.Add(Path.GetFileName(p));
+		}
+		return set;
+	}
+
 	private sealed class SliceBuilder
 	{
 		private readonly CachePathResolver resolver;
@@ -718,6 +774,11 @@ public static class CacheFileReader
 		private readonly StringPool? stringPool;
 		private readonly bool hasAuthoritativeProjectReferenceDefaults;
 		private readonly CancellationToken cancellationToken;
+
+		// Explicit references of the shared block. Its merged snapshot carries them alongside this
+		// slice's, so they suppress same-named pack entries here just as this slice's own do.
+		private IReadOnlySet<string>? inheritedExplicitMetadataReferenceNames;
+		private IReadOnlySet<string>? inheritedExplicitAnalyzerReferenceNames;
 
 		public SliceBuilder(
 			CachePathResolver resolver,
@@ -772,6 +833,37 @@ public static class CacheFileReader
 		public void AddCommandLineArgument(string value) => this.CommandLineArguments.Add(this.Pool(value));
 
 		public void AddCapability(string value) => this.Capabilities.Add(this.Pool(value));
+
+		/// <summary>
+		/// Removes and returns the sections whose entries are not paths but names resolved against
+		/// the slice's target framework: framework pack names, SDK analyzer package IDs, and SDK
+		/// analyzer config policies.
+		/// </summary>
+		/// <remarks>
+		/// <c>ProjectDataMerger</c> hoists any section that is identical across target frameworks
+		/// into the shared block, and these sections usually are: every .NET slice names
+		/// <c>Microsoft.NETCore.App.Ref</c>. The shared block has no target framework, so resolving them
+		/// there picks the highest installed pack for every slice (a <c>net8.0</c> slice would compile
+		/// against <c>net11.0</c> reference assemblies) and finds no analysis-level config at all. Each
+		/// per-target-framework slice resolves them for its own target framework instead.
+		/// </remarks>
+		public TargetFrameworkResolvedSections TakeTargetFrameworkResolvedSections()
+		{
+			TargetFrameworkResolvedSections taken = new(this.FrameworkPacks, this.SdkAnalyzerPacks, this.SdkAnalyzerConfigPolicy);
+			this.FrameworkPacks = [];
+			this.SdkAnalyzerPacks = [];
+			this.SdkAnalyzerConfigPolicy = [];
+			return taken;
+		}
+
+		public void InheritTargetFrameworkResolvedSections(TargetFrameworkResolvedSections inherited)
+		{
+			this.FrameworkPacks.AddRange(inherited.FrameworkPacks);
+			this.SdkAnalyzerPacks.AddRange(inherited.SdkAnalyzerPacks);
+			this.SdkAnalyzerConfigPolicy.AddRange(inherited.SdkAnalyzerConfigPolicy);
+			this.inheritedExplicitMetadataReferenceNames = inherited.ExplicitMetadataReferenceNames;
+			this.inheritedExplicitAnalyzerReferenceNames = inherited.ExplicitAnalyzerReferenceNames;
+		}
 
 		public CachedSliceData Build(string projectFilePath)
 		{
@@ -1004,7 +1096,7 @@ public static class CacheFileReader
 			foreach (string packRef in packAnalyzerRefs)
 			{
 				string filename = Path.GetFileName(packRef);
-				if (explicitBasenames.Contains(filename)) continue;
+				if (explicitBasenames.Contains(filename) || this.inheritedExplicitAnalyzerReferenceNames?.Contains(filename) == true) continue;
 				result.Add(this.Pool(packRef));
 			}
 			return result.ToImmutable();
@@ -1183,7 +1275,7 @@ public static class CacheFileReader
 			foreach (string packRef in packManagedRefs)
 			{
 				string filename = Path.GetFileName(packRef);
-				if (explicitBasenames.Contains(filename)) continue;
+				if (explicitBasenames.Contains(filename) || this.inheritedExplicitMetadataReferenceNames?.Contains(filename) == true) continue;
 				result.Add(new CachedMetadataReference
 				{
 					FilePath = this.Pool(packRef),
@@ -1192,16 +1284,6 @@ public static class CacheFileReader
 				});
 			}
 			return result.ToImmutable();
-		}
-
-		private static HashSet<string> BuildBasenameSet(ImmutableArray<string> paths)
-		{
-			HashSet<string> set = new(StringComparer.OrdinalIgnoreCase);
-			foreach (string p in paths)
-			{
-				set.Add(Path.GetFileName(p));
-			}
-			return set;
 		}
 
 		private ImmutableArray<CachedEmbeddedResource> BuildEmbeddedResources()

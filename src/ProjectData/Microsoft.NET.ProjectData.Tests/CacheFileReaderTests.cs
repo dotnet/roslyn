@@ -2842,6 +2842,174 @@ public class CacheFileReaderTests : IDisposable
 	}
 
 	[Fact]
+	public async Task FrameworkPacks_InSharedBlock_ResolveForEachSlicesTargetFramework()
+	{
+		// ProjectDataMerger hoists a [frameworkPacks] section that is identical in every slice into the
+		// dimensionless shared block. Resolving it there (with no target framework) would hand every
+		// slice the highest installed pack; each slice must instead get the pack for its own TFM.
+		using TempPack pack = TempPack.Create("Test.Fake.Ref", "10.0.7", managed: ["Net10Only.dll"], analyzers: [], targetFramework: "net10.0");
+		string net8Dir = Path.Combine(pack.DotNetRoot, "packs", "Test.Fake.Ref", "8.0.7");
+		Directory.CreateDirectory(Path.Combine(net8Dir, "ref", "net8.0"));
+		Directory.CreateDirectory(Path.Combine(net8Dir, "data"));
+		File.WriteAllText(
+			Path.Combine(net8Dir, "data", "FrameworkList.xml"),
+			"<FileList><File Type=\"Managed\" Path=\"ref/net8.0/Net8Only.dll\"/></FileList>");
+		File.WriteAllText(Path.Combine(net8Dir, "ref", "net8.0", "Net8Only.dll"), string.Empty);
+
+		string content = """
+			version=2
+
+			[project]
+			language=C#
+
+			[frameworkPacks]
+			Test.Fake.Ref
+
+			---
+
+			[project]
+
+			[sliceDimensions]
+			TargetFramework=net10.0
+
+			---
+
+			[project]
+
+			[sliceDimensions]
+			TargetFramework=net8.0
+			""";
+
+		ImmutableArray<CachedSliceData> slices = await ParseWithDotNetRoot(content, pack.DotNetRoot);
+
+		Assert.Equal(3, slices.Length);
+		Assert.Empty(slices[0].SliceDimensions);
+		Assert.Empty(slices[0].MetadataReferences);
+
+		Assert.Equal("net10.0", slices[1].SliceDimensions["TargetFramework"]);
+		Assert.Single(slices[1].MetadataReferences);
+		Assert.EndsWith("Net10Only.dll", slices[1].MetadataReferences[0].FilePath);
+
+		Assert.Equal("net8.0", slices[2].SliceDimensions["TargetFramework"]);
+		Assert.Single(slices[2].MetadataReferences);
+		Assert.EndsWith("Net8Only.dll", slices[2].MetadataReferences[0].FilePath);
+	}
+
+	[Fact]
+	public async Task FrameworkPacks_InSharedBlock_AreCombinedWithSlicePacks()
+	{
+		using TempPack shared = TempPack.Create("Test.Shared.Ref", "10.0.7", managed: ["Shared.dll"], analyzers: []);
+		using TempPack own = TempPack.Create("Test.Own.Ref", "10.0.7", managed: ["Own.dll"], analyzers: []);
+		CopyDirectory(Path.Combine(own.DotNetRoot, "packs"), Path.Combine(shared.DotNetRoot, "packs"));
+
+		string content = """
+			version=2
+
+			[project]
+			language=C#
+
+			[frameworkPacks]
+			Test.Shared.Ref
+
+			---
+
+			[project]
+
+			[sliceDimensions]
+			TargetFramework=net10.0
+
+			[frameworkPacks]
+			Test.Own.Ref
+			""";
+
+		ImmutableArray<CachedSliceData> slices = await ParseWithDotNetRoot(content, shared.DotNetRoot);
+
+		Assert.Equal(2, slices.Length);
+		Assert.Empty(slices[0].MetadataReferences);
+		Assert.Equal(["Shared.dll", "Own.dll"], slices[1].MetadataReferences.Select(r => Path.GetFileName(r.FilePath)));
+
+		static void CopyDirectory(string source, string destination)
+		{
+			foreach (string file in Directory.EnumerateFiles(source, "*", SearchOption.AllDirectories))
+			{
+				string target = Path.Combine(destination, Path.GetRelativePath(source, file));
+				Directory.CreateDirectory(Path.GetDirectoryName(target)!);
+				File.Copy(file, target);
+			}
+		}
+	}
+
+	[Fact]
+	public async Task FrameworkPacks_InSharedBlock_ExplicitSharedReferenceStillWinsInMergedSnapshot()
+	{
+		// The pack is resolved per slice, but an explicit reference hoisted into the shared block must
+		// still suppress the pack's same-named assembly, or the merged snapshot would carry both.
+		using TempPack pack = TempPack.Create("Test.Fake.Ref", "10.0.7", managed: ["System.Text.Json.dll", "System.Sample.dll"], analyzers: []);
+
+		string content = """
+			version=2
+
+			[project]
+			language=C#
+
+			[frameworkPacks]
+			Test.Fake.Ref
+
+			[metadataReferences]
+			<NUGET>/system.text.json/9.0.0/lib/net10.0/System.Text.Json.dll
+
+			---
+
+			[project]
+
+			[sliceDimensions]
+			TargetFramework=net10.0
+			""";
+
+		ImmutableArray<CachedSliceData> slices = await ParseWithDotNetRoot(content, pack.DotNetRoot);
+		ProjectDataSnapshot snapshot = Assert.Single(ProjectDataSnapshotFactory.CreateSnapshots(slices));
+
+		ImmutableArray<string> references = [.. snapshot.ItemsByType[ProjectItems.MetadataReference.ItemType].Select(i => i.ItemSpec)];
+		Assert.Equal(2, references.Length);
+		Assert.Contains("system.text.json", Assert.Single(references, r => Path.GetFileName(r) == "System.Text.Json.dll"), StringComparison.OrdinalIgnoreCase);
+		Assert.Single(references, r => Path.GetFileName(r) == "System.Sample.dll");
+	}
+
+	[Fact]
+	public async Task FrameworkPacks_InSharedBlock_ExplicitSharedAnalyzerStillWinsInMergedSnapshot()
+	{
+		using TempPack pack = TempPack.Create("Test.Fake.Ref", "10.0.7", managed: [], analyzers: ["Sample.Generator.dll", "Other.Analyzer.dll"]);
+
+		string content = """
+			version=2
+
+			[project]
+			language=C#
+
+			[frameworkPacks]
+			Test.Fake.Ref
+
+			[analyzerReferences]
+			packages/Sample.Generator.dll
+
+			---
+
+			[project]
+
+			[sliceDimensions]
+			TargetFramework=net10.0
+			""";
+
+		ImmutableArray<CachedSliceData> slices = await ParseWithDotNetRoot(content, pack.DotNetRoot);
+		ProjectDataSnapshot snapshot = Assert.Single(ProjectDataSnapshotFactory.CreateSnapshots(slices));
+
+		ImmutableArray<string> analyzers = [.. snapshot.ItemsByType[ProjectItems.AnalyzerReference].Select(i => i.ItemSpec)];
+		Assert.Equal(2, analyzers.Length);
+		Assert.Contains("packages", Assert.Single(analyzers, a => Path.GetFileName(a) == "Sample.Generator.dll"), StringComparison.Ordinal);
+		Assert.Single(analyzers, a => Path.GetFileName(a) == "Other.Analyzer.dll");
+	}
+
+	[Fact]
 	public async Task FrameworkPacks_Expand_PrereleasePackVersion_ForPreviewTfm()
 	{
 		using TempPack pack = TempPack.Create(
@@ -3196,6 +3364,44 @@ public class CacheFileReaderTests : IDisposable
 		Assert.Equal(2, sdk11Slices[0].AnalyzerConfigFiles.Length);
 		Assert.Contains(sdk11Slices[0].AnalyzerConfigFiles, path => path.EndsWith(Path.Combine("config", "analysislevel_11_default.globalconfig"), StringComparison.OrdinalIgnoreCase));
 		Assert.Contains(sdk11Slices[0].AnalyzerConfigFiles, path => path.EndsWith(Path.Combine("config", "analysislevelstyle_default.globalconfig"), StringComparison.OrdinalIgnoreCase));
+	}
+
+	[Fact]
+	public async Task SdkAnalyzerConfigPolicy_InSharedBlock_ResolvesForEachSlicesTargetFramework()
+	{
+		// The default analysis level follows the target framework, so a policy hoisted into the shared
+		// block must be resolved per slice: with no target framework it resolves to nothing at all.
+		const string content = """
+			version=2
+
+			[project]
+			language=C#
+
+			[sdkAnalyzerConfigPolicy]
+			Microsoft.NET.Sdk/analyzers
+
+			---
+
+			[project]
+
+			[sliceDimensions]
+			TargetFramework=net11.0
+
+			---
+
+			[project]
+
+			[sliceDimensions]
+			TargetFramework=net10.0
+			""";
+
+		using TempSdkAnalyzerConfigFiles sdk = TempSdkAnalyzerConfigFiles.Create(latestAnalysisLevel: "11.0");
+		ImmutableArray<CachedSliceData> slices = await ParseWithNuGetRoot(content, sdk.NuGetRoot, sdk.SdkPath);
+
+		Assert.Equal(3, slices.Length);
+		Assert.Empty(slices[0].AnalyzerConfigFiles);
+		Assert.Equal("analysislevel_11_default.globalconfig", Path.GetFileName(Assert.Single(slices[1].AnalyzerConfigFiles)));
+		Assert.Equal("analysislevel_10_default.globalconfig", Path.GetFileName(Assert.Single(slices[2].AnalyzerConfigFiles)));
 	}
 
 	[Fact]
