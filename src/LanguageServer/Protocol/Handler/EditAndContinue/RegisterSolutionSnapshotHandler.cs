@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.EditAndContinue;
 
 internal readonly record struct LspSolutionSnapshotId([property: JsonPropertyName("id")] int Id);
 
-[ExportCSharpVisualBasicStatelessLspService(typeof(RegisterSolutionSnapshotHandler)), Shared]
+[ExportCSharpVisualBasicLspService(typeof(RegisterSolutionSnapshotHandler)), Shared]
 [Method("workspace/_vs_registerSolutionSnapshot")]
 internal sealed class RegisterSolutionSnapshotHandler : ILspServiceRequestHandler<LspSolutionSnapshotId>
 {

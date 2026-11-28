@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -9,27 +9,22 @@ using Microsoft.Extensions.Logging;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Logging;
 
-[ExportCSharpVisualBasicLspServiceFactory(typeof(LspLoggerFactory)), Shared]
-[method: ImportingConstructor]
-[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal sealed class LspLoggerFactoryFactory(ServerConfiguration serverConfiguration) : ILspServiceFactory
-{
-    public ILspService CreateILspService(LspServices lspServices, WellKnownLspServerKinds serverKind)
-        => new LspLoggerFactory(lspServices.GetRequiredService<IClientLanguageServerManager>(), serverConfiguration);
-}
-
+[ExportCSharpVisualBasicLspService(typeof(LspLoggerFactory)), Shared(LspServiceComposition.SharingBoundary)]
 internal sealed class LspLoggerFactory : ILoggerFactory, ILspService
 {
     private readonly ILoggerFactory _loggerFactory;
     private readonly LogConfiguration _logConfiguration;
 
-    public LspLoggerFactory(IClientLanguageServerManager clientLanguageServerManager, ServerConfiguration serverConfiguration)
+    [ImportingConstructor]
+    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    public LspLoggerFactory(LspService<IClientLanguageServerManager> clientLanguageServerManager, ServerConfiguration serverConfiguration)
     {
+        var clientLanguageServerManagerValue = clientLanguageServerManager.Value;
         _logConfiguration = new(serverConfiguration.InitialLogLevel);
         _loggerFactory = LoggerFactory.Create(builder =>
         {
             builder.SetMinimumLevel(LogLevel.Trace);
-            builder.AddProvider(new LspLogMessageLoggerProvider(clientLanguageServerManager, _logConfiguration));
+            builder.AddProvider(new LspLogMessageLoggerProvider(clientLanguageServerManagerValue, _logConfiguration));
         });
     }
 

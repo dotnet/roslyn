@@ -12,7 +12,7 @@ using LSP = Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler;
 
-[ExportCSharpVisualBasicStatelessLspService(typeof(FormatDocumentHandler)), Shared]
+[ExportCSharpVisualBasicLspService(typeof(FormatDocumentHandler)), Shared]
 [Method(LSP.Methods.TextDocumentFormattingName)]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]

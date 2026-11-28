@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler;
 /// VSCodeActions blank, as these properties should be populated by the CodeActionsResolveHandler only when the user
 /// requests them.
 /// </summary>
-[ExportCSharpVisualBasicStatelessLspService(typeof(CodeActionsHandler)), Shared]
+[ExportCSharpVisualBasicLspService(typeof(CodeActionsHandler)), Shared]
 [Method(LSP.Methods.TextDocumentCodeActionName)]
 internal class CodeActionsHandler : ILspServiceDocumentRequestHandler<LSP.CodeActionParams, LSP.CodeAction[]>
 {

@@ -78,6 +78,58 @@ namespace Roslyn.Diagnostics.Analyzers.UnitTests
         }
 
         [Fact]
+        public async Task NoDiagnosticCases_DerivedSharedAttributeAsync()
+        {
+            await VerifyCS.VerifyAnalyzerAsync("""
+
+                using System;
+                using System.Composition;
+
+                [Export(typeof(C)), DerivedShared]
+                public class C
+                {
+                }
+
+                [Export(typeof(D)), MoreDerivedShared]
+                public class D
+                {
+                }
+
+                public class DerivedSharedAttribute : SharedAttribute
+                {
+                }
+
+                public sealed class MoreDerivedSharedAttribute : DerivedSharedAttribute
+                {
+                }
+
+                """ + CSharpWellKnownAttributesDefinition);
+
+            await VerifyVB.VerifyAnalyzerAsync("""
+
+                Imports System
+                Imports System.Composition
+
+                <Export(GetType(C)), DerivedShared> _
+                Public Class C
+                End Class
+
+                <Export(GetType(D)), MoreDerivedShared> _
+                Public Class D
+                End Class
+
+                Public Class DerivedSharedAttribute
+                    Inherits SharedAttribute
+                End Class
+
+                Public NotInheritable Class MoreDerivedSharedAttribute
+                    Inherits DerivedSharedAttribute
+                End Class
+
+                """ + BasicWellKnownAttributesDefinition);
+        }
+
+        [Fact]
         public async Task NoDiagnosticCases_UnresolvedTypesAsync()
         {
             await new VerifyCS.Test

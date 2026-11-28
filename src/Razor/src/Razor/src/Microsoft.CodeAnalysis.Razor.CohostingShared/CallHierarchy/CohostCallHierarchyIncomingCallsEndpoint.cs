@@ -17,7 +17,7 @@ namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
 #pragma warning disable RS0030 // Do not use banned APIs
 [Shared]
 [CohostEndpoint(Methods.CallHierarchyIncomingCallsName)]
-[ExportRazorStatelessLspService(typeof(CohostCallHierarchyIncomingCallsEndpoint))]
+[ExportRazorLspService(typeof(CohostCallHierarchyIncomingCallsEndpoint))]
 [method: ImportingConstructor]
 #pragma warning restore RS0030 // Do not use banned APIs
 internal sealed class CohostCallHierarchyIncomingCallsEndpoint(

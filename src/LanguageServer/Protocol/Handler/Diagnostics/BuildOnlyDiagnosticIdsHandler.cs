@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler;
 
 internal sealed record class BuildOnlyDiagnosticIdsResult([property: JsonPropertyName("ids")] string[] Ids);
 
-[ExportCSharpVisualBasicStatelessLspService(typeof(BuildOnlyDiagnosticIdsHandler)), Shared]
+[ExportCSharpVisualBasicLspService(typeof(BuildOnlyDiagnosticIdsHandler)), Shared]
 [Method(BuildOnlyDiagnosticIdsMethodName)]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]

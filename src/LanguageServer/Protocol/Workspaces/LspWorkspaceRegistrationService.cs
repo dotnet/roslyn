@@ -4,16 +4,18 @@
 
 using System;
 using System.Collections.Immutable;
+using System.Composition;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CommonLanguageServerProtocol.Framework;
 
 namespace Microsoft.CodeAnalysis.LanguageServer;
 
 /// <summary>
 /// Per-LSP-server view of the workspaces registered with the process-wide
-/// <see cref="LspWorkspaceRegistrationEventListener"/>. Created via
-/// <see cref="LspWorkspaceRegistrationServiceFactory"/> so each LSP server
+/// <see cref="LspWorkspaceRegistrationEventListener"/>. Each LSP server
 /// gets its own instance with its own subscriptions and lifetime.
 /// </summary>
+[ExportLspService(typeof(LspWorkspaceRegistrationService), ProtocolConstants.AllLspContracts), Shared(LspServiceComposition.SharingBoundary)]
 internal sealed class LspWorkspaceRegistrationService : ILspService, IDisposable
 {
     private readonly LspWorkspaceRegistrationEventListener _eventListener;
@@ -26,6 +28,8 @@ internal sealed class LspWorkspaceRegistrationService : ILspService, IDisposable
     private ImmutableArray<WorkspaceEventRegistration> _workspaceChangedDisposers = [];
     private bool _disposed;
 
+    [ImportingConstructor]
+    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
     public LspWorkspaceRegistrationService(LspWorkspaceRegistrationEventListener eventListener)
     {
         _eventListener = eventListener;

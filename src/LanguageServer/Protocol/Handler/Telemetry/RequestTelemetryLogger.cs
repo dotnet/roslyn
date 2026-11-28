@@ -3,8 +3,11 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Composition;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Telemetry;
@@ -17,10 +20,22 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler;
 /// Logs metadata on LSP requests (duration, success / failure metrics)
 /// for this particular LSP server instance.
 /// </summary>
+/// <remarks>
+/// Exported for servers of every LSP contract.
+/// </remarks>
+[ExportLspService(typeof(RequestTelemetryLogger), ProtocolConstants.AllLspContracts), Shared(LspServiceComposition.SharingBoundary)]
 internal class RequestTelemetryLogger : IDisposable, ILspService
 {
     protected readonly string ServerTypeName;
 
+    [ImportingConstructor]
+    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    public RequestTelemetryLogger(LspService<ServerInfoProvider> serverInfoProvider)
+        : this(serverInfoProvider.Value.ServerKind.ToTelemetryString())
+    {
+    }
+
+    [SuppressMessage("RoslynDiagnosticsReliability", "RS0034:Exported parts should have [ImportingConstructor]", Justification = "Used directly by tests and derived types")]
     public RequestTelemetryLogger(string serverTypeName)
     {
         ServerTypeName = serverTypeName;

@@ -19,7 +19,7 @@ using LSP = Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler;
 
-[ExportCSharpVisualBasicStatelessLspService(typeof(MapCodeHandler)), Shared]
+[ExportCSharpVisualBasicLspService(typeof(MapCodeHandler)), Shared]
 [Method(VSInternalMethods.WorkspaceMapCodeName)]
 internal sealed class MapCodeHandler : ILspServiceRequestHandler<VSInternalMapCodeParams, LSP.WorkspaceEdit?>
 {

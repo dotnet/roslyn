@@ -19,7 +19,7 @@ using LSP = Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler;
 
-[ExportCSharpVisualBasicStatelessLspService(typeof(DocumentSymbolsHandler)), Shared]
+[ExportCSharpVisualBasicLspService(typeof(DocumentSymbolsHandler)), Shared]
 [Method(Methods.TextDocumentDocumentSymbolName)]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]

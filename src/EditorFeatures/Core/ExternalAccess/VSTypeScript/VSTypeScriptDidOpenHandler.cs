@@ -10,7 +10,7 @@ using Microsoft.CodeAnalysis.LanguageServer.Handler.DocumentChanges;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript;
 
-[ExportStatelessLspService(typeof(DidOpenHandler), ProtocolConstants.TypeScriptLanguageContract), Shared]
+[ExportLspService(typeof(DidOpenHandler), ProtocolConstants.TypeScriptLanguageContract), Shared]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
 internal class VSTypeScriptDidOpenHandler() : DidOpenHandler;

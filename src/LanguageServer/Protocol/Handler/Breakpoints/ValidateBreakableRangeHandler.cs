@@ -16,7 +16,7 @@ using LSP = Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler;
 
-[ExportCSharpVisualBasicStatelessLspService(typeof(ValidateBreakableRangeHandler)), Shared]
+[ExportCSharpVisualBasicLspService(typeof(ValidateBreakableRangeHandler)), Shared]
 [Method(LSP.VSInternalMethods.TextDocumentValidateBreakableRangeName)]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]

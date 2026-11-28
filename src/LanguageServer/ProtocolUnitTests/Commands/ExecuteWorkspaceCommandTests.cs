@@ -44,7 +44,7 @@ public sealed class ExecuteWorkspaceCommandTests : AbstractLanguageServerProtoco
 
     }
 
-    [ExportCSharpVisualBasicStatelessLspService(typeof(TestWorkspaceCommandHandler)), Shared, PartNotDiscoverable]
+    [ExportCSharpVisualBasicLspService(typeof(TestWorkspaceCommandHandler)), Shared, PartNotDiscoverable]
     [Command(CommandName)]
     internal sealed class TestWorkspaceCommandHandler : AbstractExecuteWorkspaceCommandHandler
     {

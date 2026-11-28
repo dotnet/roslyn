@@ -8,7 +8,6 @@ using System.Diagnostics;
 using Microsoft.CodeAnalysis.BrokeredServices;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer.BrokeredServices.Services.BrokeredServiceBridgeManifest;
-using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.Extensions.Logging;
 using Microsoft.ServiceHub.Framework;
 using Microsoft.VisualStudio.Shell.ServiceBroker;
@@ -17,25 +16,31 @@ using ExportProvider = Microsoft.VisualStudio.Composition.ExportProvider;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.BrokeredServices;
 
-internal sealed class ServiceBrokerFactory(
-    IEnumerable<IServiceBrokerInitializer> initializers,
-    ExportProvider exportProvider,
-    ILoggerFactory loggerFactory) : ILspService
+[ExportCSharpVisualBasicLspService(typeof(ServiceBrokerFactory)), Shared(LspServiceComposition.SharingBoundary)]
+internal sealed class ServiceBrokerFactory : ILspService
 {
-    [ExportCSharpVisualBasicLspServiceFactory(typeof(ServiceBrokerFactory)), Shared]
-    [method: ImportingConstructor]
-    [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    private sealed class ServiceBrokerFactoryFactory(ExportProvider exportProvider) : ILspServiceFactory
-    {
-        public ILspService CreateILspService(LspServices lspServices, WellKnownLspServerKinds serverKind)
-            => new ServiceBrokerFactory(lspServices.GetRequiredServices<IServiceBrokerInitializer>(), exportProvider, lspServices.GetRequiredService<ILoggerFactory>());
-    }
-
-    private Task _bridgeCompletionTask = Task.CompletedTask;
+    private readonly ExportProvider _exportProvider;
+    private Task _bridgeCompletionTask;
     private readonly CancellationTokenSource _cancellationTokenSource = new();
-    private readonly ImmutableArray<IServiceBrokerInitializer> _initializers = [.. initializers];
-    private readonly ILogger _logger = loggerFactory.CreateLogger<ServiceBrokerFactory>();
-    private readonly TraceSource _traceSource = BrokeredServiceTraceListener.CreateTraceSource(loggerFactory);
+    private readonly ImmutableArray<IServiceBrokerInitializer> _initializers;
+    private readonly ILogger _logger;
+    private readonly TraceSource _traceSource;
+
+    [ImportingConstructor]
+    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    public ServiceBrokerFactory(
+        LspService<LspServices> lspServices,
+        ExportProvider exportProvider,
+        LspService<ILoggerFactory> loggerFactory)
+    {
+        var serviceBrokerInitializers = lspServices.Value.GetRequiredServices<IServiceBrokerInitializer>();
+        var loggerFactoryValue = loggerFactory.Value;
+        _exportProvider = exportProvider;
+        _logger = loggerFactoryValue.CreateLogger<ServiceBrokerFactory>();
+        _traceSource = BrokeredServiceTraceListener.CreateTraceSource(loggerFactoryValue);
+        _bridgeCompletionTask = Task.CompletedTask;
+        _initializers = [.. serviceBrokerInitializers];
+    }
 
     /// <summary>
     /// Creates a service broker instance without connecting via a pipe to another process.
@@ -44,7 +49,7 @@ internal sealed class ServiceBrokerFactory(
     {
         var cancellationToken = _cancellationTokenSource.Token;
 
-        var container = await BrokeredServiceContainer.CreateAsync(exportProvider, _traceSource, cancellationToken);
+        var container = await BrokeredServiceContainer.CreateAsync(_exportProvider, _traceSource, cancellationToken);
 
         // Register and proffer all services that come from service broker manual initialization
         var servicesToRegister = _initializers.SelectMany(s => s.ServicesToRegister).ToDictionary(a => a.Key, a => a.Value);
@@ -87,7 +92,7 @@ internal sealed class ServiceBrokerFactory(
     {
         var container = await CreateAsync(workspace);
         var serviceBroker = container.GetFullAccessServiceBroker();
-        var bridgeProvider = exportProvider.GetExportedValue<BrokeredServiceBridgeProvider>();
+        var bridgeProvider = _exportProvider.GetExportedValue<BrokeredServiceBridgeProvider>();
 
         _bridgeCompletionTask = bridgeProvider.SetupBrokeredServicesBridgeAsync(
             brokeredServicePipeName,

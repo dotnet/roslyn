@@ -34,8 +34,8 @@ public sealed class HandlerTests : AbstractLanguageServerProtocolTests
         typeof(TestDocumentHandler),
         typeof(TestNonMutatingDocumentHandler),
         typeof(TestRequestHandlerWithNoParams),
-        typeof(TestNotificationHandlerFactory),
-        typeof(TestNotificationWithoutParamsHandlerFactory),
+        typeof(TestNotificationHandler),
+        typeof(TestNotificationWithoutParamsHandler),
         typeof(TestLanguageSpecificHandler),
         typeof(TestLanguageSpecificHandlerWithDifferentParams),
         typeof(TestFSharpOnlyDocumentHandler),
@@ -421,7 +421,7 @@ public sealed class HandlerTests : AbstractLanguageServerProtocolTests
 
     internal sealed record TestRequestTypeThree([property: JsonPropertyName("someValue")] string SomeValue);
 
-    [ExportCSharpVisualBasicStatelessLspService(typeof(TestDocumentHandler)), PartNotDiscoverable, Shared]
+    [ExportCSharpVisualBasicLspService(typeof(TestDocumentHandler)), PartNotDiscoverable, Shared]
     [LanguageServerEndpoint(MethodName, LanguageServerConstants.DefaultLanguageName)]
     [method: ImportingConstructor]
     [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -443,7 +443,7 @@ public sealed class HandlerTests : AbstractLanguageServerProtocolTests
         }
     }
 
-    [ExportCSharpVisualBasicStatelessLspService(typeof(TestNonMutatingDocumentHandler)), PartNotDiscoverable, Shared]
+    [ExportCSharpVisualBasicLspService(typeof(TestNonMutatingDocumentHandler)), PartNotDiscoverable, Shared]
     [LanguageServerEndpoint(MethodName, LanguageServerConstants.DefaultLanguageName)]
     [method: ImportingConstructor]
     [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -465,7 +465,7 @@ public sealed class HandlerTests : AbstractLanguageServerProtocolTests
         }
     }
 
-    [ExportCSharpVisualBasicStatelessLspService(typeof(TestRequestHandlerWithNoParams)), PartNotDiscoverable, Shared]
+    [ExportCSharpVisualBasicLspService(typeof(TestRequestHandlerWithNoParams)), PartNotDiscoverable, Shared]
     [LanguageServerEndpoint(MethodName, LanguageServerConstants.DefaultLanguageName)]
     [method: ImportingConstructor]
     [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -482,6 +482,12 @@ public sealed class HandlerTests : AbstractLanguageServerProtocolTests
         }
     }
 
+    /// <summary>
+    /// Shared per server as we need a new instance for each server (the task completion result should be unique per server).
+    /// </summary>
+    [ExportCSharpVisualBasicLspService(typeof(TestNotificationHandler)), PartNotDiscoverable, Shared(LspServiceComposition.SharingBoundary)]
+    [method: ImportingConstructor]
+    [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
     [LanguageServerEndpoint(MethodName, LanguageServerConstants.DefaultLanguageName)]
     internal sealed class TestNotificationHandler() : ILspServiceNotificationHandler<TestRequestTypeOne>
     {
@@ -498,19 +504,11 @@ public sealed class HandlerTests : AbstractLanguageServerProtocolTests
     }
 
     /// <summary>
-    /// Exported via a factory as we need a new instance for each server (the task completion result should be unique per server).
+    /// Shared per server as we need a new instance for each server (the task completion result should be unique per server).
     /// </summary>
-    [ExportCSharpVisualBasicLspServiceFactory(typeof(TestNotificationHandler)), PartNotDiscoverable, Shared]
+    [ExportCSharpVisualBasicLspService(typeof(TestNotificationWithoutParamsHandler)), PartNotDiscoverable, Shared(LspServiceComposition.SharingBoundary)]
     [method: ImportingConstructor]
     [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    internal sealed class TestNotificationHandlerFactory() : ILspServiceFactory
-    {
-        public ILspService CreateILspService(LspServices lspServices, WellKnownLspServerKinds serverKind)
-        {
-            return new TestNotificationHandler();
-        }
-    }
-
     [LanguageServerEndpoint(MethodName, LanguageServerConstants.DefaultLanguageName)]
     internal sealed class TestNotificationWithoutParamsHandler() : ILspServiceNotificationHandler
     {
@@ -527,23 +525,9 @@ public sealed class HandlerTests : AbstractLanguageServerProtocolTests
     }
 
     /// <summary>
-    /// Exported via a factory as we need a new instance for each server (the task completion result should be unique per server).
-    /// </summary>
-    [ExportCSharpVisualBasicLspServiceFactory(typeof(TestNotificationWithoutParamsHandler)), PartNotDiscoverable, Shared]
-    [method: ImportingConstructor]
-    [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    internal sealed class TestNotificationWithoutParamsHandlerFactory() : ILspServiceFactory
-    {
-        public ILspService CreateILspService(LspServices lspServices, WellKnownLspServerKinds serverKind)
-        {
-            return new TestNotificationWithoutParamsHandler();
-        }
-    }
-
-    /// <summary>
     /// Defines a language specific handler with the same method as <see cref="TestDocumentHandler"/>
     /// </summary>
-    [ExportCSharpVisualBasicStatelessLspService(typeof(TestLanguageSpecificHandler)), PartNotDiscoverable, Shared]
+    [ExportCSharpVisualBasicLspService(typeof(TestLanguageSpecificHandler)), PartNotDiscoverable, Shared]
     [LanguageServerEndpoint(TestDocumentHandler.MethodName, LanguageNames.FSharp)]
     [method: ImportingConstructor]
     [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -567,7 +551,7 @@ public sealed class HandlerTests : AbstractLanguageServerProtocolTests
     /// Defines a language specific handler with the same method as <see cref="TestDocumentHandler"/>
     /// but using different request and response types.
     /// </summary>
-    [ExportCSharpVisualBasicStatelessLspService(typeof(TestLanguageSpecificHandlerWithDifferentParams)), PartNotDiscoverable, Shared]
+    [ExportCSharpVisualBasicLspService(typeof(TestLanguageSpecificHandlerWithDifferentParams)), PartNotDiscoverable, Shared]
     [LanguageServerEndpoint(TestDocumentHandler.MethodName, LanguageNames.VisualBasic)]
     [method: ImportingConstructor]
     [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -587,7 +571,7 @@ public sealed class HandlerTests : AbstractLanguageServerProtocolTests
         }
     }
 
-    [ExportCSharpVisualBasicStatelessLspService(typeof(TestFSharpOnlyDocumentHandler)), PartNotDiscoverable, Shared]
+    [ExportCSharpVisualBasicLspService(typeof(TestFSharpOnlyDocumentHandler)), PartNotDiscoverable, Shared]
     [LanguageServerEndpoint(MethodName, LanguageNames.FSharp)]
     [method: ImportingConstructor]
     [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -609,7 +593,7 @@ public sealed class HandlerTests : AbstractLanguageServerProtocolTests
         }
     }
 
-    [ExportCSharpVisualBasicStatelessLspService(typeof(TestFSharpOnlyNotificationHandler)), PartNotDiscoverable, Shared]
+    [ExportCSharpVisualBasicLspService(typeof(TestFSharpOnlyNotificationHandler)), PartNotDiscoverable, Shared]
     [LanguageServerEndpoint(MethodName, LanguageNames.FSharp)]
     [method: ImportingConstructor]
     [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -630,7 +614,7 @@ public sealed class HandlerTests : AbstractLanguageServerProtocolTests
     /// Defines a language specific handler with the same method and language as <see cref="TestLanguageSpecificHandler"/>
     /// but with different params (an error)
     /// </summary>
-    [ExportCSharpVisualBasicStatelessLspService(typeof(TestDuplicateLanguageSpecificHandler)), PartNotDiscoverable, Shared]
+    [ExportCSharpVisualBasicLspService(typeof(TestDuplicateLanguageSpecificHandler)), PartNotDiscoverable, Shared]
     [LanguageServerEndpoint(TestDocumentHandler.MethodName, LanguageNames.FSharp)]
     [method: ImportingConstructor]
     [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]

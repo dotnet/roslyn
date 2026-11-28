@@ -19,6 +19,29 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests;
 public sealed class ServerInitializationTests(ITestOutputHelper testOutputHelper) : AbstractLanguageServerMefHost(testOutputHelper)
 {
     [Fact]
+    public async Task TestSemanticTokensRequestUsesPerServerMefServicesAsync()
+    {
+        await using var server = await CreateLanguageServerAsync();
+        var document = ProtocolConversions.CreateAbsoluteDocumentUri(@"C:\SemanticTokens.cs");
+        await server.ExecuteRequestAsync<DidOpenTextDocumentParams, object>(Methods.TextDocumentDidOpenName, new DidOpenTextDocumentParams
+        {
+            TextDocument = new TextDocumentItem { DocumentUri = document, Text = "class C { }" }
+        }, CancellationToken.None);
+
+        // Exercises SemanticTokensRangeHandler -> SemanticTokensRefreshQueue, both constructed by MEF inside this server's sharing boundary.
+        var tokens = await server.ExecuteRequestAsync<SemanticTokensRangeParams, SemanticTokens>(Methods.TextDocumentSemanticTokensRangeName, new SemanticTokensRangeParams
+        {
+            TextDocument = new TextDocumentIdentifier { DocumentUri = document },
+            Range = new Roslyn.LanguageServer.Protocol.Range { Start = new Position(0, 0), End = new Position(0, 11) },
+        }, CancellationToken.None);
+
+        // Misc files don't have full project information, so no tokens are returned, but the request must be
+        // dispatched to the MEF-constructed per-server handler successfully.
+        Assert.NotNull(tokens);
+        Assert.Empty(tokens.Data);
+    }
+
+    [Fact]
     public async Task TestServerHandlesTextSyncRequestsAsync()
     {
         await using var server = await CreateLanguageServerAsync();

@@ -11,7 +11,7 @@ using Microsoft.CodeAnalysis.Options;
 using Microsoft.CommonLanguageServerProtocol.Framework;
 using Roslyn.LanguageServer.Protocol;
 
-[ExportCSharpVisualBasicStatelessLspService(typeof(ICapabilitiesProvider), WellKnownLspServerKinds.LiveShareLspServer), Shared]
+[ExportCSharpVisualBasicLspService(typeof(ICapabilitiesProvider), WellKnownLspServerKinds.LiveShareLspServer), Shared]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
 internal sealed class LiveShareCapabilitiesProvider(DefaultCapabilitiesProvider defaultCapabilitiesProvider, IGlobalOptionService globalOptionService) : ICapabilitiesProvider

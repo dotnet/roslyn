@@ -14,7 +14,7 @@ using LSP = Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler;
 
-[ExportCSharpVisualBasicStatelessLspService(typeof(WillRenameHandler)), Shared]
+[ExportCSharpVisualBasicLspService(typeof(WillRenameHandler)), Shared]
 [Method(LSP.Methods.WorkspaceWillRenameFilesName)]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]

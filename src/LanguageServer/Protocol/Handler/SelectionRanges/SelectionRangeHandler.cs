@@ -15,7 +15,7 @@ using Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler;
 
-[ExportCSharpVisualBasicStatelessLspService(typeof(SelectionRangeHandler)), Shared]
+[ExportCSharpVisualBasicLspService(typeof(SelectionRangeHandler)), Shared]
 [Method(Methods.TextDocumentSelectionRangeName)]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]

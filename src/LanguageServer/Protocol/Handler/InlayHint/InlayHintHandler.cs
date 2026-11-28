@@ -18,7 +18,7 @@ using LSP = Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.InlayHint;
 
-[ExportCSharpVisualBasicStatelessLspService(typeof(InlayHintHandler)), Shared]
+[ExportCSharpVisualBasicLspService(typeof(InlayHintHandler)), Shared]
 [Method(Methods.TextDocumentInlayHintName)]
 internal sealed class InlayHintHandler : ILspServiceDocumentRequestHandler<InlayHintParams, LSP.InlayHint[]?>
 {

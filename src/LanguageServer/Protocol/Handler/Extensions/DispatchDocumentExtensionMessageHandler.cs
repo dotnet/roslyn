@@ -12,7 +12,7 @@ using Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Extensions;
 
-[ExportCSharpVisualBasicStatelessLspService(typeof(DispatchDocumentExtensionMessageHandler)), Shared]
+[ExportCSharpVisualBasicLspService(typeof(DispatchDocumentExtensionMessageHandler)), Shared]
 [Method(MethodName)]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]

@@ -98,7 +98,7 @@ public sealed class PartialResultProgressTests : AbstractLanguageServerProtocolT
         public IProgress<string[]>? PartialResultToken { get; set; }
     }
 
-    [ExportCSharpVisualBasicStatelessLspService(typeof(TestPartialResultHandler)), PartNotDiscoverable, Shared]
+    [ExportCSharpVisualBasicLspService(typeof(TestPartialResultHandler)), PartNotDiscoverable, Shared]
     [Method(MethodName)]
     internal sealed class TestPartialResultHandler : ILspServiceRequestHandler<TestPartialResultParams, string[]>
     {

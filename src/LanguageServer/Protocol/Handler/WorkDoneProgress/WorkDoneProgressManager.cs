@@ -4,10 +4,12 @@
 
 using System;
 using System.Collections.Generic;
+using System.Composition;
 using System.Text.Json.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ErrorReporting;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Roslyn.LanguageServer.Protocol;
 using StreamJsonRpc;
 
@@ -17,10 +19,13 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler;
 /// Manages server initiated work done progress reporting to the client.
 /// See https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/#serverInitiatedProgress
 /// </summary>
-class WorkDoneProgressManager(IClientLanguageServerManager clientLanguageServerManager, IInitializeManager initializeManager) : ILspService
+[ExportCSharpVisualBasicLspService(typeof(WorkDoneProgressManager)), Shared(LspServiceComposition.SharingBoundary)]
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+class WorkDoneProgressManager(LspService<IClientLanguageServerManager> clientLanguageServerManager, LspService<IInitializeManager> initializeManager) : ILspService
 {
-    private readonly IClientLanguageServerManager _clientLanguageServerManager = clientLanguageServerManager;
-    private readonly IInitializeManager _initializeManager = initializeManager;
+    private readonly IClientLanguageServerManager _clientLanguageServerManager = clientLanguageServerManager.Value;
+    private readonly IInitializeManager _initializeManager = initializeManager.Value;
 
     /// <summary>
     /// Guards access to <see cref="_progressReporters"/>.

@@ -3,12 +3,14 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
+using System.Composition;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Features.Workspaces;
 using Microsoft.CodeAnalysis.FileBasedPrograms;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
@@ -23,6 +25,7 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.LanguageServer.FileBasedPrograms;
 
 /// <summary>Handles loading both miscellaneous files and file-based program projects.</summary>
+[ExportCSharpVisualBasicLspService(typeof(ILspMiscellaneousFilesWorkspaceProvider), WellKnownLspServerKinds.CSharpVisualBasicLspServer), Shared(LspServiceComposition.SharingBoundary)]
 internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoader, ILspMiscellaneousFilesWorkspaceProvider
 {
     private readonly ILspServices _lspServices;
@@ -35,26 +38,28 @@ internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoad
     /// </summary>
     protected override int MaxNodeCount => 1;
 
+    [ImportingConstructor]
+    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
     public FileBasedProgramsProjectSystem(
-        ILspServices lspServices,
+        LspService<LspServices> lspServices,
         IGlobalOptionService globalOptionService,
-        ILoggerFactory loggerFactory,
+        LspService<ILoggerFactory> loggerFactory,
         IAsynchronousOperationListenerProvider listenerProvider,
         ServerConfigurationFactory serverConfigurationFactory,
-        IBinLogPathProvider binLogPathProvider,
-        DotnetCliHelper dotnetCliHelper)
+        LspService<IBinLogPathProvider> binLogPathProvider,
+        LspService<DotnetCliHelper> dotnetCliHelper)
             : base(
-                lspServices,
+                lspServices.Value,
                 globalOptionService,
-                loggerFactory,
+                loggerFactory.Value,
                 listenerProvider,
                 serverConfigurationFactory,
-                binLogPathProvider,
-                dotnetCliHelper)
+                binLogPathProvider.Value,
+                dotnetCliHelper.Value)
     {
-        _lspServices = lspServices;
-        _logger = loggerFactory.CreateLogger<FileBasedProgramsProjectSystem>();
-        _canonicalProjectProvider = new CanonicalMiscellaneousFilesProjectProvider(lspServices.GetRequiredService<IHostWorkspaceProvider>(), loggerFactory);
+        _lspServices = lspServices.Value;
+        _logger = loggerFactory.Value.CreateLogger<FileBasedProgramsProjectSystem>();
+        _canonicalProjectProvider = new CanonicalMiscellaneousFilesProjectProvider(_workspaceFactory, loggerFactory.Value);
 
         globalOptionService.AddOptionChangedHandler(this, OnGlobalOptionChanged);
     }

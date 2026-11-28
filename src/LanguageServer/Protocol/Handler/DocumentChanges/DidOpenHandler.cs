@@ -14,7 +14,7 @@ using LSP = Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.DocumentChanges;
 
-[ExportCSharpVisualBasicStatelessLspService(typeof(DidOpenHandler)), Shared]
+[ExportCSharpVisualBasicLspService(typeof(DidOpenHandler)), Shared]
 [Method(LSP.Methods.TextDocumentDidOpenName)]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]

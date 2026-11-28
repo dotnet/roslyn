@@ -17,7 +17,7 @@ using LSP = Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.InlayHint;
 
-[ExportCSharpVisualBasicStatelessLspService(typeof(InlayHintResolveHandler)), Shared]
+[ExportCSharpVisualBasicLspService(typeof(InlayHintResolveHandler)), Shared]
 [Method(Methods.InlayHintResolveName)]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]

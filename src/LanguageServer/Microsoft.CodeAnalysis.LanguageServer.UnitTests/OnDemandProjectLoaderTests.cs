@@ -28,7 +28,7 @@ public sealed class OnDemandProjectLoaderTests(ITestOutputHelper testOutputHelpe
         ExtensionAssemblyManager extensionManager,
         IAssemblyLoader assemblyLoader)
         => Task.FromResult(LanguageServerTestComposition.GetSharedExportProvider(
-            serverConfiguration, loggerFactory, typeof(LanguageServerProjectLoaderTests.TestProjectLoaderFactory)));
+            serverConfiguration, loggerFactory, typeof(TestProjectLoader)));
 
     [Fact]
     public void DiscoveryFindsProjectsInNearestAncestorDirectory()

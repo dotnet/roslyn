@@ -9,6 +9,7 @@ using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.LanguageServer.Daemon;
+using Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens;
 using Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
 using Microsoft.CodeAnalysis.LanguageServer.HostWorkspace.Razor;
 using Microsoft.CodeAnalysis.LanguageServer.Telemetry;
@@ -79,6 +80,21 @@ public sealed class LanguageServerDaemonTests(ITestOutputHelper testOutputHelper
         // Both clients have their own independent server, and the daemon stays up.
         Assert.False(daemon.DaemonExitTask.IsCompleted);
         Assert.Equal(2, daemon.GetStartedServers().Length);
+    }
+
+    // Per-server MEF LSP services (see ExportLspServiceAttribute) are created in a MEF sharing boundary per server,
+    // so two servers of the same kind in one process get their own instances from the real (cached) composition.
+    [Fact]
+    public async Task Daemon_EachServerHasItsOwnPerServerMefServices()
+    {
+        await using var daemon = await CreateDaemonServerAsync();
+        await using var first = await daemon.CreateClientAsync();
+        await using var second = await daemon.CreateClientAsync();
+
+        var firstQueue = first.GetRequiredLspService<SemanticTokensRefreshQueue>();
+        Assert.Same(firstQueue, first.GetRequiredLspService<SemanticTokensRefreshQueue>());
+        Assert.NotSame(firstQueue, second.GetRequiredLspService<SemanticTokensRefreshQueue>());
+        Assert.NotSame(first.GetRequiredLspService<SemanticTokensFullHandler>(), second.GetRequiredLspService<SemanticTokensFullHandler>());
     }
 
     [Fact]

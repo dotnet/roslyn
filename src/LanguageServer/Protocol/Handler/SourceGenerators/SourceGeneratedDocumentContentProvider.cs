@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SourceGenerators;
 /// Provides text content for source generated documents by running the actual source generator
 /// (unfreezing the document) rather than returning the frozen/opened text.
 /// </summary>
-[ExportCSharpVisualBasicStatelessLspService(typeof(SourceGeneratedDocumentContentProvider)), Shared]
+[ExportCSharpVisualBasicLspService(typeof(SourceGeneratedDocumentContentProvider)), Shared]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
 internal sealed class SourceGeneratedDocumentContentProvider() : ITextDocumentContentProvider

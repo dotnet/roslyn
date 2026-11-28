@@ -19,7 +19,7 @@ namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
 #pragma warning disable RS0030 // Do not use banned APIs
 [Shared]
 [CohostEndpoint(RazorLSPConstants.AddNestedFileName)]
-[ExportRazorStatelessLspService(typeof(CohostAddNestedFileEndpoint))]
+[ExportRazorLspService(typeof(CohostAddNestedFileEndpoint))]
 [method: ImportingConstructor]
 #pragma warning restore RS0030 // Do not use banned APIs
 internal sealed class CohostAddNestedFileEndpoint(
