@@ -29,9 +29,8 @@ Class C
 }</text>.Value, composition:=s_composition)
                 Dim expectedItems = New List(Of Tuple(Of String, Integer)) From
                     {
-                    Tuple.Create("topLevelItemName", 0),
-                    Tuple.Create("test1.cs", 1),
-                    Tuple.Create("insertion!", 2)
+                    Tuple.Create("test1.cs", 0),
+                    Tuple.Create("insertion!", 1)
                     }
 
                 Dim documentId = workspace.Documents.First().Id
@@ -44,7 +43,7 @@ Class C
                 Dim componentModel = New MockComponentModel(workspace.ExportProvider)
 
                 Dim previewEngine = New PreviewEngine(
-                    "Title", "helpString", "description", "topLevelItemName", Glyph.Assembly,
+                    "Title", "helpString", "description", Glyph.Assembly,
                     forkedDocument.Project.Solution,
                     workspace.CurrentSolution,
                     componentModel)
@@ -78,7 +77,7 @@ Class C
             Using workspace = EditorTestWorkspace.Create(workspaceXml, composition:=s_composition)
                 Dim expectedItems = New List(Of Tuple(Of String, Integer)) From
                     {
-                    Tuple.Create("topLevelItemName", 0),
+                    Tuple.Create(EditorFeaturesResources.Changes, 0),
                     Tuple.Create("test1.cs", 1),
                     Tuple.Create("insertion!", 2),
                     Tuple.Create(ServicesVSResources.bracket_plus_bracket + "test3.cs", 1),
@@ -104,7 +103,7 @@ Class C
                 Dim componentModel = New MockComponentModel(workspace.ExportProvider)
 
                 Dim previewEngine = New PreviewEngine(
-                    "Title", "helpString", "description", "topLevelItemName", Glyph.Assembly,
+                    "Title", "helpString", "description", Glyph.Assembly,
                     newSolution,
                     workspace.CurrentSolution,
                     componentModel)
@@ -127,7 +126,7 @@ Class C
         $$
     }
 }</text>.Value, composition:=s_composition)
-                Dim expectedItems = New List(Of String) From {"topLevelItemName", "*test1.cs", "**insertion!"}
+                Dim expectedItems = New List(Of String) From {"*test1.cs", "**insertion!"}
 
                 Dim documentId = workspace.Documents.First().Id
                 Dim document = workspace.CurrentSolution.GetDocument(documentId)
@@ -139,7 +138,7 @@ Class C
                 Dim componentModel = New MockComponentModel(workspace.ExportProvider)
 
                 Dim previewEngine = New PreviewEngine(
-                    "Title", "helpString", "description", "topLevelItemName", Glyph.Assembly,
+                    "Title", "helpString", "description", Glyph.Assembly,
                     forkedDocument.Project.Solution,
                     workspace.CurrentSolution,
                     componentModel)
@@ -204,7 +203,7 @@ Class C
                 newSolution = newSolution.AddDocument(addedDocumentId2, "test5.cs", "// This file will be unchecked and not added!")
 
                 Dim previewEngine = New PreviewEngine(
-                    "Title", "helpString", "description", "topLevelItemName", Glyph.Assembly,
+                    "Title", "helpString", "description", Glyph.Assembly,
                     newSolution,
                     workspace.CurrentSolution,
                     componentModel)
@@ -284,7 +283,7 @@ End Class
                 Dim componentModel = New MockComponentModel(workspace.ExportProvider)
 
                 Dim previewEngine = New PreviewEngine(
-                    "Title", "helpString", "description", "topLevelItemName", Glyph.Assembly,
+                    "Title", "helpString", "description", Glyph.Assembly,
                     updatedSolution,
                     workspace.CurrentSolution,
                     componentModel)
@@ -295,10 +294,9 @@ End Class
 
                 Dim expectedItems = New List(Of Tuple(Of String, Integer)) From
                     {
-                        Tuple.Create("topLevelItemName", 0),
-                        Tuple.Create("C.vb", 1),
-                        Tuple.Create("Sub N()", 2),
-                        Tuple.Create("Sub Y()", 2)
+                        Tuple.Create("C.vb", 0),
+                        Tuple.Create("Sub N()", 1),
+                        Tuple.Create("Sub Y()", 1)
                     }
 
                 AssertTreeStructure(expectedItems, topLevelList)

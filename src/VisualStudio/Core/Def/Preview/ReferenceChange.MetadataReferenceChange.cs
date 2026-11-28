@@ -12,8 +12,8 @@ internal abstract partial class ReferenceChange : AbstractChange
     {
         private readonly MetadataReference _reference;
 
-        public MetadataReferenceChange(MetadataReference reference, ProjectId projectId, string projectName, bool isAdded, PreviewEngine engine)
-            : base(projectId, projectName, isAdded, engine)
+        public MetadataReferenceChange(MetadataReference reference, ProjectId projectId, string projectName, bool isAdded, AbstractChange parent, PreviewEngine engine)
+            : base(projectId, projectName, isAdded, parent, engine)
         {
             _reference = reference;
         }
