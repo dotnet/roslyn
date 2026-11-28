@@ -293,7 +293,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     Debug.Assert(completedOnThisThread);
                 }
 
-                state.SpinWaitComplete(CompletionPart.EndDefaultSyntaxValue, default(CancellationToken));
+                state.SpinWaitComplete(CompletionPart.EndDefaultSyntaxValue, this, default(CancellationToken));
                 return _lazyDefaultSyntaxValue;
             }
         }
@@ -1577,7 +1577,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             _ = this.GetAttributes();
             _ = this.ExplicitDefaultConstantValue;
             DoMiscValidation();
-            state.SpinWaitComplete(CompletionPart.ComplexParameterSymbolAll, cancellationToken);
+            state.SpinWaitComplete(CompletionPart.ComplexParameterSymbolAll, this, cancellationToken);
         }
 
 #nullable enable
@@ -1606,7 +1606,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 Debug.Assert(completedOnThisThread);
             }
 
-            state.SpinWaitComplete(CompletionPart.EndMiscValidation, default(CancellationToken));
+            state.SpinWaitComplete(CompletionPart.EndMiscValidation, this, default(CancellationToken));
 
             void validateParamsType(BindingDiagnosticBag diagnostics)
             {

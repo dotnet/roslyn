@@ -296,7 +296,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
             else
             {
-                state.SpinWaitComplete(CompletionPart.FinishAsyncMethodChecks, cancellationToken);
+                state.SpinWaitComplete(CompletionPart.FinishAsyncMethodChecks, this, cancellationToken);
             }
         }
 

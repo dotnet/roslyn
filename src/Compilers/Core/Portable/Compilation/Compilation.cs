@@ -48,6 +48,10 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         internal object? TestOnlyCompilationData;
 
+        internal virtual void ReportSymbolCompletionWaits(TextWriter writer)
+        {
+        }
+
         /// <summary>
         /// Returns true if this is a case sensitive compilation, false otherwise.  Case sensitivity
         /// affects compilation features such as name lookup as well as choosing what names to emit
