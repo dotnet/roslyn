@@ -25,6 +25,7 @@ namespace Microsoft.CodeAnalysis.Remote.Razor.Hover;
 internal static class HoverFactory
 {
     public static Task<LspHover?> GetHoverAsync(
+        Document generatedDocument,
         RazorCodeDocument codeDocument,
         int absoluteIndex,
         HoverDisplayOptions options,
@@ -96,7 +97,7 @@ internal static class HoverFactory
             var filePath = codeDocument.Source.FilePath.AssumeNotNull();
 
             return ElementInfoToHoverAsync(
-                filePath, binding.TagHelpers, span, options, componentAvailabilityService, cancellationToken);
+                generatedDocument, filePath, binding.TagHelpers, span, options, componentAvailabilityService, cancellationToken);
         }
 
         if (HtmlFacts.TryGetAttributeInfo(owner, out containingTagNameToken, out _, out var selectedAttributeName, out var selectedAttributeNameLocation, out attributes) &&
@@ -170,28 +171,36 @@ internal static class HoverFactory
                     break;
             }
 
-            return Task.FromResult(AttributeInfoToHover(tagHelperAttributes, attributeName, span, options));
+            return AttributeInfoToHoverAsync(generatedDocument, tagHelperAttributes, attributeName, span, options, cancellationToken);
         }
 
         return SpecializedTasks.Null<LspHover>();
     }
 
-    private static LspHover? AttributeInfoToHover(
+    private static async Task<LspHover?> AttributeInfoToHoverAsync(
+        Document generatedDocument,
         ImmutableArray<BoundAttributeDescriptor> boundAttributes,
         string attributeName,
         LinePositionSpan span,
-        HoverDisplayOptions options)
+        HoverDisplayOptions options,
+        CancellationToken cancellationToken)
     {
         var descriptionInfos = boundAttributes.SelectAsArray(boundAttribute =>
         {
             var isIndexer = TagHelperMatchingConventions.SatisfiesBoundAttributeIndexer(boundAttribute, attributeName.AsSpan());
-            return BoundAttributeDescriptionInfo.From(boundAttribute, isIndexer);
+            // Use the descriptor's type name rather than extracting it from a display name,
+            // which can contain spaces inside generic return types.
+            return BoundAttributeDescriptionInfo.From(boundAttribute, isIndexer, boundAttribute.Parent.TypeName);
         });
 
         var attrDescriptionInfo = new AggregateBoundAttributeDescription(descriptionInfos);
+        // Signature-only tooltips don't need a compilation or semantic model.
+        var formattingContext = descriptionInfos.Any(static info => DocCommentHelpers.TryExtractSummary(info.Documentation, out _))
+            ? await DocCommentFormattingContext.CreateAsync(generatedDocument, cancellationToken).ConfigureAwait(false)
+            : null;
 
         if (options.SupportsVisualStudioExtensions &&
-            ClassifiedTagHelperTooltipFactory.TryCreateTooltip(attrDescriptionInfo, out ContainerElement? classifiedTextElement))
+            ClassifiedTagHelperTooltipFactory.TryCreateTooltip(attrDescriptionInfo, formattingContext, cancellationToken, out ContainerElement? classifiedTextElement))
         {
             return new VSInternalHover
             {
@@ -201,7 +210,7 @@ internal static class HoverFactory
             };
         }
 
-        if (!MarkupTagHelperTooltipFactory.TryCreateTooltip(attrDescriptionInfo, options.MarkupKind, out var tooltipContent))
+        if (!MarkupTagHelperTooltipFactory.TryCreateTooltip(attrDescriptionInfo, options.MarkupKind, formattingContext, cancellationToken, out var tooltipContent))
         {
             return null;
         }
@@ -218,6 +227,7 @@ internal static class HoverFactory
     }
 
     private static async Task<LspHover?> ElementInfoToHoverAsync(
+        Document generatedDocument,
         string documentFilePath,
         TagHelperCollection tagHelpers,
         LinePositionSpan span,
@@ -231,12 +241,15 @@ internal static class HoverFactory
             .Where(d => keepAttributeInfo || !d.IsAttributeDescriptor())
             .SelectAsArray(BoundElementDescriptionInfo.From);
         var elementDescriptionInfo = new AggregateBoundElementDescription(descriptionInfos);
+        // Signature-only tooltips don't need a compilation or semantic model.
+        var formattingContext = descriptionInfos.Any(static info => DocCommentHelpers.TryExtractSummary(info.Documentation, out _))
+            ? await DocCommentFormattingContext.CreateAsync(generatedDocument, cancellationToken).ConfigureAwait(false)
+            : null;
 
         if (options.SupportsVisualStudioExtensions)
         {
-            var classifiedTextElement = await ClassifiedTagHelperTooltipFactory
-                .TryCreateTooltipContainerAsync(documentFilePath, elementDescriptionInfo, componentAvailabilityService, cancellationToken)
-                .ConfigureAwait(false);
+            var classifiedTextElement = await ClassifiedTagHelperTooltipFactory.TryCreateTooltipContainerAsync(
+                documentFilePath, elementDescriptionInfo, componentAvailabilityService, formattingContext, cancellationToken).ConfigureAwait(false);
 
             if (classifiedTextElement is not null)
             {
@@ -249,9 +262,8 @@ internal static class HoverFactory
             }
         }
 
-        var tooltipContent = await MarkupTagHelperTooltipFactory
-            .TryCreateTooltipAsync(documentFilePath, elementDescriptionInfo, componentAvailabilityService, options.MarkupKind, cancellationToken)
-            .ConfigureAwait(false);
+        var tooltipContent = await MarkupTagHelperTooltipFactory.TryCreateTooltipAsync(
+            documentFilePath, elementDescriptionInfo, componentAvailabilityService, options.MarkupKind, formattingContext, cancellationToken).ConfigureAwait(false);
 
         if (tooltipContent is null)
         {

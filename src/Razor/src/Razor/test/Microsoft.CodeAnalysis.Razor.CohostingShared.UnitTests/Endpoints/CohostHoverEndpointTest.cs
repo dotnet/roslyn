@@ -2,6 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
+#if !VSCODE
+using System.Linq;
+#endif
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Test.Common;
@@ -435,6 +438,108 @@ public class CohostHoverEndpointTest(ITestOutputHelper testOutputHelper) : Cohos
                             Namespace("AspNetCore")))));
         });
     }
+
+    [Fact]
+    public async Task BindFallbackDocumentation()
+    {
+        TestCode code = """
+            <my-element [|@bind-fo$$o|]="value" @bind-foo:event="onchange"/>
+
+            @code {
+                private string value = "initial";
+            }
+            """;
+
+        await VerifyHoverAsync(code, async (hover, document) =>
+        {
+            await VerifyRangeAsync(hover, code.Span, document);
+
+#if VSCODE
+            hover.VerifyContents(
+                """
+                object Bind.Bind
+
+                Binds the provided expression to an attribute and a change event, based on the naming of the bind attribute. For example:
+
+                @bind-value="..."
+
+                and
+
+                @bind-value:event="onchange"
+
+                will assign the current value of the expression to the 'value' attribute, and assign a delegate that attempts to set the value to the 'onchange' attribute.
+                """);
+#else
+            hover.VerifyContents(
+                Container(
+                    Container(
+                        Image,
+                        ClassifiedText(
+                            Keyword("object"),
+                            WhiteSpace(" "),
+                            Text("Microsoft"),
+                            Punctuation("."),
+                            Text("AspNetCore"),
+                            Punctuation("."),
+                            Text("Components"),
+                            Punctuation("."),
+                            Type("Bind"),
+                            Punctuation("."),
+                            Run("Bind", Microsoft.CodeAnalysis.Classification.ClassificationTypeNames.Identifier))),
+                    Container(o =>
+                    {
+                        var classifiedText = Assert.IsType<Roslyn.Text.Adornments.ClassifiedTextElement>(o);
+                        var summaryText = string.Concat(classifiedText.Runs.Select(static run => run.Text));
+
+                        Assert.Contains("For example:", summaryText);
+                        Assert.Contains("@bind-value=\"...\"", summaryText);
+                        Assert.Contains("@bind-value:event=\"onchange\"", summaryText);
+                        Assert.Contains("will assign the current value of the expression", summaryText);
+                        Assert.Contains(classifiedText.Runs, static run =>
+                            run.Text == "@bind-value=\"...\"" &&
+                            run.Style.HasFlag(Roslyn.Text.Adornments.ClassifiedTextRunStyle.UseClassificationFont));
+                        Assert.Contains(classifiedText.Runs, static run =>
+                            run.Text == "@bind-value:event=\"onchange\"" &&
+                            run.Style.HasFlag(Roslyn.Text.Adornments.ClassifiedTextRunStyle.UseClassificationFont));
+                    })));
+#endif
+        });
+    }
+
+#if VSCODE
+    [Fact]
+    public async Task BindFallbackDocumentation_Markdown()
+    {
+        UpdateClientLSPInitializationOptions(options =>
+        {
+            options.ClientCapabilities.TextDocument!.Hover = new HoverSetting
+            {
+                ContentFormat = [MarkupKind.Markdown],
+            };
+            return options;
+        });
+
+        TestCode code = """
+            <my-element [|@bind-fo$$o|]="value" @bind-foo:event="onchange"/>
+
+            @code {
+                private string value = "initial";
+            }
+            """;
+
+        await VerifyHoverAsync(code, async (hover, document) =>
+        {
+            await VerifyRangeAsync(hover, code.Span, document);
+
+            var markup = hover.Contents.Fourth;
+            Assert.Equal(MarkupKind.Markdown, markup.Kind);
+            Assert.Contains("**object** Bind.**Bind**", markup.Value);
+            Assert.Contains("Binds the provided expression to an attribute", markup.Value);
+            Assert.Contains($"```text{Environment.NewLine}@bind-value=\"...\"{Environment.NewLine}```", markup.Value);
+            Assert.Contains($"```text{Environment.NewLine}@bind-value:event=\"onchange\"{Environment.NewLine}```", markup.Value);
+        });
+    }
+#endif
 
     private Task VerifyHoverAsync(TestCode input, Func<Hover, TextDocument, Task> verifyHover)
         => VerifyHoverAsync(input, fileKind: null, htmlResponse: null, verifyHover);

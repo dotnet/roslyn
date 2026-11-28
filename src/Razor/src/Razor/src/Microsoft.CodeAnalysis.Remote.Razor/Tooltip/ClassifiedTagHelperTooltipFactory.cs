@@ -6,8 +6,6 @@ using System.Collections.Frozen;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
-using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.PooledObjects;
@@ -62,6 +60,7 @@ internal static class ClassifiedTagHelperTooltipFactory
         string? documentFilePath,
         AggregateBoundElementDescription elementDescriptionInfo,
         IComponentAvailabilityService componentAvailabilityService,
+        DocCommentFormattingContext? formattingContext,
         CancellationToken cancellationToken)
     {
         if (elementDescriptionInfo is null)
@@ -70,7 +69,7 @@ internal static class ClassifiedTagHelperTooltipFactory
         }
 
         var descriptionClassifications = await TryClassifyElementAsync(
-            documentFilePath, elementDescriptionInfo, componentAvailabilityService, cancellationToken).ConfigureAwait(false);
+            documentFilePath, elementDescriptionInfo, componentAvailabilityService, formattingContext, cancellationToken).ConfigureAwait(false);
 
         if (descriptionClassifications.IsDefaultOrEmpty)
         {
@@ -80,14 +79,18 @@ internal static class ClassifiedTagHelperTooltipFactory
         return CombineClassifiedTextRuns(descriptionClassifications, ClassGlyph);
     }
 
-    public static bool TryCreateTooltip(AggregateBoundAttributeDescription attributeDescriptionInfo, [NotNullWhen(true)] out ContainerElement? tooltipContent)
+    public static bool TryCreateTooltip(
+        AggregateBoundAttributeDescription attributeDescriptionInfo,
+        DocCommentFormattingContext? formattingContext,
+        CancellationToken cancellationToken,
+        [NotNullWhen(true)] out ContainerElement? tooltipContent)
     {
         if (attributeDescriptionInfo is null)
         {
             throw new ArgumentNullException(nameof(attributeDescriptionInfo));
         }
 
-        if (!TryClassifyAttribute(attributeDescriptionInfo, out var descriptionClassifications))
+        if (!TryClassifyAttribute(attributeDescriptionInfo, formattingContext, cancellationToken, out var descriptionClassifications))
         {
             tooltipContent = null;
             return false;
@@ -103,6 +106,7 @@ internal static class ClassifiedTagHelperTooltipFactory
         string documentFilePath,
         AggregateBoundElementDescription elementDescriptionInfo,
         IComponentAvailabilityService componentAvailabilityService,
+        DocCommentFormattingContext? formattingContext,
         CancellationToken cancellationToken)
     {
         if (elementDescriptionInfo is null)
@@ -111,7 +115,7 @@ internal static class ClassifiedTagHelperTooltipFactory
         }
 
         var descriptionClassifications = await TryClassifyElementAsync(
-            documentFilePath, elementDescriptionInfo, componentAvailabilityService, cancellationToken).ConfigureAwait(false);
+            documentFilePath, elementDescriptionInfo, componentAvailabilityService, formattingContext, cancellationToken).ConfigureAwait(false);
 
         if (descriptionClassifications.IsDefaultOrEmpty)
         {
@@ -123,14 +127,18 @@ internal static class ClassifiedTagHelperTooltipFactory
 
     // TO-DO: This method can be removed once LSP's VSCompletionItem supports returning ContainerElements for
     // its Description property, tracked by https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1319274.
-    public static bool TryCreateTooltip(AggregateBoundAttributeDescription attributeDescriptionInfo, [NotNullWhen(true)] out ClassifiedTextElement? tooltipContent)
+    public static bool TryCreateTooltip(
+        AggregateBoundAttributeDescription attributeDescriptionInfo,
+        DocCommentFormattingContext? formattingContext,
+        CancellationToken cancellationToken,
+        [NotNullWhen(true)] out ClassifiedTextElement? tooltipContent)
     {
         if (attributeDescriptionInfo is null)
         {
             throw new ArgumentNullException(nameof(attributeDescriptionInfo));
         }
 
-        if (!TryClassifyAttribute(attributeDescriptionInfo, out var descriptionClassifications))
+        if (!TryClassifyAttribute(attributeDescriptionInfo, formattingContext, cancellationToken, out var descriptionClassifications))
         {
             tooltipContent = null;
             return false;
@@ -144,6 +152,7 @@ internal static class ClassifiedTagHelperTooltipFactory
         string? documentFilePath,
         AggregateBoundElementDescription elementInfo,
         IComponentAvailabilityService componentAvailabilityService,
+        DocCommentFormattingContext? formattingContext,
         CancellationToken cancellationToken)
     {
         var associatedTagHelperInfos = elementInfo.DescriptionInfos;
@@ -167,7 +176,7 @@ internal static class ClassifiedTagHelperTooltipFactory
 
             // 2. Classify summary
             var documentationRuns = new List<ClassifiedTextRun>();
-            TryClassifySummary(documentationRuns, descriptionInfo.Documentation);
+            TryClassifySummary(documentationRuns, descriptionInfo.Documentation, descriptionInfo.TagHelperTypeName, propertyName: null, formattingContext, cancellationToken);
 
             // 3. Project availability
             if (documentFilePath is not null)
@@ -200,7 +209,11 @@ internal static class ClassifiedTagHelperTooltipFactory
         }
     }
 
-    private static bool TryClassifyAttribute(AggregateBoundAttributeDescription attributeInfo, out ImmutableArray<DescriptionClassification> classifications)
+    private static bool TryClassifyAttribute(
+        AggregateBoundAttributeDescription attributeInfo,
+        DocCommentFormattingContext? formattingContext,
+        CancellationToken cancellationToken,
+        out ImmutableArray<DescriptionClassification> classifications)
     {
         var associatedAttributeInfos = attributeInfo.DescriptionInfos;
         if (associatedAttributeInfos.Length == 0)
@@ -235,7 +248,7 @@ internal static class ClassifiedTagHelperTooltipFactory
 
             // 2. Classify summary
             var documentationRuns = new List<ClassifiedTextRun>();
-            TryClassifySummary(documentationRuns, descriptionInfo.Documentation);
+            TryClassifySummary(documentationRuns, descriptionInfo.Documentation, descriptionInfo.TypeName, descriptionInfo.PropertyName, formattingContext, cancellationToken);
 
             // 3. Combine type + summary information
             descriptions.Add(new DescriptionClassification(typeRuns, documentationRuns));
@@ -359,100 +372,22 @@ internal static class ClassifiedTagHelperTooltipFactory
         }
     }
 
-    private static bool TryClassifySummary(List<ClassifiedTextRun> runs, string? documentation)
+    private static bool TryClassifySummary(
+        List<ClassifiedTextRun> runs,
+        string? documentation,
+        string typeName,
+        string? propertyName,
+        DocCommentFormattingContext? formattingContext,
+        CancellationToken cancellationToken)
     {
         if (!DocCommentHelpers.TryExtractSummary(documentation, out var summaryContent))
         {
             return false;
         }
 
-        CleanAndClassifySummaryContent(runs, summaryContent);
+        var parts = DocCommentHelpers.FormatSummary(summaryContent, typeName, propertyName, formattingContext!, cancellationToken);
+        DocCommentHelpers.AddClassifiedSummary(runs, parts);
         return true;
-    }
-
-    // Internal for testing
-    internal static void CleanAndClassifySummaryContent(List<ClassifiedTextRun> runs, string summaryContent)
-    {
-        // TO-DO: We currently don't handle all possible XML comment tags and should add support
-        // for them in the future. Tracked by https://github.com/dotnet/aspnetcore/issues/32286.
-        summaryContent = summaryContent.Trim();
-        var lines = summaryContent.ToString().Split('\n').Select(line => line.Trim());
-        summaryContent = string.Join(Environment.NewLine, lines);
-
-        // There's a few edge cases we need to explicitly convert.
-        summaryContent = summaryContent.Replace("&lt;", "<");
-        summaryContent = summaryContent.Replace("&gt;", ">");
-        summaryContent = summaryContent.Replace("<para>", Environment.NewLine);
-        summaryContent = summaryContent.Replace("</para>", Environment.NewLine);
-
-        var codeMatches = DocCommentHelpers.ExtractCodeMatches(summaryContent);
-        var crefMatches = DocCommentHelpers.ExtractCrefMatches(summaryContent);
-
-        if (codeMatches.Count == 0 && crefMatches.Count == 0)
-        {
-            runs.Add(new ClassifiedTextRun(ClassificationTypeNames.Text, summaryContent));
-            return;
-        }
-
-        using var _ = StringBuilderPool.GetPooledObject(out var currentTextRun);
-
-        var currentCrefMatchIndex = 0;
-        var currentCodeMatchIndex = 0;
-        for (var i = 0; i < summaryContent.Length; i++)
-        {
-            // If we made it through all the crefs and code matches, add the rest of the text and break out of the loop.
-            if (currentCrefMatchIndex == crefMatches.Count && currentCodeMatchIndex == codeMatches.Count)
-            {
-                currentTextRun.Append(summaryContent[i..]);
-                break;
-            }
-
-            var currentCodeMatch = currentCodeMatchIndex < codeMatches.Count ? codeMatches[currentCodeMatchIndex] : null;
-            var currentCrefMatch = currentCrefMatchIndex < crefMatches.Count ? crefMatches[currentCrefMatchIndex] : null;
-
-            if (currentCodeMatch != null && i == currentCodeMatch.Index)
-            {
-                ClassifyExistingTextRun(runs, currentTextRun);
-
-                // We've processed the existing string, now we can process the code block.
-                var value = currentCodeMatch.Groups[DocCommentHelpers.TagContentGroupName].Value;
-                if (value.Length != 0)
-                {
-                    runs.Add(new ClassifiedTextRun(ClassificationTypeNames.Text, value.ToString(), ClassifiedTextRunStyle.UseClassificationFont));
-                }
-
-                i += currentCodeMatch.Length - 1;
-                currentCodeMatchIndex++;
-            }
-            else if (currentCrefMatch != null && i == currentCrefMatch.Index)
-            {
-                ClassifyExistingTextRun(runs, currentTextRun);
-
-                // We've processed the existing string, now we can process the actual cref.
-                var value = currentCrefMatch.Groups[DocCommentHelpers.TagContentGroupName].Value;
-                var reducedValue = DocCommentHelpers.ReduceCrefValue(value);
-                reducedValue = reducedValue.Replace("{", "<").Replace("}", ">").Replace("`1", "<>");
-                ClassifyTypeName(runs, reducedValue);
-
-                i += currentCrefMatch.Length - 1;
-                currentCrefMatchIndex++;
-            }
-            else
-            {
-                currentTextRun.Append(summaryContent[i]);
-            }
-        }
-
-        ClassifyExistingTextRun(runs, currentTextRun);
-
-        static void ClassifyExistingTextRun(List<ClassifiedTextRun> runs, StringBuilder currentTextRun)
-        {
-            if (currentTextRun.Length != 0)
-            {
-                runs.Add(new ClassifiedTextRun(ClassificationTypeNames.Text, currentTextRun.ToString()));
-                currentTextRun.Clear();
-            }
-        }
     }
 
     private static ContainerElement CombineClassifiedTextRuns(IReadOnlyList<DescriptionClassification> descriptionClassifications, ImageElement glyph)

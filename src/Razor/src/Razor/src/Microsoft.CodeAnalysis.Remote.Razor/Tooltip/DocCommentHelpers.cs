@@ -3,55 +3,21 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
-using System.Text.RegularExpressions;
+using System.Threading;
+using System.Xml;
+using Microsoft.CodeAnalysis.Shared.Extensions;
+using Roslyn.Text.Adornments;
 
 namespace Microsoft.CodeAnalysis.Remote.Razor.Tooltip;
 
 internal static class DocCommentHelpers
 {
-    public const string TagContentGroupName = "content";
-
-    private static readonly Regex s_codeRegex = new Regex($"""<(?:c|code)>(?<{TagContentGroupName}>.*?)<\/(?:c|code)>""", RegexOptions.Compiled, TimeSpan.FromSeconds(1));
-    private static readonly Regex s_crefRegex = new Regex($"""<(?:see|seealso)[\s]+cref="(?<{TagContentGroupName}>[^">]+)"[^>]*>""", RegexOptions.Compiled, TimeSpan.FromSeconds(1));
-
     private static readonly char[] s_newLineChars = ['\n', '\r'];
-
-    public static string ReduceCrefValue(string value)
-    {
-        // cref values come in the following formats:
-        // Type = "T:Microsoft.AspNetCore.SomeTagHelpers.SomeTypeName"
-        // Property = "P:T:Microsoft.AspNetCore.SomeTagHelpers.SomeTypeName.AspAction"
-        // Member = "M:T:Microsoft.AspNetCore.SomeTagHelpers.SomeTypeName.SomeMethod(System.Collections.Generic.List{System.String})"
-
-        if (value.Length < 2)
-        {
-            return string.Empty;
-        }
-
-        var type = value[0];
-        value = value[2..];
-
-        switch (type)
-        {
-            case 'T':
-                var reducedCrefType = ReduceTypeName(value);
-                return reducedCrefType;
-            case 'P':
-            case 'M':
-                // TypeName.MemberName
-                var reducedCrefProperty = ReduceMemberName(value);
-                return reducedCrefProperty;
-        }
-
-        return value;
-    }
 
     public static string ReduceTypeName(string content)
         => ReduceFullName(content, reduceWhenDotCount: 1);
-
-    public static string ReduceMemberName(string content)
-        => ReduceFullName(content, reduceWhenDotCount: 2);
 
     private static string ReduceFullName(string content, int reduceWhenDotCount)
     {
@@ -170,17 +136,18 @@ internal static class DocCommentHelpers
             return false;
         }
 
-        documentation = documentation.Trim(s_newLineChars);
-
         var summaryTagStart = documentation.IndexOf(SummaryStartTag, StringComparison.OrdinalIgnoreCase);
         var summaryTagEndStart = documentation.IndexOf(SummaryEndTag, StringComparison.OrdinalIgnoreCase);
         if (summaryTagStart == -1 || summaryTagEndStart == -1)
         {
+            // Plain-text fallback should not include line breaks that only surround the documentation.
+            var trimmedDocumentation = documentation.Trim(s_newLineChars);
+
             // A really wrong but cheap way to check if this is XML
-            if (!documentation.StartsWith("<", StringComparison.Ordinal) && !documentation.EndsWith(">", StringComparison.Ordinal))
+            if (!trimmedDocumentation.StartsWith("<", StringComparison.Ordinal) && !trimmedDocumentation.EndsWith(">", StringComparison.Ordinal))
             {
                 // This doesn't look like a doc comment, we'll return it as-is.
-                summary = documentation;
+                summary = trimmedDocumentation;
                 return true;
             }
 
@@ -195,30 +162,62 @@ internal static class DocCommentHelpers
         return true;
     }
 
-    public static List<Match> ExtractCodeMatches(string summaryContent)
+    public static ImmutableArray<TaggedText> FormatSummary(
+        string summary,
+        string typeName,
+        string? propertyName,
+        DocCommentFormattingContext formattingContext,
+        CancellationToken cancellationToken)
     {
-        var successfulMatches = ExtractSuccessfulMatches(s_codeRegex, summaryContent);
-        return successfulMatches;
-    }
+        // Descriptors can refer to framework types that aren't part of the generated compilation.
+        // Roslyn can still format the XML; ObjectType only means type-parameter references stay unresolved.
+        var symbol = formattingContext.ResolveSymbol(typeName, propertyName) ?? formattingContext.SemanticModel.Compilation.ObjectType;
 
-    public static List<Match> ExtractCrefMatches(string summaryContent)
-    {
-        var successfulMatches = ExtractSuccessfulMatches(s_crefRegex, summaryContent);
-        return successfulMatches;
-    }
-
-    private static List<Match> ExtractSuccessfulMatches(Regex regex, string summaryContent)
-    {
-        var matches = regex.Matches(summaryContent);
-        var successfulMatches = new List<Match>();
-        foreach (Match match in matches)
+        try
         {
-            if (match.Success)
-            {
-                successfulMatches.Add(match);
-            }
+            return formattingContext.FormattingService.Format(
+                summary,
+                symbol,
+                formattingContext.SemanticModel,
+                formattingContext.Position,
+                ISymbolExtensions2.CrefFormat,
+                typeDisplayInfo: default,
+                cancellationToken);
         }
+        catch (XmlException)
+        {
+            // TryExtractSummary passes through documentation that doesn't look like XML, and that text could still
+            // contain things like a stray '<' or '&'. Better to show it as-is than fail the whole tooltip.
+            return [new TaggedText(TextTags.Text, summary.Trim())];
+        }
+    }
 
-        return successfulMatches;
+    public static void AddClassifiedSummary(List<ClassifiedTextRun> runs, ImmutableArray<TaggedText> parts)
+    {
+        foreach (var part in parts)
+        {
+            var style = ClassifiedTextRunStyle.Plain;
+            if (part.Style.HasFlag(TaggedTextStyle.Code))
+            {
+                style |= ClassifiedTextRunStyle.UseClassificationFont;
+            }
+
+            if (part.Style.HasFlag(TaggedTextStyle.Strong))
+            {
+                style |= ClassifiedTextRunStyle.Bold;
+            }
+
+            if (part.Style.HasFlag(TaggedTextStyle.Emphasis))
+            {
+                style |= ClassifiedTextRunStyle.Italic;
+            }
+
+            if (part.Style.HasFlag(TaggedTextStyle.Underline))
+            {
+                style |= ClassifiedTextRunStyle.Underline;
+            }
+
+            runs.Add(new ClassifiedTextRun(part.Tag.ToClassificationTypeName(), part.Text, style));
+        }
     }
 }
