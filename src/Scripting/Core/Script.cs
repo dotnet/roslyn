@@ -260,11 +260,15 @@ namespace Microsoft.CodeAnalysis.Scripting
                     {
                         var globalsAssembly = GlobalsType.GetTypeInfo().Assembly;
 
-                        // If the assembly doesn't have metadata (it's an in-memory or dynamic assembly),
+                        // If the assembly doesn't have metadata (it's a dynamic assembly, or an in-memory assembly on .NET Framework),
                         // the host has to add reference to the metadata where globals type is located explicitly.
                         if (MetadataReference.HasMetadata(globalsAssembly))
                         {
                             references.Add(CreateFromAssembly(globalsAssembly, HostAssemblyReferenceProperties, Options.CreateFromFileFunc));
+                        }
+                        else if (TryCreateFromAssemblyWithoutLocation(globalsAssembly, HostAssemblyReferenceProperties) is { } globalsReference)
+                        {
+                            references.Add(globalsReference);
                         }
                     }
 
@@ -314,10 +318,43 @@ namespace Microsoft.CodeAnalysis.Scripting
             MetadataReferenceProperties properties,
             Func<string, PEStreamOptions, MetadataReferenceProperties, MetadataImageReference> createFromFileFunc)
         {
+            if (TryCreateFromAssemblyWithoutLocation(assembly, properties) is { } reference)
+            {
+                return reference;
+            }
+
             // The file is locked by the CLR assembly loader, so we can create a lazily read metadata, 
             // which might also lock the file until the reference is GC'd.
             var filePath = MetadataReference.GetAssemblyFilePath(assembly, properties);
             return createFromFileFunc(filePath, PEStreamOptions.Default, properties);
+        }
+
+        /// <summary>
+        /// Creates a reference to a loaded assembly that doesn't have a location, using the metadata the runtime holds in memory.
+        /// Such assemblies are e.g. assemblies bundled in a single-file app (https://github.com/dotnet/roslyn/issues/50719).
+        /// Returns null for any other assembly.
+        /// </summary>
+        private static MetadataImageReference TryCreateFromAssemblyWithoutLocation(Assembly assembly, MetadataReferenceProperties properties)
+        {
+#if NET
+            if (assembly != null &&
+                !assembly.IsDynamic &&
+                string.IsNullOrEmpty(assembly.Location) &&
+                properties.Kind == MetadataImageKind.Assembly)
+            {
+                unsafe
+                {
+                    if (System.Reflection.Metadata.AssemblyExtensions.TryGetRawMetadata(assembly, out byte* blob, out int length))
+                    {
+                        // The metadata blob is valid as long as the assembly is loaded. Keep the assembly alive
+                        // (it might be collectible) for as long as the metadata is in use.
+                        var metadata = AssemblyMetadata.Create(ModuleMetadata.CreateFromMetadata((nint)blob, length, onDispose: () => GC.KeepAlive(assembly)));
+                        return new MetadataImageReference(metadata, properties, documentation: null, filePath: null, display: null);
+                    }
+                }
+            }
+#endif
+            return null;
         }
 
         /// <summary>

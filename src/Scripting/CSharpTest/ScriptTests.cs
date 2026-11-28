@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Emit;
@@ -18,6 +19,10 @@ using Microsoft.CodeAnalysis.Scripting.TestUtilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
+
+#if NET
+using System.Runtime.Loader;
+#endif
 
 namespace Microsoft.CodeAnalysis.CSharp.Scripting.UnitTests
 {
@@ -1107,6 +1112,38 @@ return reply;
                 // var x = new Script();
                 Diagnostic(ErrorCode.ERR_InvalidObjectCreation, "Script").WithLocation(1, 13));
         }
+
+#if NET
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/50719")]
+        public async Task GlobalsTypeInAssemblyWithoutLocation()
+        {
+            var assembly = LoadAssemblyWithoutLocation("public class G { public int X = 41; }");
+            var globals = Activator.CreateInstance(assembly.GetType("G"));
+
+            var result = await CSharpScript.EvaluateAsync<int>("X + 1", ScriptOptions, globals);
+            Assert.Equal(42, result);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/50719")]
+        public async Task ReferenceAssemblyWithoutLocation()
+        {
+            var assembly = LoadAssemblyWithoutLocation("public static class C { public static int F() => 42; }");
+
+            var result = await CSharpScript.EvaluateAsync<int>("C.F()", ScriptOptions.AddReferences(assembly));
+            Assert.Equal(42, result);
+        }
+
+        /// <summary>
+        /// Assemblies bundled in a single-file app are loaded without a location, the same way as assemblies loaded from a stream.
+        /// </summary>
+        private static Assembly LoadAssemblyWithoutLocation(string source)
+        {
+            var image = TestCompilationFactory.CreateCSharpCompilation(source, TargetFrameworkUtil.NetStandard20References, "lib_" + Guid.NewGuid().ToString("N")).EmitToArray();
+            var assembly = AssemblyLoadContext.Default.LoadFromStream(new MemoryStream(image.ToArray()));
+            Assert.Empty(assembly.Location);
+            return assembly;
+        }
+#endif
 
         private class StreamOffsetResolver : SourceReferenceResolver
         {
