@@ -161,10 +161,10 @@ internal sealed class StackTraceExplorerToolWindow : ToolWindowPane, IOleCommand
 
     public override void OnToolWindowCreated()
     {
-        // Hide the frame by default when VS starts
-        if (Frame is IVsWindowFrame windowFrame)
+        base.OnToolWindowCreated();
+        if (Package is RoslynPackage roslynPackage)
         {
-            windowFrame.CloseFrame((uint)__FRAMECLOSE.FRAMECLOSE_NoSave);
+            InitializeIfNeeded(roslynPackage);
         }
     }
 
