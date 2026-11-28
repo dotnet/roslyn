@@ -39,8 +39,9 @@ internal static class CodeActionHelpers
         bool hasVsLspCapability,
         CancellationToken cancellationToken)
     {
+        var requestedKinds = request.Context.Only;
         var actionSets = await GetActionSetsAsync(
-            document, codeFixService, codeRefactoringService, request.Range, cancellationToken).ConfigureAwait(false);
+            document, codeFixService, codeRefactoringService, request.Range, requestedKinds, cancellationToken).ConfigureAwait(false);
         if (actionSets.IsDefaultOrEmpty)
             return [];
 
@@ -90,8 +91,23 @@ internal static class CodeActionHelpers
             }
         }
 
-        return codeActions.ToArray();
+        if (requestedKinds is not { Length: > 0 })
+            return codeActions.ToArray();
+
+        return [.. codeActions.Where(action => action.Kind is { } kind && requestedKinds.Any(requested => MatchesKind(requested, kind)))];
     }
+
+    /// <summary>
+    /// Returns whether <paramref name="actionKind"/> equals <paramref name="requestedKind"/> or is its
+    /// dot-separated descendant.
+    /// </summary>
+    /// <remarks>
+    /// The kind <c>refactor</c> should match <c>refactor.extract</c>, but not
+    /// <c>refactoring</c>. An empty requested kind matches all action kinds.
+    /// </remarks>
+    public static bool MatchesKind(CodeActionKind requestedKind, CodeActionKind actionKind)
+        => requestedKind.Value.Length == 0 || actionKind.Value == requestedKind.Value ||
+           actionKind.Value.StartsWith(requestedKind.Value + ".", StringComparison.Ordinal);
 
     private static bool IsCodeActionNotSupportedByLSP(SuggestedAction suggestedAction)
         // Filter out CodeActionsWithOptions that do not report having an OptionsService
@@ -299,21 +315,21 @@ internal static class CodeActionHelpers
     }
 
     /// <summary>
-    /// Get, order, and filter code actions.
+    /// Get, order, and filter code actions. A null <paramref name="selection"/> uses the entire current document.
     /// </summary>
     /// <remarks>
     /// Used by CodeActionResolveHandler and RunCodeActionHandler.
     /// </remarks>
     public static async Task<ImmutableArray<CodeAction>> GetCodeActionsAsync(
         TextDocument document,
-        LSP.Range selection,
+        LSP.Range? selection,
         ICodeFixService codeFixService,
         ICodeRefactoringService codeRefactoringService,
         string? fixAllScope,
         CancellationToken cancellationToken)
     {
         var actionSets = await GetActionSetsAsync(
-            document, codeFixService, codeRefactoringService, selection, cancellationToken).ConfigureAwait(false);
+            document, codeFixService, codeRefactoringService, selection, requestedKinds: null, cancellationToken).ConfigureAwait(false);
         if (actionSets.IsDefaultOrEmpty)
             return [];
 
@@ -380,22 +396,53 @@ internal static class CodeActionHelpers
         TextDocument document,
         ICodeFixService codeFixService,
         ICodeRefactoringService codeRefactoringService,
-        LSP.Range selection,
+        LSP.Range? selection,
+        CodeActionKind[]? requestedKinds,
         CancellationToken cancellationToken)
     {
+        var (includeCodeFixes, includeRefactorings) = GetIncludedCodeActionTypes(requestedKinds);
+        if (!includeCodeFixes && !includeRefactorings)
+            return [];
+
         var text = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
-        var textSpan = ProtocolConversions.RangeToTextSpan(selection, text);
+        // Compute the full span from the current snapshot when no selection was supplied.
+        // Explicit ranges, including zero-length caret selections, keep their selection semantics.
+        var textSpan = selection is null ? new TextSpan(0, text.Length) : ProtocolConversions.RangeToTextSpan(selection, text);
 
-        var codeFixes = await UnifiedSuggestedActionsSource.GetFilterAndOrderCodeFixesAsync(
-            codeFixService, document, textSpan, priority: null, cancellationToken).ConfigureAwait(false);
+        var codeFixes = includeCodeFixes
+            ? await UnifiedSuggestedActionsSource.GetFilterAndOrderCodeFixesAsync(
+                codeFixService, document, textSpan, priority: null, cancellationToken).ConfigureAwait(false)
+            : [];
 
-        var codeRefactorings = await UnifiedSuggestedActionsSource.GetFilterAndOrderCodeRefactoringsAsync(
-            codeRefactoringService, document, textSpan, priority: null,
-            filterOutsideSelection: false, cancellationToken).ConfigureAwait(false);
+        var codeRefactorings = includeRefactorings
+            ? await UnifiedSuggestedActionsSource.GetFilterAndOrderCodeRefactoringsAsync(
+                codeRefactoringService, document, textSpan, priority: null,
+                filterOutsideSelection: false, cancellationToken).ConfigureAwait(false)
+            : [];
 
         var actionSets = UnifiedSuggestedActionsSource.FilterAndOrderActionSets(
             codeFixes, codeRefactorings, textSpan, currentActionCount: 0);
         return actionSets;
+    }
+
+    private static (bool includeCodeFixes, bool includeRefactorings) GetIncludedCodeActionTypes(CodeActionKind[]? requestedKinds)
+    {
+        if (requestedKinds is not { Length: > 0 })
+            return (true, true);
+
+        var includeCodeFixes = false;
+        var includeRefactorings = false;
+        foreach (var kind in requestedKinds)
+        {
+            includeCodeFixes = includeCodeFixes || MatchesKind(kind, CodeActionKind.QuickFix);
+            includeRefactorings = includeRefactorings ||
+                MatchesKind(kind, CodeActionKind.Refactor) || MatchesKind(CodeActionKind.Refactor, kind);
+
+            if (includeCodeFixes && includeRefactorings)
+                break;
+        }
+
+        return (includeCodeFixes, includeRefactorings);
     }
 
     private static CodeActionKind GetCodeActionKindFromSuggestedActionCategoryName(string categoryName, SuggestedAction suggestedAction)

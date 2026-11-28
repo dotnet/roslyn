@@ -9,7 +9,6 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
-using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -44,7 +43,9 @@ internal sealed class CodeActionResolveHelper
         var textDiffService = solution.Services.GetService<IDocumentTextDifferencingService>();
 
         using var _1 = ArrayBuilder<SumType<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>>.GetInstance(out var textDocumentEdits);
-        using var _2 = PooledHashSet<DocumentId>.GetInstance(out var modifiedDocumentIds);
+        using var _2 = PooledHashSet<DocumentUri>.GetInstance(out var modifiedDocumentUris);
+        using var _3 = PooledHashSet<DocumentUri>.GetInstance(out var createdDocumentUris);
+        using var _4 = PooledHashSet<DocumentUri>.GetInstance(out var deletedDocumentUris);
 
         foreach (var option in operations)
         {
@@ -66,58 +67,10 @@ internal sealed class CodeActionResolveHelper
 
             var projectChanges = changes.GetProjectChanges();
 
-            // Don't apply changes in the presence of any non-document changes for now.  Note though that LSP does
-            // support additional functionality (like create/rename/delete file).  Once VS updates their LSP client
-            // impl to support this, we should add that support here.
-            //
-            // https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/#workspaceEdit
-            //
-            // Tracked with: https://github.com/dotnet/roslyn/issues/65303
-            foreach (var projectChange in projectChanges)
+            if (!CanApplyWorkspaceEdit(solution, newSolution, resourceOperations))
             {
-                if (projectChange.GetAddedProjectReferences().Any()
-                    || projectChange.GetRemovedProjectReferences().Any()
-                    || projectChange.GetAddedMetadataReferences().Any()
-                    || projectChange.GetRemovedMetadataReferences().Any()
-                    || projectChange.GetAddedAnalyzerReferences().Any()
-                    || projectChange.GetRemovedAnalyzerReferences().Any())
-                {
-                    // Changes to references are not currently supported
-                    return new LSP.WorkspaceEdit { DocumentChanges = Array.Empty<TextDocumentEdit>() };
-                }
-
-                if (projectChange.GetRemovedDocuments().Any()
-                    || projectChange.GetRemovedAdditionalDocuments().Any()
-                    || projectChange.GetRemovedAnalyzerConfigDocuments().Any())
-                {
-                    if (!resourceOperations.Contains(ResourceOperationKind.Delete))
-                    {
-                        // Removing documents is not supported by this workspace
-                        return new LSP.WorkspaceEdit { DocumentChanges = Array.Empty<TextDocumentEdit>() };
-                    }
-                }
-
-                if (projectChange.GetAddedDocuments().Any()
-                    || projectChange.GetAddedAdditionalDocuments().Any()
-                    || projectChange.GetAddedAnalyzerConfigDocuments().Any())
-                {
-                    if (!resourceOperations.Contains(ResourceOperationKind.Create))
-                    {
-                        // Adding documents is not supported by this workspace
-                        return new LSP.WorkspaceEdit { DocumentChanges = Array.Empty<TextDocumentEdit>() };
-                    }
-                }
-
-                if (projectChange.GetChangedDocuments().Any(docId => HasDocumentNameChange(docId, newSolution, solution))
-                    || projectChange.GetChangedAdditionalDocuments().Any(docId => HasDocumentNameChange(docId, newSolution, solution)
-                    || projectChange.GetChangedAnalyzerConfigDocuments().Any(docId => HasDocumentNameChange(docId, newSolution, solution))))
-                {
-                    if (!resourceOperations.Contains(ResourceOperationKind.Rename))
-                    {
-                        // Rename documents is not supported by this workspace
-                        return new LSP.WorkspaceEdit { DocumentChanges = Array.Empty<TextDocumentEdit>() };
-                    }
-                }
+                logFunction($"Skipping code action '{data.UniqueIdentifier}': unsupported references or resource operations.");
+                return new LSP.WorkspaceEdit { DocumentChanges = Array.Empty<TextDocumentEdit>() };
             }
 
 #if false
@@ -220,7 +173,9 @@ internal sealed class CodeActionResolveHelper
                 var oldTextDoc = getOldDocument(docId);
                 Contract.ThrowIfNull(oldTextDoc);
 
-                textDocumentEdits.Add(new DeleteFile { DocumentUri = oldTextDoc.GetURI() });
+                var uri = oldTextDoc.GetURI();
+                if (deletedDocumentUris.Add(uri))
+                    textDocumentEdits.Add(new DeleteFile { DocumentUri = uri });
             }
         }
 
@@ -250,6 +205,9 @@ internal sealed class CodeActionResolveHelper
                     Contract.Fail($"Can't find uri for document: {newTextDoc.Name}.");
                 }
 
+                if (!createdDocumentUris.Add(uri))
+                    continue;
+
                 textDocumentEdits.Add(new CreateFile { DocumentUri = uri });
 
                 // And then give it content
@@ -275,8 +233,8 @@ internal sealed class CodeActionResolveHelper
                 Contract.ThrowIfNull(oldTextDoc);
                 Contract.ThrowIfNull(newTextDoc);
 
-                // For linked documents, only generated the document edit once.
-                if (modifiedDocumentIds.Add(docId))
+                // Linked contexts of every document kind share one physical-file edit.
+                if (modifiedDocumentUris.Add(oldTextDoc.GetURI()))
                 {
                     var oldText = await oldTextDoc.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
 
@@ -299,7 +257,7 @@ internal sealed class CodeActionResolveHelper
 
                     if (edits.Length > 0)
                     {
-                        var documentIdentifier = new OptionalVersionedTextDocumentIdentifier { DocumentUri = newTextDoc.GetURI() };
+                        var documentIdentifier = new OptionalVersionedTextDocumentIdentifier { DocumentUri = oldTextDoc.GetURI() };
                         textDocumentEdits.Add(new TextDocumentEdit { TextDocument = documentIdentifier, Edits = edits });
                     }
 
@@ -308,22 +266,173 @@ internal sealed class CodeActionResolveHelper
                     // Client is expected to do the change in the order in which they are provided.
                     // https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/#workspaceEdit
                     // So we would like to first edit the old document, then rename it.
-                    if (oldTextDoc.Name != newTextDoc.Name)
+                    if (HasDocumentRename(oldTextDoc, newTextDoc))
                     {
-                        textDocumentEdits.Add(new RenameFile() { OldDocumentUri = oldTextDoc.GetURI(), NewDocumentUri = newTextDoc.GetUriForRenamedDocument() });
+                        textDocumentEdits.Add(new RenameFile { OldDocumentUri = oldTextDoc.GetURI(), NewDocumentUri = GetRenamedDocumentUri(oldTextDoc, newTextDoc) });
                     }
-
-                    var linkedDocuments = solution.GetRelatedDocumentIds(docId);
-                    modifiedDocumentIds.AddRange(linkedDocuments);
                 }
             }
         }
     }
 
-    private static bool HasDocumentNameChange(DocumentId documentId, Solution newSolution, Solution oldSolution)
+    private static bool CanApplyWorkspaceEdit(Solution solution, Solution newSolution, ResourceOperationKind[] resourceOperations)
     {
-        var newDocument = newSolution.GetRequiredTextDocument(documentId);
-        var oldDocument = oldSolution.GetRequiredTextDocument(documentId);
-        return newDocument.Name != oldDocument.Name;
+        foreach (var change in newSolution.GetChanges(solution).GetProjectChanges())
+        {
+            // Workspace edits cannot represent changes to project, metadata, or analyzer references.
+            // File creation, rename, and deletion are supported when the client advertises those capabilities.
+            //
+            // https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/#workspaceEdit
+            //
+            // Tracked with: https://github.com/dotnet/roslyn/issues/65303
+            if (change.GetAddedProjectReferences().Any() || change.GetRemovedProjectReferences().Any() ||
+                change.GetAddedMetadataReferences().Any() || change.GetRemovedMetadataReferences().Any() ||
+                change.GetAddedAnalyzerReferences().Any() || change.GetRemovedAnalyzerReferences().Any())
+            {
+                return false;
+            }
+
+            // If the client does not support delete operations, we cannot allow removed documents.
+            if (!resourceOperations.Contains(ResourceOperationKind.Delete) &&
+                change.GetRemovedDocuments().Concat(change.GetRemovedAdditionalDocuments()).Concat(change.GetRemovedAnalyzerConfigDocuments()).Any())
+            {
+                return false;
+            }
+
+            // If the client does not support create operations, we cannot allow added documents.
+            if (!resourceOperations.Contains(ResourceOperationKind.Create) &&
+                change.GetAddedDocuments().Concat(change.GetAddedAdditionalDocuments()).Concat(change.GetAddedAnalyzerConfigDocuments()).Any())
+            {
+                return false;
+            }
+
+            // If the client does not support rename operations, we cannot allow renamed documents.
+            if (!resourceOperations.Contains(ResourceOperationKind.Rename) &&
+                change.GetChangedDocuments().Concat(change.GetChangedAdditionalDocuments()).Concat(change.GetChangedAnalyzerConfigDocuments())
+                    .Any(id => HasDocumentRename(solution.GetRequiredTextDocument(id), newSolution.GetRequiredTextDocument(id))))
+            {
+                return false;
+            }
+        }
+
+        return true;
     }
+
+    internal static bool CanApplyFixAllChanges(Solution solution, Solution newSolution, ResourceOperationKind[] resourceOperations)
+    {
+        // Workspace edits cannot replace the solution or its projects or update solution-wide analyzer references.
+        // Per-project references and client resource capabilities are checked by the shared validator.
+        if (solution.Id != newSolution.Id ||
+            !solution.ProjectIds.SequenceEqual(newSolution.ProjectIds) ||
+            !solution.AnalyzerReferences.SequenceEqual(newSolution.AnalyzerReferences) ||
+            !CanApplyWorkspaceEdit(solution, newSolution, resourceOperations))
+        {
+            return false;
+        }
+
+        // Track destinations across projects so separate resource operations cannot claim the same file.
+        using var _ = PooledDictionary<DocumentUri, DocumentUri>.GetInstance(out var seenFileChanges);
+        foreach (var change in newSolution.GetChanges(solution).GetProjectChanges())
+        {
+            // Removing a linked context would still emit DeleteFile for the shared source file.
+            // Preserve that file while any of its original project contexts survives.
+            foreach (var id in change.GetRemovedDocuments().Concat(change.GetRemovedAdditionalDocuments()).Concat(change.GetRemovedAnalyzerConfigDocuments()))
+            {
+                var removed = solution.GetRequiredTextDocument(id);
+                if (!HasAbsolutePath(removed) ||
+                    solution.GetDocumentIdsWithFilePath(removed.FilePath).Any(id => newSolution.GetTextDocument(id) is not null))
+                {
+                    return false;
+                }
+            }
+
+            // A creation needs a usable URI and must not overwrite an existing workspace file.
+            foreach (var id in change.GetAddedDocuments().Concat(change.GetAddedAdditionalDocuments()).Concat(change.GetAddedAnalyzerConfigDocuments()))
+            {
+                var added = newSolution.GetRequiredTextDocument(id);
+                if (!HasAbsolutePath(added) &&
+                    (added.FilePath is not null || added.Project.FilePath is not { } projectPath || !PathUtilities.IsAbsolute(projectPath)))
+                {
+                    return false;
+                }
+
+                // Match the converter's project-relative path fallback when the fix has not assigned a file path.
+                var filePath = added.FilePath ?? added.GetFilePathForDocumentWithoutFilePath();
+                var uri = ProtocolConversions.CreateAbsoluteDocumentUri(filePath);
+                if (solution.GetDocumentIdsWithFilePath(filePath).Any() ||
+                    HasConflictingFileChange(uri, uri))
+                {
+                    return false;
+                }
+            }
+
+            // Text edits can target an existing untitled URI, but renames still require filesystem paths.
+            foreach (var id in change.GetChangedDocuments().Concat(change.GetChangedAdditionalDocuments()).Concat(change.GetChangedAnalyzerConfigDocuments()))
+            {
+                var oldDocument = solution.GetRequiredTextDocument(id);
+                var newDocument = newSolution.GetRequiredTextDocument(id);
+                if (!IsAbsolutePathOrUntitledUri(oldDocument.FilePath) || !IsAbsolutePathOrUntitledUri(newDocument.FilePath))
+                    return false;
+
+                if (!HasDocumentRename(oldDocument, newDocument))
+                    continue;
+
+                if (!HasAbsolutePath(oldDocument) || !HasAbsolutePath(newDocument))
+                    return false;
+
+                // A rename must not collide with another resource operation or an unrelated file in either snapshot.
+                var destinationPath = oldDocument.FilePath != newDocument.FilePath
+                    ? newDocument.FilePath
+                    : newDocument.GetFilePathForRenamedDocument();
+                var destination = GetRenamedDocumentUri(oldDocument, newDocument);
+                var linkedIds = solution.GetDocumentIdsWithFilePath(oldDocument.FilePath);
+                if (HasConflictingFileChange(destination, oldDocument.GetURI()) ||
+                    solution.GetDocumentIdsWithFilePath(destinationPath).Any(id => !linkedIds.Contains(id)) ||
+                    newSolution.GetDocumentIdsWithFilePath(destinationPath).Any(id => !linkedIds.Contains(id)))
+                {
+                    return false;
+                }
+
+                // The converter emits only one rename per source URI. Unchanged linked contexts do not need
+                // matching metadata, but multiple requested renames must agree on their physical destination.
+                foreach (var linkedId in linkedIds)
+                {
+                    var oldLinked = solution.GetRequiredTextDocument(linkedId);
+                    var newLinked = newSolution.GetTextDocument(linkedId);
+                    if (newLinked is not null && HasDocumentRename(oldLinked, newLinked) &&
+                        (!HasAbsolutePath(newLinked) || GetRenamedDocumentUri(oldLinked, newLinked) != destination))
+                    {
+                        return false;
+                    }
+                }
+            }
+        }
+
+        return true;
+
+        bool HasConflictingFileChange(DocumentUri destination, DocumentUri original)
+        {
+            // Linked contexts may repeat the same operation, but different physical files cannot share a destination.
+            if (seenFileChanges.TryGetValue(destination, out var previous) && previous != original)
+                return true;
+
+            seenFileChanges[destination] = original;
+            return false;
+        }
+    }
+
+    // Text edits may use an existing untitled URI; resource operations must still use filesystem paths.
+    internal static bool IsAbsolutePathOrUntitledUri(string? filePath)
+        => filePath is not null &&
+            (PathUtilities.IsAbsolute(filePath) ||
+             string.Equals(new DocumentUri(filePath).ParsedDocumentUri?.Scheme, "untitled", StringComparison.OrdinalIgnoreCase));
+
+    private static bool HasAbsolutePath(TextDocument document)
+        => PathUtilities.IsAbsolute(document.FilePath);
+
+    private static bool HasDocumentRename(TextDocument oldDocument, TextDocument newDocument)
+        => oldDocument.Name != newDocument.Name || oldDocument.FilePath != newDocument.FilePath;
+
+    private static DocumentUri GetRenamedDocumentUri(TextDocument oldDocument, TextDocument newDocument)
+        => oldDocument.FilePath != newDocument.FilePath ? newDocument.GetURI() : newDocument.GetUriForRenamedDocument();
 }

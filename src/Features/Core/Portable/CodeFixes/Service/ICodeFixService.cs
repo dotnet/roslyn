@@ -23,7 +23,9 @@ internal interface ICodeFixService
     /// </summary>
     Task<CodeFixCollection?> GetMostSevereFixAsync(TextDocument document, TextSpan range, CodeActionRequestPriority? priority, CancellationToken cancellationToken);
 
-    Task<CodeFixCollection?> GetDocumentFixAllForIdInSpanAsync(Document document, TextSpan? textSpan, string diagnosticId, DiagnosticSeverity severity, CancellationToken cancellationToken);
+    Task<CodeFixCollection?> GetDocumentFixAllForIdInSpanAsync(
+        Document document, TextSpan? textSpan, string diagnosticId, DiagnosticSeverity severity,
+        bool includeInteractive, CancellationToken cancellationToken);
     Task<Document> ApplyCodeFixesForSpecificDiagnosticIdAsync(Document document, TextSpan? textSpan, string diagnosticId, DiagnosticSeverity severity, IProgress<CodeAnalysisProgress> progressTracker, CancellationToken cancellationToken);
 
     CodeFixProvider? GetSuppressionFixer(string language, IEnumerable<string> diagnosticIds);

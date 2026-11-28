@@ -61,7 +61,7 @@ internal sealed class DefaultCapabilitiesProvider : ICapabilitiesProvider
             PrepareProvider = true,
         };
         capabilities.ImplementationProvider = true;
-        capabilities.CodeActionProvider = new CodeActionOptions { CodeActionKinds = [CodeActionKind.QuickFix, CodeActionKind.Refactor], ResolveProvider = true };
+        capabilities.CodeActionProvider = new CodeActionOptions { CodeActionKinds = [CodeActionKind.QuickFix, CodeActionKind.Refactor, CodeActionKind.SourceFixAll], ResolveProvider = true };
         capabilities.CompletionProvider = new Roslyn.LanguageServer.Protocol.CompletionOptions
         {
             ResolveProvider = true,
