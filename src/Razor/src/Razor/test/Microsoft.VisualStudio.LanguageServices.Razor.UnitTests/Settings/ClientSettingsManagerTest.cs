@@ -50,7 +50,7 @@ public class ClientSettingsManagerTest(ITestOutputHelper testOutput) : VisualStu
         var manager = new ClientSettingsManager(_clientSettingsChangeTriggers);
         var called = false;
         manager.ClientSettingsChanged += (caller, args) => called = true;
-        var settings = new ClientSpaceSettings(IndentWithTabs: true, IndentSize: 7);
+        var settings = new ClientSpaceSettings(IndentWithTabs: true, TabSize: 7);
 
         // Act
         manager.Update(settings);

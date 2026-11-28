@@ -200,7 +200,7 @@ public class CohostRoslynCodeActionTest(ITestOutputHelper testOutputHelper) : Co
     [Fact]
     public Task GenerateMethod_ExistingCodeBlock_UsesTabsWhenConfigured()
     {
-        ClientSettingsManager.Update(new ClientSpaceSettings(IndentWithTabs: true, IndentSize: 4));
+        ClientSettingsManager.Update(new ClientSpaceSettings(IndentWithTabs: true, TabSize: 4));
 
         return VerifyCodeActionAsync(
             csharpFile: """

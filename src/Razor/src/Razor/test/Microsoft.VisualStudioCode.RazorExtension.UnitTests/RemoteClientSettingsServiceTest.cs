@@ -57,7 +57,7 @@ public class RemoteClientSettingsServiceTest(ITestOutputHelper testOutput) : Coh
 
     private static ClientSettings CreateTestSettings()
         => new(
-            new ClientSpaceSettings(IndentWithTabs: true, IndentSize: 2),
+            new ClientSpaceSettings(IndentWithTabs: true, TabSize: 2),
             new ClientCompletionSettings(AutoShowCompletion: false, AutoListParams: false),
             new ClientAdvancedSettings(
                 FormatOnType: false,
